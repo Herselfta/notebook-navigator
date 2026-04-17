@@ -38,6 +38,7 @@ import { OmnisearchService } from './services/OmnisearchService';
 import { FileSystemOperations } from './services/FileSystemService';
 import { getIconService } from './services/icons';
 import { VaultIconProvider } from './services/icons/providers/VaultIconProvider';
+import { IconizeCompatProvider } from './services/icons/providers/IconizeCompatProvider';
 import { RecentNotesService } from './services/RecentNotesService';
 import { ExternalIconProviderController } from './services/icons/external/ExternalIconProviderController';
 import { ExternalIconProviderId } from './services/icons/external/providerRegistry';
@@ -430,6 +431,20 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         const iconService = getIconService();
         iconService.registerProvider(new VaultIconProvider(this.app));
+        const iconizeProvider = new IconizeCompatProvider(this.app);
+        iconService.registerProvider(iconizeProvider);
+        // Scan .obsidian/icons asynchronously to populate the icon list cache
+        runAsyncAction(
+            async () => {
+                await iconizeProvider.refreshIconList();
+                iconService.notifyIconAssetsChanged();
+            },
+            {
+                onError: (error: unknown) => {
+                    console.error('IconizeCompatProvider: failed to refresh icon list:', error);
+                }
+            }
+        );
         this.externalIconController = new ExternalIconProviderController(this.app, iconService, this);
         const iconController = this.externalIconController;
         if (iconController) {
