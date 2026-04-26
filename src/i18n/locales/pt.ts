@@ -1417,11 +1417,16 @@ export const STRINGS_PT = {
                     dailyNote: 'Nota diária',
                     weeklyNote: 'Nota semanal',
                     monthlyNote: 'Nota mensal',
-                    quarterlyNote: 'Nota trimestral'
+                    quarterlyNote: 'Nota trimestral',
+                    yearlyNote: 'Nota anual'
                 },
                 file: {
                     name: 'Ficheiro de arranque',
                     empty: 'Nenhum ficheiro selecionado'
+                },
+                createMissing: {
+                    name: 'Criar nota se não existir',
+                    desc: 'Cria a nota periódica ao iniciar ou através do comando se não existir.'
                 }
             },
             excludedNotes: {
@@ -1503,7 +1508,7 @@ export const STRINGS_PT = {
             },
             showFileProperties: {
                 name: 'Mostrar propriedades de ficheiros',
-                desc: 'Exibir propriedades clicáveis nos itens de ficheiro.'
+                desc: 'Exibir propriedades nos itens de ficheiro. Usa o diálogo "Visibilidade das chaves de propriedade" para escolher que propriedades são mostradas.'
             },
             colorFileProperties: {
                 name: 'Colorir propriedades de ficheiros',
@@ -1607,7 +1612,8 @@ export const STRINGS_PT = {
                 desc: 'Número de linhas a exibir para títulos de notas.',
                 options: {
                     '1': '1 linha',
-                    '2': '2 linhas'
+                    '2': '2 linhas',
+                    '3': '3 linhas'
                 }
             },
             showFeatureImage: {

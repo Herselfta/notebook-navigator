@@ -66,17 +66,24 @@ export function isFeatureImagePixelSizeSetting(value: unknown): value is Feature
     return typeof value === 'string' && FEATURE_IMAGE_PIXEL_SIZE_OPTIONS.includes(value as FeatureImagePixelSizeSetting);
 }
 
-const HOMEPAGE_SOURCES = ['none', 'file', 'daily-note', 'weekly-note', 'monthly-note', 'quarterly-note'] as const;
+const PERIODIC_HOMEPAGE_SOURCES = ['daily-note', 'weekly-note', 'monthly-note', 'quarterly-note', 'yearly-note'] as const;
+const HOMEPAGE_SOURCES = ['none', 'file', ...PERIODIC_HOMEPAGE_SOURCES] as const;
 
-type HomepageSource = (typeof HOMEPAGE_SOURCES)[number];
+export type HomepageSource = (typeof HOMEPAGE_SOURCES)[number];
+export type PeriodicHomepageSource = (typeof PERIODIC_HOMEPAGE_SOURCES)[number];
 
 export function isHomepageSource(value: unknown): value is HomepageSource {
     return typeof value === 'string' && HOMEPAGE_SOURCES.includes(value as HomepageSource);
 }
 
+export function isPeriodicHomepageSource(value: unknown): value is PeriodicHomepageSource {
+    return typeof value === 'string' && PERIODIC_HOMEPAGE_SOURCES.includes(value as PeriodicHomepageSource);
+}
+
 export interface HomepageSetting {
     source: HomepageSource;
     file: string | null;
+    createMissingPeriodicNote: boolean;
 }
 
 /** Identifiers for settings that can be switched between synced and local storage. */

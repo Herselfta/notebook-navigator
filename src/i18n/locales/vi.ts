@@ -1416,11 +1416,16 @@ export const STRINGS_VI = {
                     dailyNote: 'Ghi chú hàng ngày',
                     weeklyNote: 'Ghi chú hàng tuần',
                     monthlyNote: 'Ghi chú hàng tháng',
-                    quarterlyNote: 'Ghi chú hàng quý'
+                    quarterlyNote: 'Ghi chú hàng quý',
+                    yearlyNote: 'Ghi chú hàng năm'
                 },
                 file: {
                     name: 'Tệp khởi động',
                     empty: 'Chưa chọn tệp'
+                },
+                createMissing: {
+                    name: 'Tạo ghi chú nếu thiếu',
+                    desc: 'Tạo ghi chú định kỳ khi khởi động hoặc qua lệnh nếu chưa tồn tại.'
                 }
             },
             excludedNotes: {
@@ -1501,7 +1506,7 @@ export const STRINGS_VI = {
             },
             showFileProperties: {
                 name: 'Hiện thuộc tính tệp',
-                desc: 'Hiển thị các thuộc tính có thể nhấp trong mục tệp.'
+                desc: 'Hiển thị các thuộc tính trong mục tệp. Dùng hộp thoại "Hiển thị khóa thuộc tính" để chọn thuộc tính nào được hiển thị.'
             },
             colorFileProperties: {
                 name: 'Tô màu thuộc tính tệp',
@@ -1605,7 +1610,8 @@ export const STRINGS_VI = {
                 desc: 'Số dòng hiển thị cho tiêu đề ghi chú.',
                 options: {
                     '1': '1 dòng',
-                    '2': '2 dòng'
+                    '2': '2 dòng',
+                    '3': '3 dòng'
                 }
             },
             showFeatureImage: {

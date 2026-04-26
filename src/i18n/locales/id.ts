@@ -1415,11 +1415,16 @@ export const STRINGS_ID = {
                     dailyNote: 'Catatan harian',
                     weeklyNote: 'Catatan mingguan',
                     monthlyNote: 'Catatan bulanan',
-                    quarterlyNote: 'Catatan kuartalan'
+                    quarterlyNote: 'Catatan kuartalan',
+                    yearlyNote: 'Catatan tahunan'
                 },
                 file: {
                     name: 'File awal',
                     empty: 'Tidak ada file dipilih'
+                },
+                createMissing: {
+                    name: 'Buat catatan jika tidak ada',
+                    desc: 'Membuat catatan berkala saat startup atau perintah jika belum ada.'
                 }
             },
             excludedNotes: {
@@ -1501,7 +1506,7 @@ export const STRINGS_ID = {
             },
             showFileProperties: {
                 name: 'Tampilkan properti file',
-                desc: 'Tampilkan properti yang dapat diklik di item file.'
+                desc: 'Tampilkan properti di item file. Gunakan dialog visibilitas kunci properti untuk memilih properti yang ditampilkan.'
             },
             colorFileProperties: {
                 name: 'Warnai properti file',
@@ -1605,7 +1610,8 @@ export const STRINGS_ID = {
                 desc: 'Jumlah baris yang ditampilkan untuk judul catatan.',
                 options: {
                     '1': '1 baris',
-                    '2': '2 baris'
+                    '2': '2 baris',
+                    '3': '3 baris'
                 }
             },
             showFeatureImage: {

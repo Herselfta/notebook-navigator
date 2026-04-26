@@ -38,6 +38,7 @@ import {
 import { EMPTY_SEARCH_NAV_FILTER_STATE, type SearchNavFilterState, type SearchProvider } from '../types/search';
 import { focusElementPreventScroll } from '../utils/domUtils';
 import {
+    buildSearchNavFilterState,
     parseFilterSearchTokens,
     updateFilterQueryWithDateToken,
     updateFilterQueryWithProperty,
@@ -46,7 +47,7 @@ import {
 } from '../utils/filterSearch';
 import { showNotice } from '../utils/noticeUtils';
 import { normalizeOptionalVaultFolderPath } from '../utils/pathUtils';
-import { buildPropertyKeyNodeId, buildPropertyValueNodeId, parsePropertyNodeId } from '../utils/propertyTree';
+import { parsePropertyNodeId } from '../utils/propertyTree';
 import { normalizeTagPath } from '../utils/tagUtils';
 import type { FilterSearchTokens } from '../utils/filterSearch';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from './useNavigatorReveal';
@@ -54,6 +55,16 @@ import type { EnsureSelectionOptions, EnsureSelectionResult } from './useListPan
 
 interface ExecuteSearchShortcutParams {
     searchShortcut: SearchShortcut;
+}
+
+export interface SearchQueryUpdateOptions {
+    preserveSinglePaneView?: boolean;
+    focusSearch?: boolean;
+}
+
+interface ActivateSearchOptions {
+    focusPane?: 'search' | 'files' | null;
+    preserveSinglePaneView?: boolean;
 }
 
 interface UseListPaneSearchParams {
@@ -83,9 +94,9 @@ export interface UseListPaneSearchResult {
     focusSearchComplete: () => void;
     handleSaveSearchShortcut: () => void;
     handleRemoveSearchShortcut: () => Promise<void>;
-    modifySearchWithTag: (tag: string, operator: InclusionOperator) => void;
-    modifySearchWithProperty: (key: string, value: string | null, operator: InclusionOperator) => void;
-    modifySearchWithDateToken: (dateToken: string) => void;
+    modifySearchWithTag: (tag: string, operator: InclusionOperator, options?: SearchQueryUpdateOptions) => void;
+    modifySearchWithProperty: (key: string, value: string | null, operator: InclusionOperator, options?: SearchQueryUpdateOptions) => void;
+    modifySearchWithDateToken: (dateToken: string, options?: SearchQueryUpdateOptions) => void;
     toggleSearch: () => void;
     executeSearchShortcut: (params: ExecuteSearchShortcutParams) => Promise<void>;
 }
@@ -241,62 +252,8 @@ export function useListPaneSearch({
             return;
         }
 
-        const trimmed = searchQuery.trim();
-        if (!trimmed) {
-            onSearchTokensChange(EMPTY_SEARCH_NAV_FILTER_STATE);
-            return;
-        }
-
-        const tokens = parseFilterSearchTokens(trimmed);
-        const includeSet = new Set<string>();
-        tokens.includedTagTokens.forEach(token => {
-            const normalized = normalizeTagPath(token);
-            if (normalized) {
-                includeSet.add(normalized);
-            }
-        });
-
-        const excludeSet = new Set<string>();
-        tokens.excludeTagTokens.forEach(token => {
-            const normalized = normalizeTagPath(token);
-            if (normalized) {
-                excludeSet.add(normalized);
-            }
-        });
-
-        const propertyIncludeSet = new Set<string>();
-        tokens.propertyTokens.forEach(token => {
-            if (token.value) {
-                propertyIncludeSet.add(buildPropertyValueNodeId(token.key, token.value));
-                return;
-            }
-
-            propertyIncludeSet.add(buildPropertyKeyNodeId(token.key));
-        });
-
-        const propertyExcludeSet = new Set<string>();
-        tokens.excludePropertyTokens.forEach(token => {
-            if (token.value) {
-                propertyExcludeSet.add(buildPropertyValueNodeId(token.key, token.value));
-                return;
-            }
-
-            propertyExcludeSet.add(buildPropertyKeyNodeId(token.key));
-        });
-
-        onSearchTokensChange({
-            tags: {
-                include: Array.from(includeSet),
-                exclude: Array.from(excludeSet),
-                excludeTagged: tokens.excludeTagged,
-                includeUntagged: tokens.includeUntagged,
-                requireTagged: tokens.requireTagged
-            },
-            properties: {
-                include: Array.from(propertyIncludeSet),
-                exclude: Array.from(propertyExcludeSet)
-            }
-        });
+        const nextState = searchQuery.trim() ? buildSearchNavFilterState(searchQuery) : EMPTY_SEARCH_NAV_FILTER_STATE;
+        onSearchTokensChange(nextState);
     }, [onSearchTokensChange, searchQuery]);
 
     const activeSearchShortcutStartTarget = useMemo<ShortcutStartTarget | undefined>(() => {
@@ -333,15 +290,18 @@ export function useListPaneSearch({
     }, [activeSearchShortcutStartTarget]);
 
     const activateSearch = useCallback(
-        (focusPane: 'search' | 'files' = 'search') => {
+        (options?: ActivateSearchOptions) => {
+            const focusPane = options?.focusPane ?? 'search';
             if (!isSearchActive) {
                 setSearchActive(true);
-                if (uiState.singlePane) {
+                if (uiState.singlePane && options?.preserveSinglePaneView !== true) {
                     uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
                 }
             }
 
-            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: focusPane });
+            if (focusPane) {
+                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: focusPane });
+            }
         },
         [isSearchActive, setSearchActive, uiDispatch, uiState.singlePane]
     );
@@ -435,9 +395,15 @@ export function useListPaneSearch({
     }, [activeSearchShortcut, isSavingSearchShortcut, removeSearchShortcut]);
 
     const updateSearchQuery = useCallback(
-        (mutate: (query: string) => string) => {
-            setShouldFocusSearch(true);
-            activateSearch();
+        (mutate: (query: string) => string, options?: SearchQueryUpdateOptions) => {
+            const shouldFocusSearch = options?.focusSearch !== false;
+            if (shouldFocusSearch) {
+                setShouldFocusSearch(true);
+            }
+            activateSearch({
+                focusPane: shouldFocusSearch ? 'search' : null,
+                preserveSinglePaneView: options?.preserveSinglePaneView
+            });
 
             let nextQueryValue: string | null = null;
             setSearchQuery(previousQuery => {
@@ -454,31 +420,31 @@ export function useListPaneSearch({
     );
 
     const modifySearchWithTag = useCallback(
-        (tag: string, operator: InclusionOperator) => {
+        (tag: string, operator: InclusionOperator, options?: SearchQueryUpdateOptions) => {
             const normalizedTag = normalizeTagPath(tag);
             if (!normalizedTag || normalizedTag === UNTAGGED_TAG_ID) {
                 return;
             }
 
-            updateSearchQuery(query => updateFilterQueryWithTag(query, normalizedTag, operator).query);
+            updateSearchQuery(query => updateFilterQueryWithTag(query, normalizedTag, operator).query, options);
         },
         [updateSearchQuery]
     );
 
     const modifySearchWithProperty = useCallback(
-        (key: string, value: string | null, operator: InclusionOperator) => {
+        (key: string, value: string | null, operator: InclusionOperator, options?: SearchQueryUpdateOptions) => {
             const normalizedKey = key.trim();
             if (!normalizedKey) {
                 return;
             }
 
-            updateSearchQuery(query => updateFilterQueryWithProperty(query, normalizedKey, value, operator).query);
+            updateSearchQuery(query => updateFilterQueryWithProperty(query, normalizedKey, value, operator).query, options);
         },
         [updateSearchQuery]
     );
 
     const modifySearchWithDateToken = useCallback(
-        (dateToken: string) => {
+        (dateToken: string, options?: SearchQueryUpdateOptions) => {
             const normalizedToken = dateToken.trim();
             if (!normalizedToken) {
                 return;
@@ -488,7 +454,7 @@ export function useListPaneSearch({
                 plugin.setSearchProvider('internal');
             }
 
-            updateSearchQuery(query => updateFilterQueryWithDateToken(query, normalizedToken).query);
+            updateSearchQuery(query => updateFilterQueryWithDateToken(query, normalizedToken).query, options);
         },
         [plugin, searchProvider, updateSearchQuery]
     );

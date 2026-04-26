@@ -129,7 +129,8 @@ export function migrateLegacySyncedSettings(params: {
     if (!hasStructuredHomepage) {
         settings.homepage = {
             source: legacyHomepage ? 'file' : 'none',
-            file: legacyHomepage
+            file: legacyHomepage,
+            createMissingPeriodicNote: defaultSettings.homepage.createMissingPeriodicNote
         };
     }
     if (legacyUseMobileHomepage) {

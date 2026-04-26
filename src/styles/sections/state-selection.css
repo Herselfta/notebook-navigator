@@ -12,7 +12,7 @@
     inset-inline-start: 0;
     inset-inline-end: 0;
     /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.2px;
+    bottom: -0.5px;
     /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
     background-color: var(--nn-selected-file-bg-color);
     border-radius: var(--nn-file-item-border-radius);
@@ -43,7 +43,7 @@
     inset-inline-start: 0;
     inset-inline-end: 0;
     /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.2px;
+    bottom: -0.5px;
     /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
     background-color: var(--nn-selected-navitem-bg-color);
     border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));

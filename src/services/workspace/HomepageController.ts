@@ -25,13 +25,17 @@ import { getSupportedLeaves } from '../../types';
 import {
     buildCustomCalendarFilePathForPattern,
     buildCustomCalendarMomentPattern,
+    createCalendarMarkdownFile,
     getCalendarNoteConfig,
-    resolveCalendarCustomNotePathDate
+    getCalendarTemplatePath,
+    resolveCalendarCustomNotePathDate,
+    type CalendarNoteKind
 } from '../../utils/calendarNotes';
-import { getDailyNoteFile, getDailyNoteSettings } from '../../utils/dailyNotes';
+import { createDailyNote, getDailyNoteFile, getDailyNoteSettings } from '../../utils/dailyNotes';
 import { getCurrentLanguage } from '../../i18n';
-import { getMomentApi, resolveCalendarLocales } from '../../utils/moment';
+import { getMomentApi, resolveCalendarLocales, resolveDailyNoteLocale } from '../../utils/moment';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
+import type { HomepageSource } from '../../settings/types';
 
 // Indicates what triggered the homepage opening
 type HomepageTrigger = 'startup' | 'command';
@@ -89,7 +93,22 @@ export default class HomepageController {
                 return this.resolvePeriodicHomepageFile('month');
             case 'quarterly-note':
                 return this.resolvePeriodicHomepageFile('quarter');
+            case 'yearly-note':
+                return this.resolvePeriodicHomepageFile('year');
         }
+    }
+
+    /**
+     * Checks whether the configured homepage can be opened.
+     */
+    canOpenHomepage(): boolean {
+        if (this.resolveHomepageFile()) {
+            return true;
+        }
+
+        const { homepage } = this.plugin.settings;
+        const periodicKind = this.getPeriodicHomepageKind(homepage.source);
+        return Boolean(homepage.createMissingPeriodicNote && periodicKind && this.canCreatePeriodicHomepageFile(periodicKind));
     }
 
     /**
@@ -127,7 +146,7 @@ export default class HomepageController {
             return false;
         }
 
-        const homepageFile = this.resolveHomepageFile();
+        const homepageFile = await this.resolveHomepageFileForOpen();
         if (!homepageFile) {
             return false;
         }
@@ -228,19 +247,62 @@ export default class HomepageController {
         return typeof fileValue === 'string' ? fileValue : null;
     }
 
-    private resolvePeriodicHomepageFile(kind: 'day' | 'week' | 'month' | 'quarter'): TFile | null {
+    private async resolveHomepageFileForOpen(): Promise<TFile | null> {
+        const existingHomepageFile = this.resolveHomepageFile();
+        if (existingHomepageFile || !this.plugin.settings.homepage.createMissingPeriodicNote) {
+            return existingHomepageFile;
+        }
+
+        const periodicKind = this.getPeriodicHomepageKind(this.plugin.settings.homepage.source);
+        if (!periodicKind) {
+            return null;
+        }
+
+        return this.createPeriodicHomepageFile(periodicKind);
+    }
+
+    private getPeriodicHomepageKind(source: HomepageSource): CalendarNoteKind | null {
+        switch (source) {
+            case 'daily-note':
+                return 'day';
+            case 'weekly-note':
+                return 'week';
+            case 'monthly-note':
+                return 'month';
+            case 'quarterly-note':
+                return 'quarter';
+            case 'yearly-note':
+                return 'year';
+            case 'none':
+            case 'file':
+                return null;
+        }
+    }
+
+    private canCreatePeriodicHomepageFile(kind: CalendarNoteKind): boolean {
+        const momentApi = getMomentApi();
+        if (!momentApi) {
+            return false;
+        }
+
+        if (kind === 'day' && this.plugin.settings.calendarIntegrationMode === 'daily-notes') {
+            return Boolean(getDailyNoteSettings(this.plugin.app));
+        }
+
+        const config = getCalendarNoteConfig(kind, this.plugin.settings);
+        const momentPattern = buildCustomCalendarMomentPattern(config.calendarCustomFilePattern, config.fallbackPattern);
+        return config.isPatternValid(momentPattern, momentApi);
+    }
+
+    private resolvePeriodicHomepageFile(kind: CalendarNoteKind): TFile | null {
         const momentApi = getMomentApi();
         if (!momentApi) {
             return null;
         }
 
         const currentLanguage = getCurrentLanguage();
-        const { displayLocale, calendarRulesLocale } = resolveCalendarLocales(
-            this.plugin.settings.calendarLocale,
-            momentApi,
-            currentLanguage
-        );
-        const date = momentApi().startOf('day').locale(displayLocale);
+        const { calendarRulesLocale } = resolveCalendarLocales(this.plugin.settings.calendarLocale, momentApi, currentLanguage);
+        const date = momentApi().startOf('day');
 
         if (kind === 'day' && this.plugin.settings.calendarIntegrationMode === 'daily-notes') {
             const dailyNoteSettings = getDailyNoteSettings(this.plugin.app);
@@ -248,7 +310,7 @@ export default class HomepageController {
                 return null;
             }
 
-            return getDailyNoteFile(this.plugin.app, date, dailyNoteSettings);
+            return getDailyNoteFile(this.plugin.app, date.clone().locale(resolveDailyNoteLocale(momentApi)), dailyNoteSettings);
         }
 
         const config = getCalendarNoteConfig(kind, this.plugin.settings);
@@ -258,7 +320,7 @@ export default class HomepageController {
             return null;
         }
 
-        const dateForPath = resolveCalendarCustomNotePathDate(kind, date, momentPattern, displayLocale, calendarRulesLocale);
+        const dateForPath = resolveCalendarCustomNotePathDate(kind, date, momentPattern, calendarRulesLocale, calendarRulesLocale);
         const expected = buildCustomCalendarFilePathForPattern(
             dateForPath,
             { calendarCustomRootFolder: getActiveVaultProfile(this.plugin.settings).periodicNotesFolder },
@@ -267,5 +329,52 @@ export default class HomepageController {
         );
         const file = this.plugin.app.vault.getAbstractFileByPath(expected.filePath);
         return file instanceof TFile ? file : null;
+    }
+
+    private async createPeriodicHomepageFile(kind: CalendarNoteKind): Promise<TFile | null> {
+        const momentApi = getMomentApi();
+        if (!momentApi) {
+            return null;
+        }
+
+        const currentLanguage = getCurrentLanguage();
+        const { calendarRulesLocale } = resolveCalendarLocales(this.plugin.settings.calendarLocale, momentApi, currentLanguage);
+        const date = momentApi().startOf('day');
+
+        if (kind === 'day' && this.plugin.settings.calendarIntegrationMode === 'daily-notes') {
+            const dailyNoteSettings = getDailyNoteSettings(this.plugin.app);
+            if (!dailyNoteSettings) {
+                return null;
+            }
+
+            return createDailyNote(this.plugin.app, date.clone().locale(resolveDailyNoteLocale(momentApi)), dailyNoteSettings);
+        }
+
+        const config = getCalendarNoteConfig(kind, this.plugin.settings);
+        const momentPattern = buildCustomCalendarMomentPattern(config.calendarCustomFilePattern, config.fallbackPattern);
+
+        if (!config.isPatternValid(momentPattern, momentApi)) {
+            return null;
+        }
+
+        const dateForPath = resolveCalendarCustomNotePathDate(kind, date, momentPattern, calendarRulesLocale, calendarRulesLocale);
+        const expected = buildCustomCalendarFilePathForPattern(
+            dateForPath,
+            { calendarCustomRootFolder: getActiveVaultProfile(this.plugin.settings).periodicNotesFolder },
+            config.calendarCustomFilePattern,
+            config.fallbackPattern
+        );
+        const existing = this.plugin.app.vault.getAbstractFileByPath(expected.filePath);
+        if (existing instanceof TFile) {
+            return existing;
+        }
+
+        try {
+            const templatePath = getCalendarTemplatePath(kind, this.plugin.settings);
+            return await createCalendarMarkdownFile(this.plugin.app, expected.folderPath, expected.fileName, templatePath);
+        } catch (error) {
+            console.error('Failed to create homepage note', error);
+            return null;
+        }
     }
 }

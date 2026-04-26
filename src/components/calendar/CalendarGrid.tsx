@@ -123,6 +123,7 @@ export const CalendarGrid = React.memo(function CalendarGrid({
                                             onClick={event => onWeekClick(event, week, weekNoteFile)}
                                             onContextMenu={event => onWeekContextMenu(event, week, weekNoteFile)}
                                         >
+                                            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                                             <span className="nn-navigation-calendar-weeknumber-value">{week.weekNumber}</span>
                                         </button>
                                     ) : (
@@ -132,6 +133,7 @@ export const CalendarGrid = React.memo(function CalendarGrid({
                                             onClick={event => onWeekLabelClick(event, week)}
                                             onContextMenu={event => onWeekContextMenu(event, week, null)}
                                         >
+                                            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                                             <span className="nn-navigation-calendar-weeknumber-value">{week.weekNumber}</span>
                                         </button>
                                     )}

@@ -161,7 +161,8 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // General tab - Homepage
     homepage: {
         source: 'none',
-        file: null
+        file: null,
+        createMissingPeriodicNote: true
     },
 
     // General tab - Desktop appearance

@@ -199,6 +199,7 @@ export const getIconIds = () => [
     'lucide-brain',
     'lucide-calendar',
     'lucide-check-circle',
+    'lucide-ph-test',
     'lucide-receipt',
     'lucide-book-open'
 ];

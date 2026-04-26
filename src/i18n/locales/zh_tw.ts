@@ -1452,11 +1452,16 @@ export const STRINGS_ZH_TW = {
                     dailyNote: '日記',
                     weeklyNote: '週記',
                     monthlyNote: '月記',
-                    quarterlyNote: '季度筆記'
+                    quarterlyNote: '季度筆記',
+                    yearlyNote: '年度筆記'
                 },
                 file: {
                     name: '啟動檔案',
                     empty: '未選擇檔案'
+                },
+                createMissing: {
+                    name: '不存在時建立筆記',
+                    desc: '啟動或執行命令時，如果定期筆記不存在則建立。'
                 }
             },
             showFileDate: {
@@ -1493,7 +1498,7 @@ export const STRINGS_ZH_TW = {
             },
             showFileProperties: {
                 name: '顯示檔案屬性',
-                desc: '在檔案項目中顯示可點擊的屬性。'
+                desc: '在檔案項目中顯示屬性。使用「屬性鍵可見性」對話框選擇要顯示的屬性。'
             },
             colorFileProperties: {
                 name: '為檔案屬性著色',
@@ -1597,7 +1602,8 @@ export const STRINGS_ZH_TW = {
                 desc: '筆記標題顯示的行數。',
                 options: {
                     '1': '1 行',
-                    '2': '2 行'
+                    '2': '2 行',
+                    '3': '3 行'
                 }
             },
             showFeatureImage: {

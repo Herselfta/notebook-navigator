@@ -246,13 +246,15 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
         if (useMobileHomepage) {
             return {
                 source: Platform.isMobile ? (resolvedMobileHomepage ? 'file' : 'none') : homepage ? 'file' : 'none',
-                file: Platform.isMobile ? resolvedMobileHomepage : homepage
+                file: Platform.isMobile ? resolvedMobileHomepage : homepage,
+                createMissingPeriodicNote: params.defaultSettings.homepage.createMissingPeriodicNote
             };
         }
 
         return {
             source: homepage ? 'file' : 'none',
-            file: homepage
+            file: homepage,
+            createMissingPeriodicNote: params.defaultSettings.homepage.createMissingPeriodicNote
         };
     };
 

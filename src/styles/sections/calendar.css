@@ -48,6 +48,7 @@
     --nn-calendar-note-indicator-color: var(--nn-theme-calendar-note-indicator-color);
     --nn-calendar-task-indicator-color: var(--nn-theme-calendar-unfinished-task-indicator-color);
     --nn-calendar-active-editor-border-color: var(--nn-theme-calendar-day-active-border-color);
+    --nn-calendar-active-editor-border-width: var(--nn-theme-calendar-day-active-border-width);
 }
 
 .notebook-navigator-mobile :is(.nn-navigation-pane, .nn-list-pane, .nn-single-pane-calendar) {
@@ -176,11 +177,18 @@
     outline: none;
 }
 
+.nn-navigation-calendar-period-button,
+.nn-navigation-calendar-weeknumber {
+    position: relative;
+}
+
 .nn-navigation-calendar-period-button {
     background: var(--nn-calendar-header-chip-bg) !important;
     color: var(--nn-theme-calendar-header-color);
     font: inherit;
-    padding: 2px 1px;
+    box-sizing: border-box;
+    height: var(--nn-calendar-today-height);
+    padding: 0 1px;
     line-height: 1;
     display: inline-flex;
     align-items: center;
@@ -212,9 +220,9 @@
     text-underline-offset: 2px;
 }
 
-.nn-navigation-calendar-period-button.is-active-editor-file,
-.nn-navigation-calendar-weeknumber.is-active-editor-file {
-    box-shadow: inset 0 0 0 2px var(--nn-calendar-active-editor-border-color) !important;
+.nn-navigation-calendar-period-button.is-active-editor-file .nn-navigation-calendar-active-outline,
+.nn-navigation-calendar-weeknumber.is-active-editor-file .nn-navigation-calendar-active-outline {
+    display: block;
 }
 
 .nn-navigation-calendar button.nn-navigation-calendar-period-button {
@@ -276,6 +284,20 @@
 .nn-navigation-calendar-month.has-inline-help .nn-navigation-calendar-inline-month-center {
     position: relative;
     overflow: visible;
+}
+
+.nn-navigation-calendar-month.has-inline-help:not(.has-inline-month-nav) .nn-navigation-calendar-inline-help {
+    position: static;
+    right: auto;
+    top: auto;
+    transform: none;
+    width: 0 !important;
+    min-width: 0 !important;
+    height: 20px !important;
+    margin-left: 0;
+    padding: 0 !important;
+    overflow: hidden;
+    flex: 0 0 auto;
 }
 
 .nn-navigation-calendar-month.has-inline-month-nav .nn-navigation-calendar-inline-month-center .nn-navigation-calendar-period-month {
@@ -484,6 +506,17 @@
     z-index: 0;
 }
 
+.nn-navigation-calendar-active-outline {
+    display: none;
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border: var(--nn-calendar-active-editor-border-width) solid var(--nn-calendar-active-editor-border-color);
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 2;
+}
+
 .nn-navigation-calendar-year-month-label {
     position: relative;
     z-index: 1;
@@ -543,8 +576,11 @@
 }
 
 .nn-navigation-calendar-year-month.is-selected-month {
-    box-shadow: inset 0 0 0 2px var(--nn-calendar-active-editor-border-color) !important;
     color: var(--nn-theme-calendar-day-in-month-color);
+}
+
+.nn-navigation-calendar-year-month.is-selected-month .nn-navigation-calendar-active-outline {
+    display: block;
 }
 
 .nn-navigation-calendar-year-month.is-selected-month.has-feature-image {
@@ -849,6 +885,13 @@
         pointer-events: auto;
     }
 
+    .nn-navigation-calendar-month.has-inline-help:not(.has-inline-month-nav):hover .nn-navigation-calendar-inline-help,
+    .nn-navigation-calendar-month.has-inline-help:not(.has-inline-month-nav):focus-within .nn-navigation-calendar-inline-help {
+        width: 20px !important;
+        min-width: 20px !important;
+        margin-left: 2px;
+    }
+
     :is(.nn-navigation-pane, .nn-list-pane, .nn-single-pane-calendar) .nn-navigation-calendar-header .nn-navigation-calendar-help-inline {
         opacity: 0;
         visibility: hidden;
@@ -938,13 +981,8 @@
     pointer-events: none;
 }
 
-.nn-navigation-calendar-day.is-active-editor-file {
-    box-shadow: inset 0 0 0 2px var(--nn-calendar-active-editor-border-color) !important;
-}
-
-.nn-navigation-calendar[data-highlight-today='true']
-    .nn-navigation-calendar-day.is-today.is-active-editor-file:not(.has-feature-image):not(.has-feature-image-key)::before {
-    box-shadow: inset 0 0 0 2px var(--nn-calendar-active-editor-border-color);
+.nn-navigation-calendar-day.is-active-editor-file .nn-navigation-calendar-active-outline {
+    display: block;
 }
 
 /* Center the two-indicator group horizontally when both note and unfinished-task indicators are visible. */
@@ -1064,6 +1102,8 @@
 
 .nn-calendar-right-sidebar .nn-navigation-calendar {
     --nn-calendar-header-chip-bg: var(--nn-calendar-right-sidebar-bg);
+    --nn-calendar-header-font-size: 13px;
+    --nn-calendar-today-font-size: 13px;
 }
 
 .nn-calendar-right-sidebar .nn-navigation-calendar-year-grid {
@@ -1073,34 +1113,6 @@
 .nn-calendar-right-sidebar .nn-navigation-calendar-year-month {
     width: 100%;
     height: 100%;
-}
-
-/* ========================================================================
-   Header mode: compact yearly (right sidebar)
-   ======================================================================== */
-
-.nn-calendar-right-sidebar .nn-navigation-calendar[data-compact-header='true'] .nn-navigation-calendar-header {
-    height: auto;
-    min-height: var(--nn-calendar-header-row-height);
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: center;
-    gap: 6px;
-}
-
-.nn-calendar-right-sidebar .nn-navigation-calendar[data-compact-header='true'] .nn-navigation-calendar-month {
-    width: 100%;
-    justify-content: center;
-    font-size: calc(var(--nn-calendar-header-font-size) + 2px);
-}
-
-.nn-calendar-right-sidebar
-    .nn-navigation-calendar[data-compact-header='true']
-    .nn-navigation-calendar-month
-    .nn-navigation-calendar-period-month {
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
 }
 
 .is-mobile .nn-calendar-right-sidebar {

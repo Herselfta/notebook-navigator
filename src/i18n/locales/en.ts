@@ -1411,11 +1411,16 @@ export const STRINGS_EN = {
                     dailyNote: 'Daily note',
                     weeklyNote: 'Weekly note',
                     monthlyNote: 'Monthly note',
-                    quarterlyNote: 'Quarterly note'
+                    quarterlyNote: 'Quarterly note',
+                    yearlyNote: 'Yearly note'
                 },
                 file: {
                     name: 'Startup file',
                     empty: 'No file selected'
+                },
+                createMissing: {
+                    name: 'Create note if missing',
+                    desc: 'Create the periodic note on startup or command if it does not exist.'
                 }
             },
             excludedNotes: {
@@ -1496,7 +1501,7 @@ export const STRINGS_EN = {
             },
             showFileProperties: {
                 name: 'Show file properties',
-                desc: 'Display clickable properties in file items.'
+                desc: 'Display properties on file items. Use the property key visibility modal to choose which properties are shown.'
             },
             colorFileProperties: {
                 name: 'Color file properties',
@@ -1600,7 +1605,8 @@ export const STRINGS_EN = {
                 desc: 'Number of rows to display for note titles.',
                 options: {
                     '1': '1 row',
-                    '2': '2 rows'
+                    '2': '2 rows',
+                    '3': '3 rows'
                 }
             },
             showFeatureImage: {

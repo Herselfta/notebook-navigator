@@ -1459,11 +1459,16 @@ export const STRINGS_JA = {
                     dailyNote: 'デイリーノート',
                     weeklyNote: 'ウィークリーノート',
                     monthlyNote: 'マンスリーノート',
-                    quarterlyNote: 'クォータリーノート'
+                    quarterlyNote: 'クォータリーノート',
+                    yearlyNote: 'イヤリーノート'
                 },
                 file: {
                     name: '起動ファイル',
                     empty: 'ファイルが選択されていません'
+                },
+                createMissing: {
+                    name: 'ノートが存在しない場合に作成',
+                    desc: '起動時またはコマンド実行時に、定期ノートが存在しなければ作成します。'
                 }
             },
             showFileDate: {
@@ -1500,7 +1505,7 @@ export const STRINGS_JA = {
             },
             showFileProperties: {
                 name: 'ファイルプロパティを表示',
-                desc: 'ファイル項目にクリック可能なプロパティを表示します。'
+                desc: 'ファイル項目にプロパティを表示します。「プロパティキーの表示設定」ダイアログで表示するプロパティを選択してください。'
             },
             colorFileProperties: {
                 name: 'ファイルプロパティに色を付ける',
@@ -1604,7 +1609,8 @@ export const STRINGS_JA = {
                 desc: 'ノートタイトルの表示行数。',
                 options: {
                     '1': '1行',
-                    '2': '2行'
+                    '2': '2行',
+                    '3': '3行'
                 }
             },
             showFeatureImage: {

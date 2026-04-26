@@ -83,6 +83,7 @@ export const CalendarYearPanel = React.memo(function CalendarYearPanel({
                     onClick={onYearPeriodClick}
                     onContextMenu={onYearPeriodContextMenu}
                 >
+                    <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                     {displayedYearValue}
                 </button>
                 <button
@@ -125,6 +126,7 @@ export const CalendarYearPanel = React.memo(function CalendarYearPanel({
                             style={style}
                             onClick={event => onSelectYearMonth(event, entry.date)}
                         >
+                            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                             <span className="nn-navigation-calendar-year-month-label">{entry.shortLabel}</span>
                             {entry.hasUnfinishedTasks ? (
                                 <span className="nn-navigation-calendar-year-month-unfinished-task-indicator" aria-hidden="true" />

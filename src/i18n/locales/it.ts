@@ -1414,11 +1414,16 @@ export const STRINGS_IT = {
                     dailyNote: 'Nota giornaliera',
                     weeklyNote: 'Nota settimanale',
                     monthlyNote: 'Nota mensile',
-                    quarterlyNote: 'Nota trimestrale'
+                    quarterlyNote: 'Nota trimestrale',
+                    yearlyNote: 'Nota annuale'
                 },
                 file: {
                     name: 'File di avvio',
                     empty: 'Nessun file selezionato'
+                },
+                createMissing: {
+                    name: 'Crea nota se mancante',
+                    desc: "Crea la nota periodica all'avvio o tramite comando se non esiste."
                 }
             },
             excludedNotes: {
@@ -1500,7 +1505,7 @@ export const STRINGS_IT = {
             },
             showFileProperties: {
                 name: 'Mostra proprietà file',
-                desc: 'Visualizza le proprietà cliccabili negli elementi file.'
+                desc: 'Visualizza le proprietà negli elementi file. Usa la finestra "Visibilità chiavi proprietà" per scegliere quali proprietà mostrare.'
             },
             colorFileProperties: {
                 name: 'Colora proprietà file',
@@ -1604,7 +1609,8 @@ export const STRINGS_IT = {
                 desc: 'Numero di righe da visualizzare per i titoli note.',
                 options: {
                     '1': '1 riga',
-                    '2': '2 righe'
+                    '2': '2 righe',
+                    '3': '3 righe'
                 }
             },
             showFeatureImage: {

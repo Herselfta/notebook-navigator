@@ -1417,11 +1417,16 @@ export const STRINGS_NL = {
                     dailyNote: 'Dagnotitie',
                     weeklyNote: 'Weeknotitie',
                     monthlyNote: 'Maandnotitie',
-                    quarterlyNote: 'Kwartaalnotitie'
+                    quarterlyNote: 'Kwartaalnotitie',
+                    yearlyNote: 'Jaarnotitie'
                 },
                 file: {
                     name: 'Opstartbestand',
                     empty: 'Geen bestand geselecteerd'
+                },
+                createMissing: {
+                    name: 'Notitie aanmaken als deze ontbreekt',
+                    desc: 'Maakt de periodieke notitie aan bij opstarten of via opdracht als deze niet bestaat.'
                 }
             },
             excludedNotes: {
@@ -1503,7 +1508,7 @@ export const STRINGS_NL = {
             },
             showFileProperties: {
                 name: 'Bestandseigenschappen tonen',
-                desc: 'Klikbare eigenschappen weergeven in bestandsitems.'
+                desc: 'Eigenschappen weergeven in bestandsitems. Gebruik het dialoogvenster "Zichtbaarheid van eigenschapssleutels" om te kiezen welke eigenschappen worden getoond.'
             },
             colorFileProperties: {
                 name: 'Bestandseigenschappen kleuren',
@@ -1607,7 +1612,8 @@ export const STRINGS_NL = {
                 desc: 'Aantal weer te geven rijen voor notitietitels.',
                 options: {
                     '1': '1 rij',
-                    '2': '2 rijen'
+                    '2': '2 rijen',
+                    '3': '3 rijen'
                 }
             },
             showFeatureImage: {

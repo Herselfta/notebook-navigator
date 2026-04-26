@@ -1414,11 +1414,16 @@ export const STRINGS_KO = {
                     dailyNote: '일간 노트',
                     weeklyNote: '주간 노트',
                     monthlyNote: '월간 노트',
-                    quarterlyNote: '분기 노트'
+                    quarterlyNote: '분기 노트',
+                    yearlyNote: '연간 노트'
                 },
                 file: {
                     name: '시작 파일',
                     empty: '선택된 파일 없음'
+                },
+                createMissing: {
+                    name: '없으면 노트 생성',
+                    desc: '시작 시 또는 명령 실행 시 정기 노트가 없으면 생성합니다.'
                 }
             },
             excludedNotes: {
@@ -1499,7 +1504,7 @@ export const STRINGS_KO = {
             },
             showFileProperties: {
                 name: '파일 속성 표시',
-                desc: '파일 항목에 클릭 가능한 속성을 표시합니다.'
+                desc: '파일 항목에 속성을 표시합니다. "속성 키 표시 설정" 대화상자에서 표시할 속성을 선택하세요.'
             },
             colorFileProperties: {
                 name: '파일 속성에 색상 적용',
@@ -1603,7 +1608,8 @@ export const STRINGS_KO = {
                 desc: '노트 제목에 표시할 행 수입니다.',
                 options: {
                     '1': '1행',
-                    '2': '2행'
+                    '2': '2행',
+                    '3': '3행'
                 }
             },
             showFeatureImage: {

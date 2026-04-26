@@ -1413,11 +1413,16 @@ export const STRINGS_AR = {
                     dailyNote: 'ملاحظة يومية',
                     weeklyNote: 'ملاحظة أسبوعية',
                     monthlyNote: 'ملاحظة شهرية',
-                    quarterlyNote: 'ملاحظة ربع سنوية'
+                    quarterlyNote: 'ملاحظة ربع سنوية',
+                    yearlyNote: 'ملاحظة سنوية'
                 },
                 file: {
                     name: 'ملف بدء التشغيل',
                     empty: 'لم يتم اختيار ملف'
+                },
+                createMissing: {
+                    name: 'إنشاء ملاحظة إذا كانت مفقودة',
+                    desc: 'إنشاء الملاحظة الدورية عند بدء التشغيل أو عبر الأمر إذا لم تكن موجودة.'
                 }
             },
             excludedNotes: {
@@ -1498,7 +1503,7 @@ export const STRINGS_AR = {
             },
             showFileProperties: {
                 name: 'إظهار خصائص الملفات',
-                desc: 'عرض الخصائص القابلة للنقر في عناصر الملفات.'
+                desc: 'عرض الخصائص في عناصر الملفات. استخدم نافذة رؤية مفاتيح الخصائص لاختيار الخصائص المعروضة.'
             },
             colorFileProperties: {
                 name: 'تلوين خصائص الملفات',
@@ -1602,7 +1607,8 @@ export const STRINGS_AR = {
                 desc: 'عدد الصفوف المعروضة لعناوين الملاحظات.',
                 options: {
                     '1': 'صف واحد',
-                    '2': 'صفان'
+                    '2': 'صفان',
+                    '3': '3 صفوف'
                 }
             },
             showFeatureImage: {

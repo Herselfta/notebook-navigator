@@ -38,6 +38,7 @@ import type {
     VaultProfilePropertyKey,
     VaultTitleOption
 } from '../types';
+import { isHomepageSource, isPeriodicHomepageSource } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { InputModal } from '../../modals/InputModal';
@@ -111,7 +112,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                         const { WhatsNewModal } = await import('../../modals/WhatsNewModal');
                         const { getLatestReleaseNotes } = await import('../../releaseNotes');
                         const latestNotes = getLatestReleaseNotes();
-                        new WhatsNewModal(context.app, latestNotes, plugin.settings.dateFormat, () => {
+                        new WhatsNewModal(context.app, latestNotes, () => {
                             setTimeout(() => {
                                 runAsyncAction(async () => {
                                     plugin.settings.lastShownVersion = pluginVersion;
@@ -939,16 +940,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             .addOption('weekly-note', strings.settings.items.homepage.options.weeklyNote)
             .addOption('monthly-note', strings.settings.items.homepage.options.monthlyNote)
             .addOption('quarterly-note', strings.settings.items.homepage.options.quarterlyNote)
+            .addOption('yearly-note', strings.settings.items.homepage.options.yearlyNote)
             .setValue(plugin.settings.homepage.source)
             .onChange(async value => {
-                if (
-                    value !== 'none' &&
-                    value !== 'file' &&
-                    value !== 'daily-note' &&
-                    value !== 'weekly-note' &&
-                    value !== 'monthly-note' &&
-                    value !== 'quarterly-note'
-                ) {
+                if (!isHomepageSource(value)) {
                     return;
                 }
 
@@ -956,10 +951,12 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                     ...plugin.settings.homepage,
                     source: value
                 };
-                renderHomepageFileSetting();
+                renderHomepageSubSettings();
                 await plugin.saveSettingsAndUpdate();
             })
     );
+
+    addSettingSyncModeToggle({ setting: homepageSetting, plugin, settingId: 'homepage' });
 
     const homepageFileSubSettingsEl = createSubSettingsContainer(homepageSetting);
     const homepageFileSetting = new Setting(homepageFileSubSettingsEl);
@@ -985,7 +982,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                     ...plugin.settings.homepage,
                     file: file.path
                 };
-                renderHomepageFileSetting();
+                renderHomepageSubSettings();
                 runAsyncAction(() => plugin.saveSettingsAndUpdate());
             }).open();
         });
@@ -1004,17 +1001,30 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                     ...plugin.settings.homepage,
                     file: null
                 };
-                renderHomepageFileSetting();
+                renderHomepageSubSettings();
                 await plugin.saveSettingsAndUpdate();
             });
         });
     });
 
-    addSettingSyncModeToggle({ setting: homepageFileSetting, plugin, settingId: 'homepage' });
+    const homepagePeriodicSubSettingsEl = createSubSettingsContainer(homepageSetting);
+    new Setting(homepagePeriodicSubSettingsEl)
+        .setName(strings.settings.items.homepage.createMissing.name)
+        .setDesc(strings.settings.items.homepage.createMissing.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.homepage.createMissingPeriodicNote).onChange(async value => {
+                plugin.settings.homepage = {
+                    ...plugin.settings.homepage,
+                    createMissingPeriodicNote: value
+                };
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
 
-    const renderHomepageFileSetting = () => {
+    const renderHomepageSubSettings = () => {
         const isFileHomepage = plugin.settings.homepage.source === 'file';
         setElementVisible(homepageFileSubSettingsEl, isFileHomepage);
+        setElementVisible(homepagePeriodicSubSettingsEl, isPeriodicHomepageSource(plugin.settings.homepage.source));
 
         if (homepageFileValueEl) {
             homepageFileValueEl.setText(
@@ -1029,7 +1039,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
         }
     };
 
-    renderHomepageFileSetting();
+    renderHomepageSubSettings();
 
     viewGroup
         .addSetting(setting => {

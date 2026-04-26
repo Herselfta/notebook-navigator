@@ -653,10 +653,15 @@ export class PluginSettingsController {
         const record = value as Record<string, unknown>;
         const source = isHomepageSource(record.source) ? record.source : DEFAULT_SETTINGS.homepage.source;
         const file = normalizeOptionalVaultFilePath(typeof record.file === 'string' ? record.file : null);
+        const createMissingPeriodicNote =
+            typeof record.createMissingPeriodicNote === 'boolean'
+                ? record.createMissingPeriodicNote
+                : DEFAULT_SETTINGS.homepage.createMissingPeriodicNote;
 
         return {
             source,
-            file
+            file,
+            createMissingPeriodicNote
         };
     }
 

@@ -158,12 +158,14 @@ describe('PluginSettingsController.saveSettings', () => {
         settings.syncModes.homepage = 'local';
         settings.homepage = {
             source: 'daily-note',
-            file: null
+            file: null,
+            createMissingPeriodicNote: true
         };
 
         mockLocalStorageStore.set(STORAGE_KEYS.homepageKey, {
             source: 'file',
-            file: 'old-note.md'
+            file: 'old-note.md',
+            createMissingPeriodicNote: false
         });
 
         controller.settings = settings;
@@ -171,7 +173,8 @@ describe('PluginSettingsController.saveSettings', () => {
 
         expect(mockLocalStorageStore.get(STORAGE_KEYS.homepageKey)).toEqual({
             source: 'daily-note',
-            file: null
+            file: null,
+            createMissingPeriodicNote: true
         });
         expect(storedData?.['homepage']).toBeUndefined();
 
@@ -186,7 +189,8 @@ describe('PluginSettingsController.saveSettings', () => {
 
         expect(reloadedController.settings.homepage).toEqual({
             source: 'daily-note',
-            file: null
+            file: null,
+            createMissingPeriodicNote: true
         });
     });
 });

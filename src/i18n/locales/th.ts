@@ -1411,11 +1411,16 @@ export const STRINGS_TH = {
                     dailyNote: 'บันทึกรายวัน',
                     weeklyNote: 'บันทึกรายสัปดาห์',
                     monthlyNote: 'บันทึกรายเดือน',
-                    quarterlyNote: 'บันทึกรายไตรมาส'
+                    quarterlyNote: 'บันทึกรายไตรมาส',
+                    yearlyNote: 'บันทึกรายปี'
                 },
                 file: {
                     name: 'ไฟล์เริ่มต้น',
                     empty: 'ไม่ได้เลือกไฟล์'
+                },
+                createMissing: {
+                    name: 'สร้างบันทึกหากไม่มี',
+                    desc: 'สร้างบันทึกเป็นระยะเมื่อเริ่มต้นหรือเมื่อใช้คำสั่ง หากยังไม่มี'
                 }
             },
             excludedNotes: {
@@ -1496,7 +1501,7 @@ export const STRINGS_TH = {
             },
             showFileProperties: {
                 name: 'แสดงคุณสมบัติไฟล์',
-                desc: 'แสดงคุณสมบัติที่คลิกได้ในรายการไฟล์'
+                desc: 'แสดงคุณสมบัติในรายการไฟล์ ใช้หน้าต่าง "การแสดงผลคีย์คุณสมบัติ" เพื่อเลือกคุณสมบัติที่แสดง'
             },
             colorFileProperties: {
                 name: 'ระบายสีคุณสมบัติไฟล์',
@@ -1600,7 +1605,8 @@ export const STRINGS_TH = {
                 desc: 'จำนวนแถวที่จะแสดงสำหรับชื่อโน้ต',
                 options: {
                     '1': '1 แถว',
-                    '2': '2 แถว'
+                    '2': '2 แถว',
+                    '3': '3 แถว'
                 }
             },
             showFeatureImage: {

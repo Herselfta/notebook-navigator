@@ -96,6 +96,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
             onClick={event => onPeriodClick(event, 'year')}
             onContextMenu={event => onPeriodContextMenu(event, 'year')}
         >
+            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
             {yearLabel}
         </button>
     ) : null;
@@ -117,6 +118,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
                 onClick={event => onPeriodClick(event, 'quarter')}
                 onContextMenu={event => onPeriodContextMenu(event, 'quarter')}
             >
+                <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                 <span className="nn-navigation-calendar-quarter-paren" aria-hidden="true">
                     (
                 </span>
@@ -165,6 +167,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
                         onClick={event => onPeriodClick(event, 'month')}
                         onContextMenu={event => onPeriodContextMenu(event, 'month')}
                     >
+                        <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
                         {monthLabel}
                     </button>
                     {showCompactQuarterInMonthRow ? renderQuarterControl(true) : null}

@@ -27,7 +27,7 @@ import { getDBInstanceOrNull, isShutdownInProgress, waitForDatabaseInitializatio
 import { runAsyncAction } from '../../utils/async';
 import { getCalendarCustomWeekAnchorUnit } from '../../utils/calendarCustomNotePatterns';
 import { getDailyNoteFile, getDailyNoteSettings as getCoreDailyNoteSettings } from '../../utils/dailyNotes';
-import { getMomentApi, resolveCalendarLocales, type MomentInstance } from '../../utils/moment';
+import { getMomentApi, resolveCalendarLocales, resolveDailyNoteLocale, type MomentInstance } from '../../utils/moment';
 import { useFileOpener } from '../../hooks/useFileOpener';
 import { useLocalDayKey } from '../../hooks/useLocalDayKey';
 import { extractFrontmatterName } from '../../utils/metadataExtractor';
@@ -51,6 +51,7 @@ import {
     formatIsoDate,
     isDateFilterModifierPressed,
     resolveCalendarWeekWindow,
+    shouldAutoRevealCalendarNoteKind,
     setUnfinishedTaskCount
 } from './calendarUtils';
 import { useCalendarFeatureImages, type CalendarFeatureImageTarget } from './useCalendarFeatureImages';
@@ -77,6 +78,11 @@ interface CalendarYearMonthBaseEntry {
     key: string;
     monthIndex: number;
     shortLabel: string;
+}
+
+interface ActiveEditorCalendarTarget {
+    date: MomentInstance;
+    shouldAutoReveal: boolean;
 }
 
 function getWorkspaceActiveFile(workspace: Workspace): TFile | null {
@@ -398,6 +404,7 @@ export function Calendar({
         () => resolveCalendarLocales(settings.calendarLocale, momentApi, currentLanguage),
         [currentLanguage, momentApi, settings.calendarLocale]
     );
+    const dailyNoteLocale = resolveDailyNoteLocale(momentApi);
 
     useEffect(() => {
         setCursorDate(previousCursorDate => previousCursorDate?.clone().locale(displayLocale) ?? previousCursorDate);
@@ -474,7 +481,8 @@ export function Calendar({
         customCalendarRootFolderSettings,
         dailyNoteSettings,
         dayNoteResolverContext,
-        displayLocale,
+        dailyNoteLocale,
+        calendarRulesLocale,
         momentApi,
         settings.calendarIntegrationMode,
         vaultVersion
@@ -495,13 +503,13 @@ export function Calendar({
                     kind: 'day',
                     date,
                     resolverContext: dayNoteResolverContext,
-                    displayLocale,
+                    calendarLocale: calendarRulesLocale,
                     weekLocale: calendarRulesLocale,
                     customCalendarRootFolderSettings,
                     momentApi
                 });
             } else if (settings.calendarIntegrationMode === 'daily-notes' && dailyNoteSettings) {
-                existingFile = getDailyNoteFile(app, date, dailyNoteSettings);
+                existingFile = getDailyNoteFile(app, date.clone().locale(dailyNoteLocale), dailyNoteSettings);
             }
 
             dayNoteFileLookupCacheRef.current.set(iso, existingFile);
@@ -512,8 +520,8 @@ export function Calendar({
             canResolveCustomDayNotes,
             customCalendarRootFolderSettings,
             dailyNoteSettings,
+            dailyNoteLocale,
             dayNoteResolverContext,
-            displayLocale,
             calendarRulesLocale,
             momentApi,
             settings.calendarIntegrationMode
@@ -536,7 +544,7 @@ export function Calendar({
 
                 const folderPattern = escapeMomentLiteralPath(dailyNoteSettings.folder);
                 const fullPattern = folderPattern ? `${folderPattern}/${dailyNoteSettings.format}` : dailyNoteSettings.format;
-                const parsedDate = momentApi(pathWithoutExtension, fullPattern, displayLocale, true);
+                const parsedDate = momentApi(pathWithoutExtension, fullPattern, dailyNoteLocale, true);
                 if (!parsedDate.isValid()) {
                     return null;
                 }
@@ -562,7 +570,7 @@ export function Calendar({
             const fullPattern = rootFolderPattern
                 ? `${rootFolderPattern}/${dayNoteResolverContext.momentPattern}`
                 : dayNoteResolverContext.momentPattern;
-            const parsedDate = momentApi(pathWithoutExtension, fullPattern, displayLocale, true);
+            const parsedDate = momentApi(pathWithoutExtension, fullPattern, calendarRulesLocale, true);
             if (!parsedDate.isValid()) {
                 return null;
             }
@@ -579,16 +587,17 @@ export function Calendar({
             canResolveCustomDayNotes,
             customCalendarRootFolderSettings.calendarCustomRootFolder,
             dailyNoteSettings,
+            dailyNoteLocale,
             dayNoteResolverContext.momentPattern,
-            displayLocale,
+            calendarRulesLocale,
             getExistingDayNoteFile,
             momentApi,
             settings.calendarIntegrationMode
         ]
     );
 
-    const resolveActiveEditorCustomNoteDate = useCallback(
-        (filePath: string): MomentInstance | null => {
+    const resolveActiveEditorCustomNoteTarget = useCallback(
+        (filePath: string): ActiveEditorCalendarTarget | null => {
             if (!momentApi || settings.calendarIntegrationMode !== 'notebook-navigator') {
                 return null;
             }
@@ -599,9 +608,9 @@ export function Calendar({
                 parseLocale: string;
             }[] = [
                 { kind: 'week', enabled: weekNotesEnabled, parseLocale: calendarRulesLocale },
-                { kind: 'month', enabled: monthNotesEnabled, parseLocale: displayLocale },
-                { kind: 'quarter', enabled: quarterNotesEnabled, parseLocale: displayLocale },
-                { kind: 'year', enabled: yearNotesEnabled, parseLocale: displayLocale }
+                { kind: 'month', enabled: monthNotesEnabled, parseLocale: calendarRulesLocale },
+                { kind: 'quarter', enabled: quarterNotesEnabled, parseLocale: calendarRulesLocale },
+                { kind: 'year', enabled: yearNotesEnabled, parseLocale: calendarRulesLocale }
             ];
 
             for (const { enabled, kind, parseLocale } of activePeriodKinds) {
@@ -614,7 +623,7 @@ export function Calendar({
                     filePath,
                     kind,
                     resolverContext,
-                    displayLocale,
+                    calendarLocale: calendarRulesLocale,
                     weekLocale: calendarRulesLocale,
                     customCalendarRootFolderSettings,
                     momentApi,
@@ -626,16 +635,28 @@ export function Calendar({
 
                 switch (kind) {
                     case 'week':
-                        return parsedDate
-                            .clone()
-                            .locale(calendarRulesLocale)
-                            .startOf(getCalendarCustomWeekAnchorUnit(resolverContext.momentPattern));
+                        return {
+                            date: parsedDate
+                                .clone()
+                                .locale(calendarRulesLocale)
+                                .startOf(getCalendarCustomWeekAnchorUnit(resolverContext.momentPattern)),
+                            shouldAutoReveal: shouldAutoRevealCalendarNoteKind(kind)
+                        };
                     case 'month':
-                        return parsedDate.clone().locale(displayLocale).startOf('month');
+                        return {
+                            date: parsedDate.clone().locale(displayLocale).startOf('month'),
+                            shouldAutoReveal: shouldAutoRevealCalendarNoteKind(kind)
+                        };
                     case 'quarter':
-                        return parsedDate.clone().locale(displayLocale).startOf('quarter');
+                        return {
+                            date: parsedDate.clone().locale(displayLocale).startOf('quarter'),
+                            shouldAutoReveal: shouldAutoRevealCalendarNoteKind(kind)
+                        };
                     case 'year':
-                        return parsedDate.clone().locale(displayLocale).startOf('year');
+                        return {
+                            date: parsedDate.clone().locale(displayLocale).startOf('year'),
+                            shouldAutoReveal: shouldAutoRevealCalendarNoteKind(kind)
+                        };
                 }
             }
 
@@ -710,7 +731,7 @@ export function Calendar({
         weeksToShowSetting,
         weekStartsOn
     ]);
-    const activeEditorDate = useMemo(() => {
+    const activeEditorCalendarTarget = useMemo<ActiveEditorCalendarTarget | null>(() => {
         if (!activeEditorFilePath) {
             return null;
         }
@@ -718,18 +739,31 @@ export function Calendar({
         for (const week of weeks) {
             for (const day of week.days) {
                 if (day.file?.path === activeEditorFilePath) {
-                    return day.date.clone().startOf('day').locale(displayLocale);
+                    return {
+                        date: day.date.clone().startOf('day').locale(displayLocale),
+                        shouldAutoReveal: true
+                    };
                 }
             }
         }
 
-        return resolveActiveEditorCalendarDayDate(activeEditorFilePath) ?? resolveActiveEditorCustomNoteDate(activeEditorFilePath);
-    }, [activeEditorFilePath, displayLocale, resolveActiveEditorCalendarDayDate, resolveActiveEditorCustomNoteDate, weeks]);
+        const activeEditorDayDate = resolveActiveEditorCalendarDayDate(activeEditorFilePath);
+        if (activeEditorDayDate) {
+            return {
+                date: activeEditorDayDate,
+                shouldAutoReveal: true
+            };
+        }
+
+        return resolveActiveEditorCustomNoteTarget(activeEditorFilePath);
+    }, [activeEditorFilePath, displayLocale, resolveActiveEditorCalendarDayDate, resolveActiveEditorCustomNoteTarget, weeks]);
     const activeEditorDateKey =
-        activeEditorFilePath && activeEditorDate ? `${activeEditorFilePath}::${formatIsoDate(activeEditorDate)}` : null;
+        activeEditorFilePath && activeEditorCalendarTarget
+            ? `${activeEditorFilePath}::${formatIsoDate(activeEditorCalendarTarget.date)}`
+            : null;
 
     useLayoutEffect(() => {
-        if (!activeEditorDate || !activeEditorDateKey) {
+        if (!activeEditorCalendarTarget || !activeEditorDateKey || !activeEditorCalendarTarget.shouldAutoReveal) {
             lastAppliedActiveEditorDateKeyRef.current = null;
             return;
         }
@@ -740,7 +774,7 @@ export function Calendar({
 
         lastAppliedActiveEditorDateKeyRef.current = activeEditorDateKey;
         setCursorDate(previousCursorDate => {
-            const nextCursorDate = activeEditorDate.clone().startOf('day').locale(displayLocale);
+            const nextCursorDate = activeEditorCalendarTarget.date.clone().startOf('day').locale(displayLocale);
             if (
                 previousCursorDate &&
                 previousCursorDate.year() === nextCursorDate.year() &&
@@ -751,7 +785,7 @@ export function Calendar({
 
             return nextCursorDate;
         });
-    }, [activeEditorDate, activeEditorDateKey, activeEditorFilePath, displayLocale]);
+    }, [activeEditorCalendarTarget, activeEditorDateKey, displayLocale]);
 
     const visibleDayNotePaths = useMemo(() => {
         const paths = new Set<string>();
@@ -1005,7 +1039,8 @@ export function Calendar({
             settings,
             dailyNoteSettings,
             momentApi,
-            displayLocale,
+            dailyNoteLocale,
+            calendarLocale: calendarRulesLocale,
             weekLocale: calendarRulesLocale,
             customCalendarRootFolderSettings,
             openFile,
@@ -1020,21 +1055,30 @@ export function Calendar({
         if (!momentApi) {
             return;
         }
+
+        const today = momentApi().startOf('day').locale(displayLocale);
+
         clearHoverTooltip();
-        setCursorDate(momentApi().startOf('day').locale(displayLocale));
+        setCursorDate(today.clone());
         onNavigationAction?.();
-    }, [clearHoverTooltip, displayLocale, momentApi, onNavigationAction]);
+
+        const existingFile = getExistingDayNoteFile(today);
+        if (!existingFile) {
+            return;
+        }
+
+        openOrCreateDailyNote(today, existingFile);
+    }, [clearHoverTooltip, displayLocale, getExistingDayNoteFile, momentApi, onNavigationAction, openOrCreateDailyNote]);
 
     const showWeekNumbers = settings.calendarShowWeekNumber;
     const highlightToday = settings.calendarHighlightToday;
+    const useRightSidebarYearHeaderInlineDetails = isRightSidebar && showYearCalendar;
     const showYearInHeader = !isRightSidebar || !showYearCalendar;
-    const useRightSidebarYearCalendarHeaderLayout = isRightSidebar && showYearCalendar;
-    const useSplitHeaderLayout = !useRightSidebarYearCalendarHeaderLayout;
-    const showHeaderHelpButton = settings.showInfoButtons && !isMobile && useRightSidebarYearCalendarHeaderLayout;
-    const showInlineMonthNavigation = useRightSidebarYearCalendarHeaderLayout;
-    const showCompactQuarterInMonthRow = useRightSidebarYearCalendarHeaderLayout && settings.calendarShowQuarter;
-    const showHeaderPeriodDetails = useSplitHeaderLayout;
-    const showHeaderNavRow = useSplitHeaderLayout;
+    const showHeaderHelpButton = settings.showInfoButtons && !isMobile && useRightSidebarYearHeaderInlineDetails;
+    const showInlineMonthNavigation = false;
+    const showCompactQuarterInMonthRow = useRightSidebarYearHeaderInlineDetails && settings.calendarShowQuarter;
+    const showHeaderPeriodDetails = !useRightSidebarYearHeaderInlineDetails;
+    const showHeaderNavRow = true;
     const showCompactHeaderInlineInfoButton = showHeaderHelpButton;
     const showInfoInNavRow = false;
 
@@ -1528,8 +1572,7 @@ export function Calendar({
                 aria-labelledby={calendarLabelId}
                 data-highlight-today={highlightToday ? 'true' : undefined}
                 data-weeknumbers={showWeekNumbers ? 'true' : undefined}
-                data-compact-header={useRightSidebarYearCalendarHeaderLayout ? 'true' : undefined}
-                data-split-header={useSplitHeaderLayout ? 'true' : undefined}
+                data-split-header="true"
             >
                 <span id={calendarLabelId} className="nn-visually-hidden">
                     {strings.navigationCalendar.ariaLabel}

@@ -1415,11 +1415,16 @@ export const STRINGS_TR = {
                     dailyNote: 'Günlük not',
                     weeklyNote: 'Haftalık not',
                     monthlyNote: 'Aylık not',
-                    quarterlyNote: 'Çeyreklik not'
+                    quarterlyNote: 'Çeyreklik not',
+                    yearlyNote: 'Yıllık not'
                 },
                 file: {
                     name: 'Başlangıç dosyası',
                     empty: 'Dosya seçilmedi'
+                },
+                createMissing: {
+                    name: 'Not yoksa oluştur',
+                    desc: 'Başlangıçta veya komutla, periyodik not yoksa oluşturur.'
                 }
             },
             excludedNotes: {
@@ -1500,7 +1505,7 @@ export const STRINGS_TR = {
             },
             showFileProperties: {
                 name: 'Dosya özelliklerini göster',
-                desc: 'Dosya öğelerinde tıklanabilir özellikleri görüntüle.'
+                desc: 'Dosya öğelerinde özellikleri görüntüle. Gösterilecek özellikleri seçmek için "Özellik anahtarı görünürlüğü" iletişim kutusunu kullanın.'
             },
             colorFileProperties: {
                 name: 'Dosya özelliklerini renklendir',
@@ -1604,7 +1609,8 @@ export const STRINGS_TR = {
                 desc: 'Not başlıkları için görüntülenecek satır sayısı.',
                 options: {
                     '1': '1 satır',
-                    '2': '2 satır'
+                    '2': '2 satır',
+                    '3': '3 satır'
                 }
             },
             showFeatureImage: {

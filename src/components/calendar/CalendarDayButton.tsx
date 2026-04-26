@@ -129,6 +129,7 @@ export const CalendarDayButton = React.memo(function CalendarDayButton({
             onClick={handleClick}
             onContextMenu={onContextMenu}
         >
+            <span className="nn-navigation-calendar-active-outline" aria-hidden="true" />
             <span className="nn-navigation-calendar-day-number" aria-hidden="true">
                 {dayNumber}
             </span>

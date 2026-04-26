@@ -1463,11 +1463,16 @@ export const STRINGS_DE = {
                     dailyNote: 'Tagesnotiz',
                     weeklyNote: 'Wochennotiz',
                     monthlyNote: 'Monatsnotiz',
-                    quarterlyNote: 'Quartalsnotiz'
+                    quarterlyNote: 'Quartalsnotiz',
+                    yearlyNote: 'Jahresnotiz'
                 },
                 file: {
                     name: 'Startdatei',
                     empty: 'Keine Datei ausgewählt'
+                },
+                createMissing: {
+                    name: 'Notiz erstellen, falls nicht vorhanden',
+                    desc: 'Erstellt die periodische Notiz beim Start oder per Befehl, falls sie nicht existiert.'
                 }
             },
             showFileDate: {
@@ -1504,7 +1509,7 @@ export const STRINGS_DE = {
             },
             showFileProperties: {
                 name: 'Datei-Eigenschaften anzeigen',
-                desc: 'Klickbare Eigenschaften in Datei-Elementen anzeigen.'
+                desc: 'Eigenschaften in Datei-Elementen anzeigen. Wähle im Dialog "Sichtbarkeit der Eigenschaftsschlüssel" aus, welche Eigenschaften angezeigt werden.'
             },
             colorFileProperties: {
                 name: 'Datei-Eigenschaften einfärben',
@@ -1608,7 +1613,8 @@ export const STRINGS_DE = {
                 desc: 'Anzahl der Zeilen für Notizentitel.',
                 options: {
                     '1': '1 Zeile',
-                    '2': '2 Zeilen'
+                    '2': '2 Zeilen',
+                    '3': '3 Zeilen'
                 }
             },
             showFeatureImage: {

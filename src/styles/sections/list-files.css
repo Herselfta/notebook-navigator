@@ -101,7 +101,7 @@
     inset-inline-start: 0;
     inset-inline-end: 0;
     /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.2px;
+    bottom: -0.5px;
     background-color: var(--nn-file-custom-bg-color);
     border-top-left-radius: var(--nn-file-top-left-radius, var(--nn-file-item-border-radius));
     border-top-right-radius: var(--nn-file-top-right-radius, var(--nn-file-item-border-radius));
@@ -212,8 +212,8 @@
     flex-direction: column;
     gap: 0;
     order: 1; /* Ensure it appears on the left */
-    min-height: var(--nn-file-thumbnail-min-size); /* Minimum height to match minimum thumbnail size */
-    justify-content: flex-start; /* Top-align content */
+    min-height: var(--nn-file-thumbnail-min-size); /* Keep short rows aligned to the shared thumbnail floor */
+    justify-content: center; /* Center short text stacks within the shared row height */
     /* No align-self - let it stretch naturally */
 }
 
@@ -241,8 +241,7 @@
     -webkit-box-orient: vertical;
     line-height: var(--nn-file-title-line-height);
     word-break: break-word;
-    min-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
-    height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
+    max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1));
 }
 
 .nn-file-name[data-title-rows='1'] {
@@ -350,8 +349,8 @@
     top: max(0px, calc((var(--nn-file-title-line-height) + var(--nn-file-padding-vertical-compact) * 2 - 20px) / 2));
 }
 
-/* Compact mode with tags or 2 title rows: align with compact padding */
-.nn-quick-actions-panel.nn-compact-mode[data-title-rows='2'],
+/* Compact mode with tags or more than 1 title row: align with compact padding */
+.nn-quick-actions-panel.nn-compact-mode:not([data-title-rows='1']),
 .nn-quick-actions-panel.nn-compact-mode[data-has-tags='true'] {
     top: var(--nn-file-padding-vertical-compact);
 }
@@ -407,17 +406,17 @@
     -webkit-line-clamp: var(--preview-rows, 1);
     -webkit-box-orient: vertical;
     word-break: break-word;
-    flex: 1;
 }
 
-/* Multi-line preview - always take up configured number of lines */
+/* Multi-line preview - shrink to content and cap at the configured rows */
 .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
-    min-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
-    height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
+    flex: 0 0 auto;
+    max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
 }
 
 /* Preview on same line as date - match date line-height for alignment */
 .nn-file-second-line .nn-file-preview {
+    flex: 1;
     line-height: var(--nn-file-single-text-line-height);
     display: block;
     white-space: nowrap;

@@ -73,6 +73,7 @@ import {
 import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
 import { PluginSettingsController } from './services/settings/PluginSettingsController';
 import { PluginPreferencesController } from './services/settings/PluginPreferencesController';
+import { consumePendingPdfProcessingDiagnostic } from './services/content/pdf/pdfCrashDiagnostics';
 import { applyModifiedSettingsTransfer, createModifiedSettingsTransfer } from './settings/transfer';
 
 /**
@@ -503,6 +504,20 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 if (isFirstLaunch) {
                     const { WelcomeModal } = await import('./modals/WelcomeModal');
                     new WelcomeModal(this.app).open();
+                }
+
+                // PDF_CRASH_DIAGNOSTICS: show the last unfinished mobile PDF path from the previous session.
+                const pendingPdfPath = consumePendingPdfProcessingDiagnostic();
+                if (pendingPdfPath) {
+                    const { InfoModal } = await import('./modals/InfoModal');
+                    new InfoModal(this.app, {
+                        title: 'PDF processing from previous run',
+                        intro: 'The previous app session ended while this PDF thumbnail was being processed.',
+                        items: [
+                            `\`${pendingPdfPath}\``,
+                            'This can also happen if Obsidian or Android closed the app before cleanup finished.'
+                        ]
+                    }).open();
                 }
 
                 // Check for version updates after a short delay.
@@ -1280,6 +1295,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         return this.homepageController?.resolveHomepageFile() ?? null;
     }
 
+    public canOpenHomepage(): boolean {
+        return this.homepageController?.canOpenHomepage() ?? false;
+    }
+
     public async openHomepage(trigger: 'startup' | 'command'): Promise<boolean> {
         return this.homepageController?.open(trigger) ?? false;
     }
@@ -1391,7 +1410,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             const { WhatsNewModal } = await import('./modals/WhatsNewModal');
 
             const releaseNotes = getLatestReleaseNotes();
-            new WhatsNewModal(this.app, releaseNotes, this.settings.dateFormat, () => {
+            new WhatsNewModal(this.app, releaseNotes, () => {
                 // Save version after 1 second delay when user closes the modal
                 setTimeout(() => {
                     // Wrap in runAsyncAction to handle async without blocking callback
@@ -1439,7 +1458,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             }
 
             // Show the info modal when version changes
-            new WhatsNewModal(this.app, releaseNotes, this.settings.dateFormat, () => {
+            new WhatsNewModal(this.app, releaseNotes, () => {
                 // Save version after 1 second delay when user closes the modal
                 setTimeout(() => {
                     // Wrap in runAsyncAction to handle async without blocking callback

@@ -1418,11 +1418,16 @@ export const STRINGS_PL = {
                     dailyNote: 'Notatka dzienna',
                     weeklyNote: 'Notatka tygodniowa',
                     monthlyNote: 'Notatka miesięczna',
-                    quarterlyNote: 'Notatka kwartalna'
+                    quarterlyNote: 'Notatka kwartalna',
+                    yearlyNote: 'Notatka roczna'
                 },
                 file: {
                     name: 'Plik startowy',
                     empty: 'Nie wybrano pliku'
+                },
+                createMissing: {
+                    name: 'Utwórz notatkę, jeśli jej brak',
+                    desc: 'Tworzy notatkę okresową podczas uruchamiania lub po wywołaniu polecenia, jeśli nie istnieje.'
                 }
             },
             excludedNotes: {
@@ -1504,7 +1509,7 @@ export const STRINGS_PL = {
             },
             showFileProperties: {
                 name: 'Pokaż atrybuty plików',
-                desc: 'Wyświetl klikalne atrybuty w elementach plików.'
+                desc: 'Wyświetl atrybuty w elementach plików. Użyj okna „Widoczność kluczy atrybutów", aby wybrać, które atrybuty są pokazywane.'
             },
             colorFileProperties: {
                 name: 'Koloruj atrybuty plików',
@@ -1608,7 +1613,8 @@ export const STRINGS_PL = {
                 desc: 'Liczba widocznych wierszy tytułów notatek.',
                 options: {
                     '1': '1 wiersz',
-                    '2': '2 wiersze'
+                    '2': '2 wiersze',
+                    '3': '3 wiersze'
                 }
             },
             showFeatureImage: {

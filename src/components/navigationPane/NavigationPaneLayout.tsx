@@ -190,7 +190,7 @@ export function NavigationPaneLayout({
                                                       data-index={virtualItem.index}
                                                       className="nn-virtual-nav-item"
                                                       style={{
-                                                          transform: `translateY(${Math.max(0, virtualItem.start - navigationScrollMargin)}px)`
+                                                          top: `${Math.max(0, virtualItem.start - navigationScrollMargin)}px`
                                                       }}
                                                   >
                                                       {renderNavigationItem(item)}

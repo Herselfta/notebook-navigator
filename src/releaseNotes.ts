@@ -77,11 +77,47 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
-        version: '2.5.8',
-        date: '2026-04-16',
-        showOnUpdate: true,
+        version: '2.6.2',
+        date: '2026-04-25',
+        showOnUpdate: false,
         changed: [
-            'Calendar > Locale now also controls calendar date formatting. Set it to **Default** to follow the Obsidian interface language.'
+            'Due to the way Obsidian displays properties, icon names saved to frontmatter had to be changed to not use colons. For example, Phosphor Apple Logo is now saved as **ph-apple-logo**, Lucide Home is saved as **home**, and folder emoji is saved as **📁**.'
+        ]
+    },
+    {
+        version: '2.6.1',
+        date: '2026-04-24',
+        showOnUpdate: true,
+        bannerUrl: true,
+        new: [
+            '==Variable line height for title and preview text in list pane!== If you choose 2 or more lines for title or preview with less lines of content, notes will now display without empty spacing.',
+            'New style setting: Calendar > ==Active day outline thickness==.',
+            'New Setting: General > Homepage > ==Create note if missing==. When enabled, the daily, weekly, monthly, quarterly, or yearly note will be automatically created on startup if missing.'
+        ],
+        improved: [
+            'Navigation tree now shows AND/OR icons when multiselecting tags and properties (command or shift + command).',
+            'You can now choose to display up to 3 title lines in the list pane.'
+        ],
+        changed: ['Settings: ==General > Homepage== now includes yearly notes as an option.'],
+        fixed: [
+            'Fixed getting stuck in list pane in single pane mode when multi-selecting tags or properties in navigation pane.',
+            'Date filters now parse years before year 1000 correctly.',
+            'Core Daily Notes lookup and creation now use the current Moment locale instead of Calendar > Locale.',
+            'Metadata cleanup now preserves metadata for hidden tags and nested tag separators.',
+            'Settings: General > Show tooltips now also works for shortcuts and recent files.'
+        ]
+    },
+    {
+        version: '2.5.8',
+        date: '2026-04-19',
+        showOnUpdate: true,
+        improved: ['Calendar in the right sidebar now always shows a Today button in top right corner.'],
+        changed: [
+            'Calendar auto-reveal no longer changes the current month for quarterly and yearly notes.',
+            'Calendar > Locale now also controls daily note file name formatting to match other calendar plugins.'
+        ],
+        fixed: [
+            'The calendar in right sidebar will now keep its position after plugin reloads or calendar is moved to left sidebar and back.'
         ]
     },
     {
@@ -239,100 +275,6 @@ const RELEASE_NOTES: ReleaseNote[] = [
             'Fixed an issue where deleting the active note could trigger "file not found" errors in Linter when "Lint on Focused File Change" is enabled.',
             'Fixed an issue where disabling "Show icons for shortcuts and recent items" also disabled the icon for the Properties root virtual folder.',
             'Fixed an issue where the Properties folder was showing if there were no visible properties in Navigation pane and "Show properties folder" was disabled.'
-        ]
-    },
-    {
-        version: '2.4.3',
-        date: '2026-02-28',
-        showOnUpdate: true,
-        bannerUrl: true,
-        new: [
-            'You can now ==add properties to files== by right clicking in the list pane and choosing "Set property". Just add properties to list in this menu in the properties modal first, accessed by right-clicking Properties and choosing "Configure property keys".',
-            'New command: ==Set property on selected files==. Quickly apply a property value to selected notes.',
-            'New setting: ==Folders > Enable folder note links==. You can now use folder notes only for styling! Disable this setting to only use folder notes for folder styles (icon and color), enable to use folder notes as links (default).',
-            'New setting: ==List pane > Notes > Strip LaTeX in previews==. Removes inline and block LaTeX expressions from preview text. Default enabled.',
-            'New file menu option: ==Open in default app==. Opens the file in its default application outside of Obsidian.'
-        ],
-        improved: [
-            '==Search filter now uses accent-insensitive matching==. "cafe" matches "café", "cancion" matches "canción". Non-Latin scripts like Arabic are not affected.'
-        ],
-        fixed: [
-            'Fixed an issue where deleting multiple open notes at the same time could trigger the error: Failed to open "".',
-            'Recent items no longer shows hidden items.'
-        ]
-    },
-    {
-        version: '2.4.2',
-        date: '2026-02-24',
-        showOnUpdate: true,
-        bannerUrl: true,
-        new: [
-            '**Greatly improved the way you work with properties!**',
-            'First up, a new ==Property key selection modal== was added with property search, select all/deselect all properties, and the option to choose if each property should be shown in the navigation pane, in the list pane, or both. You access this by right-clicking "Properties" and choose "Configure property keys".',
-            'Secondly, you can now ==rename and delete property keys== in the property tree.',
-            'You can also ==create a new note directly in property view==. You can create new notes in properties using context menu, the toolbar button or using "Create new note".',
-            'New setting: ==General > Open new notes in new tab==. New notes open in a new tab instead of replacing the current tab. Default disabled.',
-            'New setting: ==General > Files > Delete attachments==. Optionally delete linked attachments when deleting files, works just like Obsidian 1.12.2 and later. Default value "Ask each time".',
-            'New setting: ==General > Files > Move conflicts==. When moving a file to a folder that already has a file with the same name, you can now choose to automatically rename the moved file with a suffix (example: "Untitled.md" -> "Untitled 1.md"). Options are "Ask each time" (default) and "Always rename".',
-            'The command **"Add to shortcuts" now removes the selected item from shortcuts** if it is already pinned.'
-        ],
-        improved: [
-            '**Custom folder sort order** is now applied when grouping by folder in list pane.',
-            '**Saving a search shortcut** now shows the option: "Always start in: {path}". This means the shortcut will always start in the folder, tag or property where you saved it.',
-            '**Visible property keys** are now saved per vault profile.',
-            '**Moving files with conflicts** now show a modal dialog where you can choose to overwrite, keep both (rename), or cancel the move operation.',
-            '**Hiding a folder note** (using filter, tag or property rules) now also hides the folder with the folder note in the navigation pane.',
-            '**Date display for pinned items** is now hidden when "Variable note height" is enabled.'
-        ],
-        changed: [
-            '**Property key configuration** was moved from Navigation Pane to the General settings tab.',
-            'In list pane, **property keys with no values** are no longer displayed (previously the property key was showing).'
-        ],
-        fixed: [
-            "Fixed an issue where today's date and file list did not update when a new day started.",
-            'Folder sorting now uses the resolved folder display name (including folder-note frontmatter name) instead of only folder.name.'
-        ]
-    },
-    {
-        version: '2.4.1',
-        date: '2026-02-18',
-        showOnUpdate: false,
-        fixed: [
-            'Fixed an issue where the calendar could use locale week rules for custom week patterns using ISO week tokens ("W" or "G").',
-            'Fixed an issue where new notes created from tag view wrote the selected tag in lowercase in note properties.'
-        ]
-    },
-    {
-        version: '2.4.0',
-        date: '2026-02-18',
-        showOnUpdate: true,
-        new: [
-            '==Property browser==. You can now browse file properties in the navigation pane. Properties are organized in a tree showing property keys and their values with file counts, just like tags. Supports custom colors, icons, context menus, and drag and drop. Just right-click "Properties" and choose "Configure property keys" to get started!',
-            '==Create new note in tag==. Right-click a tag in the navigation pane and select "New note" to create a file with that tag. Respects Obsidian\'s "Default location for new notes" setting. This makes it possible to finally work 100% in the tag browser in Notebook Navigator.',
-            '==Filter search: folder filters==. Filter notes by folder with "folder:" and "-folder:" tokens. Supports both wildcards "folder:notes" and specific paths "folder:/work/meetingnotes".',
-            '==Filter search: extension filters==. Filter files by extension with "ext:" and "-ext:" tokens. For example, "ext:pdf" to show only PDF files or "-ext:md" to exclude markdown files. Can be combined with other filters.',
-            '==Folder notes now read and write icon, color and background color to frontmatter==! A new setting List > Frontmatter > Background field is used to read and write background color.',
-            'New setting: ==Shortcuts > Recent notes > Hide notes==. You can now hide folder notes from recent notes, useful if you name all your folder notes the same name.',
-            "New setting: ==General > Auto reveal > Use shortest path==. Default enabled, if enabled auto-reveal will select the nearest visible ancestor folder or tag. If disabled, auto-reveal will select the file's actual folder and exact tag.",
-            'New setting: ==List > Property to sort by > Secondary sort==. Defines what to sort by for files which do not have the custom property. Can be title, file name, date created or date edited.',
-            'New command: ==Navigate to property==. Opens a fuzzy search modal listing all property keys and values. Selecting one navigates to it in the navigation pane.',
-            'New icons for ==tags, property keys, and property values== in the navigation pane. Configurable in settings.',
-            'Public API 1.3: ==Property metadata and navigation==. New methods for getting and setting property colors, background colors, and icons. New navigateToProperty() method for navigating to properties in the UI.'
-        ],
-        improved: [
-            'Subfolder group headers in list pane ==are now clickable when grouping by folder==.',
-            'The setting "Hide notes with properties" was renamed to "Hide notes with property rules". ==You can now hide properties with specific keys values==, like status=done, or published=true.',
-            '==Tags and properties in File Item now show custom icons== within the pills if set. This makes it much easier to know which property is showing.'
-        ],
-        changed: [
-            'Removed the setting ==Save icons and colors to frontmatter==. Icons and colors are now always saved to frontmatter if frontmatter metadata is enabled.',
-            'Settings are now organized in a ==two-level hierarchy== with icons. Main groups (General, Navigation Pane, List Pane, Calendar) now have subtabs for easier navigation.',
-            'Most placeholders now use english property names for all locales.'
-        ],
-        fixed: [
-            'Fixed an issue where moving files did not update list pane until refreshing the view.',
-            'Fixed an issue where full month calendar in navigation pane always reserved 6 lines, even if month had 4 or 5 weeks.',
-            'Fixed an issue where clicking on a week in calendar view opened wrong week in some locales.'
         ]
     }
 ];

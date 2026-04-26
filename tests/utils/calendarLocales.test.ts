@@ -17,7 +17,13 @@
  */
 
 import { describe, expect, test } from 'vitest';
-import { resolveCalendarLocales, type MomentApi, type MomentInstance, type MomentLocaleData } from '../../src/utils/moment';
+import {
+    resolveCalendarLocales,
+    resolveDailyNoteLocale,
+    type MomentApi,
+    type MomentInstance,
+    type MomentLocaleData
+} from '../../src/utils/moment';
 
 function createMomentStub(locales: string[], currentLocale: string): MomentApi {
     const localeData: MomentLocaleData = {
@@ -59,11 +65,11 @@ function createMomentStub(locales: string[], currentLocale: string): MomentApi {
 }
 
 describe('resolveCalendarLocales', () => {
-    test('uses the selected calendar locale for display formatting and week rules', () => {
+    test('keeps the Obsidian language for display and uses the selected calendar locale for calendar rules', () => {
         const momentApi = createMomentStub(['en', 'ar'], 'ar');
 
         expect(resolveCalendarLocales('en', momentApi, 'ar')).toEqual({
-            displayLocale: 'en',
+            displayLocale: 'ar',
             calendarRulesLocale: 'en'
         });
     });
@@ -84,5 +90,15 @@ describe('resolveCalendarLocales', () => {
             displayLocale: 'en',
             calendarRulesLocale: 'en'
         });
+    });
+
+    test('keeps core Daily Notes formatting on the current moment locale', () => {
+        const momentApi = createMomentStub(['en', 'en-gb', 'uk'], 'en-gb');
+
+        expect(resolveCalendarLocales('uk', momentApi, 'en')).toEqual({
+            displayLocale: 'en',
+            calendarRulesLocale: 'uk'
+        });
+        expect(resolveDailyNoteLocale(momentApi)).toBe('en-gb');
     });
 });
