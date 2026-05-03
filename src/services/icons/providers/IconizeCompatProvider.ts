@@ -55,7 +55,7 @@ function sanitizeSvg(raw: string): SVGSVGElement | null {
 
     const parsed = new DOMParser().parseFromString(raw, 'image/svg+xml');
     const root = parsed.documentElement;
-    if (!(root.instanceOf(SVGSVGElement))) {
+    if (!root.instanceOf(SVGSVGElement)) {
         return null;
     }
 
@@ -93,10 +93,8 @@ function sanitizeSvg(raw: string): SVGSVGElement | null {
     });
 
     // Detect stroke hints from attribute names
-    const hasStrokeHints = allElements.some(el =>
-        el.hasAttribute('stroke-width') ||
-        el.hasAttribute('stroke-linecap') ||
-        el.hasAttribute('stroke-linejoin')
+    const hasStrokeHints = allElements.some(
+        el => el.hasAttribute('stroke-width') || el.hasAttribute('stroke-linecap') || el.hasAttribute('stroke-linejoin')
     );
 
     const treatAsStroke = hasStroke || (hasStrokeHints && hasFillNone);
@@ -177,11 +175,7 @@ export class IconizeCompatProvider implements IconProvider {
         return this.readSvgFromAdapter(svgPath, container, token);
     }
 
-    private async readSvgFromAdapter(
-        svgPath: string,
-        container: HTMLElement,
-        token: symbol
-    ): Promise<IconRenderResult> {
+    private async readSvgFromAdapter(svgPath: string, container: HTMLElement, token: symbol): Promise<IconRenderResult> {
         try {
             const adapter = this.app.vault.adapter;
 
@@ -238,9 +232,7 @@ export class IconizeCompatProvider implements IconProvider {
     search(query: string): IconDefinition[] {
         const q = query.trim().toLowerCase();
         if (!q) return [];
-        return this.getAll().filter(icon =>
-            icon.id.toLowerCase().includes(q) || icon.displayName.toLowerCase().includes(q)
-        );
+        return this.getAll().filter(icon => icon.id.toLowerCase().includes(q) || icon.displayName.toLowerCase().includes(q));
     }
 
     getAll(): IconDefinition[] {
