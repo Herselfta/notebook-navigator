@@ -38,7 +38,7 @@ describe('migrateLegacySyncedSettings property key migration', () => {
         delete settingsRecord['notePropertyType'];
         delete settingsRecord['propertyFields'];
         delete settingsRecord['showFilePropertiesInCompactMode'];
-        delete settingsRecord['showPropertiesOnSeparateRows'];
+        settingsRecord['showPropertiesOnSeparateRows'] = true;
 
         settingsRecord['customPropertyType'] = 'wordCount';
         settingsRecord['customPropertyFields'] = 'status, type';
@@ -60,13 +60,12 @@ describe('migrateLegacySyncedSettings property key migration', () => {
             { key: 'type', showInNavigation: true, showInList: true, showInFileMenu: false }
         ]);
         expect(settings.showFilePropertiesInCompactMode).toBe(true);
-        expect(settings.showPropertiesOnSeparateRows).toBe(false);
-
         expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'propertyFields')).toBe(false);
         expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'customPropertyType')).toBe(false);
         expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'customPropertyFields')).toBe(false);
         expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'showCustomPropertyInCompactMode')).toBe(false);
         expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'showCustomPropertiesOnSeparateRows')).toBe(false);
+        expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'showPropertiesOnSeparateRows')).toBe(false);
     });
 
     it('defaults property link settings when missing', () => {

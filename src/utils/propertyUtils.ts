@@ -285,7 +285,7 @@ export function isSupportedCssColor(value: string): boolean {
         return false;
     }
 
-    const cssApi = globalThis.CSS;
+    const cssApi = (activeWindow as Window & { CSS?: { supports(propertyName: string, value: string): boolean } }).CSS;
     if (cssApi && typeof cssApi.supports === 'function') {
         // Runtime validation for CSS color strings (handles named colors, hex, hsl(), var(), etc).
         return cssApi.supports('color', trimmed);

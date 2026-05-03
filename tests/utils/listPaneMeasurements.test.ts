@@ -19,9 +19,13 @@
 import { describe, expect, it } from 'vitest';
 import {
     estimateRenderedTextRows,
+    estimateWrappedPillRowCount,
+    FEATURE_IMAGE_MAX_ASPECT_RATIO,
+    getEstimatedFeatureImageInlineSize,
     getFileItemLayoutState,
     getSelectedPropertyValuePillToHide,
     getSelectedTagPillToHide,
+    getTagPillRowCount,
     hasVisibleTagPills,
     getPropertyRowCount,
     isListPaneCompactMode,
@@ -72,14 +76,72 @@ describe('listPaneMeasurements layout helpers', () => {
         ).toBe(2);
     });
 
-    it('keeps the expanded multi-line layout when the feature image area is visible', () => {
+    it('estimates wrapped pill rows from count and available width', () => {
+        expect(
+            estimateWrappedPillRowCount({
+                pillCount: 5,
+                availableWidth: 160,
+                rowGap: 4,
+                estimatedPillInlineSize: 72
+            })
+        ).toBe(3);
+    });
+
+    it('uses a single column when the estimated pill width fills the available width', () => {
+        expect(
+            estimateWrappedPillRowCount({
+                pillCount: 3,
+                availableWidth: 60,
+                rowGap: 4,
+                estimatedPillInlineSize: 72
+            })
+        ).toBe(3);
+    });
+
+    it('falls back to a default width when no container width has been measured', () => {
+        expect(
+            estimateWrappedPillRowCount({
+                pillCount: 6,
+                rowGap: 4,
+                estimatedPillInlineSize: 72
+            })
+        ).toBe(2);
+    });
+
+    it('returns zero rows for empty pill counts', () => {
+        expect(
+            estimateWrappedPillRowCount({
+                pillCount: 0,
+                availableWidth: 160,
+                rowGap: 4,
+                estimatedPillInlineSize: 72
+            })
+        ).toBe(0);
+    });
+
+    it('counts wrapped tag pill rows after hidden and selected tag filtering', () => {
+        const hiddenTagVisibility = createHiddenTagVisibility(['archive'], false);
+
+        expect(
+            getTagPillRowCount({
+                tags: ['project/alpha', 'project/beta', 'archive/private'],
+                hiddenTagVisibility,
+                selectedTagToHide: null,
+                showFileTagsOnMultipleRows: true,
+                showFileTagAncestors: false,
+                availableWidth: 60,
+                rowGap: 4
+            })
+        ).toBe(2);
+    });
+
+    it('keeps the multiline preview slot when the feature image area is visible', () => {
         expect(
             getFileItemLayoutState({
                 showDate: true,
                 showPreview: true,
                 showImage: true,
                 previewRows: 3,
-                optimizeNoteHeight: true,
                 isPinned: false,
                 hasPreviewContent: false,
                 showFeatureImageArea: true,
@@ -87,11 +149,10 @@ describe('listPaneMeasurements layout helpers', () => {
             })
         ).toMatchObject({
             isCompactMode: false,
-            shouldUseMultiLinePreviewLayout: true,
-            shouldCollapseEmptyPreviewSpace: false,
-            shouldUseExpandedMultiLineLayout: true,
-            shouldSuppressEmptyPreviewLines: false,
-            multilinePreviewRowCount: 3
+            shouldUseSingleLineForDateAndPreview: false,
+            shouldShowMultilinePreview: true,
+            shouldReplaceEmptyPreviewWithPills: false,
+            shouldShowDateForItem: true
         });
     });
 
@@ -102,18 +163,16 @@ describe('listPaneMeasurements layout helpers', () => {
                 showPreview: true,
                 showImage: false,
                 previewRows: 3,
-                optimizeNoteHeight: true,
                 isPinned: false,
                 hasPreviewContent: false,
                 showFeatureImageArea: false,
                 hasVisiblePillRows: true
             })
         ).toMatchObject({
-            shouldUseMultiLinePreviewLayout: true,
-            shouldCollapseEmptyPreviewSpace: true,
-            shouldUseExpandedMultiLineLayout: false,
-            shouldSuppressEmptyPreviewLines: true,
-            multilinePreviewRowCount: 0
+            shouldUseSingleLineForDateAndPreview: false,
+            shouldShowMultilinePreview: false,
+            shouldReplaceEmptyPreviewWithPills: true,
+            shouldShowDateForItem: true
         });
     });
 
@@ -121,7 +180,7 @@ describe('listPaneMeasurements layout helpers', () => {
         expect(
             shouldShowFileItemParentFolderLine({
                 showParentFolder: true,
-                pinnedItemShouldUseCompactLayout: false,
+                isPinned: false,
                 selectionType: 'tag',
                 includeDescendantNotes: false,
                 parentFolder: 'Projects',
@@ -132,7 +191,7 @@ describe('listPaneMeasurements layout helpers', () => {
         expect(
             shouldShowFileItemParentFolderLine({
                 showParentFolder: true,
-                pinnedItemShouldUseCompactLayout: false,
+                isPinned: false,
                 selectionType: 'folder',
                 includeDescendantNotes: true,
                 parentFolder: 'Projects',
@@ -143,7 +202,7 @@ describe('listPaneMeasurements layout helpers', () => {
         expect(
             shouldShowFileItemParentFolderLine({
                 showParentFolder: true,
-                pinnedItemShouldUseCompactLayout: false,
+                isPinned: false,
                 selectionType: 'folder',
                 includeDescendantNotes: true,
                 parentFolder: 'Projects',
@@ -154,7 +213,7 @@ describe('listPaneMeasurements layout helpers', () => {
         expect(
             shouldShowFileItemParentFolderLine({
                 showParentFolder: true,
-                pinnedItemShouldUseCompactLayout: false,
+                isPinned: false,
                 selectionType: 'tag',
                 includeDescendantNotes: false,
                 parentFolder: null,
@@ -184,12 +243,18 @@ describe('listPaneMeasurements layout helpers', () => {
         ).toBe(true);
     });
 
+    it('estimates natural feature image inline width from the clamped render aspect ratio', () => {
+        expect(getEstimatedFeatureImageInlineSize({ blockSize: 64, forceSquareFeatureImage: true })).toBe(64);
+        expect(getEstimatedFeatureImageInlineSize({ blockSize: 64, forceSquareFeatureImage: false })).toBe(
+            64 * FEATURE_IMAGE_MAX_ASPECT_RATIO
+        );
+    });
+
     it('counts numeric frontmatter properties as visible property rows', () => {
         expect(
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Numbers.md'),
@@ -205,7 +270,6 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Flags.md'),
@@ -214,6 +278,46 @@ describe('listPaneMeasurements layout helpers', () => {
                 visiblePropertyKeys: new Set<string>(['flag'])
             })
         ).toBe(1);
+    });
+
+    it('counts wrapped frontmatter property pill rows when multiple rows are enabled', () => {
+        const file = createTestTFile('Notes/Properties.md');
+        const properties = [
+            { fieldKey: 'topic', value: 'alpha', valueKind: 'string' as const },
+            { fieldKey: 'topic', value: 'beta', valueKind: 'string' as const }
+        ];
+
+        expect(
+            getPropertyRowCount({
+                notePropertyType: 'none',
+                showFileProperties: true,
+                showFilePropertiesOnMultipleRows: false,
+                showFilePropertiesInCompactMode: true,
+                isCompactMode: false,
+                file,
+                wordCount: null,
+                properties,
+                visiblePropertyKeys: new Set<string>(['topic']),
+                availableWidth: 60,
+                rowGap: 4
+            })
+        ).toBe(1);
+
+        expect(
+            getPropertyRowCount({
+                notePropertyType: 'none',
+                showFileProperties: true,
+                showFilePropertiesOnMultipleRows: true,
+                showFilePropertiesInCompactMode: true,
+                isCompactMode: false,
+                file,
+                wordCount: null,
+                properties,
+                visiblePropertyKeys: new Set<string>(['topic']),
+                availableWidth: 60,
+                rowGap: 4
+            })
+        ).toBe(2);
     });
 
     it('hides the selected tag from tag-row visibility checks', () => {
@@ -252,7 +356,6 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),
@@ -267,7 +370,6 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showPropertiesOnSeparateRows: true,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),
@@ -292,7 +394,6 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showPropertiesOnSeparateRows: true,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),
@@ -306,7 +407,6 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showPropertiesOnSeparateRows: true,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),
@@ -320,7 +420,6 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showPropertiesOnSeparateRows: true,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),

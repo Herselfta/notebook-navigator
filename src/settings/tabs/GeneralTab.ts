@@ -21,7 +21,7 @@ import { MOMENT_FORMAT_DOCS_URL, getWelcomeVideoBaseUrl, SUPPORT_BUY_ME_A_COFFEE
 import { HomepageModal } from '../../modals/HomepageModal';
 import { strings } from '../../i18n';
 import { showNotice } from '../../utils/noticeUtils';
-import { FILE_VISIBILITY, type FileVisibility } from '../../utils/fileTypeUtils';
+import { FILE_VISIBILITY, isFileVisibility } from '../../utils/fileTypeUtils';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import {
     MAX_PANE_TRANSITION_DURATION_MS,
@@ -33,12 +33,10 @@ import type {
     FileOpenContext,
     ListToolbarButtonId,
     MouseBackForwardAction,
-    MultiSelectModifier,
     NavigationToolbarButtonId,
-    VaultProfilePropertyKey,
-    VaultTitleOption
+    VaultProfilePropertyKey
 } from '../types';
-import { isHomepageSource, isPeriodicHomepageSource } from '../types';
+import { isHomepageSource, isMultiSelectModifier, isPeriodicHomepageSource, isVaultTitleOption } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { InputModal } from '../../modals/InputModal';
@@ -113,7 +111,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                         const { getLatestReleaseNotes } = await import('../../releaseNotes');
                         const latestNotes = getLatestReleaseNotes();
                         new WhatsNewModal(context.app, latestNotes, () => {
-                            setTimeout(() => {
+                            activeWindow.setTimeout(() => {
                                 runAsyncAction(async () => {
                                     plugin.settings.lastShownVersion = pluginVersion;
                                     await plugin.saveSettingsAndUpdate();
@@ -366,7 +364,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                         .addOption('header', strings.settings.items.vaultTitle.options.header)
                         .addOption('navigation', strings.settings.items.vaultTitle.options.navigation)
                         .setValue(plugin.settings.vaultTitle)
-                        .onChange(async (value: VaultTitleOption) => {
+                        .onChange(async value => {
+                            if (!isVaultTitleOption(value)) {
+                                return;
+                            }
                             plugin.settings.vaultTitle = value;
                             await plugin.saveSettingsAndUpdate();
                         })
@@ -385,7 +386,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                     .addOption(FILE_VISIBILITY.SUPPORTED, strings.settings.items.fileVisibility.options.supported)
                     .addOption(FILE_VISIBILITY.ALL, strings.settings.items.fileVisibility.options.all)
                     .setValue(getActiveProfile()?.fileVisibility ?? FILE_VISIBILITY.SUPPORTED)
-                    .onChange(async (value: FileVisibility) => {
+                    .onChange(async value => {
+                        if (!isFileVisibility(value)) {
+                            return;
+                        }
                         const activeProfile = plugin.settings.vaultProfiles.find(profile => profile.id === plugin.settings.vaultProfile);
                         if (activeProfile) {
                             activeProfile.fileVisibility = value;
@@ -684,7 +688,10 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                         .addOption('cmdCtrl', strings.settings.items.multiSelectModifier.options.cmdCtrl)
                         .addOption('optionAlt', strings.settings.items.multiSelectModifier.options.optionAlt)
                         .setValue(plugin.settings.multiSelectModifier)
-                        .onChange(async (value: MultiSelectModifier) => {
+                        .onChange(async value => {
+                            if (!isMultiSelectModifier(value)) {
+                                return;
+                            }
                             plugin.settings.multiSelectModifier = value;
                             await plugin.saveSettingsAndUpdate();
                         })
@@ -844,6 +851,16 @@ export function renderGeneralTab(context: SettingsTabContext): void {
             .addToggle(toggle =>
                 toggle.setValue(plugin.settings.showTooltipPath).onChange(async value => {
                     plugin.settings.showTooltipPath = value;
+                    await plugin.saveSettingsAndUpdate();
+                })
+            );
+
+        new Setting(showTooltipsSubSettings)
+            .setName(strings.settings.items.showTooltipWordCount.name)
+            .setDesc(strings.settings.items.showTooltipWordCount.desc)
+            .addToggle(toggle =>
+                toggle.setValue(plugin.settings.showTooltipWordCount).onChange(async value => {
+                    plugin.settings.showTooltipWordCount = value;
                     await plugin.saveSettingsAndUpdate();
                 })
             );
@@ -1163,7 +1180,7 @@ const LIST_TOOLBAR_BUTTONS: ToolbarButtonConfig<ListToolbarButtonId>[] = [
     { id: 'back', iconType: 'raw', iconId: Platform.isAndroidApp ? 'arrow-left' : 'chevron-left', label: strings.paneHeader.showFolders },
     { id: 'search', iconType: 'ux', iconId: 'list-search', label: strings.paneHeader.search },
     { id: 'descendants', iconType: 'ux', iconId: 'list-descendants', label: strings.settings.items.includeDescendantNotes.name },
-    { id: 'sort', iconType: 'ux', iconId: 'list-sort-ascending', label: strings.paneHeader.changeSortOrder },
+    { id: 'sort', iconType: 'ux', iconId: 'list-sort-ascending', label: strings.paneHeader.changeSortAndGroup },
     { id: 'appearance', iconType: 'ux', iconId: 'list-appearance', label: strings.paneHeader.changeAppearance },
     { id: 'newNote', iconType: 'ux', iconId: 'list-new-note', label: strings.paneHeader.newNote }
 ];

@@ -276,7 +276,7 @@ export function renderFrontmatterTab(context: SettingsTabContext): void {
     dateFormatSetting.controlEl.addClass('nn-setting-wide-input');
 
     const metadataInfoContainer = frontmatterSettingsEl.createDiv('nn-setting-info-container');
-    const metadataInfoEl = metadataInfoContainer.createEl('div', {
+    const metadataInfoEl = metadataInfoContainer.createDiv({
         cls: 'setting-item-description'
     });
     context.registerMetadataInfoElement(metadataInfoEl);

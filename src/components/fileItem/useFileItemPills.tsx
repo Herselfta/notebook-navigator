@@ -28,6 +28,7 @@ import {
     forEachVisibleFrontmatterProperty,
     getSelectedPropertyValuePillToHide,
     getSelectedTagPillToHide,
+    getTagPillDisplayName,
     type VisibleFrontmatterPropertyEntry
 } from '../../utils/listPaneMeasurements';
 import { naturalCompare } from '../../utils/sortUtils';
@@ -63,6 +64,7 @@ type PropertyPill = {
     propertySearchKey?: string;
     propertySearchValuePath?: string | null;
     canNavigateToProperty?: boolean;
+    hasCustomColor?: boolean;
 };
 
 export interface UseFileItemPillsParams {
@@ -89,7 +91,9 @@ export interface FileItemPillsState {
     pillRows: React.ReactNode;
 }
 
-const EMPTY_COLOR_MAP = new Map<string, { color?: string; background?: string }>();
+type TagPillColorData = { color?: string; background?: string; hasCustomColor: boolean };
+
+const EMPTY_COLOR_MAP = new Map<string, TagPillColorData>();
 const EXTERNAL_PROPERTY_LINK_ICON_ID = 'external-link';
 
 function sortTagsAlphabetically(tags: string[]): void {
@@ -112,35 +116,33 @@ function sortPropertyPillsAlphabetically(pills: PropertyPill[]): void {
     });
 }
 
-function sortPropertyPillGroup(pills: readonly PropertyPill[], prioritizeColoredPills: boolean): PropertyPill[] {
+function sortPropertyPillGroup(pills: readonly PropertyPill[], prioritizeCustomColoredPills: boolean): PropertyPill[] {
     if (pills.length <= 1) {
         return [...pills];
     }
 
-    if (!prioritizeColoredPills) {
+    if (!prioritizeCustomColoredPills) {
         const sortedPills = [...pills];
         sortPropertyPillsAlphabetically(sortedPills);
         return sortedPills;
     }
 
-    const coloredPills: PropertyPill[] = [];
+    const customColoredPills: PropertyPill[] = [];
     const regularPills: PropertyPill[] = [];
 
     pills.forEach(pill => {
-        const hasColor = typeof pill.color === 'string' && pill.color.trim().length > 0;
-        const hasBackground = typeof pill.background === 'string' && pill.background.trim().length > 0;
-        if (hasColor || hasBackground) {
-            coloredPills.push(pill);
+        if (pill.hasCustomColor === true) {
+            customColoredPills.push(pill);
             return;
         }
 
         regularPills.push(pill);
     });
 
-    sortPropertyPillsAlphabetically(coloredPills);
+    sortPropertyPillsAlphabetically(customColoredPills);
     sortPropertyPillsAlphabetically(regularPills);
 
-    return [...coloredPills, ...regularPills];
+    return [...customColoredPills, ...regularPills];
 }
 
 function resolveNormalizedPropertyKeyNodeId(fieldKey: string | undefined): string | undefined {
@@ -309,9 +311,10 @@ export function useFileItemPills({
             return EMPTY_COLOR_MAP;
         }
 
-        const entries = new Map<string, { color?: string; background?: string }>();
+        const entries = new Map<string, TagPillColorData>();
         visibleTags.forEach(tag => {
             const tagColorData = getTagColorData(tag);
+            const hasCustomColor = Boolean(tagColorData.color || tagColorData.background);
             const resolved = resolveFileItemTagDecorationColors({
                 model: fileItemPillDecorationModel,
                 tagPath: tag,
@@ -321,7 +324,8 @@ export function useFileItemPills({
             if (resolved.color || resolved.backgroundColor) {
                 entries.set(tag, {
                     color: resolved.color,
-                    background: resolved.backgroundColor
+                    background: resolved.backgroundColor,
+                    hasCustomColor
                 });
             }
         });
@@ -353,10 +357,8 @@ export function useFileItemPills({
 
         visibleTags.forEach(tag => {
             const tagColors = tagColorData.get(tag);
-            const hasTagColor = Boolean(tagColors?.color);
-            const hasTagBackground = Boolean(tagColors?.background);
 
-            if (hasTagColor || hasTagBackground) {
+            if (tagColors?.hasCustomColor === true) {
                 coloredTags.push(tag);
                 return;
             }
@@ -392,7 +394,9 @@ export function useFileItemPills({
             properties,
             visiblePropertyKeys,
             hiddenPropertyValueNodeId: selectedPropertyValueNodeIdToHide,
-            visitor: property => entries.push(property)
+            visitor: property => {
+                entries.push(property);
+            }
         });
         return entries;
     }, [properties, selectedPropertyValueNodeIdToHide, visiblePropertyKeys]);
@@ -488,7 +492,7 @@ export function useFileItemPills({
             return pills;
         }
 
-        const colorLookupCache = new Map<string, { color?: string; background?: string }>();
+        const colorLookupCache = new Map<string, { color?: string; background?: string; hasCustomColor: boolean }>();
         for (const property of visibleFrontmatterProperties) {
             const { entry, rawValue, trimmedFieldKey, normalizedValuePath, isKeyOnlyValue, propertyNodeId } = property;
             const linkTarget = isKeyOnlyValue ? null : parsePropertyLinkTarget(rawValue);
@@ -498,6 +502,7 @@ export function useFileItemPills({
             if (!colorData) {
                 if (settings.colorFileProperties && propertyNodeId) {
                     const baseColorData = metadataService.getPropertyColorData(propertyNodeId);
+                    const hasCustomColor = Boolean(baseColorData.color || baseColorData.background);
                     const resolved = resolveFileItemPropertyDecorationColors({
                         model: fileItemPillDecorationModel,
                         nodeId: propertyNodeId,
@@ -506,10 +511,11 @@ export function useFileItemPills({
                     });
                     colorData = {
                         color: resolved.color,
-                        background: resolved.backgroundColor
+                        background: resolved.backgroundColor,
+                        hasCustomColor
                     };
                 } else {
-                    colorData = {};
+                    colorData = { hasCustomColor: false };
                 }
                 colorLookupCache.set(cacheKey, colorData);
             }
@@ -534,6 +540,7 @@ export function useFileItemPills({
                 propertyKeyNodeId,
                 color: colorData.color,
                 background: colorData.background,
+                hasCustomColor: colorData.hasCustomColor,
                 propertyNodeId,
                 propertySearchKey: propertySearchKey.length > 0 ? propertySearchKey : undefined,
                 propertySearchValuePath,
@@ -632,50 +639,9 @@ export function useFileItemPills({
     const shouldShowProperty = propertyPills.length > 0;
     const shouldShowWordCountProperty = Boolean(wordCountPropertyPill);
 
-    const propertyRows = useMemo((): PropertyPill[][] => {
-        if (!settings.showPropertiesOnSeparateRows) {
-            return [];
-        }
-
-        const rows: PropertyPill[][] = [];
-        const rowsByKey = new Map<string, PropertyPill[]>();
-        let unkeyedRow: PropertyPill[] | null = null;
-
-        for (const pill of propertyPills) {
-            const fieldKey = pill.fieldKey?.trim() ?? '';
-            if (!fieldKey) {
-                if (!unkeyedRow) {
-                    unkeyedRow = [];
-                    rows.push(unkeyedRow);
-                }
-                unkeyedRow.push(pill);
-                continue;
-            }
-
-            let row = rowsByKey.get(fieldKey);
-            if (!row) {
-                row = [];
-                rowsByKey.set(fieldKey, row);
-                rows.push(row);
-            }
-            row.push(pill);
-        }
-
-        return rows;
-    }, [propertyPills, settings.showPropertiesOnSeparateRows]);
-
     const getTagDisplayName = useCallback(
         (tag: string): string => {
-            if (settings.showFileTagAncestors) {
-                return tag;
-            }
-
-            const segments = tag.split('/').filter(segment => segment.length > 0);
-            if (segments.length === 0) {
-                return tag;
-            }
-
-            return segments[segments.length - 1];
+            return getTagPillDisplayName(tag, settings.showFileTagAncestors);
         },
         [settings.showFileTagAncestors]
     );
@@ -809,7 +775,7 @@ export function useFileItemPills({
         }
 
         return (
-            <div className="nn-file-tags">
+            <div className="nn-file-tags" data-wrap={settings.showFileTagsOnMultipleRows ? 'true' : undefined}>
                 {categorizedTags.map((tag, index) => {
                     const tagColors = tagColorData.get(tag);
                     const tagColor = tagColors?.color;
@@ -844,27 +810,29 @@ export function useFileItemPills({
                 })}
             </div>
         );
-    }, [categorizedTags, getTagDisplayName, handleTagClick, shouldShowFileTags, tagColorData, tagPillIcons]);
+    }, [
+        categorizedTags,
+        getTagDisplayName,
+        handleTagClick,
+        settings.showFileTagsOnMultipleRows,
+        shouldShowFileTags,
+        tagColorData,
+        tagPillIcons
+    ]);
 
     const propertyRowsNode = useMemo(() => {
         if (!shouldShowProperty) {
             return null;
         }
 
-        if (!settings.showPropertiesOnSeparateRows) {
-            return <div className="nn-file-property-row">{propertyPills.map(renderPropertyPill)}</div>;
-        }
+        const wrapAttribute = settings.showFilePropertiesOnMultipleRows ? 'true' : undefined;
 
         return (
-            <>
-                {propertyRows.map((row, rowIndex) => (
-                    <div key={rowIndex} className="nn-file-property-row">
-                        {row.map((pill, index) => renderPropertyPill(pill, index))}
-                    </div>
-                ))}
-            </>
+            <div className="nn-file-property-row" data-wrap={wrapAttribute}>
+                {propertyPills.map(renderPropertyPill)}
+            </div>
         );
-    }, [propertyPills, propertyRows, renderPropertyPill, settings.showPropertiesOnSeparateRows, shouldShowProperty]);
+    }, [propertyPills, renderPropertyPill, settings.showFilePropertiesOnMultipleRows, shouldShowProperty]);
 
     const wordCountRow = useMemo(() => {
         if (!shouldShowWordCountProperty || !wordCountPropertyPill) {

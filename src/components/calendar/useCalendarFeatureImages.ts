@@ -98,7 +98,7 @@ export function useCalendarFeatureImages({
                         return;
                     }
 
-                    let blob: Blob | null = null;
+                    let blob: Blob | null;
                     try {
                         blob = await db.getFeatureImageBlob(entry.file.path, entry.key);
                     } catch {

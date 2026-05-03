@@ -129,13 +129,14 @@ export const STRINGS_TR = {
         newFolder: 'Yeni klasör', // Tooltip for create new folder button (English: New folder)
         newNote: 'Yeni not', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Gezinmeye dön', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: 'Sıralama düzenini değiştir', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: 'Sıralama düzenini değiştir',
+        changeSortAndGroup: 'Sıralama ve gruplandırmayı değiştir',
         defaultSort: 'Varsayılan', // Label for default sorting mode (English: Default)
         descendants: 'alt öğeler',
         subfolders: 'alt klasörler',
         subtags: 'alt etiketler',
         childValues: 'alt değerler',
-        applySortToDescendants: (target: string) => `Sıralamayı ${target} için uygula`,
+        applySortAndGroupToDescendants: (target: string) => `Sıralama ve gruplandırmayı ${target} için uygula`,
         applyAppearanceToDescendants: (target: string) => `Görünümü ${target} için uygula`,
         showFolders: 'Gezinmeyi göster', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Gezinmeyi yeniden sırala',
@@ -196,11 +197,11 @@ export const STRINGS_TR = {
                     title: 'Özellikler',
                     items: [
                         '`.key` Özellik anahtarına sahip notları dahil et.',
-                        '`.key=value` Özellik değerine sahip notları dahil et.',
+                        '`.key=value` Özellik değeri `value` içeren notları dahil et.',
                         '`."Reading Status"` Boşluk içeren özellik anahtarına sahip notları dahil et.',
                         '`."Reading Status"="In Progress"` Boşluk içeren anahtarlar ve değerler çift tırnak içine alınmalıdır.',
                         '`-.key` Özellik anahtarına sahip notları hariç tut.',
-                        '`-.key=value` Özellik değerine sahip notları hariç tut.',
+                        '`-.key=value` Özellik değeri `value` içeren notları hariç tut.',
                         'Cmd/Ctrl+Tıklayarak özelliği AND ile ekleyin. Cmd/Ctrl+Shift+Tıklayarak OR ile ekleyin.'
                     ]
                 },
@@ -365,6 +366,8 @@ export const STRINGS_TR = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Görünüm',
+        sortBy: 'Sıralama ölçütü',
         standardPreset: 'Standart',
         compactPreset: 'Kompakt',
         defaultSuffix: '(varsayılan)',
@@ -383,7 +386,7 @@ export const STRINGS_TR = {
     modals: {
         bulkApply: {
             applyButton: 'Uygula',
-            applySortTitle: (target: string) => `Sıralama ${target} için uygulansın mı?`,
+            applySortAndGroupTitle: (target: string) => `Sıralama ve gruplandırma ${target} için uygulansın mı?`,
             applyAppearanceTitle: (target: string) => `Görünüm ${target} için uygulansın mı?`,
             affectedCountMessage: (count: number) => `Değişecek mevcut geçersiz kılmalar: ${count}.`
         },
@@ -784,6 +787,8 @@ export const STRINGS_TR = {
         toggleDescendants: 'Alt öğeleri aç/kapat', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Gizli klasörleri, etiketleri ve notları aç/kapat', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Etiket sıralama düzenini aç/kapat', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'Etiketleri seçime göre aç/kapat',
+        togglePropertiesBySelection: 'Özellikleri seçime göre aç/kapat',
         toggleCompactMode: 'Kompakt modu aç/kapat', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Tüm öğeleri daralt / genişlet', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Seçili dosyalara etiket ekle', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -809,11 +814,13 @@ export const STRINGS_TR = {
         file: 'dosya',
         files: 'dosya',
         folder: 'klasör',
-        folders: 'klasör'
+        folders: 'klasör',
+        wordCount: 'Kelime sayısı'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Varsayılan ayarları değiştir',
         metadataReport: {
             exportSuccess: 'Başarısız meta veri raporu dışa aktarıldı: {filename}',
             exportFailed: 'Meta veri raporu dışa aktarılamadı'
@@ -989,7 +996,7 @@ export const STRINGS_TR = {
             fileNameIconMap: {
                 name: 'Dosya adı simge eşlemesi',
                 desc: 'Metni içeren dosyalar belirtilen simgeyi alır. Satır başına bir eşleme: metin=simge',
-                placeholder: '# metin=simge\ntoplantı=LiCalendar\nfatura=PhReceipt',
+                placeholder: '# metin=simge\ntoplantı=ph-calendar\nfatura=ph-receipt',
                 editTooltip: 'Eşlemeleri düzenle'
             },
             showCategoryIcons: {
@@ -999,12 +1006,8 @@ export const STRINGS_TR = {
             fileTypeIconMap: {
                 name: 'Dosya türü simge eşlemesi',
                 desc: 'Uzantıya sahip dosyalar belirtilen simgeyi alır. Satır başına bir eşleme: uzantı=simge',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Eşlemeleri düzenle'
-            },
-            optimizeNoteHeight: {
-                name: 'Değişken not yüksekliği',
-                desc: 'Sabitlenmiş notlar ve önizleme metni olmayan notlar için kompakt yükseklik kullan.'
             },
             compactItemHeight: {
                 name: 'Kompakt öğe yüksekliği',
@@ -1211,7 +1214,7 @@ export const STRINGS_TR = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Ay adı biçimi',
-                desc: 'Yıl görünümü gizlendiğinde normal veya kısaltılmış ay adı.',
+                desc: 'Uzun (Ocak) veya kısa (Oca) ay adı.',
                 options: {
                     full: 'Ocak (tam)',
                     short: 'Oca (kısa)'
@@ -1315,6 +1318,10 @@ export const STRINGS_TR = {
             showTooltipPath: {
                 name: 'Yolu göster',
                 desc: 'İpuçlarında not adlarının altında klasör yolunu görüntüle.'
+            },
+            showTooltipWordCount: {
+                name: 'Kelime sayısını göster',
+                desc: 'İpuçlarında not kelime sayılarını görüntüle.'
             },
             resetPaneSeparator: {
                 name: 'Bölme ayırıcı konumunu sıfırla',
@@ -1496,12 +1503,16 @@ export const STRINGS_TR = {
                 desc: 'Dosya öğelerindeki etiket rozetlerine etiket renklerini uygula.'
             },
             prioritizeColoredFileTags: {
-                name: 'Renkli etiketleri önce göster',
-                desc: 'Dosya öğelerinde renkli etiketleri diğer etiketlerden önce sırala.'
+                name: 'Özel renkli etiketleri önce göster',
+                desc: 'Dosya öğelerinde özel renkli etiketleri diğer etiketlerden önce sırala.'
             },
             showFileTagsInCompactMode: {
                 name: 'Kompakt modda dosya etiketlerini göster',
                 desc: 'Tarih, önizleme ve görsel gizlendiğinde etiketleri görüntüle.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Etiketleri birden çok satırda göster',
+                desc: 'Dosya etiketleri tek satıra sığmadığında ek satırlara kaydır.'
             },
             showFileProperties: {
                 name: 'Dosya özelliklerini göster',
@@ -1512,12 +1523,16 @@ export const STRINGS_TR = {
                 desc: 'Dosya öğelerindeki özellik rozetlerine özellik renklerini uygula.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Renkli özellikleri önce göster',
-                desc: 'Dosya öğelerinde renkli özellikleri diğer özelliklerden önce sırala.'
+                name: 'Özel renkli özellikleri önce göster',
+                desc: 'Dosya öğelerinde özel renkli özellikleri diğer özelliklerden önce sırala.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Kompakt modda özellikleri göster',
                 desc: 'Kompakt mod etkinken özellikleri görüntüle.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Özellikleri birden çok satırda göster',
+                desc: 'Dosya özellikleri tek satıra sığmadığında ek satırlara kaydır.'
             },
             notePropertyType: {
                 name: 'Not özelliği',
@@ -1535,10 +1550,6 @@ export const STRINGS_TR = {
                 noneConfigured: 'Yapılandırılmış özellik yok',
                 singleConfigured: '1 özellik yapılandırıldı: {properties}',
                 multipleConfigured: '{count} özellik yapılandırıldı: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Özellikleri ayrı satırlarda göster',
-                desc: 'Her özelliği kendi satırında göster.'
             },
             enablePropertyInternalLinks: {
                 name: 'Özellik etiketlerini notlara bağla',

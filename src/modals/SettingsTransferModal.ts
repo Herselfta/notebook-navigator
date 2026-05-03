@@ -45,11 +45,11 @@ function createEditor(containerEl: HTMLElement, value: string, placeholder: stri
 function downloadTransferFile(content: string): void {
     const blob = new Blob([content], { type: 'application/json;charset=utf-8' });
     const objectUrl = URL.createObjectURL(blob);
-    const linkEl = document.createElement('a');
+    const linkEl = createEl('a');
     linkEl.href = objectUrl;
     linkEl.download = SETTINGS_TRANSFER_FILENAME;
     linkEl.addClass('nn-visually-hidden');
-    document.body.appendChild(linkEl);
+    activeDocument.body.appendChild(linkEl);
     linkEl.click();
     linkEl.remove();
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);

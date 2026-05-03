@@ -38,7 +38,7 @@ import {
     cloneShortcuts,
     getActiveVaultProfile
 } from '../utils/vaultProfiles';
-import { clonePinnedNotesRecord, isStringRecordValue, sanitizeRecord } from '../utils/recordUtils';
+import { clonePinnedNotesRecord, isStringRecordValue, sanitizeRecord, type PinnedNoteContextValue } from '../utils/recordUtils';
 import { areStringArraysEqual } from '../utils/arrayUtils';
 import type { FolderAppearance } from '../hooks/useListPaneAppearance';
 import { buildFileNameIconNeedles, type FileNameIconNeedle } from '../utils/fileIconUtils';
@@ -53,6 +53,7 @@ export interface ActiveProfileState {
     hiddenTags: string[];
     hiddenFileTags: string[];
     fileVisibility: FileVisibility;
+    propertyKeys: VaultProfile['propertyKeys'];
     navigationBanner: string | null;
 }
 
@@ -189,6 +190,36 @@ const cloneAppearanceMap = <T extends FolderAppearance>(map?: Record<string, T>)
     return cloned;
 };
 
+const arePinnedNotesEqual = (
+    previous: Record<string, PinnedNoteContextValue> | null,
+    next: Record<string, PinnedNoteContextValue>
+): boolean => {
+    if (!previous) {
+        return false;
+    }
+
+    const previousKeys = Object.keys(previous);
+    const nextKeys = Object.keys(next);
+    if (previousKeys.length !== nextKeys.length) {
+        return false;
+    }
+
+    for (const path of nextKeys) {
+        const previousContext = previous[path];
+        const nextContext = next[path];
+        if (
+            !previousContext ||
+            previousContext.folder !== nextContext.folder ||
+            previousContext.tag !== nextContext.tag ||
+            previousContext.property !== nextContext.property
+        ) {
+            return false;
+        }
+    }
+
+    return true;
+};
+
 interface SettingsProviderProps {
     children: ReactNode;
     plugin: NotebookNavigatorPlugin;
@@ -202,6 +233,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         raw: NotebookNavigatorSettings['interfaceIcons'] | undefined;
         sanitized: Record<string, string>;
     } | null>(null);
+    const previousPinnedNotesRef = useRef<Record<string, PinnedNoteContextValue> | null>(null);
 
     const updateSettings = useCallback(
         async (updater: (settings: NotebookNavigatorSettings) => void) => {
@@ -240,6 +272,11 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         if (!interfaceIconsCache || interfaceIconsCache.raw !== rawInterfaceIcons) {
             previousInterfaceIconsRef.current = { raw: rawInterfaceIcons, sanitized: interfaceIcons };
         }
+        const clonedPinnedNotes = clonePinnedNotesRecord(plugin.settings.pinnedNotes);
+        const previousPinnedNotes = previousPinnedNotesRef.current;
+        const pinnedNotes =
+            previousPinnedNotes && arePinnedNotesEqual(previousPinnedNotes, clonedPinnedNotes) ? previousPinnedNotes : clonedPinnedNotes;
+        previousPinnedNotesRef.current = pinnedNotes;
         const nextSettings: SettingsStateValue = {
             ...plugin.settings,
             dualPaneOrientation: plugin.getDualPaneOrientation(),
@@ -256,7 +293,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             folderAppearances: cloneAppearanceMap(plugin.settings.folderAppearances),
             tagAppearances: cloneAppearanceMap(plugin.settings.tagAppearances),
             propertyAppearances: cloneAppearanceMap(plugin.settings.propertyAppearances),
-            pinnedNotes: clonePinnedNotesRecord(plugin.settings.pinnedNotes)
+            pinnedNotes
         };
         // Deep copy vault profiles to prevent mutations from affecting the original settings
         if (Array.isArray(plugin.settings.vaultProfiles)) {
@@ -345,6 +382,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             hiddenTags: profile.hiddenTags,
             hiddenFileTags: profile.hiddenFileTags,
             fileVisibility: profile.fileVisibility,
+            propertyKeys: propertyKeysEqual && previous ? previous.propertyKeys : profile.propertyKeys,
             navigationBanner
         };
 

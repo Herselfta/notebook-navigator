@@ -45,7 +45,7 @@
  * - Settings changes (line height, indentation)
  */
 
-import { useRef, useCallback, useEffect, useState } from 'react';
+import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { useVirtualizer, Virtualizer } from '@tanstack/react-virtual';
 import { useServices } from '../context/ServicesContext';
 import { useSelectionState } from '../context/SelectionContext';
@@ -105,6 +105,35 @@ interface UseNavigationPaneScrollResult {
     requestScroll: (path: string, options: { align?: Align; itemType: ItemType }) => void;
     /** Version counter for pending scrolls */
     pendingScrollVersion: number;
+}
+
+function areNavigationPathIndexMapsEqual(previous: ReadonlyMap<string, number>, next: ReadonlyMap<string, number>): boolean {
+    if (previous === next) {
+        return true;
+    }
+    if (previous.size !== next.size) {
+        return false;
+    }
+
+    for (const [path, index] of next) {
+        if (previous.get(path) !== index) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function getNavigationMeasurementSignature(items: readonly CombinedNavigationItem[]): string {
+    return items
+        .map(item => {
+            if (item.type === NavigationPaneItemType.ROOT_SPACER) {
+                return `${item.type}:${item.spacing}`;
+            }
+
+            return item.type;
+        })
+        .join('\u0001');
 }
 
 /**
@@ -247,6 +276,7 @@ export function useNavigationPaneScroll({
     const prevNavSettingsKeyRef = useRef<string>('');
     const prevShowHiddenItemsRef = useRef<boolean>(showHiddenItems);
     const prevPathToIndexSizeRef = useRef<number>(pathToIndex.size);
+    const prevMeasurementSignatureRef = useRef<string>('');
 
     /**
      * Initialize TanStack Virtual virtualizer with dynamic heights for navigation items
@@ -285,6 +315,7 @@ export function useNavigationPaneScroll({
 
     const rowVirtualizer = useVirtualizer({
         count: items.length,
+        getItemKey: index => items[index]?.key ?? index,
         getScrollElement: () => scrollContainerRef.current,
         // Align virtualizer scroll math with the start of the tree rows (excluding non-virtualized scroll content).
         scrollMargin: effectiveScrollMargin,
@@ -316,24 +347,38 @@ export function useNavigationPaneScroll({
         },
         overscan: OVERSCAN
     });
+    const measurementSignature = useMemo(() => getNavigationMeasurementSignature(items), [items]);
 
     /**
-     * Increment indexVersion and invalidate cached row measurements when tree structure changes.
+     * Increment indexVersion and invalidate cached row measurements when tree structure or measured row layout changes.
      * This is critical for version gating and for selection-scoped nav rebuilds where the row
      * types or spacer layout can change without a height-setting change.
      */
     useEffect(() => {
-        const sizeChanged = prevPathToIndexSizeRef.current !== pathToIndex.size;
-        const identityChanged = prevPathToIndexObjRef.current !== pathToIndex;
+        const previousMap = prevPathToIndexObjRef.current;
+        const mappingChanged = previousMap === null || !areNavigationPathIndexMapsEqual(previousMap, pathToIndex);
+        const measurementChanged = prevMeasurementSignatureRef.current !== measurementSignature;
 
-        if (sizeChanged || identityChanged) {
+        if (mappingChanged) {
             const prevVersion = indexVersionRef.current;
             indexVersionRef.current = prevVersion + 1;
             prevPathToIndexSizeRef.current = pathToIndex.size;
             prevPathToIndexObjRef.current = pathToIndex;
+            prevMeasurementSignatureRef.current = measurementSignature;
+            rowVirtualizer.measure();
+            return;
+        }
+
+        if (measurementChanged) {
+            prevMeasurementSignatureRef.current = measurementSignature;
             rowVirtualizer.measure();
         }
-    }, [pathToIndex, pathToIndex.size, rowVirtualizer]);
+
+        if (prevPathToIndexSizeRef.current !== pathToIndex.size || prevPathToIndexObjRef.current !== pathToIndex) {
+            prevPathToIndexSizeRef.current = pathToIndex.size;
+            prevPathToIndexObjRef.current = pathToIndex;
+        }
+    }, [measurementSignature, pathToIndex, pathToIndex.size, rowVirtualizer]);
 
     const scrollToIndexSafely = useCallback(
         (index: number, align: Align) => {
@@ -660,7 +705,7 @@ export function useNavigationPaneScroll({
     ]);
 
     /**
-     * Re-measure all items when line height settings change
+     * Re-measure all items when vertical navigation metrics change
      * This ensures the virtualizer immediately updates when settings are adjusted
      */
     useEffect(() => {
@@ -668,14 +713,14 @@ export function useNavigationPaneScroll({
 
         // Re-measure all items with new heights
         rowVirtualizer.measure();
-    }, [settings.navItemHeight, settings.navIndent, settings.rootLevelSpacing, rowVirtualizer]);
+    }, [settings.navItemHeight, settings.rootLevelSpacing, rowVirtualizer]);
 
     /**
      * Scroll to maintain position only when settings actually change
      * Uses a settings key to detect real changes
      */
     useEffect(() => {
-        const settingsKey = `${settings.navItemHeight}-${settings.navIndent}-${settings.rootLevelSpacing}`;
+        const settingsKey = `${settings.navItemHeight}-${settings.rootLevelSpacing}`;
         const settingsChanged = prevNavSettingsKeyRef.current && prevNavSettingsKeyRef.current !== settingsKey;
 
         // Skip settings-triggered scroll when a shortcut is active
@@ -699,7 +744,6 @@ export function useNavigationPaneScroll({
         prevNavSettingsKeyRef.current = settingsKey;
     }, [
         settings.navItemHeight,
-        settings.navIndent,
         settings.rootLevelSpacing,
         selectedPath,
         isScrollContainerReady,

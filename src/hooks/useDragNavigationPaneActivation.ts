@@ -75,6 +75,7 @@ export function useDragNavigationPaneActivation({
         if (!container || isMobile) {
             return;
         }
+        const ownerDocument = container.ownerDocument;
 
         const clearActivationTimeout = () => {
             if (activationTimeoutRef.current !== null) {
@@ -193,8 +194,8 @@ export function useDragNavigationPaneActivation({
         container.addEventListener('dragend', handleDragEnd);
         container.addEventListener('drop', handleDrop);
 
-        document.addEventListener('dragend', handleDragEnd);
-        document.addEventListener('drop', handleDragEnd);
+        ownerDocument.addEventListener('dragend', handleDragEnd);
+        ownerDocument.addEventListener('drop', handleDragEnd);
 
         return () => {
             clearActivationTimeout();
@@ -203,8 +204,8 @@ export function useDragNavigationPaneActivation({
             container.removeEventListener('dragleave', handleDragLeave);
             container.removeEventListener('dragend', handleDragEnd);
             container.removeEventListener('drop', handleDrop);
-            document.removeEventListener('dragend', handleDragEnd);
-            document.removeEventListener('drop', handleDragEnd);
+            ownerDocument.removeEventListener('dragend', handleDragEnd);
+            ownerDocument.removeEventListener('drop', handleDragEnd);
         };
     }, [containerRef, isMobile, isSinglePane, isFilesView, onActivateNavigation, onRestoreFiles]);
 }

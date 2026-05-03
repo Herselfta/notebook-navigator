@@ -24,6 +24,7 @@
     top: 0;
     left: 0;
     width: 100%;
+    transform: translateY(var(--nn-virtual-item-start, 0px));
 }
 
 /* Virtual navigation item (folders and tags) */
@@ -32,6 +33,7 @@
     top: 0;
     left: 0;
     width: 100%;
+    transform: translateY(var(--nn-virtual-item-start, 0px));
 }
 
 /* Virtual file item wrapper - position relative for separator positioning */

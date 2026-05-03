@@ -96,6 +96,7 @@ function logSvgNotRendered(path: string, reason: string, extra?: Record<string, 
     }
 
     SVG_RENDER_FAILURE_REASONS.set(normalizedPath, reason);
+    // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
     console.log('[VaultIconProvider] SVG icon not rendered', { path: normalizedPath, reason, ...extra });
 }
 
@@ -440,7 +441,7 @@ function parseSvg(raw: string): SvgParseResult {
 
     const parsed = new DOMParser().parseFromString(raw, 'image/svg+xml');
     const root = parsed.documentElement;
-    if (!(root instanceof SVGSVGElement)) {
+    if (!root.instanceOf(SVGSVGElement)) {
         return { svg: null, reason: 'invalid-svg-root' };
     }
 

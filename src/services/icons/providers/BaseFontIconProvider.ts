@@ -229,7 +229,7 @@ export abstract class BaseFontIconProvider implements IconProvider {
         if (typeof document === 'undefined') {
             return;
         }
-        const fontSet = document.fonts as unknown as { add?: (font: FontFace) => void };
+        const fontSet = activeDocument.fonts as unknown as { add?: (font: FontFace) => void };
         fontSet.add?.(fontFace);
     }
 
@@ -240,7 +240,7 @@ export abstract class BaseFontIconProvider implements IconProvider {
         if (typeof document === 'undefined') {
             return;
         }
-        const fontSet = document.fonts as unknown as { delete?: (font: FontFace) => void };
+        const fontSet = activeDocument.fonts as unknown as { delete?: (font: FontFace) => void };
         fontSet.delete?.(fontFace);
     }
 

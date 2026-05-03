@@ -128,13 +128,14 @@ export const STRINGS_FR = {
         newFolder: 'Nouveau dossier', // Tooltip for create new folder button (English: New folder)
         newNote: 'Nouvelle note', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Retour à la navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: "Changer l'ordre de tri", // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: "Changer l'ordre de tri",
+        changeSortAndGroup: 'Changer le tri et le regroupement',
         defaultSort: 'Par défaut', // Label for default sorting mode (English: Default)
         descendants: 'descendants',
         subfolders: 'sous-dossiers',
         subtags: 'sous-étiquettes',
         childValues: 'valeurs enfants',
-        applySortToDescendants: (target: string) => `Appliquer le tri aux ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `Appliquer le tri et le regroupement aux ${target}`,
         applyAppearanceToDescendants: (target: string) => `Appliquer l'apparence aux ${target}`,
         showFolders: 'Afficher la navigation', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Réorganiser la navigation',
@@ -195,11 +196,11 @@ export const STRINGS_FR = {
                     title: 'Propriétés',
                     items: [
                         '`.key` Inclure les notes avec une clé de propriété.',
-                        '`.key=value` Inclure les notes avec une valeur de propriété.',
+                        '`.key=value` Inclure les notes dont la valeur de propriété contient `value`.',
                         '`."Reading Status"` Inclure les notes avec une clé de propriété contenant des espaces.',
                         '`."Reading Status"="In Progress"` Les clés et valeurs contenant des espaces doivent être entre guillemets doubles.',
                         '`-.key` Exclure les notes avec une clé de propriété.',
-                        '`-.key=value` Exclure les notes avec une valeur de propriété.',
+                        '`-.key=value` Exclure les notes dont la valeur de propriété contient `value`.',
                         'Cmd/Ctrl+Clic sur une propriété pour ajouter avec AND. Cmd/Ctrl+Shift+Clic pour ajouter avec OR.'
                     ]
                 },
@@ -365,6 +366,8 @@ export const STRINGS_FR = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Apparence',
+        sortBy: 'Trier par',
         standardPreset: 'Standard',
         compactPreset: 'Compact',
         defaultSuffix: '(par défaut)',
@@ -383,7 +386,7 @@ export const STRINGS_FR = {
     modals: {
         bulkApply: {
             applyButton: 'Appliquer',
-            applySortTitle: (target: string) => `Appliquer le tri aux ${target}\u202f?`,
+            applySortAndGroupTitle: (target: string) => `Appliquer le tri et le regroupement aux ${target}\u202f?`,
             applyAppearanceTitle: (target: string) => `Appliquer l'apparence aux ${target}\u202f?`,
             affectedCountMessage: (count: number) => `Remplacements existants qui seront modifiés\u202f: ${count}.`
         },
@@ -786,6 +789,8 @@ export const STRINGS_FR = {
         toggleDescendants: 'Basculer descendants', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Basculer les dossiers, étiquettes et notes masqués', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Basculer le tri des étiquettes', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'Basculer les étiquettes par sélection',
+        togglePropertiesBySelection: 'Basculer les propriétés par sélection',
         toggleCompactMode: 'Basculer le mode compact', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Replier / déplier tous les éléments', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Ajouter une étiquette aux fichiers sélectionnés', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -811,11 +816,13 @@ export const STRINGS_FR = {
         file: 'fichier',
         files: 'fichiers',
         folder: 'dossier',
-        folders: 'dossiers'
+        folders: 'dossiers',
+        wordCount: 'Nombre de mots'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Modifier les paramètres par défaut',
         metadataReport: {
             exportSuccess: 'Rapport de métadonnées échouées exporté vers : {filename}',
             exportFailed: "Échec de l'exportation du rapport de métadonnées"
@@ -991,7 +998,7 @@ export const STRINGS_FR = {
             fileNameIconMap: {
                 name: 'Correspondance nom-icône',
                 desc: "Les fichiers contenant le texte obtiennent l'icône spécifiée. Une correspondance par ligne : texte=icône",
-                placeholder: '# texte=icône\nréunion=LiCalendar\nfacture=PhReceipt',
+                placeholder: '# texte=icône\nréunion=ph-calendar\nfacture=ph-receipt',
                 editTooltip: 'Modifier les correspondances'
             },
             showCategoryIcons: {
@@ -1001,12 +1008,8 @@ export const STRINGS_FR = {
             fileTypeIconMap: {
                 name: 'Correspondance type-icône',
                 desc: "Les fichiers avec l'extension obtiennent l'icône spécifiée. Une correspondance par ligne : extension=icône",
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Modifier les correspondances'
-            },
-            optimizeNoteHeight: {
-                name: 'Hauteur de note variable',
-                desc: "Utiliser une hauteur compacte pour les notes épinglées et les notes sans texte d'aperçu."
             },
             compactItemHeight: {
                 name: 'Hauteur des éléments compacts',
@@ -1213,7 +1216,7 @@ export const STRINGS_FR = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Format du nom du mois',
-                desc: 'Nom du mois complet ou abrégé lorsque la vue annuelle est masquée.',
+                desc: 'Nom du mois complet (janvier) ou abrégé (janv.).',
                 options: {
                     full: 'janvier (complet)',
                     short: 'janv. (court)'
@@ -1318,6 +1321,10 @@ export const STRINGS_FR = {
             showTooltipPath: {
                 name: 'Afficher le chemin',
                 desc: 'Affiche le chemin du dossier sous le nom des notes dans les infobulles.'
+            },
+            showTooltipWordCount: {
+                name: 'Afficher le nombre de mots',
+                desc: 'Affiche le nombre de mots des notes dans les infobulles.'
             },
             resetPaneSeparator: {
                 name: 'Réinitialiser la position du séparateur de panneaux',
@@ -1502,12 +1509,16 @@ export const STRINGS_FR = {
                 desc: 'Appliquer les couleurs de tags aux badges de tags sur les éléments de fichier.'
             },
             prioritizeColoredFileTags: {
-                name: 'Afficher les tags colorés en premier',
-                desc: 'Trie les tags colorés avant les autres tags dans les éléments de fichier.'
+                name: 'Afficher les tags aux couleurs personnalisées en premier',
+                desc: 'Trie les tags aux couleurs personnalisées avant les autres tags dans les éléments de fichier.'
             },
             showFileTagsInCompactMode: {
                 name: 'Afficher les tags de fichier en mode compact',
                 desc: "Afficher les tags lorsque la date, l'aperçu et l'image sont masqués."
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Afficher les tags sur plusieurs lignes',
+                desc: 'Faire passer les tags de fichier sur des lignes supplémentaires lorsqu’ils ne tiennent pas sur une seule ligne.'
             },
             showFileProperties: {
                 name: 'Afficher les propriétés de fichier',
@@ -1518,12 +1529,16 @@ export const STRINGS_FR = {
                 desc: 'Appliquer les couleurs de propriété aux badges de propriété dans les éléments de fichier.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Afficher les propriétés colorées en premier',
-                desc: 'Trier les propriétés colorées avant les autres propriétés dans les éléments de fichier.'
+                name: 'Afficher les propriétés aux couleurs personnalisées en premier',
+                desc: 'Trier les propriétés aux couleurs personnalisées avant les autres propriétés dans les éléments de fichier.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Afficher les propriétés en mode compact',
                 desc: 'Afficher les propriétés lorsque le mode compact est actif.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Afficher les propriétés sur plusieurs lignes',
+                desc: 'Faire passer les propriétés de fichier sur des lignes supplémentaires lorsqu’elles ne tiennent pas sur une seule ligne.'
             },
             notePropertyType: {
                 name: 'Propriété de note',
@@ -1541,10 +1556,6 @@ export const STRINGS_FR = {
                 noneConfigured: 'Aucune propriété configurée',
                 singleConfigured: '1 propriété configurée : {properties}',
                 multipleConfigured: '{count} propriétés configurées : {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Afficher les propriétés sur des lignes séparées',
-                desc: 'Afficher chaque propriété sur sa propre ligne.'
             },
             enablePropertyInternalLinks: {
                 name: 'Lier les pastilles de propriété aux notes',

@@ -27,7 +27,7 @@ import { getDBInstanceOrNull, isShutdownInProgress, waitForDatabaseInitializatio
 import { runAsyncAction } from '../../utils/async';
 import { getCalendarCustomWeekAnchorUnit } from '../../utils/calendarCustomNotePatterns';
 import { getDailyNoteFile, getDailyNoteSettings as getCoreDailyNoteSettings } from '../../utils/dailyNotes';
-import { getMomentApi, resolveCalendarLocales, resolveDailyNoteLocale, type MomentInstance } from '../../utils/moment';
+import { getMomentApi, resolveCalendarLocales, resolveDailyNoteLocale, type MomentApi, type MomentInstance } from '../../utils/moment';
 import { useFileOpener } from '../../hooks/useFileOpener';
 import { useLocalDayKey } from '../../hooks/useLocalDayKey';
 import { extractFrontmatterName } from '../../utils/metadataExtractor';
@@ -85,6 +85,21 @@ interface ActiveEditorCalendarTarget {
     shouldAutoReveal: boolean;
 }
 
+function resolveInitialCalendarCursorDate(momentApi: MomentApi | null, storedDateIso: string | null): MomentInstance | null {
+    if (!momentApi) {
+        return null;
+    }
+
+    if (storedDateIso) {
+        const storedDate = momentApi(storedDateIso, 'YYYY-MM-DD', true);
+        if (storedDate.isValid()) {
+            return storedDate.startOf('day');
+        }
+    }
+
+    return momentApi().startOf('day');
+}
+
 function getWorkspaceActiveFile(workspace: Workspace): TFile | null {
     const activeView = workspace.getActiveViewOfType(FileView);
     const activeFile = activeView?.file;
@@ -138,7 +153,7 @@ export function Calendar({
     onAddDateFilter,
     isRightSidebar = false
 }: CalendarProps) {
-    const { app, commandQueue, fileSystemOps, isMobile } = useServices();
+    const { app, commandQueue, fileSystemOps, isMobile, plugin } = useServices();
     const settings = useSettingsState();
     const updateSettings = useSettingsUpdate();
     const periodicNotesFolder = getActiveVaultProfile(settings).periodicNotesFolder;
@@ -151,8 +166,12 @@ export function Calendar({
     const calendarLabelId = useId();
 
     const momentApi = getMomentApi();
-    const [cursorDate, setCursorDate] = useState<MomentInstance | null>(() => (momentApi ? momentApi().startOf('day') : null));
-    const [yearPanelYear, setYearPanelYear] = useState<number | null>(() => (momentApi ? momentApi().startOf('day').year() : null));
+    const [initialStoredCursorDateIso] = useState<string | null>(() => plugin.getCalendarCursorDateIso());
+    const [initialCursorDate] = useState<MomentInstance | null>(() =>
+        resolveInitialCalendarCursorDate(momentApi, initialStoredCursorDateIso)
+    );
+    const [cursorDate, setCursorDate] = useState<MomentInstance | null>(() => initialCursorDate);
+    const [yearPanelYear, setYearPanelYear] = useState<number | null>(() => initialCursorDate?.year() ?? null);
     const todayIso = useLocalDayKey();
     const [activeEditorFilePath, setActiveEditorFilePath] = useState<string | null>(
         () => resolveActiveEditorFilePath(app.workspace) ?? null
@@ -167,6 +186,7 @@ export function Calendar({
     const visibleFeatureImageNotePathsRef = useRef<Set<string>>(new Set());
     const visibleFrontmatterNotePathsRef = useRef<Set<string>>(new Set());
     const lastAppliedActiveEditorDateKeyRef = useRef<string | null>(null);
+    const shouldSkipInitialActiveEditorRevealRef = useRef(initialStoredCursorDateIso !== null);
     const dayNoteFileLookupCacheRef = useRef<Map<string, TFile | null>>(new Map());
     const vaultVersionDebounceRef = useRef<number | null>(null);
     const scheduleVaultVersionUpdate = useCallback(() => {
@@ -253,7 +273,7 @@ export function Calendar({
                 }
 
                 await new Promise<void>(resolve => {
-                    globalThis.setTimeout(resolve, 250);
+                    activeWindow.setTimeout(resolve, 250);
                 });
             }
         });
@@ -388,8 +408,20 @@ export function Calendar({
         if (!momentApi || cursorDate) {
             return;
         }
-        setCursorDate(momentApi().startOf('day'));
-    }, [cursorDate, momentApi]);
+        const storedDateIso = plugin.getCalendarCursorDateIso();
+        if (storedDateIso !== null) {
+            shouldSkipInitialActiveEditorRevealRef.current = true;
+        }
+        setCursorDate(resolveInitialCalendarCursorDate(momentApi, storedDateIso));
+    }, [cursorDate, momentApi, plugin]);
+
+    useEffect(() => {
+        if (!cursorDate) {
+            return;
+        }
+
+        plugin.setCalendarCursorDateIso(formatIsoDate(cursorDate));
+    }, [cursorDate, plugin]);
 
     useEffect(() => {
         if (!cursorDate) {
@@ -765,6 +797,13 @@ export function Calendar({
     useLayoutEffect(() => {
         if (!activeEditorCalendarTarget || !activeEditorDateKey || !activeEditorCalendarTarget.shouldAutoReveal) {
             lastAppliedActiveEditorDateKeyRef.current = null;
+            shouldSkipInitialActiveEditorRevealRef.current = false;
+            return;
+        }
+
+        if (shouldSkipInitialActiveEditorRevealRef.current) {
+            shouldSkipInitialActiveEditorRevealRef.current = false;
+            lastAppliedActiveEditorDateKeyRef.current = activeEditorDateKey;
             return;
         }
 
@@ -1545,7 +1584,7 @@ export function Calendar({
     const activeYearValue = cursorDate.year();
     const currentMonthKey = todayIso ? todayIso.slice(0, 7) : null;
     const monthYearHeaderDate = cursorDate.clone().locale(displayLocale);
-    const monthHeadingFormat = showYearCalendar || settings.calendarMonthHeadingFormat !== 'short' ? 'MMMM' : 'MMM';
+    const monthHeadingFormat = settings.calendarMonthHeadingFormat === 'short' ? 'MMM' : 'MMMM';
     const monthLabel = monthYearHeaderDate.format(monthHeadingFormat);
     const yearLabel = monthYearHeaderDate.format('YYYY');
     const quarterLabel = monthYearHeaderDate.format('[Q]Q');

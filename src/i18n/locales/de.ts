@@ -128,13 +128,14 @@ export const STRINGS_DE = {
         newFolder: 'Neuer Ordner', // Tooltip for create new folder button (English: New folder)
         newNote: 'Neue Notiz', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Zurück zur Navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: 'Sortierreihenfolge ändern', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: 'Sortierreihenfolge ändern',
+        changeSortAndGroup: 'Sortierung und Gruppierung ändern',
         defaultSort: 'Standard', // Label for default sorting mode (English: Default)
         descendants: 'Unterelemente',
         subfolders: 'Unterordner',
         subtags: 'Unter-Tags',
         childValues: 'Unterwerte',
-        applySortToDescendants: (target: string) => `Sortierung auf ${target} anwenden`,
+        applySortAndGroupToDescendants: (target: string) => `Sortierung und Gruppierung auf ${target} anwenden`,
         applyAppearanceToDescendants: (target: string) => `Darstellung auf ${target} anwenden`,
         showFolders: 'Navigation anzeigen', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Navigation neu anordnen',
@@ -195,11 +196,11 @@ export const STRINGS_DE = {
                     title: 'Eigenschaften',
                     items: [
                         '`.key` Notizen mit Eigenschaftsschlüssel einschließen.',
-                        '`.key=value` Notizen mit Eigenschaftswert einschließen.',
+                        '`.key=value` Notizen einschließen, deren Eigenschaftswert `value` enthält.',
                         '`."Reading Status"` Notizen mit einem Eigenschaftsschlüssel einschließen, der Leerzeichen enthält.',
                         '`."Reading Status"="In Progress"` Schlüssel und Werte mit Leerzeichen müssen in Anführungszeichen stehen.',
                         '`-.key` Notizen mit Eigenschaftsschlüssel ausschließen.',
-                        '`-.key=value` Notizen mit Eigenschaftswert ausschließen.',
+                        '`-.key=value` Notizen ausschließen, deren Eigenschaftswert `value` enthält.',
                         'Cmd/Ctrl+Klick auf eine Eigenschaft zum Hinzufügen mit AND. Cmd/Ctrl+Shift+Klick zum Hinzufügen mit OR.'
                     ]
                 },
@@ -365,6 +366,8 @@ export const STRINGS_DE = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Darstellung',
+        sortBy: 'Sortieren nach',
         standardPreset: 'Standard',
         compactPreset: 'Kompakt',
         defaultSuffix: '(Standard)',
@@ -383,7 +386,7 @@ export const STRINGS_DE = {
     modals: {
         bulkApply: {
             applyButton: 'Anwenden',
-            applySortTitle: (target: string) => `Sortierung auf ${target} anwenden?`,
+            applySortAndGroupTitle: (target: string) => `Sortierung und Gruppierung auf ${target} anwenden?`,
             applyAppearanceTitle: (target: string) => `Darstellung auf ${target} anwenden?`,
             affectedCountMessage: (count: number) => `Vorhandene Überschreibungen, die sich ändern: ${count}.`
         },
@@ -785,6 +788,8 @@ export const STRINGS_DE = {
         toggleDescendants: 'Nachkommen umschalten', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Versteckte Ordner, Tags und Notizen umschalten', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Tag-Sortierung umschalten', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'Tags nach Auswahl umschalten',
+        togglePropertiesBySelection: 'Eigenschaften nach Auswahl umschalten',
         toggleCompactMode: 'Kompaktmodus umschalten', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Alle Elemente ein-/ausklappen', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Tag zu ausgewählten Dateien hinzufügen', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -810,11 +815,13 @@ export const STRINGS_DE = {
         file: 'Datei',
         files: 'Dateien',
         folder: 'Ordner',
-        folders: 'Ordner'
+        folders: 'Ordner',
+        wordCount: 'Wortanzahl'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Standardeinstellungen ändern',
         metadataReport: {
             exportSuccess: 'Fehlgeschlagene Metadaten-Bericht exportiert nach: {filename}',
             exportFailed: 'Export des Metadaten-Berichts fehlgeschlagen'
@@ -990,7 +997,7 @@ export const STRINGS_DE = {
             fileNameIconMap: {
                 name: 'Dateiname-Symbol-Zuordnung',
                 desc: 'Dateien mit dem Text erhalten das angegebene Symbol. Eine Zuordnung pro Zeile: Text=Symbol',
-                placeholder: '# Text=icon\nbesprechung=LiCalendar\nrechnung=PhReceipt',
+                placeholder: '# Text=icon\nbesprechung=ph-calendar\nrechnung=ph-receipt',
                 editTooltip: 'Zuordnungen bearbeiten'
             },
             showCategoryIcons: {
@@ -1000,12 +1007,8 @@ export const STRINGS_DE = {
             fileTypeIconMap: {
                 name: 'Dateityp-Symbol-Zuordnung',
                 desc: 'Dateien mit der Erweiterung erhalten das angegebene Symbol. Eine Zuordnung pro Zeile: Erweiterung=Symbol',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Zuordnungen bearbeiten'
-            },
-            optimizeNoteHeight: {
-                name: 'Variable Notizenhöhe',
-                desc: 'Kompakte Höhe für angeheftete Notizen und Notizen ohne Vorschautext verwenden.'
             },
             compactItemHeight: {
                 name: 'Höhe schlanker Elemente',
@@ -1212,7 +1215,7 @@ export const STRINGS_DE = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Monatsname-Format',
-                desc: 'Normaler oder abgekürzter Monatsname, wenn die Jahresansicht ausgeblendet ist.',
+                desc: 'Langer (Januar) oder kurzer (Jan.) Monatsname.',
                 options: {
                     full: 'Januar (voll)',
                     short: 'Jan. (kurz)'
@@ -1317,6 +1320,10 @@ export const STRINGS_DE = {
             showTooltipPath: {
                 name: 'Pfad anzeigen',
                 desc: 'Zeigt den Ordnerpfad unter den Notiznamen in Tooltips an.'
+            },
+            showTooltipWordCount: {
+                name: 'Wortanzahl anzeigen',
+                desc: 'Zeigt die Wortanzahl von Notizen in Tooltips an.'
             },
             resetPaneSeparator: {
                 name: 'Position des Fenstertrennelements zurücksetzen',
@@ -1500,12 +1507,16 @@ export const STRINGS_DE = {
                 desc: 'Tag-Farben auf Tag-Abzeichen in Datei-Elementen anwenden.'
             },
             prioritizeColoredFileTags: {
-                name: 'Farbige Tags zuerst anzeigen',
-                desc: 'Farbige Tags vor anderen Tags in Datei-Elementen sortieren.'
+                name: 'Tags mit benutzerdefinierten Farben zuerst anzeigen',
+                desc: 'Tags mit benutzerdefinierten Farben vor anderen Tags in Datei-Elementen sortieren.'
             },
             showFileTagsInCompactMode: {
                 name: 'Datei-Tags im schlanken Modus anzeigen',
                 desc: 'Tags anzeigen, wenn Datum, Vorschau und Bild ausgeblendet sind.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Tags auf mehreren Zeilen anzeigen',
+                desc: 'Datei-Tags auf zusätzliche Zeilen umbrechen, wenn sie nicht in eine Zeile passen.'
             },
             showFileProperties: {
                 name: 'Datei-Eigenschaften anzeigen',
@@ -1516,12 +1527,16 @@ export const STRINGS_DE = {
                 desc: 'Eigenschaftsfarben auf Eigenschafts-Badges in Datei-Elementen anwenden.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Farbige Eigenschaften zuerst anzeigen',
-                desc: 'Farbige Eigenschaften vor anderen Eigenschaften in Datei-Elementen sortieren.'
+                name: 'Eigenschaften mit benutzerdefinierten Farben zuerst anzeigen',
+                desc: 'Eigenschaften mit benutzerdefinierten Farben vor anderen Eigenschaften in Datei-Elementen sortieren.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Eigenschaften im Kompaktmodus anzeigen',
                 desc: 'Eigenschaften anzeigen, wenn der Kompaktmodus aktiv ist.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Eigenschaften auf mehreren Zeilen anzeigen',
+                desc: 'Datei-Eigenschaften auf zusätzliche Zeilen umbrechen, wenn sie nicht in eine Zeile passen.'
             },
             notePropertyType: {
                 name: 'Notiz-Eigenschaft',
@@ -1539,10 +1554,6 @@ export const STRINGS_DE = {
                 noneConfigured: 'Keine Eigenschaften konfiguriert',
                 singleConfigured: '1 Eigenschaft konfiguriert: {properties}',
                 multipleConfigured: '{count} Eigenschaften konfiguriert: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Eigenschaften in separaten Zeilen anzeigen',
-                desc: 'Jede Eigenschaft in einer eigenen Zeile anzeigen.'
             },
             enablePropertyInternalLinks: {
                 name: 'Eigenschafts-Pills mit Notizen verknüpfen',

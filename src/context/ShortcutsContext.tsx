@@ -272,7 +272,6 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
             await updateSettings(current => {
                 const profile = current.vaultProfiles.find(entry => entry.id === activeProfileId);
                 if (!profile) {
-                    console.log(`[Notebook Navigator] Skipped shortcut mutation because profile ${activeProfileId} was not found.`);
                     return;
                 }
 

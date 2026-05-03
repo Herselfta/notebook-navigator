@@ -129,13 +129,14 @@ export const STRINGS_ID = {
         newFolder: 'Folder baru',
         newNote: 'Catatan baru',
         mobileBackToNavigation: 'Kembali ke navigasi',
-        changeSortOrder: 'Ubah urutan',
+        changeChildSortOrder: 'Ubah urutan',
+        changeSortAndGroup: 'Ubah urutan dan grup',
         defaultSort: 'Default',
         descendants: 'turunan',
         subfolders: 'subfolder',
         subtags: 'subtag',
         childValues: 'nilai anak',
-        applySortToDescendants: (target: string) => `Terapkan urutan ke ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `Terapkan urutan dan grup ke ${target}`,
         applyAppearanceToDescendants: (target: string) => `Terapkan tampilan ke ${target}`,
         showFolders: 'Tampilkan navigasi',
         reorderRootFolders: 'Atur ulang navigasi',
@@ -196,11 +197,11 @@ export const STRINGS_ID = {
                     title: 'Properti',
                     items: [
                         '`.key` Sertakan catatan dengan kunci properti.',
-                        '`.key=value` Sertakan catatan dengan nilai properti.',
+                        '`.key=value` Sertakan catatan yang nilai propertinya mengandung `value`.',
                         '`."Reading Status"` Sertakan catatan dengan kunci properti yang mengandung spasi.',
                         '`."Reading Status"="In Progress"` Kunci dan nilai yang mengandung spasi harus diapit tanda kutip ganda.',
                         '`-.key` Kecualikan catatan dengan kunci properti.',
-                        '`-.key=value` Kecualikan catatan dengan nilai properti.',
+                        '`-.key=value` Kecualikan catatan yang nilai propertinya mengandung `value`.',
                         'Cmd/Ctrl+Klik properti untuk menambahkan dengan AND. Cmd/Ctrl+Shift+Klik untuk menambahkan dengan OR.'
                     ]
                 },
@@ -365,6 +366,8 @@ export const STRINGS_ID = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Tampilan',
+        sortBy: 'Urutkan berdasarkan',
         standardPreset: 'Standar',
         compactPreset: 'Kompak',
         defaultSuffix: '(default)',
@@ -383,7 +386,7 @@ export const STRINGS_ID = {
     modals: {
         bulkApply: {
             applyButton: 'Terapkan',
-            applySortTitle: (target: string) => `Terapkan urutan ke ${target}?`,
+            applySortAndGroupTitle: (target: string) => `Terapkan urutan dan grup ke ${target}?`,
             applyAppearanceTitle: (target: string) => `Terapkan tampilan ke ${target}?`,
             affectedCountMessage: (count: number) => `Penimpaan yang ada dan akan berubah: ${count}.`
         },
@@ -784,6 +787,8 @@ export const STRINGS_ID = {
         toggleDescendants: 'Alihkan turunan',
         toggleHidden: 'Alihkan folder, tag, dan catatan tersembunyi',
         toggleTagSort: 'Alihkan urutan tag',
+        toggleTagsBySelection: 'Alihkan tag berdasarkan pilihan',
+        togglePropertiesBySelection: 'Alihkan properti berdasarkan pilihan',
         toggleCompactMode: 'Alihkan mode kompak', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Ciutkan / luaskan semua item',
         addTag: 'Tambah tag ke file yang dipilih',
@@ -809,11 +814,13 @@ export const STRINGS_ID = {
         file: 'file',
         files: 'file',
         folder: 'folder',
-        folders: 'folder'
+        folders: 'folder',
+        wordCount: 'Jumlah kata'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Ubah pengaturan default',
         metadataReport: {
             exportSuccess: 'Laporan metadata yang gagal diekspor ke: {filename}',
             exportFailed: 'Gagal mengekspor laporan metadata'
@@ -989,7 +996,7 @@ export const STRINGS_ID = {
             fileNameIconMap: {
                 name: 'Peta ikon nama file',
                 desc: 'File yang berisi teks mendapat ikon yang ditentukan. Satu pemetaan per baris: teks=ikon',
-                placeholder: '# teks=ikon\nrapat=LiCalendar\nfaktur=PhReceipt',
+                placeholder: '# teks=ikon\nrapat=ph-calendar\nfaktur=ph-receipt',
                 editTooltip: 'Edit pemetaan'
             },
             showCategoryIcons: {
@@ -999,12 +1006,8 @@ export const STRINGS_ID = {
             fileTypeIconMap: {
                 name: 'Peta ikon tipe file',
                 desc: 'File dengan ekstensi mendapat ikon yang ditentukan. Satu pemetaan per baris: ekstensi=ikon',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Edit pemetaan'
-            },
-            optimizeNoteHeight: {
-                name: 'Tinggi catatan variabel',
-                desc: 'Gunakan tinggi ringkas untuk catatan yang disematkan dan catatan tanpa teks pratinjau.'
             },
             compactItemHeight: {
                 name: 'Tinggi item kompak',
@@ -1211,7 +1214,7 @@ export const STRINGS_ID = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Format nama bulan',
-                desc: 'Nama bulan normal atau singkatan saat tampilan tahun disembunyikan.',
+                desc: 'Nama bulan lengkap (Januari) atau singkat (Jan).',
                 options: {
                     full: 'Januari (lengkap)',
                     short: 'Jan (singkat)'
@@ -1315,6 +1318,10 @@ export const STRINGS_ID = {
             showTooltipPath: {
                 name: 'Tampilkan path',
                 desc: 'Tampilkan path folder di bawah nama catatan di tooltip.'
+            },
+            showTooltipWordCount: {
+                name: 'Tampilkan jumlah kata',
+                desc: 'Tampilkan jumlah kata catatan di tooltip.'
             },
             resetPaneSeparator: {
                 name: 'Atur ulang posisi pemisah panel',
@@ -1497,12 +1504,16 @@ export const STRINGS_ID = {
                 desc: 'Terapkan warna tag ke badge tag di item file.'
             },
             prioritizeColoredFileTags: {
-                name: 'Tampilkan tag berwarna terlebih dahulu',
-                desc: 'Urutkan tag berwarna sebelum tag lain di item file.'
+                name: 'Tampilkan tag dengan warna khusus terlebih dahulu',
+                desc: 'Urutkan tag dengan warna khusus sebelum tag lain di item file.'
             },
             showFileTagsInCompactMode: {
                 name: 'Tampilkan tag file dalam mode kompak',
                 desc: 'Tampilkan tag saat tanggal, pratinjau, dan gambar disembunyikan.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Tampilkan tag pada beberapa baris',
+                desc: 'Pindahkan tag file ke baris tambahan saat tidak muat dalam satu baris.'
             },
             showFileProperties: {
                 name: 'Tampilkan properti file',
@@ -1513,12 +1524,16 @@ export const STRINGS_ID = {
                 desc: 'Terapkan warna properti pada lencana properti di item file.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Tampilkan properti berwarna terlebih dahulu',
-                desc: 'Urutkan properti berwarna sebelum properti lain di item file.'
+                name: 'Tampilkan properti dengan warna khusus terlebih dahulu',
+                desc: 'Urutkan properti dengan warna khusus sebelum properti lain di item file.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Tampilkan properti dalam mode kompak',
                 desc: 'Tampilkan properti saat mode kompak aktif.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Tampilkan properti pada beberapa baris',
+                desc: 'Pindahkan properti file ke baris tambahan saat tidak muat dalam satu baris.'
             },
             notePropertyType: {
                 name: 'Properti catatan',
@@ -1536,10 +1551,6 @@ export const STRINGS_ID = {
                 noneConfigured: 'Tidak ada properti yang dikonfigurasi',
                 singleConfigured: '1 properti dikonfigurasi: {properties}',
                 multipleConfigured: '{count} properti dikonfigurasi: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Tampilkan properti pada baris terpisah',
-                desc: 'Tampilkan setiap properti pada barisnya sendiri.'
             },
             enablePropertyInternalLinks: {
                 name: 'Tautkan pil properti ke catatan',

@@ -54,6 +54,7 @@ export interface DragGhostManager {
  */
 export function createDragGhostManager(): DragGhostManager {
     let dragGhostElement: HTMLElement | null = null;
+    let dragGhostDocument: Document | null = null;
     let windowDragEndHandler: ((event: DragEvent) => void) | null = null;
     let windowDropHandler: ((event: DragEvent) => void) | null = null;
     let cursorOffset: { x: number; y: number } = { x: 10, y: 10 };
@@ -85,10 +86,12 @@ export function createDragGhostManager(): DragGhostManager {
      */
     const hideGhost = () => {
         if (dragGhostElement) {
-            document.removeEventListener('mousemove', updateDragGhostPosition, mouseMoveListenerOptions);
-            document.removeEventListener('dragover', updateDragGhostPosition, dragOverListenerCapture);
+            const ownerDocument = dragGhostDocument ?? activeDocument;
+            ownerDocument.removeEventListener('mousemove', updateDragGhostPosition, mouseMoveListenerOptions);
+            ownerDocument.removeEventListener('dragover', updateDragGhostPosition, dragOverListenerCapture);
             dragGhostElement.remove();
             dragGhostElement = null;
+            dragGhostDocument = null;
         }
         if (windowDragEndHandler) {
             window.removeEventListener('dragend', windowDragEndHandler);
@@ -176,20 +179,21 @@ export function createDragGhostManager(): DragGhostManager {
             return false;
         };
         const resolvedIcon = resolveIcon(options);
+        const ownerDocument = options.customElement?.ownerDocument ?? activeDocument;
 
-        const baseGhost = options.customElement ?? document.createElement('div');
+        const baseGhost = options.customElement ?? ownerDocument.createDiv();
         if (!baseGhost.classList.contains('nn-drag-ghost')) {
             baseGhost.classList.add('nn-drag-ghost');
         }
 
         if (!options.customElement) {
             if (options.itemCount && options.itemCount > 1) {
-                const info = document.createElement('div');
+                const info = ownerDocument.createDiv();
                 info.className = 'nn-drag-ghost-badge';
                 info.textContent = `${options.itemCount}`;
                 baseGhost.appendChild(info);
             } else {
-                const iconWrapper = document.createElement('div');
+                const iconWrapper = ownerDocument.createDiv();
                 iconWrapper.className = 'nn-drag-ghost-icon';
                 const iconColor = options.iconColor ?? '#ffffff';
                 iconWrapper.style.color = iconColor;
@@ -205,12 +209,13 @@ export function createDragGhostManager(): DragGhostManager {
             }
         }
 
-        document.body.appendChild(baseGhost);
+        ownerDocument.body.appendChild(baseGhost);
         dragGhostElement = baseGhost;
+        dragGhostDocument = ownerDocument;
         setGhostPosition(event.clientX + cursorOffset.x, event.clientY + cursorOffset.y);
 
-        document.addEventListener('mousemove', updateDragGhostPosition, mouseMoveListenerOptions);
-        document.addEventListener('dragover', updateDragGhostPosition, dragOverListenerCapture);
+        ownerDocument.addEventListener('mousemove', updateDragGhostPosition, mouseMoveListenerOptions);
+        ownerDocument.addEventListener('dragover', updateDragGhostPosition, dragOverListenerCapture);
 
         const onGlobalEnd = () => hideGhost();
         windowDragEndHandler = onGlobalEnd;
@@ -224,15 +229,15 @@ export function createDragGhostManager(): DragGhostManager {
      * This allows the custom ghost to be the only visible drag indicator.
      */
     const hideNativePreview = (event: DragEvent) => {
-        const empty = document.createElement('div');
+        const empty = createDiv();
         empty.className = 'nn-drag-empty-placeholder';
-        document.body.appendChild(empty);
+        activeDocument.body.appendChild(empty);
         try {
             event.dataTransfer?.setDragImage(empty, 0, 0);
         } catch (error) {
             void error;
         }
-        setTimeout(() => empty.remove(), 0);
+        activeWindow.setTimeout(() => empty.remove(), 0);
     };
 
     return {

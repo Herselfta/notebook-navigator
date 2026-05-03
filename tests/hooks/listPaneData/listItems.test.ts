@@ -23,7 +23,6 @@ import type { PropertyItem } from '../../../src/storage/IndexedDBStorage';
 import type { IndexedDBStorage } from '../../../src/storage/IndexedDBStorage';
 import { buildListItems, type ListPaneConfig } from '../../../src/hooks/listPaneData/listItems';
 import { FILE_VISIBILITY } from '../../../src/utils/fileTypeUtils';
-import { buildPropertyKeyNodeId, buildPropertyValueNodeId } from '../../../src/utils/propertyTree';
 import { createTestTFile } from '../../utils/createTestTFile';
 import { ItemType, ListPaneItemType, PINNED_SECTION_HEADER_KEY } from '../../../src/types';
 
@@ -49,16 +48,14 @@ function createDb(records: Record<string, FileMetadataRecord>): IndexedDBStorage
 function createListConfig(pinnedNotes: ListPaneConfig['pinnedNotes']): ListPaneConfig {
     return {
         filterPinnedByFolder: true,
-        folderAppearances: DEFAULT_SETTINGS.folderAppearances,
-        folderSortOrder: DEFAULT_SETTINGS.folderSortOrder,
-        folderTreeSortOverrides: DEFAULT_SETTINGS.folderTreeSortOverrides,
-        noteGrouping: DEFAULT_SETTINGS.noteGrouping,
+        folderGroupSortOrder: DEFAULT_SETTINGS.folderSortOrder,
+        groupBy: DEFAULT_SETTINGS.noteGrouping,
         pinnedNotes,
-        propertyAppearances: DEFAULT_SETTINGS.propertyAppearances,
         showFileTags: false,
+        showFileTagsOnMultipleRows: DEFAULT_SETTINGS.showFileTagsOnMultipleRows,
         showPinnedGroupHeader: true,
-        showTags: false,
-        tagAppearances: DEFAULT_SETTINGS.tagAppearances
+        showSelectedNavigationPills: DEFAULT_SETTINGS.showSelectedNavigationPills,
+        showTags: false
     };
 }
 
@@ -108,7 +105,6 @@ describe('buildListItems pinned display scope', () => {
             }),
             searchMetaMap: new Map(),
             selectedFolder: null,
-            selectedProperty: null,
             selectedTag: 'work',
             selectionType: ItemType.TAG,
             showHiddenItems: false,
@@ -145,7 +141,6 @@ describe('buildListItems pinned display scope', () => {
             }),
             searchMetaMap: new Map(),
             selectedFolder: null,
-            selectedProperty: null,
             selectedTag: 'work/anthropic',
             selectionType: ItemType.TAG,
             showHiddenItems: false,
@@ -188,7 +183,6 @@ describe('buildListItems pinned display scope', () => {
             }),
             searchMetaMap: new Map(),
             selectedFolder: null,
-            selectedProperty: buildPropertyKeyNodeId('status'),
             selectedTag: null,
             selectionType: ItemType.PROPERTY,
             showHiddenItems: false,
@@ -231,7 +225,6 @@ describe('buildListItems pinned display scope', () => {
             }),
             searchMetaMap: new Map(),
             selectedFolder: null,
-            selectedProperty: buildPropertyValueNodeId('status', 'work/anthropic'),
             selectedTag: null,
             selectionType: ItemType.PROPERTY,
             showHiddenItems: false,

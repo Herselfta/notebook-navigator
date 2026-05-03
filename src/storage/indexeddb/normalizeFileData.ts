@@ -66,7 +66,7 @@ export function normalizeFileDataInPlace(data: MutableFileData, pathForDefaults?
     data.featureImage = null;
     data.featureImageStatus = featureImageStatus;
     data.featureImageKey = featureImageKey;
-    data.metadata = data.metadata && typeof data.metadata === 'object' ? (data.metadata as FileData['metadata']) : null;
+    data.metadata = data.metadata && typeof data.metadata === 'object' ? data.metadata : null;
 
     if ('preview' in data) {
         delete data.preview;

@@ -225,5 +225,5 @@
  *   reliably when the virtualizer remeasures and updates absolute positioning.
  */
 .notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane .nn-virtual-item {
-    transform: translateZ(0);
+    transform: translateY(var(--nn-virtual-item-start, 0px)) translateZ(0);
 }

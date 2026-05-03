@@ -129,13 +129,14 @@ export const STRINGS_AR = {
         newFolder: 'مجلد جديد', // Tooltip for create new folder button (English: New folder)
         newNote: 'ملاحظة جديدة', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'العودة للتنقل', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: 'تغيير ترتيب الفرز', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: 'تغيير ترتيب الفرز',
+        changeSortAndGroup: 'تغيير الفرز والتجميع',
         defaultSort: 'افتراضي', // Label for default sorting mode (English: Default)
         descendants: 'العناصر الفرعية',
         subfolders: 'المجلدات الفرعية',
         subtags: 'الوسوم الفرعية',
         childValues: 'القيم الفرعية',
-        applySortToDescendants: (target: string) => `تطبيق الترتيب على ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `تطبيق الفرز والتجميع على ${target}`,
         applyAppearanceToDescendants: (target: string) => `تطبيق المظهر على ${target}`,
         showFolders: 'إظهار التنقل', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'إعادة ترتيب التنقل',
@@ -195,11 +196,11 @@ export const STRINGS_AR = {
                     title: 'الخصائص',
                     items: [
                         '`.key` تضمين الملاحظات التي تحتوي على مفتاح خاصية.',
-                        '`.key=value` تضمين الملاحظات التي تحتوي على قيمة خاصية.',
+                        '`.key=value` تضمين الملاحظات التي تحتوي قيمة الخاصية فيها على `value`.',
                         '`."Reading Status"` تضمين الملاحظات التي تحتوي على مفتاح خاصية يتضمن مسافات.',
                         '`."Reading Status"="In Progress"` المفاتيح والقيم التي تحتوي على مسافات يجب وضعها بين علامات اقتباس مزدوجة.',
                         '`-.key` استبعاد الملاحظات التي تحتوي على مفتاح خاصية.',
-                        '`-.key=value` استبعاد الملاحظات التي تحتوي على قيمة خاصية.',
+                        '`-.key=value` استبعاد الملاحظات التي تحتوي قيمة الخاصية فيها على `value`.',
                         'Cmd/Ctrl+انقر على خاصية للإضافة بـ AND. Cmd/Ctrl+Shift+انقر للإضافة بـ OR.'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_AR = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'المظهر',
+        sortBy: 'فرز حسب',
         standardPreset: 'قياسي',
         compactPreset: 'مضغوط',
         defaultSuffix: '(افتراضي)',
@@ -382,7 +385,7 @@ export const STRINGS_AR = {
     modals: {
         bulkApply: {
             applyButton: 'تطبيق',
-            applySortTitle: (target: string) => `تطبيق الترتيب على ${target}؟`,
+            applySortAndGroupTitle: (target: string) => `تطبيق الفرز والتجميع على ${target}؟`,
             applyAppearanceTitle: (target: string) => `تطبيق المظهر على ${target}؟`,
             affectedCountMessage: (count: number) => `التجاوزات الحالية التي ستتغير: ${count}.`
         },
@@ -782,6 +785,8 @@ export const STRINGS_AR = {
         toggleDescendants: 'تبديل الفروع', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'تبديل المجلدات والوسوم والملاحظات المخفية', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'تبديل ترتيب فرز الوسوم', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'تبديل الوسوم حسب التحديد',
+        togglePropertiesBySelection: 'تبديل الخصائص حسب التحديد',
         toggleCompactMode: 'تبديل الوضع المضغوط', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'طي / توسيع جميع العناصر', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'إضافة وسم للملفات المحددة', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -807,11 +812,13 @@ export const STRINGS_AR = {
         file: 'ملف',
         files: 'ملفات',
         folder: 'مجلد',
-        folders: 'مجلدات'
+        folders: 'مجلدات',
+        wordCount: 'عدد الكلمات'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'تغيير الإعدادات الافتراضية',
         metadataReport: {
             exportSuccess: 'تم تصدير تقرير البيانات الوصفية الفاشلة إلى: {filename}',
             exportFailed: 'فشل تصدير تقرير البيانات الوصفية'
@@ -987,7 +994,7 @@ export const STRINGS_AR = {
             fileNameIconMap: {
                 name: 'خريطة أيقونات اسم الملف',
                 desc: 'الملفات التي تحتوي على النص تحصل على الأيقونة المحددة. تعيين واحد لكل سطر: نص=أيقونة',
-                placeholder: '# نص=أيقونة\nاجتماع=LiCalendar\nفاتورة=PhReceipt',
+                placeholder: '# نص=أيقونة\nاجتماع=ph-calendar\nفاتورة=ph-receipt',
                 editTooltip: 'تعديل التعيينات'
             },
             showCategoryIcons: {
@@ -997,12 +1004,8 @@ export const STRINGS_AR = {
             fileTypeIconMap: {
                 name: 'خريطة أيقونات نوع الملف',
                 desc: 'الملفات ذات الامتداد تحصل على الأيقونة المحددة. تعيين واحد لكل سطر: امتداد=أيقونة',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'تعديل التعيينات'
-            },
-            optimizeNoteHeight: {
-                name: 'ارتفاع متغير للملاحظة',
-                desc: 'استخدام ارتفاع مضغوط للملاحظات المثبتة والملاحظات بدون نص معاينة.'
             },
             compactItemHeight: {
                 name: 'ارتفاع العنصر المضغوط',
@@ -1209,7 +1212,7 @@ export const STRINGS_AR = {
             },
             calendarMonthHeadingFormat: {
                 name: 'تنسيق اسم الشهر',
-                desc: 'اسم الشهر عادي أو مختصر عندما يكون عرض السنة مخفيًا.',
+                desc: 'اسم الشهر الكامل (يناير) أو المختصر (يناير).',
                 options: {
                     full: 'يناير (كامل)',
                     short: 'يناير (مختصر)'
@@ -1313,6 +1316,10 @@ export const STRINGS_AR = {
             showTooltipPath: {
                 name: 'إظهار المسار',
                 desc: 'عرض مسار المجلد أسفل أسماء الملاحظات في التلميحات.'
+            },
+            showTooltipWordCount: {
+                name: 'إظهار عدد الكلمات',
+                desc: 'عرض عدد كلمات الملاحظات في التلميحات.'
             },
             resetPaneSeparator: {
                 name: 'إعادة تعيين موضع فاصل اللوحة',
@@ -1494,12 +1501,16 @@ export const STRINGS_AR = {
                 desc: 'تطبيق ألوان الوسوم على شارات الوسوم في عناصر الملفات.'
             },
             prioritizeColoredFileTags: {
-                name: 'إظهار الوسوم الملونة أولاً',
-                desc: 'ترتيب الوسوم الملونة قبل الوسوم الأخرى في عناصر الملفات.'
+                name: 'إظهار الوسوم ذات الألوان المخصصة أولاً',
+                desc: 'ترتيب الوسوم ذات الألوان المخصصة قبل الوسوم الأخرى في عناصر الملفات.'
             },
             showFileTagsInCompactMode: {
                 name: 'إظهار وسوم الملفات في الوضع المضغوط',
                 desc: 'عرض الوسوم عند إخفاء التاريخ والمعاينة والصورة.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'إظهار الوسوم على عدة صفوف',
+                desc: 'التفاف وسوم الملفات إلى صفوف إضافية عندما لا تتسع في صف واحد.'
             },
             showFileProperties: {
                 name: 'إظهار خصائص الملفات',
@@ -1510,12 +1521,16 @@ export const STRINGS_AR = {
                 desc: 'تطبيق ألوان الخصائص على شارات الخصائص في عناصر الملفات.'
             },
             prioritizeColoredFileProperties: {
-                name: 'إظهار الخصائص الملونة أولاً',
-                desc: 'ترتيب الخصائص الملونة قبل الخصائص الأخرى في عناصر الملفات.'
+                name: 'إظهار الخصائص ذات الألوان المخصصة أولاً',
+                desc: 'ترتيب الخصائص ذات الألوان المخصصة قبل الخصائص الأخرى في عناصر الملفات.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'إظهار الخصائص في الوضع المضغوط',
                 desc: 'عرض الخصائص عند تفعيل الوضع المضغوط.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'إظهار الخصائص على عدة صفوف',
+                desc: 'التفاف خصائص الملفات إلى صفوف إضافية عندما لا تتسع في صف واحد.'
             },
             notePropertyType: {
                 name: 'خاصية الملاحظة',
@@ -1533,10 +1548,6 @@ export const STRINGS_AR = {
                 noneConfigured: 'لم يتم تكوين أي خصائص',
                 singleConfigured: 'خاصية واحدة مكوّنة: {properties}',
                 multipleConfigured: '{count} خصائص مكوّنة: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'إظهار الخصائص في صفوف منفصلة',
-                desc: 'عرض كل خاصية في صف منفصل.'
             },
             enablePropertyInternalLinks: {
                 name: 'ربط شارات الخصائص بالملاحظات',

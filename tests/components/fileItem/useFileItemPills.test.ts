@@ -134,7 +134,7 @@ describe('useFileItemPills', () => {
         mockMetadataService.getPropertyIcon.mockImplementation(() => undefined);
     });
 
-    it('renders colored tags before uncolored tags when colored priority is enabled', () => {
+    it('renders custom-colored tags before uncolored tags when custom-color priority is enabled', () => {
         mockMetadataService.getTagColorData.mockImplementation(tag => {
             if (tag === 'beta') {
                 return { color: '#ff0000' };
@@ -167,11 +167,48 @@ describe('useFileItemPills', () => {
         expect(markup).toContain('style="color:#ff0000"');
     });
 
+    it('does not prioritize tags that only have rainbow colors', () => {
+        const markup = renderPillRows({
+            file: createTestTFile('Notes/RainbowPriority.md'),
+            isCompactMode: false,
+            tags: ['alpha', 'beta'],
+            properties: null,
+            wordCount: null,
+            notePropertyType: DEFAULT_SETTINGS.notePropertyType,
+            settings: {
+                ...DEFAULT_SETTINGS,
+                showTags: true,
+                showFileTags: true,
+                colorFileTags: true,
+                prioritizeColoredFileTags: true
+            },
+            visiblePropertyKeys: new Set<string>(),
+            visibleNavigationPropertyKeys: new Set<string>(),
+            fileItemPillDecorationModel: {
+                navRainbowMode: 'foreground',
+                tagRainbowColors: {
+                    colorsByPath: new Map([['beta', '#00ff00']]),
+                    rootColor: undefined,
+                    getInheritedColor: () => undefined
+                },
+                propertyRainbowColors: {
+                    colorsByNodeId: new Map(),
+                    rootColor: undefined,
+                    rootColorsByKey: new Map()
+                },
+                inheritPropertyColors: false
+            }
+        });
+
+        expect(markup.indexOf('>alpha<')).toBeLessThan(markup.indexOf('>beta<'));
+        expect(markup).toContain('style="color:#00ff00"');
+    });
+
     it('applies rainbow tag colors in file list pills', () => {
         const markup = renderPillRows({
             file: createTestTFile('Notes/Rainbow.md'),
             isCompactMode: false,
-            tags: ['alpha'],
+            tags: ['Alpha'],
             properties: null,
             wordCount: null,
             notePropertyType: DEFAULT_SETTINGS.notePropertyType,
@@ -465,6 +502,91 @@ describe('useFileItemPills', () => {
         });
 
         expect(markup).toContain('>done<');
+    });
+
+    it('renders custom-colored properties before uncolored properties when custom-color priority is enabled', () => {
+        const betaNodeId = buildPropertyValueNodeId('status', 'beta');
+        mockMetadataService.getPropertyColorData.mockImplementation(nodeId => (nodeId === betaNodeId ? { color: '#ff0000' } : {}));
+
+        const markup = renderPillRows({
+            file: createTestTFile('Notes/Properties.md'),
+            isCompactMode: false,
+            tags: [],
+            properties: [
+                {
+                    fieldKey: 'status',
+                    value: 'alpha',
+                    valueKind: 'string'
+                },
+                {
+                    fieldKey: 'status',
+                    value: 'beta',
+                    valueKind: 'string'
+                }
+            ],
+            wordCount: null,
+            notePropertyType: DEFAULT_SETTINGS.notePropertyType,
+            settings: {
+                ...DEFAULT_SETTINGS,
+                showFileProperties: true,
+                colorFileProperties: true,
+                prioritizeColoredFileProperties: true,
+                propertyColors: { [betaNodeId]: '#ff0000' }
+            },
+            visiblePropertyKeys: new Set<string>(['status']),
+            visibleNavigationPropertyKeys: new Set<string>(['status'])
+        });
+
+        expect(markup.indexOf('>beta<')).toBeLessThan(markup.indexOf('>alpha<'));
+        expect(markup).toContain('style="color:#ff0000"');
+    });
+
+    it('does not prioritize properties that only have rainbow colors', () => {
+        const betaNodeId = buildPropertyValueNodeId('status', 'beta');
+        const markup = renderPillRows({
+            file: createTestTFile('Notes/RainbowProperties.md'),
+            isCompactMode: false,
+            tags: [],
+            properties: [
+                {
+                    fieldKey: 'status',
+                    value: 'alpha',
+                    valueKind: 'string'
+                },
+                {
+                    fieldKey: 'status',
+                    value: 'beta',
+                    valueKind: 'string'
+                }
+            ],
+            wordCount: null,
+            notePropertyType: DEFAULT_SETTINGS.notePropertyType,
+            settings: {
+                ...DEFAULT_SETTINGS,
+                showFileProperties: true,
+                colorFileProperties: true,
+                prioritizeColoredFileProperties: true
+            },
+            visiblePropertyKeys: new Set<string>(['status']),
+            visibleNavigationPropertyKeys: new Set<string>(['status']),
+            fileItemPillDecorationModel: {
+                navRainbowMode: 'foreground',
+                tagRainbowColors: {
+                    colorsByPath: new Map(),
+                    rootColor: undefined,
+                    getInheritedColor: () => undefined
+                },
+                propertyRainbowColors: {
+                    colorsByNodeId: new Map([[betaNodeId, '#00aa00']]),
+                    rootColor: undefined,
+                    rootColorsByKey: new Map()
+                },
+                inheritPropertyColors: false
+            }
+        });
+
+        expect(markup.indexOf('>alpha<')).toBeLessThan(markup.indexOf('>beta<'));
+        expect(markup).toContain('style="color:#00aa00"');
     });
 
     it('applies rainbow property colors in file list pills', () => {

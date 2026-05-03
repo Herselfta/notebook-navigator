@@ -265,7 +265,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
             const sortOrderSubmenu = tryCreateSubmenu(item);
             if (!sortOrderSubmenu) {
-                item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon).setDisabled(true);
+                item.setTitle(strings.paneHeader.changeChildSortOrder).setIcon(sortIcon).setDisabled(true);
                 return;
             }
 
@@ -274,7 +274,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                     ? strings.settings.items.folderSortOrder.options.alphaDesc
                     : strings.settings.items.folderSortOrder.options.alphaAsc;
 
-            item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon);
+            item.setTitle(strings.paneHeader.changeChildSortOrder).setIcon(sortIcon);
 
             sortOrderSubmenu.addItem(subItem => {
                 subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride);

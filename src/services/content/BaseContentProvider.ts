@@ -83,7 +83,8 @@ export abstract class BaseContentProvider implements IContentProvider {
     private processingSession = 0;
     private activeBatchPromise: Promise<void> | null = null;
 
-    private retryTimer: ReturnType<typeof setTimeout> | null = null;
+    private retryTimer: ReturnType<typeof activeWindow.setTimeout> | null = null;
+    private retryTimerWindow: Window | null = null;
     private retryState = new Map<string, { attempts: number; nextRetryAt: number }>();
 
     constructor(
@@ -95,7 +96,7 @@ export abstract class BaseContentProvider implements IContentProvider {
      * Yields to the task queue to keep long provider runs responsive without frame-rate throttling.
      */
     protected async yieldToEventLoop(): Promise<void> {
-        await new Promise<void>(resolve => globalThis.setTimeout(resolve, 0));
+        await new Promise<void>(resolve => activeWindow.setTimeout(resolve, 0));
     }
 
     protected readFileContent(file: TFile): Promise<string> {
@@ -119,8 +120,9 @@ export abstract class BaseContentProvider implements IContentProvider {
 
     private clearRetryTimer(): void {
         if (this.retryTimer !== null) {
-            globalThis.clearTimeout(this.retryTimer);
+            (this.retryTimerWindow ?? activeWindow).clearTimeout(this.retryTimer);
             this.retryTimer = null;
+            this.retryTimerWindow = null;
         }
     }
 
@@ -195,8 +197,11 @@ export abstract class BaseContentProvider implements IContentProvider {
 
         this.clearRetryTimer();
         const delay = Math.max(0, nextRetryAt - Date.now());
-        this.retryTimer = globalThis.setTimeout(() => {
+        const timerWindow = activeWindow;
+        this.retryTimerWindow = timerWindow;
+        this.retryTimer = timerWindow.setTimeout(() => {
             this.retryTimer = null;
+            this.retryTimerWindow = null;
             this.flushRetries(session);
         }, delay);
     }
@@ -322,7 +327,7 @@ export abstract class BaseContentProvider implements IContentProvider {
                 }
             } else if (this.retryTimer !== null || this.hasScheduledRetryWork()) {
                 // Retry work advances on timers; poll until retries are flushed or cleared.
-                await new Promise<void>(resolve => globalThis.setTimeout(resolve, BaseContentProvider.WAIT_FOR_IDLE_RETRY_POLL_MS));
+                await new Promise<void>(resolve => activeWindow.setTimeout(resolve, BaseContentProvider.WAIT_FOR_IDLE_RETRY_POLL_MS));
             } else {
                 await this.yieldToEventLoop();
             }

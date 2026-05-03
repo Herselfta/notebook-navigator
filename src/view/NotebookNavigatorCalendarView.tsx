@@ -76,7 +76,7 @@ export class NotebookNavigatorCalendarView extends ItemView {
         }
 
         const container = this.containerEl.children[1];
-        if (!(container instanceof HTMLElement)) {
+        if (!container.instanceOf(HTMLElement)) {
             return;
         }
 
@@ -104,7 +104,7 @@ export class NotebookNavigatorCalendarView extends ItemView {
         this.viewContainer = null;
 
         const container = this.containerEl.children[1];
-        if (!(container instanceof HTMLElement)) {
+        if (!container.instanceOf(HTMLElement)) {
             return;
         }
 

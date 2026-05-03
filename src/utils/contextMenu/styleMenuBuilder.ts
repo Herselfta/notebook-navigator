@@ -229,8 +229,8 @@ export function addStyleMenu(config: StyleMenuConfig): void {
 
     const hasSupportedClipboardData = Boolean(
         (hasIconSupport && clipboardData?.icon) ||
-            (hasColorSupport && clipboardData?.color) ||
-            (hasBackgroundSupport && clipboardData?.background)
+        (hasColorSupport && clipboardData?.color) ||
+        (hasBackgroundSupport && clipboardData?.background)
     );
 
     const hasRemovableIcon = Boolean(config.removeIcon && hasIconSupport);

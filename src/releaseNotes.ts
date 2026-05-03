@@ -77,6 +77,54 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '2.6.4',
+        date: '2026-05-05',
+        showOnUpdate: true,
+        bannerUrl: true,
+        info: 'Notebook Navigator 2.6.4 now lets file tags and properties wrap onto multiple rows in the list pane. This is yet another feature many of you have requested for a long time, and I am glad to finally have the time to add it.',
+        new: [
+            '**Settings.** New setting: List > Notes > ==Show tags on multiple rows==. Automatically wrap tags so all tags are visible in the list pane. Default enabled.',
+            '**Settings.** New setting: List > Notes > ==Show properties on multiple rows==. Automatically wrap properties so all properties are visible in the list pane. Default enabled.'
+        ],
+        improved: [
+            '**Icon packs.** Updated Simple Icons to 16.18.0.',
+            '**Internal.** Decreased the size of main.js by about 900 KB by changing packaging to UTF-8.'
+        ],
+        changed: [
+            '**Settings.** Removed the setting: List > Notes > ==Show properties on separate rows==. It became redundant with the new setting **Show properties on multiple rows**.'
+        ]
+    },
+    {
+        version: '2.6.3',
+        date: '2026-05-01',
+        showOnUpdate: true,
+        bannerUrl: true,
+        info: 'Notebook Navigator 2.6.3 adds CodeQL security scanning and OpenSSF Scorecard checks to all releases, with current security status visible in the official repo at https://github.com/johansan/notebook-navigator. Every build also runs ESLint with the official Obsidian ESLint plugin and fails on any warning, so code and Obsidian integration issues are caught before release. This gives you a clear signal that the plugin has been checked for security, code quality, and Obsidian compatibility.',
+        new: [
+            '**Settings.** General > ==Show tooltips > Show word count==. Shows word counts in tooltips.',
+            '**Commands.** ==Toggle tags by selection== and ==Toggle properties by selection==.'
+        ],
+        improved: [
+            '**Calendar.** Calendar now keeps the displayed date when switching between the left and right sidebar.',
+            '**Search.** Property value filters now match substrings, so ".author=chomsky" matches values such as "Avram Noam Chomsky" and "Chomsky et al.".',
+            '**List pane.** Sort and appearance menus in list pane now include options for "Change default settings" to open settings.',
+            '**Internal.** Updated all third-party libraries used by the plugin to their latest versions.',
+            '**Internal.** Improved robustness across services, modals, and content providers.'
+        ],
+        changed: [
+            '**Calendar.** The setting "Calendar > Month name format" now applies to all views.',
+            '**List pane.** ==The grouping options in list pane (group by date, folder or no group) are moved== from the **appearance menu** to the **sort menu**.',
+            '**Settings.** ==Removed the setting List > Display > Variable note height==. It made no sense keeping it with the new variable line height feature.',
+            '**API.** API metadata icon fields now return the same icon format as stored in frontmatter.',
+            '**Internal.** Minimum supported Obsidian version is now **1.11.0**.'
+        ],
+        fixed: [
+            '**Navigation pane.** Fixed rainbow colors on file tags not showing in list pane when tags used uppercase letters.',
+            '**List pane.** Fixed incorrect row heights in list pane (virtualizer breaking) after changing calendar settings or navigating certain folders.',
+            '**Settings.** The two settings List > Notes > "File name icon map" and "File type icon map" now work correctly again. They broke after the icon format was introduced in 2.6.2.'
+        ]
+    },
+    {
         version: '2.6.2',
         date: '2026-04-25',
         showOnUpdate: false,
@@ -205,7 +253,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         date: '2026-03-20',
         showOnUpdate: true,
         new: [
-            'New setting: Calendar > ==Month name format==. Choose between "full" (January) or "short" (Jan) when the year view is hidden.',
+            'New setting: Calendar > ==Month name format==. Choose between "full" (January) or "short" (Jan).',
             'New style setting: Calendar > ==Feature image overlay color==. Adds a color overlay to darken or tint feature images in calendar days and months. Set separate colors for light and dark mode.'
         ],
         improved: [

@@ -527,7 +527,7 @@ export function getFilesForTag(
         });
     };
 
-    let filteredFiles: TFile[] = [];
+    let filteredFiles: TFile[];
 
     // Special case for untagged files
     if (tag === UNTAGGED_TAG_ID) {

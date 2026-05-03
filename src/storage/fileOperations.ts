@@ -189,7 +189,7 @@ export async function waitForDatabaseInitialization(): Promise<IndexedDBStorage 
         const waitStart = Date.now();
         while (!appId && !isShutdownInProgress() && Date.now() - waitStart < 5000) {
             await new Promise<void>(resolve => {
-                globalThis.setTimeout(resolve, 50);
+                activeWindow.setTimeout(resolve, 50);
             });
         }
     }

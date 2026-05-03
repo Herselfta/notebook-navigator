@@ -311,6 +311,17 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         }
     }
 
+    public selectTab(tabId: SettingsTabId, options?: { focus?: boolean }): void {
+        this.lastActiveTabId = tabId;
+
+        const contentWrapper = this.containerEl.querySelector<HTMLElement>('.nn-settings-tabs-content');
+        if (!contentWrapper) {
+            return;
+        }
+
+        this.activateTab(tabId, contentWrapper, { focus: options?.focus ?? false });
+    }
+
     private ensureSettingsUpdateListener(): void {
         this.plugin.registerSettingsUpdateListener(this.settingsUpdateListenerId, () => {
             if (this.plugin.isExternalSettingsUpdate()) {

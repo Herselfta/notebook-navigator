@@ -78,7 +78,7 @@ export function ListPaneHeader({
         descendantsTooltip,
         getCurrentSortOption,
         hasAppearanceOrSortSelection,
-        isCustomSort,
+        hasCustomSortOrGroup,
         hasCustomAppearance
     } = useListActions();
     const listToolbarVisibility = settings.toolbarVisibility.list;
@@ -396,8 +396,8 @@ export function ListPaneHeader({
                     ) : null}
                     {showSortButton ? (
                         <button
-                            className={`nn-icon-button ${isCustomSort ? 'nn-icon-button-active' : ''}`}
-                            aria-label={strings.paneHeader.changeSortOrder}
+                            className={`nn-icon-button ${hasCustomSortOrGroup ? 'nn-icon-button-active' : ''}`}
+                            aria-label={strings.paneHeader.changeSortAndGroup}
                             onClick={handleSortMenu}
                             disabled={!hasAppearanceOrSortSelection}
                             tabIndex={-1}

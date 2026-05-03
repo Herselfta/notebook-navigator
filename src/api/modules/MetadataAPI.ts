@@ -34,7 +34,7 @@ import type {
 } from '../types';
 import type { NotebookNavigatorSettings } from '../../settings';
 import { PinnedNotes } from '../../types';
-import { normalizeCanonicalIconId } from '../../utils/iconizeFormat';
+import { deserializeIconFromFrontmatterStrict, serializeIconForFrontmatter } from '../../utils/iconizeFormat';
 import { normalizePropertyNodeId } from '../../utils/propertyTree';
 import { clonePinnedNotesRecord, normalizePinnedNoteContext } from '../../utils/recordUtils';
 import { normalizeTagPathValue } from '../../utils/tagPrefixMatcher';
@@ -57,7 +57,19 @@ type MetadataAPIHost = {
 type PinnedContextSnapshot = Pinned extends Map<string, infer TValue> ? TValue : never;
 
 function freezePinnedContext(context: PinnedNotes[string]): PinnedContextSnapshot {
-    return Object.freeze({ ...normalizePinnedNoteContext(context) }) as PinnedContextSnapshot;
+    return Object.freeze({ ...normalizePinnedNoteContext(context) });
+}
+
+function normalizeIconInput(icon: string): string | null {
+    return deserializeIconFromFrontmatterStrict(icon);
+}
+
+function serializeIconOutput(icon: string | undefined): IconValue | undefined {
+    if (!icon) {
+        return undefined;
+    }
+
+    return serializeIconForFrontmatter(icon) ?? icon;
 }
 
 /**
@@ -426,7 +438,7 @@ export class MetadataAPI {
                 delete iconStore[key];
                 changed = true;
             } else if (typeof meta.icon === 'string') {
-                const normalizedIcon = normalizeCanonicalIconId(meta.icon);
+                const normalizedIcon = normalizeIconInput(meta.icon);
                 if (normalizedIcon) {
                     iconStore[key] = normalizedIcon;
                     changed = true;
@@ -464,7 +476,7 @@ export class MetadataAPI {
         return {
             color: folderDisplayData.color,
             backgroundColor: folderDisplayData.backgroundColor,
-            icon: folderDisplayData.icon
+            icon: serializeIconOutput(folderDisplayData.icon)
         };
     }
 
@@ -531,7 +543,7 @@ export class MetadataAPI {
         return {
             color,
             backgroundColor,
-            icon: icon as IconValue | undefined
+            icon: serializeIconOutput(icon)
         };
     }
 
@@ -555,7 +567,7 @@ export class MetadataAPI {
                 if (meta.icon === null) {
                     folderStyleUpdate.icon = null;
                 } else if (typeof meta.icon === 'string') {
-                    const normalizedIcon = normalizeCanonicalIconId(meta.icon);
+                    const normalizedIcon = normalizeIconInput(meta.icon);
                     if (normalizedIcon) {
                         folderStyleUpdate.icon = normalizedIcon;
                     }
@@ -622,7 +634,7 @@ export class MetadataAPI {
         return {
             color,
             backgroundColor,
-            icon: icon as IconValue | undefined
+            icon: serializeIconOutput(icon)
         };
     }
 
@@ -670,7 +682,7 @@ export class MetadataAPI {
         return {
             color,
             backgroundColor,
-            icon: icon as IconValue | undefined
+            icon: serializeIconOutput(icon)
         };
     }
 

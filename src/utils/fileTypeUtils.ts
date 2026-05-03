@@ -33,6 +33,10 @@ export const FILE_VISIBILITY = {
  */
 export type FileVisibility = (typeof FILE_VISIBILITY)[keyof typeof FILE_VISIBILITY];
 
+export function isFileVisibility(value: unknown): value is FileVisibility {
+    return value === FILE_VISIBILITY.DOCUMENTS || value === FILE_VISIBILITY.SUPPORTED || value === FILE_VISIBILITY.ALL;
+}
+
 /**
  * Core file types that Obsidian supports natively
  * This is a fallback list in case we can't access the view registry

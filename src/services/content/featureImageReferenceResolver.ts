@@ -299,7 +299,7 @@ export function findFeatureImageReference(params: {
 
     const combinedImageRegex = createCombinedImageRegex();
     combinedImageRegex.lastIndex = Math.min(Math.max(0, params.bodyStartIndex), params.content.length);
-    let match: RegExpExecArray | null = null;
+    let match: RegExpExecArray | null;
 
     while ((match = combinedImageRegex.exec(params.content)) !== null) {
         const reference = resolveDocumentImageMatch(params.app, match, params.file, params.settings);

@@ -67,6 +67,10 @@
     --nn-selected-navitem-count-border-color: var(--nn-theme-navitem-selected-count-border-color);
 }
 
+.nn-navigation-pane {
+    --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
+}
+
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='navigation'], [data-focus-pane='search']) {
     --nn-selected-file-bg-color: var(--nn-computed-file-selected-inactive-bg, var(--nn-theme-file-selected-inactive-bg));
     --nn-selected-file-name-color: var(--nn-theme-file-selected-inactive-name-color);
@@ -78,6 +82,10 @@
     --nn-selected-file-property-color: var(--nn-theme-file-selected-inactive-property-color);
     --nn-selected-file-property-bg: var(--nn-theme-file-selected-inactive-property-bg);
     --nn-selected-file-border-color: var(--nn-theme-file-selected-inactive-border-color);
+}
+
+.nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search']) .nn-navigation-pane {
+    --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-inactive-bg, var(--nn-theme-navitem-selected-inactive-bg));
 }
 
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search']) {

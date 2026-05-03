@@ -157,7 +157,6 @@ export default class HomepageController {
             isStartupReveal: trigger === 'startup',
             preserveNavigationFocus: this.plugin.settings.startView === 'navigation' && trigger === 'startup'
         };
-        let alreadyRevealedInNavigator = false;
 
         if (trigger === 'startup') {
             const existingLeaf = this.findExistingHomepageLeaf(homepageFile);
@@ -167,14 +166,13 @@ export default class HomepageController {
                 workspace.setActiveLeaf(existingLeaf, { focus: true });
                 if (shouldRevealInNavigator) {
                     this.workspace.revealFileInNearestFolder(homepageFile, revealOptions);
-                    alreadyRevealedInNavigator = true;
                 }
                 return true;
             }
         }
 
         // Reveal homepage in navigator
-        if (shouldRevealInNavigator && !alreadyRevealedInNavigator) {
+        if (shouldRevealInNavigator) {
             this.workspace.revealFileInNearestFolder(homepageFile, revealOptions);
         }
 

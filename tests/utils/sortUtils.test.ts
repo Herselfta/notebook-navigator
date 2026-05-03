@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
     compareByAlphaSortOrder,
     getEffectiveSortOption,
+    getSortIcon,
     resolveFolderChildSortOrder,
     sortFiles,
     shouldRefreshOnFileModifyForSort,
@@ -207,6 +208,19 @@ describe('sortFiles', () => {
         );
 
         expect(files.map(file => file.basename)).toEqual(['a', 'b']);
+    });
+});
+
+describe('sort icons', () => {
+    it('uses the sort option direction', () => {
+        expect(getSortIcon('modified-desc')).toBe('lucide-sort-desc');
+        expect(getSortIcon('modified-asc')).toBe('lucide-sort-asc');
+        expect(getSortIcon('created-desc')).toBe('lucide-sort-desc');
+        expect(getSortIcon('created-asc')).toBe('lucide-sort-asc');
+        expect(getSortIcon('title-asc')).toBe('lucide-sort-asc');
+        expect(getSortIcon('title-desc')).toBe('lucide-sort-desc');
+        expect(getSortIcon('property-asc')).toBe('lucide-sort-asc');
+        expect(getSortIcon('property-desc')).toBe('lucide-sort-desc');
     });
 });
 

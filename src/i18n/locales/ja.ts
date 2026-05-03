@@ -128,13 +128,14 @@ export const STRINGS_JA = {
         newFolder: '新規フォルダ', // Tooltip for create new folder button (English: New folder)
         newNote: '新規ノート', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'ナビゲーションに戻る', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: '並び順を変更', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: '並び順を変更',
+        changeSortAndGroup: '並び順とグループを変更',
         defaultSort: 'デフォルト', // Label for default sorting mode (English: Default)
         descendants: '子孫',
         subfolders: 'サブフォルダー',
         subtags: 'サブタグ',
         childValues: '子の値',
-        applySortToDescendants: (target: string) => `${target}に並び替えを適用`,
+        applySortAndGroupToDescendants: (target: string) => `${target}に並び替えとグループ化を適用`,
         applyAppearanceToDescendants: (target: string) => `${target}に外観を適用`,
         showFolders: 'ナビゲーションを表示', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'ナビゲーションを並び替え',
@@ -194,11 +195,11 @@ export const STRINGS_JA = {
                     title: 'プロパティ',
                     items: [
                         '`.key` プロパティキーを持つノートを含める。',
-                        '`.key=value` プロパティ値を持つノートを含める。',
+                        '`.key=value` プロパティ値に `value` を含むノートを含める。',
                         '`."Reading Status"` 空白を含むプロパティキーを持つノートを含める。',
                         '`."Reading Status"="In Progress"` 空白を含むキーと値はダブルクォートで囲む必要があります。',
                         '`-.key` プロパティキーを持つノートを除外する。',
-                        '`-.key=value` プロパティ値を持つノートを除外する。',
+                        '`-.key=value` プロパティ値に `value` を含むノートを除外する。',
                         'Cmd/Ctrl+クリックでプロパティをANDで追加。Cmd/Ctrl+Shift+クリックでORで追加。'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_JA = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: '外観',
+        sortBy: '並び替え',
         standardPreset: '標準',
         compactPreset: 'コンパクト',
         defaultSuffix: '(デフォルト)',
@@ -382,7 +385,7 @@ export const STRINGS_JA = {
     modals: {
         bulkApply: {
             applyButton: '適用',
-            applySortTitle: (target: string) => `${target}に並び替えを適用しますか？`,
+            applySortAndGroupTitle: (target: string) => `${target}に並び替えとグループ化を適用しますか？`,
             applyAppearanceTitle: (target: string) => `${target}に外観を適用しますか？`,
             affectedCountMessage: (count: number) => `変更される既存のオーバーライド: ${count}。`
         },
@@ -783,6 +786,8 @@ export const STRINGS_JA = {
         toggleDescendants: '子孫切り替え', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: '非表示のフォルダ・タグ・ノートを切り替え', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'タグの並び順を切り替え', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: '選択範囲でタグを切り替え',
+        togglePropertiesBySelection: '選択範囲でプロパティを切り替え',
         toggleCompactMode: 'コンパクトモードの切り替え', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'すべての項目を折りたたむ/展開', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '選択したファイルにタグを追加', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -808,11 +813,13 @@ export const STRINGS_JA = {
         file: 'ファイル',
         files: 'ファイル',
         folder: 'フォルダ',
-        folders: 'フォルダ'
+        folders: 'フォルダ',
+        wordCount: '単語数'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'デフォルト設定を変更',
         metadataReport: {
             exportSuccess: '失敗したメタデータレポートをエクスポートしました: {filename}',
             exportFailed: 'メタデータレポートのエクスポートに失敗しました'
@@ -988,7 +995,7 @@ export const STRINGS_JA = {
             fileNameIconMap: {
                 name: 'ファイル名アイコンマップ',
                 desc: 'テキストを含むファイルに指定したアイコンが適用されます。1行に1つのマッピング: テキスト=アイコン',
-                placeholder: '# テキスト=アイコン\n会議=LiCalendar\n請求書=PhReceipt',
+                placeholder: '# テキスト=アイコン\n会議=ph-calendar\n請求書=ph-receipt',
                 editTooltip: 'マッピングを編集'
             },
             showCategoryIcons: {
@@ -998,12 +1005,8 @@ export const STRINGS_JA = {
             fileTypeIconMap: {
                 name: 'ファイルタイプアイコンマップ',
                 desc: '拡張子を持つファイルに指定したアイコンが適用されます。1行に1つのマッピング: 拡張子=アイコン',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'マッピングを編集'
-            },
-            optimizeNoteHeight: {
-                name: '可変ノート高さ',
-                desc: 'ピン留めされたノートとプレビューテキストのないノートにコンパクトな高さを使用。'
             },
             compactItemHeight: {
                 name: 'スリム表示の項目高さ',
@@ -1210,7 +1213,7 @@ export const STRINGS_JA = {
             },
             calendarMonthHeadingFormat: {
                 name: '月名の形式',
-                desc: '年表示が非表示のとき、月名を通常または省略形で表示します。',
+                desc: '月名を長い形式 (1月) または短い形式 (1月) で表示します。',
                 options: {
                     full: '1月 (完全)',
                     short: '1月 (短縮)'
@@ -1314,6 +1317,10 @@ export const STRINGS_JA = {
             showTooltipPath: {
                 name: 'パスを表示',
                 desc: 'ツールチップでノート名の下にフォルダパスを表示します。'
+            },
+            showTooltipWordCount: {
+                name: '単語数を表示',
+                desc: 'ツールチップにノートの単語数を表示します。'
             },
             resetPaneSeparator: {
                 name: 'ペインセパレーターの位置をリセット',
@@ -1496,12 +1503,16 @@ export const STRINGS_JA = {
                 desc: 'ファイルアイテムのタグバッジにタグの色を適用します。'
             },
             prioritizeColoredFileTags: {
-                name: '色付きタグを先頭に配置',
-                desc: '色付きタグを他のタグより前に並べ替えます。'
+                name: 'カスタムカラーのタグを先頭に配置',
+                desc: 'カスタムカラーのタグを他のタグより前に並べ替えます。'
             },
             showFileTagsInCompactMode: {
                 name: 'スリムモードでファイルタグを表示',
                 desc: '日付、プレビュー、画像が非表示のときにタグを表示します。'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'タグを複数行に表示',
+                desc: 'ファイルタグが1行に収まらない場合、追加の行に折り返します。'
             },
             showFileProperties: {
                 name: 'ファイルプロパティを表示',
@@ -1512,12 +1523,16 @@ export const STRINGS_JA = {
                 desc: 'ファイル項目のプロパティバッジにプロパティの色を適用します。'
             },
             prioritizeColoredFileProperties: {
-                name: '色付きプロパティを先に表示',
-                desc: 'ファイル項目で色付きプロパティを他のプロパティより前に並べ替えます。'
+                name: 'カスタムカラーのプロパティを先に表示',
+                desc: 'ファイル項目でカスタムカラーのプロパティを他のプロパティより前に並べ替えます。'
             },
             showFilePropertiesInCompactMode: {
                 name: 'コンパクトモードでプロパティを表示',
                 desc: 'コンパクトモードが有効な時にプロパティを表示します。'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'プロパティを複数行に表示',
+                desc: 'ファイルプロパティが1行に収まらない場合、追加の行に折り返します。'
             },
             notePropertyType: {
                 name: 'ノートプロパティ',
@@ -1535,10 +1550,6 @@ export const STRINGS_JA = {
                 noneConfigured: 'プロパティが設定されていません',
                 singleConfigured: '1件のプロパティが設定済み: {properties}',
                 multipleConfigured: '{count}件のプロパティが設定済み: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'プロパティを別の行に表示',
-                desc: '各プロパティを個別の行に表示します。'
             },
             enablePropertyInternalLinks: {
                 name: 'プロパティピルをノートにリンク',

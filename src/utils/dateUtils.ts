@@ -181,7 +181,7 @@ export class DateUtils {
             // Same year - show month name
             const normalizedLanguage = DateUtils.getNormalizedLanguage();
             const momentApi = getMomentApi();
-            let monthName = '';
+            let monthName: string;
             if (momentApi) {
                 const locale = DateUtils.getMomentLocale(momentApi);
                 monthName = momentApi(date).locale(locale).format('MMMM');

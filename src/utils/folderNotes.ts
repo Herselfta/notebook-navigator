@@ -244,7 +244,7 @@ export async function createFolderNote(
         return null;
     }
 
-    let selectedType: FolderNoteType | null = null;
+    let selectedType: FolderNoteType | null;
 
     if (settings.folderNoteType === 'ask') {
         selectedType = await promptForFolderNoteType(app, folder, options?.folderDisplayName);

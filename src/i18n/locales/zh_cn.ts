@@ -128,13 +128,14 @@ export const STRINGS_ZH_CN = {
         newFolder: '新建文件夹', // Tooltip for create new folder button (English: New folder)
         newNote: '新笔记', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: '返回导航', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: '更改排序方式', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: '更改排序方式',
+        changeSortAndGroup: '更改排序和分组',
         defaultSort: '默认', // Label for default sorting mode (English: Default)
         descendants: '子项',
         subfolders: '子文件夹',
         subtags: '子标签',
         childValues: '子值',
-        applySortToDescendants: (target: string) => `将排序应用到${target}`,
+        applySortAndGroupToDescendants: (target: string) => `将排序和分组应用到${target}`,
         applyAppearanceToDescendants: (target: string) => `将外观应用到${target}`,
         showFolders: '显示导航', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: '重新排列导航',
@@ -194,11 +195,11 @@ export const STRINGS_ZH_CN = {
                     title: '属性',
                     items: [
                         '`.key` 包含具有属性键的笔记。',
-                        '`.key=value` 包含具有属性值的笔记。',
+                        '`.key=value` 包含属性值含有 `value` 的笔记。',
                         '`."Reading Status"` 包含属性键包含空格的笔记。',
                         '`."Reading Status"="In Progress"` 包含空格的键和值必须用双引号括起来。',
                         '`-.key` 排除具有属性键的笔记。',
-                        '`-.key=value` 排除具有属性值的笔记。',
+                        '`-.key=value` 排除属性值含有 `value` 的笔记。',
                         'Cmd/Ctrl+点击属性以 AND 方式添加。Cmd/Ctrl+Shift+点击以 OR 方式添加。'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_ZH_CN = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: '外观',
+        sortBy: '排序方式',
         standardPreset: '标准',
         compactPreset: '紧凑',
         defaultSuffix: '(默认)',
@@ -382,7 +385,7 @@ export const STRINGS_ZH_CN = {
     modals: {
         bulkApply: {
             applyButton: '应用',
-            applySortTitle: (target: string) => `将排序应用到${target}？`,
+            applySortAndGroupTitle: (target: string) => `将排序和分组应用到${target}？`,
             applyAppearanceTitle: (target: string) => `将外观应用到${target}？`,
             affectedCountMessage: (count: number) => `将更改的现有覆盖：${count}。`
         },
@@ -777,6 +780,8 @@ export const STRINGS_ZH_CN = {
         toggleDescendants: '切换后代', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: '切换隐藏的文件夹、标签和笔记', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: '切换标签排序', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: '按选择切换标签',
+        togglePropertiesBySelection: '按选择切换属性',
         toggleCompactMode: '切换紧凑模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: '折叠/展开所有项目', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '为选定文件添加标签', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -802,11 +807,13 @@ export const STRINGS_ZH_CN = {
         file: '个文件',
         files: '个文件',
         folder: '个文件夹',
-        folders: '个文件夹'
+        folders: '个文件夹',
+        wordCount: '字数'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: '更改默认设置',
         metadataReport: {
             exportSuccess: '失败的元数据报告已导出至：{filename}',
             exportFailed: '导出元数据报告失败'
@@ -982,7 +989,7 @@ export const STRINGS_ZH_CN = {
             fileNameIconMap: {
                 name: '文件名图标映射',
                 desc: '包含指定文本的文件将获得指定图标。每行一个映射：文本=图标',
-                placeholder: '# 文本=图标\n会议=LiCalendar\n发票=PhReceipt',
+                placeholder: '# 文本=图标\n会议=ph-calendar\n发票=ph-receipt',
                 editTooltip: '编辑映射'
             },
             showCategoryIcons: {
@@ -992,12 +999,8 @@ export const STRINGS_ZH_CN = {
             fileTypeIconMap: {
                 name: '文件类型图标映射',
                 desc: '具有指定扩展名的文件将获得指定图标。每行一个映射：扩展名=图标',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: '编辑映射'
-            },
-            optimizeNoteHeight: {
-                name: '可变笔记高度',
-                desc: '为固定笔记和无预览文本的笔记使用紧凑高度。'
             },
             compactItemHeight: {
                 name: '精简项目高度',
@@ -1204,7 +1207,7 @@ export const STRINGS_ZH_CN = {
             },
             calendarMonthHeadingFormat: {
                 name: '月份名称格式',
-                desc: '年视图隐藏时，显示正常或缩写的月份名称。',
+                desc: '显示完整（一月）或简称（1月）的月份名称。',
                 options: {
                     full: '一月 (完整)',
                     short: '1月 (简称)'
@@ -1308,6 +1311,10 @@ export const STRINGS_ZH_CN = {
             showTooltipPath: {
                 name: '显示路径',
                 desc: '在工具提示中的笔记名称下方显示文件夹路径。'
+            },
+            showTooltipWordCount: {
+                name: '显示字数',
+                desc: '在工具提示中显示笔记字数。'
             },
             resetPaneSeparator: {
                 name: '重置面板分隔符位置',
@@ -1489,12 +1496,16 @@ export const STRINGS_ZH_CN = {
                 desc: '将标签颜色应用于文件项中的标签徽章。'
             },
             prioritizeColoredFileTags: {
-                name: '优先显示彩色标签',
-                desc: '将彩色标签排列在其他标签之前。'
+                name: '优先显示自定义颜色标签',
+                desc: '将自定义颜色标签排列在其他标签之前。'
             },
             showFileTagsInCompactMode: {
                 name: '在精简模式中显示文件标签',
                 desc: '当日期、预览和图像被隐藏时显示标签。'
+            },
+            showFileTagsOnMultipleRows: {
+                name: '多行显示标签',
+                desc: '当文件标签无法放在一行时，将其换行到更多行。'
             },
             showFileProperties: {
                 name: '显示文件属性',
@@ -1505,12 +1516,16 @@ export const STRINGS_ZH_CN = {
                 desc: '将属性颜色应用到文件项的属性徽章上。'
             },
             prioritizeColoredFileProperties: {
-                name: '优先显示彩色属性',
-                desc: '在文件项中将彩色属性排列在其他属性之前。'
+                name: '优先显示自定义颜色属性',
+                desc: '在文件项中将自定义颜色属性排列在其他属性之前。'
             },
             showFilePropertiesInCompactMode: {
                 name: '在精简模式中显示属性',
                 desc: '精简模式启用时显示属性。'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: '多行显示属性',
+                desc: '当文件属性无法放在一行时，将其换行到更多行。'
             },
             notePropertyType: {
                 name: '笔记属性',
@@ -1528,10 +1543,6 @@ export const STRINGS_ZH_CN = {
                 noneConfigured: '未配置属性',
                 singleConfigured: '已配置 1 个属性：{properties}',
                 multipleConfigured: '已配置 {count} 个属性：{properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: '在单独的行中显示属性',
-                desc: '将每个属性显示在单独的行中。'
             },
             enablePropertyInternalLinks: {
                 name: '将属性标签链接到笔记',

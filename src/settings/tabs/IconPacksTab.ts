@@ -59,7 +59,7 @@ export function renderIconPacksTab(context: SettingsTabContext): void {
         linkEl.setAttr('rel', 'noopener noreferrer');
         linkEl.setAttr('target', '_blank');
 
-        descriptionEl.createEl('div', { text: statusText });
+        descriptionEl.createDiv({ text: statusText });
 
         if (isInstalled) {
             setting.addButton(button => {

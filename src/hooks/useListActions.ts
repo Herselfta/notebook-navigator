@@ -25,8 +25,15 @@ import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferenc
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import type { SortOption } from '../settings';
+import type { ListNoteGroupingOption } from '../settings/types';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
-import { getEffectiveSortOption, getSortIcon as getSortIconName, isPropertySortOption, SORT_OPTIONS } from '../utils/sortUtils';
+import {
+    getEffectiveSortOption,
+    getSortIcon as getSortIconName,
+    isDateSortOption,
+    isPropertySortOption,
+    SORT_OPTIONS
+} from '../utils/sortUtils';
 import { showListPaneAppearanceMenu } from '../components/ListPaneAppearanceMenu';
 import { getDefaultListMode } from './useListPaneAppearance';
 import type { FolderAppearance } from './useListPaneAppearance';
@@ -36,6 +43,7 @@ import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import { parsePropertyNodeId } from '../utils/propertyTree';
 import { findVaultProfileById } from '../utils/vaultProfiles';
 import { ensureRecord, sanitizeRecord } from '../utils/recordUtils';
+import { resolveListGrouping } from '../utils/listGrouping';
 
 type SelectionSortTarget =
     | { type: typeof ItemType.FOLDER; key: string }
@@ -163,10 +171,6 @@ function isPropertyDescendantSettingKey(selectedNodeId: string, candidateNodeId:
     return candidateNode.valuePath.startsWith(`${selectedNode.valuePath}/`);
 }
 
-function hasStoredAppearanceOverride(appearance: FolderAppearance | undefined): appearance is FolderAppearance {
-    return Boolean(appearance && Object.keys(appearance).length > 0);
-}
-
 function buildDescendantApplyStats<T>({
     descendantCount,
     descendantEntries,
@@ -210,6 +214,18 @@ function buildDescendantApplyStats<T>({
     };
 }
 
+function getGroupingIcon(option: ListNoteGroupingOption): string {
+    switch (option) {
+        case 'date':
+            return 'lucide-calendar';
+        case 'folder':
+            return 'lucide-folder';
+        case 'none':
+        default:
+            return 'lucide-x';
+    }
+}
+
 function normalizeAppearanceOverride(
     appearance: FolderAppearance | undefined,
     defaultMode: ReturnType<typeof getDefaultListMode>
@@ -236,11 +252,27 @@ function normalizeAppearanceOverride(
         normalized.notePropertyType = appearance.notePropertyType;
     }
 
-    if (appearance.groupBy !== undefined) {
-        normalized.groupBy = appearance.groupBy;
+    return Object.keys(normalized).length > 0 ? normalized : null;
+}
+
+function hasStoredAppearanceOverride(
+    appearance: FolderAppearance | undefined,
+    defaultMode: ReturnType<typeof getDefaultListMode>
+): appearance is FolderAppearance {
+    return normalizeAppearanceOverride(appearance, defaultMode) !== null;
+}
+
+function mergeAppearanceAndGrouping(
+    appearanceOverride: FolderAppearance | null,
+    groupByOverride: ListNoteGroupingOption | undefined
+): FolderAppearance | null {
+    const next: FolderAppearance = appearanceOverride ? { ...appearanceOverride } : {};
+
+    if (groupByOverride !== undefined) {
+        next.groupBy = groupByOverride;
     }
 
-    return Object.keys(normalized).length > 0 ? normalized : null;
+    return Object.keys(next).length > 0 ? next : null;
 }
 
 function areAppearanceOverridesEqual(
@@ -259,8 +291,7 @@ function areAppearanceOverridesEqual(
         normalizedLeft.mode === normalizedRight.mode &&
         normalizedLeft.titleRows === normalizedRight.titleRows &&
         normalizedLeft.previewRows === normalizedRight.previewRows &&
-        normalizedLeft.notePropertyType === normalizedRight.notePropertyType &&
-        normalizedLeft.groupBy === normalizedRight.groupBy
+        normalizedLeft.notePropertyType === normalizedRight.notePropertyType
     );
 }
 
@@ -299,7 +330,7 @@ function collectAllPropertyNodeIds(propertyTreeService: NonNullable<ReturnType<t
  * @returns Object containing action handlers and computed values for list pane operations
  */
 export function useListActions() {
-    const { app, tagTreeService, propertyTreeService } = useServices();
+    const { app, plugin, tagTreeService, propertyTreeService } = useServices();
     const settings = useSettingsState();
     const vaultProfileId = settings.vaultProfile;
     const vaultProfiles = settings.vaultProfiles;
@@ -319,6 +350,14 @@ export function useListActions() {
     const hasPropertySelection = selectionState.selectionType === ItemType.PROPERTY && Boolean(selectionState.selectedProperty);
     const hasCreatablePropertySelection = hasPropertySelection && selectionState.selectedProperty !== PROPERTIES_ROOT_VIRTUAL_FOLDER_ID;
     const hasAppearanceOrSortSelection = hasFolderSelection || hasTagSelection || hasPropertySelection;
+
+    const openDefaultListSettings = useCallback(() => {
+        plugin.openSettingsTab('list-pane');
+    }, [plugin]);
+
+    const openDefaultListAppearanceSettings = useCallback(() => {
+        plugin.openSettingsTab('notes');
+    }, [plugin]);
     const canCreateNewFile = Boolean(selectionState.selectedFolder) || hasCreatableTagSelection || hasCreatablePropertySelection;
 
     const getSelectionSortTarget = useCallback((): SelectionSortTarget | null => {
@@ -498,7 +537,24 @@ export function useListActions() {
     const selectionSortTarget = useMemo(() => getSelectionSortTarget(), [getSelectionSortTarget]);
     const selectionSortOverride = useMemo(() => getSelectionSortOverride(), [getSelectionSortOverride]);
     const selectionAppearanceOverride = useMemo(() => getSelectionAppearanceOverride(), [getSelectionAppearanceOverride]);
-    const hasSelectionAppearanceOverride = hasStoredAppearanceOverride(selectionAppearanceOverride);
+    const selectionAppearanceFields = useMemo(
+        () => normalizeAppearanceOverride(selectionAppearanceOverride, defaultMode),
+        [defaultMode, selectionAppearanceOverride]
+    );
+    const hasSelectionAppearanceOverride = selectionAppearanceFields !== null;
+    const groupingInfo = useMemo(
+        () =>
+            resolveListGrouping({
+                settings,
+                selectionType: selectionState.selectionType,
+                folderPath: selectionState.selectedFolder ? selectionState.selectedFolder.path : null,
+                tag: selectionState.selectedTag ?? null,
+                propertyNodeId: selectionState.selectedProperty ?? null
+            }),
+        [settings, selectionState.selectedFolder, selectionState.selectedProperty, selectionState.selectedTag, selectionState.selectionType]
+    );
+    const selectionGroupOverride = groupingInfo.normalizedOverride;
+    const hasSelectionGroupOverride = groupingInfo.hasCustomOverride;
     const selectionDescendantLabel = useMemo(() => getSelectionDescendantLabel(), [getSelectionDescendantLabel]);
     const [folderTreeVersion, setFolderTreeVersion] = useState(0);
     const [tagTreeVersion, setTagTreeVersion] = useState(0);
@@ -634,7 +690,47 @@ export function useListActions() {
         [getSelectionSortTarget, metadataService]
     );
 
-    const getDescendantSortChangeStats = useCallback(() => {
+    const setSelectionGroupOverride = useCallback(
+        async (groupBy: ListNoteGroupingOption | undefined) => {
+            const target = getSelectionSortTarget();
+            if (!target) {
+                return;
+            }
+
+            await updateSettings(current => {
+                const next =
+                    target.type === ItemType.FOLDER
+                        ? sanitizeRecord(ensureRecord(current.folderAppearances))
+                        : target.type === ItemType.TAG
+                          ? sanitizeRecord(ensureRecord(current.tagAppearances))
+                          : sanitizeRecord(ensureRecord(current.propertyAppearances));
+                const currentAppearance = next[target.key];
+                const normalizedAppearance = mergeAppearanceAndGrouping(
+                    normalizeAppearanceOverride(currentAppearance, defaultMode),
+                    groupBy
+                );
+
+                if (normalizedAppearance) {
+                    next[target.key] = normalizedAppearance;
+                } else {
+                    delete next[target.key];
+                }
+
+                if (target.type === ItemType.FOLDER) {
+                    current.folderAppearances = next;
+                    return;
+                }
+                if (target.type === ItemType.TAG) {
+                    current.tagAppearances = next;
+                    return;
+                }
+                current.propertyAppearances = next;
+            });
+        },
+        [defaultMode, getSelectionSortTarget, updateSettings]
+    );
+
+    const getDescendantSortAndGroupChangeStats = useCallback((): DescendantApplyStats => {
         const target = selectionSortTarget;
         if (!target) {
             return buildDescendantApplyStats({
@@ -651,25 +747,92 @@ export function useListActions() {
                 : target.type === ItemType.TAG
                   ? settings.tagSortOverrides
                   : settings.propertySortOverrides;
+        const appearances =
+            target.type === ItemType.FOLDER
+                ? settings.folderAppearances
+                : target.type === ItemType.TAG
+                  ? settings.tagAppearances
+                  : settings.propertyAppearances;
 
-        const descendantEntries = Object.entries(sortOverrides ?? {}).filter(([key]) => isSelectionDescendantSettingKey(key));
-        return buildDescendantApplyStats({
-            descendantCount: selectionDescendantCount,
-            descendantEntries,
-            hasCurrentOverride: selectionSortOverride !== undefined,
-            matchesCurrentOverride: ([, currentOverride]) => currentOverride === selectionSortOverride
+        const sortEntries = Object.entries(sortOverrides ?? {}).filter(([key]) => isSelectionDescendantSettingKey(key));
+        const groupEntries = Object.entries(appearances ?? {}).filter(
+            ([key, descendantAppearance]) => isSelectionDescendantSettingKey(key) && descendantAppearance.groupBy !== undefined
+        );
+        const sortByKey = new Map(sortEntries);
+        const groupByKey = new Map(groupEntries.map(([key, appearance]) => [key, appearance.groupBy]));
+        const savedKeys = new Set([...sortByKey.keys(), ...groupByKey.keys()]);
+        // One descendant can have both sort and group changes; confirmation counts each key once.
+        const changedSavedKeys = new Set<string>();
+        const missingRequiredKeys = new Set<string>();
+        const matchingSavedKeys = new Set<string>();
+        const hasCurrentSortOverride = selectionSortOverride !== undefined;
+        const hasCurrentGroupOverride = selectionGroupOverride !== undefined;
+
+        savedKeys.forEach(key => {
+            let changed = false;
+            let missingRequired = false;
+
+            if (hasCurrentSortOverride) {
+                if (!sortByKey.has(key)) {
+                    missingRequired = true;
+                } else if (sortByKey.get(key) !== selectionSortOverride) {
+                    changed = true;
+                }
+            } else if (sortByKey.has(key)) {
+                changed = true;
+            }
+
+            if (hasCurrentGroupOverride) {
+                if (!groupByKey.has(key)) {
+                    missingRequired = true;
+                } else if (groupByKey.get(key) !== selectionGroupOverride) {
+                    changed = true;
+                }
+            } else if (groupByKey.has(key)) {
+                changed = true;
+            }
+
+            if (changed) {
+                changedSavedKeys.add(key);
+            }
+            if (missingRequired) {
+                missingRequiredKeys.add(key);
+            }
+            if (!changed && !missingRequired) {
+                matchingSavedKeys.add(key);
+            }
         });
+
+        const missingUnsavedDescendantCount =
+            hasCurrentSortOverride || hasCurrentGroupOverride ? Math.max(selectionDescendantCount - savedKeys.size, 0) : 0;
+        const missingSavedDescendantCount = missingRequiredKeys.size + missingUnsavedDescendantCount;
+        const affectedSavedKeys = new Set([...changedSavedKeys, ...missingRequiredKeys]);
+        const affectedCount = affectedSavedKeys.size + missingUnsavedDescendantCount;
+
+        return {
+            descendantCount: selectionDescendantCount,
+            savedDescendantCount: savedKeys.size,
+            matchingSavedDescendantCount: matchingSavedKeys.size,
+            changedSavedDescendantCount: changedSavedKeys.size,
+            missingSavedDescendantCount,
+            affectedCount,
+            disabled: selectionDescendantCount === 0 || affectedCount === 0
+        };
     }, [
         isSelectionDescendantSettingKey,
         selectionDescendantCount,
+        selectionGroupOverride,
         selectionSortOverride,
         selectionSortTarget,
+        settings.folderAppearances,
         settings.folderSortOverrides,
+        settings.propertyAppearances,
         settings.propertySortOverrides,
+        settings.tagAppearances,
         settings.tagSortOverrides
     ]);
 
-    const applySortToDescendants = useCallback(async () => {
+    const applySortAndGroupToDescendants = useCallback(async () => {
         const target = selectionSortTarget;
         if (!target) {
             return;
@@ -681,54 +844,68 @@ export function useListActions() {
         }
 
         await updateSettings(current => {
-            if (target.type === ItemType.FOLDER) {
-                const next = sanitizeRecord(ensureRecord(current.folderSortOverrides));
-                selectionDescendantKeys.forEach(key => {
-                    if (selectionSortOverride !== undefined) {
-                        next[key] = selectionSortOverride;
-                        return;
-                    }
-                    delete next[key];
-                });
-                current.folderSortOverrides = next;
-                return;
-            }
-
-            if (target.type === ItemType.TAG) {
-                const next = sanitizeRecord(ensureRecord(current.tagSortOverrides));
-                selectionDescendantKeys.forEach(key => {
-                    if (selectionSortOverride !== undefined) {
-                        next[key] = selectionSortOverride;
-                        return;
-                    }
-                    delete next[key];
-                });
-                current.tagSortOverrides = next;
-                return;
-            }
-
-            const next = sanitizeRecord(ensureRecord(current.propertySortOverrides));
+            const sortOverrides =
+                target.type === ItemType.FOLDER
+                    ? sanitizeRecord(ensureRecord(current.folderSortOverrides))
+                    : target.type === ItemType.TAG
+                      ? sanitizeRecord(ensureRecord(current.tagSortOverrides))
+                      : sanitizeRecord(ensureRecord(current.propertySortOverrides));
             selectionDescendantKeys.forEach(key => {
                 if (selectionSortOverride !== undefined) {
-                    next[key] = selectionSortOverride;
+                    sortOverrides[key] = selectionSortOverride;
                     return;
                 }
-                delete next[key];
+                delete sortOverrides[key];
             });
-            current.propertySortOverrides = next;
+
+            if (target.type === ItemType.FOLDER) {
+                current.folderSortOverrides = sortOverrides;
+            } else if (target.type === ItemType.TAG) {
+                current.tagSortOverrides = sortOverrides;
+            } else {
+                current.propertySortOverrides = sortOverrides;
+            }
+
+            const appearances =
+                target.type === ItemType.FOLDER
+                    ? sanitizeRecord(ensureRecord(current.folderAppearances))
+                    : target.type === ItemType.TAG
+                      ? sanitizeRecord(ensureRecord(current.tagAppearances))
+                      : sanitizeRecord(ensureRecord(current.propertyAppearances));
+            selectionDescendantKeys.forEach(key => {
+                const normalizedAppearance = mergeAppearanceAndGrouping(
+                    normalizeAppearanceOverride(appearances[key], defaultMode),
+                    selectionGroupOverride
+                );
+                if (normalizedAppearance) {
+                    appearances[key] = normalizedAppearance;
+                    return;
+                }
+                delete appearances[key];
+            });
+
+            if (target.type === ItemType.FOLDER) {
+                current.folderAppearances = appearances;
+                return;
+            }
+            if (target.type === ItemType.TAG) {
+                current.tagAppearances = appearances;
+                return;
+            }
+            current.propertyAppearances = appearances;
         });
         app.workspace.requestSaveLayout();
-    }, [app, getSelectionDescendantKeys, selectionSortOverride, selectionSortTarget, updateSettings]);
+    }, [app, defaultMode, getSelectionDescendantKeys, selectionGroupOverride, selectionSortOverride, selectionSortTarget, updateSettings]);
 
-    const promptApplySortToDescendants = useCallback(() => {
+    const promptApplySortAndGroupToDescendants = useCallback(() => {
         const target = selectionSortTarget;
         if (!target) {
             return;
         }
 
         // Keep the prompt path on the same fast path as the menu: cached descendantCount
-        // plus saved settings only. The only live tree walk happens inside applySortToDescendants.
-        const stats = getDescendantSortChangeStats();
+        // plus saved settings only. The only live tree walk happens inside applySortAndGroupToDescendants.
+        const stats = getDescendantSortAndGroupChangeStats();
 
         if (stats.disabled) {
             return;
@@ -738,12 +915,12 @@ export function useListActions() {
             // Only new descendant overrides will be created here. There is nothing to
             // overwrite or delete, so skip the confirmation modal and apply directly.
             runAsyncAction(async () => {
-                await applySortToDescendants();
+                await applySortAndGroupToDescendants();
             });
             return;
         }
 
-        const title = strings.modals.bulkApply.applySortTitle(selectionDescendantLabel);
+        const title = strings.modals.bulkApply.applySortAndGroupTitle(selectionDescendantLabel);
         // The modal count reports only existing descendant overrides that will be
         // deleted or overwritten. Missing descendants that receive new overrides
         // are intentionally excluded from this number.
@@ -754,12 +931,12 @@ export function useListActions() {
             title,
             message,
             async () => {
-                await applySortToDescendants();
+                await applySortAndGroupToDescendants();
             },
             strings.modals.bulkApply.applyButton,
             { confirmButtonClass: 'mod-cta' }
         ).open();
-    }, [app, applySortToDescendants, getDescendantSortChangeStats, selectionDescendantLabel, selectionSortTarget]);
+    }, [app, applySortAndGroupToDescendants, getDescendantSortAndGroupChangeStats, selectionDescendantLabel, selectionSortTarget]);
 
     const getDescendantAppearanceChangeStats = useCallback(() => {
         const target = selectionSortTarget;
@@ -780,13 +957,14 @@ export function useListActions() {
                   : settings.propertyAppearances;
 
         const descendantEntries = Object.entries(appearances ?? {}).filter(
-            ([key, descendantAppearance]) => isSelectionDescendantSettingKey(key) && hasStoredAppearanceOverride(descendantAppearance)
+            ([key, descendantAppearance]) =>
+                isSelectionDescendantSettingKey(key) && hasStoredAppearanceOverride(descendantAppearance, defaultMode)
         );
 
         return buildDescendantApplyStats({
             descendantCount: selectionDescendantCount,
             descendantEntries,
-            hasCurrentOverride: hasSelectionAppearanceOverride && Boolean(selectionAppearanceOverride),
+            hasCurrentOverride: hasSelectionAppearanceOverride,
             matchesCurrentOverride: ([, descendantAppearance]) =>
                 hasSelectionAppearanceOverride &&
                 selectionAppearanceOverride !== undefined &&
@@ -819,8 +997,12 @@ export function useListActions() {
             if (target.type === ItemType.FOLDER) {
                 const next = sanitizeRecord(ensureRecord(current.folderAppearances));
                 selectionDescendantKeys.forEach(key => {
-                    if (hasSelectionAppearanceOverride && selectionAppearanceOverride) {
-                        next[key] = { ...selectionAppearanceOverride };
+                    const normalizedAppearance = mergeAppearanceAndGrouping(
+                        hasSelectionAppearanceOverride ? selectionAppearanceFields : null,
+                        next[key]?.groupBy
+                    );
+                    if (normalizedAppearance) {
+                        next[key] = normalizedAppearance;
                         return;
                     }
                     delete next[key];
@@ -832,8 +1014,12 @@ export function useListActions() {
             if (target.type === ItemType.TAG) {
                 const next = sanitizeRecord(ensureRecord(current.tagAppearances));
                 selectionDescendantKeys.forEach(key => {
-                    if (hasSelectionAppearanceOverride && selectionAppearanceOverride) {
-                        next[key] = { ...selectionAppearanceOverride };
+                    const normalizedAppearance = mergeAppearanceAndGrouping(
+                        hasSelectionAppearanceOverride ? selectionAppearanceFields : null,
+                        next[key]?.groupBy
+                    );
+                    if (normalizedAppearance) {
+                        next[key] = normalizedAppearance;
                         return;
                     }
                     delete next[key];
@@ -844,8 +1030,12 @@ export function useListActions() {
 
             const next = sanitizeRecord(ensureRecord(current.propertyAppearances));
             selectionDescendantKeys.forEach(key => {
-                if (hasSelectionAppearanceOverride && selectionAppearanceOverride) {
-                    next[key] = { ...selectionAppearanceOverride };
+                const normalizedAppearance = mergeAppearanceAndGrouping(
+                    hasSelectionAppearanceOverride ? selectionAppearanceFields : null,
+                    next[key]?.groupBy
+                );
+                if (normalizedAppearance) {
+                    next[key] = normalizedAppearance;
                     return;
                 }
                 delete next[key];
@@ -853,7 +1043,7 @@ export function useListActions() {
             current.propertyAppearances = next;
         });
         app.workspace.requestSaveLayout();
-    }, [app, getSelectionDescendantKeys, hasSelectionAppearanceOverride, selectionAppearanceOverride, selectionSortTarget, updateSettings]);
+    }, [app, getSelectionDescendantKeys, hasSelectionAppearanceOverride, selectionAppearanceFields, selectionSortTarget, updateSettings]);
 
     const promptApplyAppearanceToDescendants = useCallback(() => {
         const target = selectionSortTarget;
@@ -916,13 +1106,18 @@ export function useListActions() {
                           onApply: promptApplyAppearanceToDescendants,
                           disabled: getDescendantAppearanceChangeStats().disabled
                       }
-                    : undefined
+                    : undefined,
+                defaultSettingsAction: {
+                    menuTitle: strings.settings.changeDefaultSettings,
+                    onOpen: openDefaultListAppearanceSettings
+                }
             });
         },
         [
             canApplyToDescendants,
             getDescendantAppearanceChangeStats,
             hasAppearanceOrSortSelection,
+            openDefaultListAppearanceSettings,
             promptApplyAppearanceToDescendants,
             selectionDescendantLabel,
             settings,
@@ -955,10 +1150,15 @@ export function useListActions() {
                 return strings.settings.items.sortNotesBy.options[option];
             };
 
-            const hasSelectionSortOverride = Boolean(getSelectionSortOverride());
+            const hasSelectionSortOverride = selectionSortOverride !== undefined;
+
+            menu.addItem(item => {
+                item.setTitle(strings.folderAppearance.sortBy).setIcon('lucide-arrow-up-down').setDisabled(true);
+            });
 
             menu.addItem(item => {
                 item.setTitle(`${strings.paneHeader.defaultSort}: ${getSortOptionLabel(settings.defaultFolderSort)}`)
+                    .setIcon(getSortIconName(settings.defaultFolderSort))
                     .setChecked(!hasSelectionSortOverride)
                     .onClick(() => {
                         // Reset to default sort
@@ -981,6 +1181,7 @@ export function useListActions() {
 
                 menu.addItem(item => {
                     item.setTitle(getSortOptionLabel(option))
+                        .setIcon(getSortIconName(option))
                         .setChecked(hasSelectionSortOverride && currentSort === option)
                         .onClick(() => {
                             // Apply sort option
@@ -992,30 +1193,85 @@ export function useListActions() {
                 });
             });
 
+            menu.addSeparator();
+
+            menu.addItem(item => {
+                item.setTitle(strings.folderAppearance.groupBy).setIcon('lucide-layers').setDisabled(true);
+            });
+
+            const defaultGroupLabel = strings.settings.items.groupNotes.options[groupingInfo.defaultGrouping];
+            menu.addItem(item => {
+                item.setTitle(`    ${strings.folderAppearance.defaultGroupOption(defaultGroupLabel)}`)
+                    .setIcon(getGroupingIcon(groupingInfo.defaultGrouping))
+                    .setChecked(!hasSelectionGroupOverride)
+                    .onClick(() => {
+                        runAsyncAction(async () => {
+                            await setSelectionGroupOverride(undefined);
+                            app.workspace.requestSaveLayout();
+                        });
+                    });
+            });
+
+            const groupOptions: ListNoteGroupingOption[] = hasFolderSelection ? ['none', 'date', 'folder'] : ['none', 'date'];
+            groupOptions.forEach(option => {
+                const isDisabled = option === 'date' && !isDateSortOption(currentSort);
+                menu.addItem(item => {
+                    item.setTitle(`    ${strings.settings.items.groupNotes.options[option]}`)
+                        .setIcon(getGroupingIcon(option))
+                        .setDisabled(isDisabled)
+                        .setChecked(hasSelectionGroupOverride && selectionGroupOverride === option)
+                        .onClick(() => {
+                            if (isDisabled) {
+                                return;
+                            }
+                            runAsyncAction(async () => {
+                                await setSelectionGroupOverride(option);
+                                app.workspace.requestSaveLayout();
+                            });
+                        });
+                });
+            });
+
             if (canApplyToDescendants) {
                 menu.addSeparator();
                 menu.addItem(item => {
-                    const descendantStats = getDescendantSortChangeStats();
-                    item.setTitle(strings.paneHeader.applySortToDescendants(selectionDescendantLabel))
+                    const descendantStats = getDescendantSortAndGroupChangeStats();
+                    item.setTitle(strings.paneHeader.applySortAndGroupToDescendants(selectionDescendantLabel))
+                        .setIcon('lucide-squares-unite')
                         .setDisabled(descendantStats.disabled)
                         .onClick(() => {
-                            promptApplySortToDescendants();
+                            promptApplySortAndGroupToDescendants();
                         });
                 });
             }
+
+            menu.addSeparator();
+            menu.addItem(item => {
+                item.setTitle(strings.settings.changeDefaultSettings)
+                    .setIcon('lucide-settings')
+                    .onClick(() => {
+                        openDefaultListSettings();
+                    });
+            });
 
             menu.showAtMouseEvent(event.nativeEvent);
         },
         [
             canApplyToDescendants,
             hasAppearanceOrSortSelection,
+            hasFolderSelection,
+            hasSelectionGroupOverride,
             app,
             getCurrentSortOption,
-            getDescendantSortChangeStats,
-            getSelectionSortOverride,
-            promptApplySortToDescendants,
+            getDescendantSortAndGroupChangeStats,
+            groupingInfo.defaultGrouping,
+            openDefaultListSettings,
+            promptApplySortAndGroupToDescendants,
             removeSelectionSortOverride,
             selectionDescendantLabel,
+            selectionGroupOverride,
+            selectionSortOverride,
+            setSelectionGroupOverride,
             setSelectionSortOverride,
             settings
         ]
@@ -1059,7 +1315,7 @@ export function useListActions() {
         settings
     ]);
 
-    const isCustomSort = Boolean(getSelectionSortOverride());
+    const hasCustomSortOrGroup = selectionSortOverride !== undefined || hasSelectionGroupOverride;
 
     const hasMeaningfulOverrides = (appearance: FolderAppearance | undefined) => {
         if (!appearance) {
@@ -1068,10 +1324,7 @@ export function useListActions() {
 
         const hasModeOverride = (appearance.mode === 'compact' || appearance.mode === 'standard') && appearance.mode !== defaultMode;
         const otherOverrides =
-            appearance.titleRows !== undefined ||
-            appearance.previewRows !== undefined ||
-            appearance.notePropertyType !== undefined ||
-            appearance.groupBy !== undefined;
+            appearance.titleRows !== undefined || appearance.previewRows !== undefined || appearance.notePropertyType !== undefined;
 
         return hasModeOverride || otherOverrides;
     };
@@ -1117,7 +1370,7 @@ export function useListActions() {
         getCurrentSortOption,
         getSortIcon,
         hasAppearanceOrSortSelection,
-        isCustomSort,
+        hasCustomSortOrGroup,
         hasCustomAppearance,
         descendantsTooltip
     };

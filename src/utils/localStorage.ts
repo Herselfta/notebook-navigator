@@ -55,7 +55,6 @@ export const localStorage = {
         try {
             if (!localStorage._app) {
                 // Return null if app not initialized to prevent mixing storage
-                console.log(`localStorage accessed before initialization for key "${key}"`);
                 return null;
             }
             // Use vault-specific storage
@@ -77,7 +76,6 @@ export const localStorage = {
         try {
             if (!localStorage._app) {
                 // Ignore writes if app not initialized to prevent mixing storage
-                console.log(`localStorage write attempted before initialization for key "${key}"`);
                 return false;
             }
             // Use vault-specific storage
@@ -98,7 +96,6 @@ export const localStorage = {
         try {
             if (!localStorage._app) {
                 // Ignore removes if app not initialized to prevent mixing storage
-                console.log(`localStorage remove attempted before initialization for key "${key}"`);
                 return false;
             }
             // Use vault-specific storage - pass null to clear

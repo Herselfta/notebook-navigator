@@ -44,7 +44,8 @@ export class PreviewTextCoordinator {
     private readonly previewLoadPromises = new Map<string, Promise<void>>();
     private readonly previewLoadDeferred = new Map<string, { resolve: () => void }>();
     private readonly previewLoadQueue = new Set<string>();
-    private previewLoadFlushTimer: ReturnType<typeof setTimeout> | null = null;
+    private previewLoadFlushTimer: ReturnType<typeof activeWindow.setTimeout> | null = null;
+    private previewLoadFlushTimerWindow: Window | null = null;
     private isPreviewLoadFlushRunning = false;
     private previewLoadSessionId = 0;
     // Tracks preview store key moves while a rename is in progress: newPath -> { oldPath, startedAt }.
@@ -55,7 +56,8 @@ export class PreviewTextCoordinator {
     private isPreviewWarmupComplete = false;
     private isPreviewWarmupRunning = false;
     private previewWarmupCursorKey: string | null = null;
-    private previewWarmupTimer: ReturnType<typeof setTimeout> | null = null;
+    private previewWarmupTimer: ReturnType<typeof activeWindow.setTimeout> | null = null;
+    private previewWarmupTimerWindow: Window | null = null;
 
     constructor(params: { deps: PreviewTextCoordinatorDeps; previewTextCacheMaxEntries: number; previewLoadMaxBatch: number }) {
         this.cache = params.deps.cache;
@@ -393,12 +395,14 @@ export class PreviewTextCoordinator {
     close(): void {
         this.previewLoadSessionId += 1;
         if (this.previewLoadFlushTimer !== null) {
-            globalThis.clearTimeout(this.previewLoadFlushTimer);
+            (this.previewLoadFlushTimerWindow ?? activeWindow).clearTimeout(this.previewLoadFlushTimer);
             this.previewLoadFlushTimer = null;
+            this.previewLoadFlushTimerWindow = null;
         }
         if (this.previewWarmupTimer !== null) {
-            globalThis.clearTimeout(this.previewWarmupTimer);
+            (this.previewWarmupTimerWindow ?? activeWindow).clearTimeout(this.previewWarmupTimer);
             this.previewWarmupTimer = null;
+            this.previewWarmupTimerWindow = null;
         }
         this.isPreviewWarmupEnabled = false;
         this.isPreviewWarmupComplete = true;
@@ -419,8 +423,11 @@ export class PreviewTextCoordinator {
             return;
         }
 
-        this.previewLoadFlushTimer = globalThis.setTimeout(() => {
+        const timerWindow = activeWindow;
+        this.previewLoadFlushTimerWindow = timerWindow;
+        this.previewLoadFlushTimer = timerWindow.setTimeout(() => {
             this.previewLoadFlushTimer = null;
+            this.previewLoadFlushTimerWindow = null;
             void this.flushPreviewTextLoadQueue();
         }, 0);
     }
@@ -461,8 +468,11 @@ export class PreviewTextCoordinator {
             return;
         }
 
-        this.previewWarmupTimer = globalThis.setTimeout(() => {
+        const timerWindow = activeWindow;
+        this.previewWarmupTimerWindow = timerWindow;
+        this.previewWarmupTimer = timerWindow.setTimeout(() => {
             this.previewWarmupTimer = null;
+            this.previewWarmupTimerWindow = null;
             void this.flushPreviewTextWarmup();
         }, delayMs);
     }

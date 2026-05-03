@@ -111,7 +111,7 @@ function normalizeModifier(value: unknown): Modifier | null {
     }
 
     if (trimmed === 'Mod' || trimmed === 'Ctrl' || trimmed === 'Shift' || trimmed === 'Alt') {
-        return trimmed as Modifier;
+        return trimmed;
     }
 
     return null;

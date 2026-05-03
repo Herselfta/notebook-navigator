@@ -406,9 +406,10 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         // Acquire limiter slot to control concurrent external requests
         const releaseLimiter = await this.thumbnailRuntime.externalRequestLimiter.acquire();
         let limiterReleased = false;
-        let hardReleaseId: ReturnType<typeof globalThis.setTimeout> | null = null;
+        const timerWindow = activeWindow;
+        let hardReleaseId: ReturnType<typeof activeWindow.setTimeout> | null = null;
         let timeoutDebtAdded = false;
-        let timeoutDebtTimerId: ReturnType<typeof globalThis.setTimeout> | null = null;
+        let timeoutDebtTimerId: ReturnType<typeof activeWindow.setTimeout> | null = null;
 
         const safeReleaseLimiter = () => {
             if (limiterReleased) {
@@ -416,7 +417,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             }
             limiterReleased = true;
             if (hardReleaseId !== null) {
-                globalThis.clearTimeout(hardReleaseId);
+                timerWindow.clearTimeout(hardReleaseId);
                 hardReleaseId = null;
             }
             releaseLimiter();
@@ -428,7 +429,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             }
             timeoutDebtAdded = false;
             if (timeoutDebtTimerId !== null) {
-                globalThis.clearTimeout(timeoutDebtTimerId);
+                timerWindow.clearTimeout(timeoutDebtTimerId);
                 timeoutDebtTimerId = null;
             }
             this.thumbnailRuntime.externalRequestTimeoutDebt = Math.max(0, this.thumbnailRuntime.externalRequestTimeoutDebt - 1);
@@ -445,15 +446,15 @@ export class FeatureImageContentProvider extends BaseContentProvider {
 
             this.thumbnailRuntime.externalRequestTimeoutDebt += 1;
             timeoutDebtAdded = true;
-            timeoutDebtTimerId = globalThis.setTimeout(() => safeReleaseTimeoutDebt(), EXTERNAL_REQUEST_MAX_LIFETIME_MS);
+            timeoutDebtTimerId = timerWindow.setTimeout(() => safeReleaseTimeoutDebt(), EXTERNAL_REQUEST_MAX_LIFETIME_MS);
             return true;
         };
 
-        hardReleaseId = globalThis.setTimeout(() => safeReleaseLimiter(), EXTERNAL_REQUEST_MAX_LIFETIME_MS);
+        hardReleaseId = timerWindow.setTimeout(() => safeReleaseLimiter(), EXTERNAL_REQUEST_MAX_LIFETIME_MS);
 
-        let timeoutId: ReturnType<typeof globalThis.setTimeout> | null = null;
+        let timeoutId: ReturnType<typeof activeWindow.setTimeout> | null = null;
         const timeoutPromise = new Promise<null>(resolve => {
-            timeoutId = globalThis.setTimeout(() => {
+            timeoutId = timerWindow.setTimeout(() => {
                 // When a request times out, optionally free the limiter slot so other requests can proceed.
                 // This can oversubscribe real in-flight requests since `requestUrl()` cannot be aborted, so it is bounded
                 // by EXTERNAL_REQUEST_TIMEOUT_DEBT_MAX. When the debt budget is exhausted, we keep the limiter slot until
@@ -484,7 +485,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             return null;
         } finally {
             if (timeoutId !== null) {
-                globalThis.clearTimeout(timeoutId);
+                timerWindow.clearTimeout(timeoutId);
             }
         }
     }
@@ -744,7 +745,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             return null;
         }
 
-        let bitmap: ImageBitmap | null = null;
+        let bitmap: ImageBitmap;
         try {
             bitmap = await createImageBitmap(blob, {
                 imageOrientation: 'from-image',
@@ -773,7 +774,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             return null;
         }
 
-        let bitmap: ImageBitmap | null = null;
+        let bitmap: ImageBitmap;
         try {
             bitmap = await createImageBitmap(blob, { imageOrientation: 'from-image' });
         } catch {
@@ -878,7 +879,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
                 return canvas;
             }
         }
-        const canvas = document.createElement('canvas');
+        const canvas = createEl('canvas');
         canvas.width = width;
         canvas.height = height;
         return canvas;

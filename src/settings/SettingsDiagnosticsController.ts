@@ -186,10 +186,10 @@ export class SettingsDiagnosticsController {
     private renderMetadataInfo(element: HTMLElement, metadataInfo: MetadataInfoText): void {
         element.empty();
 
-        const metadataContainer = element.createEl('div', {
+        const metadataContainer = element.createDiv({
             cls: 'nn-metadata-info-row'
         });
-        const textContainer = metadataContainer.createEl('div', {
+        const textContainer = metadataContainer.createDiv({
             cls: 'nn-metadata-info-text'
         });
         textContainer.createSpan({ text: metadataInfo.infoText });

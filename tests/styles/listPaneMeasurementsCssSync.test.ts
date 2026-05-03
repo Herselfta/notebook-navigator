@@ -58,6 +58,11 @@ describe('List pane measurements stay in sync with CSS', () => {
         const coreVars = readTextFile('src/styles/sections/core-variables.css');
         const desktop = getListPaneMeasurements(false);
 
+        expect(desktop.scrollerHorizontalPadding).toBe(extractPxVariableValue(coreVars, 'nn-scroller-padding'));
+        expect(desktop.fileItemHorizontalPadding).toBe(extractPxVariableValue(coreVars, 'nn-file-item-padding-horizontal'));
+        expect(desktop.fileRowGap).toBe(extractPxVariableValue(coreVars, 'nn-file-row-gap'));
+        expect(desktop.fileIconSlotGap).toBe(extractPxVariableValue(coreVars, 'nn-file-icon-slot-gap'));
+
         const paddingVertical = extractPxVariableValue(coreVars, 'nn-file-padding-vertical');
         const paddingTotal = paddingVertical * 2;
         expect(desktop.basePadding).toBe(paddingTotal);
@@ -69,6 +74,7 @@ describe('List pane measurements stay in sync with CSS', () => {
         const tagRowHeight = extractPxVariableValue(coreVars, 'nn-file-tag-row-height-base');
         const tagRowGap = extractPxVariableValue(coreVars, 'nn-file-tag-row-gap-base');
         expect(desktop.tagRowHeight).toBe(tagRowHeight + tagRowGap);
+        expect(desktop.tagRowGap).toBe(tagRowGap);
 
         expect(desktop.featureImageHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
 
@@ -83,6 +89,11 @@ describe('List pane measurements stay in sync with CSS', () => {
         const mobileVars = readTextFile('src/styles/sections/mobile-variables.css');
         const mobile = getListPaneMeasurements(true);
 
+        expect(mobile.scrollerHorizontalPadding).toBe(extractPxVariableValue(coreVars, 'nn-scroller-padding'));
+        expect(mobile.fileItemHorizontalPadding).toBe(extractPxVariableValue(coreVars, 'nn-file-item-padding-horizontal'));
+        expect(mobile.fileRowGap).toBe(extractPxVariableValue(coreVars, 'nn-file-row-gap'));
+        expect(mobile.fileIconSlotGap).toBe(extractPxVariableValue(coreVars, 'nn-file-icon-slot-gap'));
+
         const paddingVertical = extractPxVariableValue(coreVars, 'nn-file-padding-vertical');
         const paddingMobileIncrement = extractCalcAddPx(mobileVars, 'nn-file-padding-vertical-mobile', 'nn-file-padding-vertical');
         const paddingTotal = (paddingVertical + paddingMobileIncrement) * 2;
@@ -95,6 +106,7 @@ describe('List pane measurements stay in sync with CSS', () => {
         const tagRowHeight = extractPxVariableValue(coreVars, 'nn-file-tag-row-height-base');
         const tagRowGap = extractPxVariableValue(coreVars, 'nn-file-tag-row-gap-base');
         expect(mobile.tagRowHeight).toBe(tagRowHeight + tagRowGap);
+        expect(mobile.tagRowGap).toBe(tagRowGap);
 
         expect(mobile.featureImageHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
 
@@ -136,6 +148,17 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(titleRule).not.toMatch(/(^|\n)\s*height\s*:/m);
         expect(previewRule).not.toMatch(/(^|\n)\s*min-height\s*:/m);
         expect(previewRule).not.toMatch(/(^|\n)\s*height\s*:/m);
+    });
+
+    test('pill height uses the measured row height as border-box height', () => {
+        const listTagsCss = readTextFile('src/styles/sections/list-tags.css');
+        const pillRule = listTagsCss.match(/(^|\n)\.nn-file-tag\s*\{([^}]*)\}/)?.[2];
+        if (!pillRule) {
+            throw new Error('Missing CSS rule for selector .nn-file-tag');
+        }
+
+        expect(pillRule).toMatch(/(^|\n)\s*box-sizing:\s*border-box\s*;/m);
+        expect(pillRule).toMatch(/(^|\n)\s*height:\s*var\(--nn-file-tag-row-height\)\s*;/m);
     });
 
     test('preview flex behavior keeps empty multi-line previews from adding vertical spacer height', () => {

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { App, TFile, type CachedMetadata } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import { FileMetadataService } from '../../src/services/metadata/FileMetadataService';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings';
@@ -110,7 +110,7 @@ describe('FileMetadataService frontmatter integration', () => {
         expect(frontmatter.icon).toBe('ph-apple-logo');
         expect(updateFileMetadata).toHaveBeenCalledWith(file.path, { icon: 'phosphor:apple-logo' });
 
-        const metadata = extractMetadataFromCache({ frontmatter: { icon: frontmatter.icon } } as CachedMetadata, settingsProvider.settings);
+        const metadata = extractMetadataFromCache({ frontmatter: { icon: frontmatter.icon } }, settingsProvider.settings);
         expect(metadata.icon).toBe('phosphor:apple-logo');
     });
 

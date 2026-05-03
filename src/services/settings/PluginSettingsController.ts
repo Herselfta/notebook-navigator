@@ -224,9 +224,9 @@ export class PluginSettingsController {
         );
         const hadLegacyHomepageSettingsInStoredData = Boolean(
             storedData &&
-                (typeof storedData['homepage'] === 'string' ||
-                    Object.prototype.hasOwnProperty.call(storedData, 'mobileHomepage') ||
-                    Object.prototype.hasOwnProperty.call(storedData, 'useMobileHomepage'))
+            (typeof storedData['homepage'] === 'string' ||
+                Object.prototype.hasOwnProperty.call(storedData, 'mobileHomepage') ||
+                Object.prototype.hasOwnProperty.call(storedData, 'useMobileHomepage'))
         );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
@@ -249,6 +249,7 @@ export class PluginSettingsController {
         delete settingsRecord['calendarCustomPromptForTitle'];
         delete settingsRecord['saveMetadataToFrontmatter'];
         delete settingsRecord['lastAnnouncedRelease'];
+        delete settingsRecord['optimizeNoteHeight'];
 
         this.currentSettings.keyboardShortcuts = sanitizeKeyboardShortcuts(this.currentSettings.keyboardShortcuts);
         this.normalizeSyncModes({ storedData, isFirstLaunch });
@@ -361,16 +362,16 @@ export class PluginSettingsController {
         const migratedRecentColors = migrateRecentColors({ settings: this.currentSettings, storedData, keys: this.options.keys });
         const hadLocalValuesInSettings = Boolean(
             storedData &&
-                SYNC_MODE_SETTING_IDS.some(settingId => {
-                    const entry = syncModeRegistry[settingId];
-                    if (!entry.cleanupOnLoad) {
-                        return false;
-                    }
-                    if (!this.isLocal(settingId)) {
-                        return false;
-                    }
-                    return entry.hasPersistedValue(storedData);
-                })
+            SYNC_MODE_SETTING_IDS.some(settingId => {
+                const entry = syncModeRegistry[settingId];
+                if (!entry.cleanupOnLoad) {
+                    return false;
+                }
+                if (!this.isLocal(settingId)) {
+                    return false;
+                }
+                return entry.hasPersistedValue(storedData);
+            })
         );
 
         migrateFolderNoteTemplateSetting({ settings: this.currentSettings, defaultSettings: DEFAULT_SETTINGS });
@@ -567,6 +568,8 @@ export class PluginSettingsController {
         delete rest.calendarCustomPromptForTitle;
         delete rest.saveMetadataToFrontmatter;
         delete rest.propertyFields;
+        delete rest.optimizeNoteHeight;
+        delete rest.showPropertiesOnSeparateRows;
 
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {

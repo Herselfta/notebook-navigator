@@ -80,7 +80,7 @@ interface FilterListPaneFilesArgs {
     omnisearchResult: OmnisearchListResult | null;
     searchTokens?: FilterSearchTokens;
     searchableNames: ReadonlyMap<string, string>;
-    settings: NotebookNavigatorSettings;
+    settings: Pick<NotebookNavigatorSettings, 'alphabeticalDateMode'>;
     sortOption: SortOption;
     trimmedQuery: string;
     useOmnisearch: boolean;

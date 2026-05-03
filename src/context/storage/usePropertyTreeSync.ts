@@ -318,7 +318,7 @@ export function usePropertyTreeSync(params: {
             for (const change of changes) {
                 const hasPropertyChange = change.changes.properties !== undefined;
                 const hasTagVisibilityChange = shouldRebuildOnTagVisibilityChanges && change.changes.tags !== undefined;
-                const hasFrontmatterVisibilityChange = shouldRebuildOnFrontmatterVisibilityChanges && change.changes.metadata !== undefined;
+                const hasFrontmatterVisibilityChange = shouldRebuildOnFrontmatterVisibilityChanges && change.metadataHiddenChanged === true;
                 if (!hasPropertyChange && !hasTagVisibilityChange && !hasFrontmatterVisibilityChange) {
                     continue;
                 }

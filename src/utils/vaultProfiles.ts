@@ -433,12 +433,13 @@ export const clonePropertyKeys = (propertyKeys: VaultProfilePropertyKey[] | unde
     return cloned;
 };
 
-export function getActivePropertyKeySet(
-    settings: NotebookNavigatorSettings,
-    mode: 'any' | 'navigation' | 'list' | 'file-menu' = 'any'
+export type PropertyKeySetMode = 'any' | 'navigation' | 'list' | 'file-menu';
+
+export function getPropertyKeySet(
+    propertyKeys: readonly VaultProfilePropertyKey[] | undefined,
+    mode: PropertyKeySetMode = 'any'
 ): ReadonlySet<string> {
-    const profile = getActiveVaultProfile(settings);
-    const entries = Array.isArray(profile.propertyKeys) ? profile.propertyKeys : [];
+    const entries = propertyKeys ?? [];
     if (entries.length === 0) {
         return new Set();
     }
@@ -475,6 +476,10 @@ export function getActivePropertyKeySet(
     });
 
     return keys;
+}
+
+export function getActivePropertyKeySet(settings: NotebookNavigatorSettings, mode: PropertyKeySetMode = 'any'): ReadonlySet<string> {
+    return getPropertyKeySet(getActiveVaultProfile(settings).propertyKeys, mode);
 }
 
 export function createPropertyKeysFromPropertyFields(
@@ -514,7 +519,7 @@ export function createPropertyKeysFromPropertyFields(
 
 const propertyFieldsByPropertyKeysCache = new WeakMap<readonly VaultProfilePropertyKey[], string>();
 
-const collectPropertyFieldNames = (propertyKeys: VaultProfilePropertyKey[]): string[] => {
+const collectPropertyFieldNames = (propertyKeys: readonly VaultProfilePropertyKey[]): string[] => {
     const keys: string[] = [];
     const seenKeys = new Set<string>();
     propertyKeys.forEach(entry => {
@@ -535,7 +540,7 @@ const collectPropertyFieldNames = (propertyKeys: VaultProfilePropertyKey[]): str
     return keys;
 };
 
-const formatPropertyFieldsFromKeys = (propertyKeys: VaultProfilePropertyKey[] | undefined): string => {
+export function getPropertyFieldsFromPropertyKeys(propertyKeys: readonly VaultProfilePropertyKey[] | undefined): string {
     if (!Array.isArray(propertyKeys) || propertyKeys.length === 0) {
         return '';
     }
@@ -548,7 +553,7 @@ const formatPropertyFieldsFromKeys = (propertyKeys: VaultProfilePropertyKey[] | 
     const formatted = formatCommaSeparatedList(collectPropertyFieldNames(propertyKeys));
     propertyFieldsByPropertyKeysCache.set(propertyKeys, formatted);
     return formatted;
-};
+}
 
 // Creates a clone of shortcuts array to prevent shared references
 export const cloneShortcuts = (shortcuts: ShortcutEntry[] | undefined): ShortcutEntry[] => {
@@ -918,14 +923,14 @@ export function getActiveHiddenFileProperties(settings: NotebookNavigatorSetting
 }
 
 export function getActivePropertyFields(settings: NotebookNavigatorSettings): string {
-    return formatPropertyFieldsFromKeys(getActiveVaultProfile(settings).propertyKeys);
+    return getPropertyFieldsFromPropertyKeys(getActiveVaultProfile(settings).propertyKeys);
 }
 
 export function setActivePropertyFields(settings: NotebookNavigatorSettings, propertyFields: string): boolean {
     const profile = getActiveVaultProfile(settings);
     const nextPropertyKeys = createPropertyKeysFromPropertyFields(propertyFields, profile.propertyKeys);
-    const previousPropertyFields = formatPropertyFieldsFromKeys(profile.propertyKeys);
-    const nextPropertyFields = formatPropertyFieldsFromKeys(nextPropertyKeys);
+    const previousPropertyFields = getPropertyFieldsFromPropertyKeys(profile.propertyKeys);
+    const nextPropertyFields = getPropertyFieldsFromPropertyKeys(nextPropertyKeys);
     if (previousPropertyFields === nextPropertyFields) {
         return false;
     }

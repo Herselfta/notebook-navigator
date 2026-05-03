@@ -561,7 +561,7 @@ export function renderCalendarTab(context: SettingsTabContext): void {
         return parts.length > 0 ? parts[parts.length - 1] : value;
     };
 
-    /** Updates template button icons and displays selected template filenames. */
+    /** Updates template button icons and displays template status. */
     const renderCalendarTemplateIndicators = (): void => {
         templateTargets.forEach(target => {
             const templatePath = target.getTemplatePath();
@@ -572,13 +572,7 @@ export function renderCalendarTab(context: SettingsTabContext): void {
                 target.templateButton.extraSettingsEl.style.color = hasTemplate ? 'var(--text-normal)' : 'var(--text-muted)';
             }
 
-            if (!templatePath) {
-                target.templateTextEl.setText('');
-                setElementVisible(target.templateEl, false);
-                return;
-            }
-
-            const templateName = getTemplateFileName(templatePath);
+            const templateName = templatePath ? getTemplateFileName(templatePath) : '-';
             target.templateTextEl.setText(strings.settings.items.calendarTemplateFile.current.replace('{name}', templateName));
             setElementVisible(target.templateEl, true);
         });
@@ -716,7 +710,7 @@ export function renderCalendarTab(context: SettingsTabContext): void {
         const isCustom = plugin.settings.calendarIntegrationMode === 'notebook-navigator';
         const activeProfile = getActiveProfile();
 
-        if (calendarCustomRootFolderInputEl && document.activeElement !== calendarCustomRootFolderInputEl) {
+        if (calendarCustomRootFolderInputEl && activeDocument.activeElement !== calendarCustomRootFolderInputEl) {
             calendarCustomRootFolderInputEl.value = activeProfile.periodicNotesFolder;
         }
 

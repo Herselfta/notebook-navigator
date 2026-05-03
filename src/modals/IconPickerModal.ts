@@ -75,11 +75,11 @@ export class IconPickerModal extends Modal {
     private disableMetadataUpdates: boolean;
     /** Callback function invoked when an icon is selected */
     public onChooseIcon?: (iconId: string | null) => IconSelectionHandlerResult | Promise<IconSelectionHandlerResult>;
-    private resultsContainer: HTMLDivElement;
+    private resultsContainer!: HTMLDivElement;
     private searchDebounceTimer: number | null = null;
-    private searchInput: HTMLInputElement;
+    private searchInput!: HTMLInputElement;
 
-    private tabContainer: HTMLDivElement;
+    private tabContainer!: HTMLDivElement;
     private domDisposers: (() => void)[] = [];
     private providerTabs: HTMLElement[] = [];
     private currentIcon: string | undefined;
@@ -172,7 +172,7 @@ export class IconPickerModal extends Modal {
             const removeButton = buttonContainer.createEl('button');
             const removeButtonLabel = strings.modals.iconPicker.removeIcon;
             removeButton.setText(removeButtonLabel);
-            if (removeButton instanceof HTMLButtonElement) {
+            if (removeButton.instanceOf(HTMLButtonElement)) {
                 this.removeButton = removeButton;
                 if (!this.currentIcon) {
                     removeButton.disabled = true;
@@ -613,7 +613,7 @@ export class IconPickerModal extends Modal {
 
     private createIconItem(iconDef: IconDefinition, container: HTMLElement, provider?: IconProvider): HTMLDivElement | null {
         let resolvedProvider = provider;
-        let fullIconId = iconDef.id;
+        let fullIconId: string;
 
         if (resolvedProvider) {
             fullIconId = this.iconService.formatIconId(resolvedProvider.id, iconDef.id);
@@ -779,7 +779,7 @@ export class IconPickerModal extends Modal {
     private setupKeyboardNavigation() {
         // Shift+Tab -> focus search input or provider tabs based on current focus
         this.scope.register(['Shift'], 'Tab', evt => {
-            const currentFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+            const currentFocused = activeDocument.activeElement instanceof HTMLElement ? activeDocument.activeElement : null;
 
             // Prevent default tab cycling when on provider tabs
             if (currentFocused?.classList.contains('nn-icon-provider-tab')) {
@@ -807,7 +807,7 @@ export class IconPickerModal extends Modal {
 
         // Tab -> focus first icon if not in grid
         this.scope.register([], 'Tab', evt => {
-            const activeElement = document.activeElement;
+            const activeElement = activeDocument.activeElement;
             const currentFocused = activeElement instanceof HTMLElement ? activeElement : null;
             if (currentFocused?.classList.contains('nn-icon-provider-tab')) {
                 evt.preventDefault();
@@ -830,7 +830,7 @@ export class IconPickerModal extends Modal {
         this.scope.register([], 'ArrowDown', evt => this.handleArrowKey(evt, 0, 1));
 
         this.scope.register([], 'Enter', evt => {
-            const currentFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+            const currentFocused = activeDocument.activeElement instanceof HTMLElement ? activeDocument.activeElement : null;
             if (currentFocused === this.searchInput) {
                 evt.preventDefault();
                 window.setTimeout(() => {
@@ -856,7 +856,7 @@ export class IconPickerModal extends Modal {
      * @param deltaY - Vertical movement (-1 for up, 1 for down)
      */
     private handleArrowKey(evt: KeyboardEvent, deltaX: number, deltaY: number) {
-        const activeElement = document.activeElement;
+        const activeElement = activeDocument.activeElement;
         if (!(activeElement instanceof HTMLElement)) {
             return;
         }
@@ -876,12 +876,7 @@ export class IconPickerModal extends Modal {
         const iconItems = Array.from(this.resultsContainer.querySelectorAll<HTMLElement>('.nn-icon-item'));
         const currentIndex = iconItems.indexOf(currentFocused);
 
-        let newIndex = currentIndex;
-        if (deltaX !== 0) {
-            newIndex = currentIndex + deltaX;
-        } else {
-            newIndex = currentIndex + deltaY * GRID_COLUMNS;
-        }
+        const newIndex = deltaX !== 0 ? currentIndex + deltaX : currentIndex + deltaY * GRID_COLUMNS;
 
         if (newIndex >= 0 && newIndex < iconItems.length) {
             iconItems[newIndex].focus();

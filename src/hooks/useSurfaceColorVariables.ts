@@ -80,7 +80,7 @@ let sharedBodyObserver: MutationObserver | null = null;
  * @returns Unsubscribe function to remove the listener
  */
 function subscribeToBodyMutations(callback: () => void): MutationUnsubscribe {
-    if (!document?.body) {
+    if (!activeDocument?.body) {
         return () => undefined;
     }
 
@@ -90,7 +90,7 @@ function subscribeToBodyMutations(callback: () => void): MutationUnsubscribe {
             // Notify all registered listeners
             bodyMutationListeners.forEach(listener => listener());
         });
-        sharedBodyObserver.observe(document.body, BODY_ATTRIBUTE_FILTER);
+        sharedBodyObserver.observe(activeDocument.body, BODY_ATTRIBUTE_FILTER);
     }
 
     // Register this callback

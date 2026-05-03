@@ -29,7 +29,7 @@ import { useNavigationRainbowState, type NavigationRainbowState } from './useNav
 import { type FolderDecorationModel } from '../utils/folderDecoration';
 
 function isDarkThemeActive(): boolean {
-    return document.body?.classList.contains('theme-dark') ?? false;
+    return activeDocument.body?.classList.contains('theme-dark') ?? false;
 }
 
 interface FolderDecorationState {
@@ -49,12 +49,12 @@ function useIsDarkTheme(app: App): boolean {
             });
         };
 
-        const bodyObserver = document.body
+        const bodyObserver = activeDocument.body
             ? new MutationObserver(() => {
                   syncTheme();
               })
             : null;
-        bodyObserver?.observe(document.body, {
+        bodyObserver?.observe(activeDocument.body, {
             attributes: true,
             attributeFilter: ['class']
         });

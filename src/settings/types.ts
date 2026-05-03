@@ -174,6 +174,10 @@ export function isTagSortOrder(value: string): value is TagSortOrder {
 /** Scope of items that button actions affect */
 export type ItemScope = 'all' | 'folders-only' | 'tags-only' | 'properties-only';
 
+export function isItemScope(value: unknown): value is ItemScope {
+    return value === 'all' || value === 'folders-only' || value === 'tags-only' || value === 'properties-only';
+}
+
 export type NavRainbowColorMode = 'none' | 'foreground' | 'background';
 
 export function isNavRainbowColorMode(value: unknown): value is NavRainbowColorMode {
@@ -215,6 +219,10 @@ export interface NavRainbowSettings {
 /** Modifier key used for multi-select operations */
 export type MultiSelectModifier = 'cmdCtrl' | 'optionAlt';
 
+export function isMultiSelectModifier(value: unknown): value is MultiSelectModifier {
+    return value === 'cmdCtrl' || value === 'optionAlt';
+}
+
 /** Workspace context used when opening a file in a new leaf. */
 export type FileOpenContext = 'tab' | 'split' | 'window';
 
@@ -228,11 +236,23 @@ export function isMouseBackForwardAction(value: unknown): value is MouseBackForw
 /** Display options for vault title */
 export type VaultTitleOption = 'header' | 'navigation';
 
+export function isVaultTitleOption(value: unknown): value is VaultTitleOption {
+    return value === 'header' || value === 'navigation';
+}
+
 /** Display options for list pane title */
 export type ListPaneTitleOption = 'header' | 'list' | 'hidden';
 
+export function isListPaneTitleOption(value: unknown): value is ListPaneTitleOption {
+    return value === 'header' || value === 'list' || value === 'hidden';
+}
+
 /** Display options for shortcut row badges in the navigation pane */
 export type ShortcutBadgeDisplayMode = 'index' | 'count' | 'none';
+
+export function isShortcutBadgeDisplayMode(value: unknown): value is ShortcutBadgeDisplayMode {
+    return value === 'index' || value === 'count' || value === 'none';
+}
 
 /** Filter options for hidden items in the recent notes section */
 export type RecentNotesHideMode = 'none' | 'folder-notes';
@@ -278,8 +298,16 @@ export type CalendarIntegrationMode = 'daily-notes' | 'notebook-navigator';
 /** Default display modes for list items */
 export type ListDisplayMode = 'standard' | 'compact';
 
+export function isListDisplayMode(value: unknown): value is ListDisplayMode {
+    return value === 'standard' || value === 'compact';
+}
+
 /** Grouping options for list pane notes */
 export type ListNoteGroupingOption = 'none' | 'date' | 'folder';
+
+export function isListNoteGroupingOption(value: unknown): value is ListNoteGroupingOption {
+    return value === 'none' || value === 'date' || value === 'folder';
+}
 
 /** Date source to display when alphabetical sorting is active */
 export type AlphabeticalDateMode = 'created' | 'modified';
@@ -368,6 +396,7 @@ export interface NotebookNavigatorSettings {
     dualPaneOrientation: DualPaneOrientation;
     showTooltips: boolean;
     showTooltipPath: boolean;
+    showTooltipWordCount: boolean;
     desktopBackground: BackgroundMode;
     desktopScale: number;
     mobileScale: number;
@@ -473,7 +502,6 @@ export interface NotebookNavigatorSettings {
     filterPinnedByFolder: boolean;
     showPinnedGroupHeader: boolean;
     showPinnedIcon: boolean;
-    optimizeNoteHeight: boolean;
     compactItemHeight: number;
     compactItemHeightScaleText: boolean;
     showQuickActions: boolean;
@@ -523,11 +551,12 @@ export interface NotebookNavigatorSettings {
     prioritizeColoredFileTags: boolean;
     showFileTagAncestors: boolean;
     showFileTagsInCompactMode: boolean;
+    showFileTagsOnMultipleRows: boolean;
     showFileProperties: boolean;
     colorFileProperties: boolean;
     prioritizeColoredFileProperties: boolean;
     showFilePropertiesInCompactMode: boolean;
-    showPropertiesOnSeparateRows: boolean;
+    showFilePropertiesOnMultipleRows: boolean;
     enablePropertyInternalLinks: boolean;
     enablePropertyExternalLinks: boolean;
     notePropertyType: NotePropertyType;

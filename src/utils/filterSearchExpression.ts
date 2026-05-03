@@ -16,7 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { matchesPropertyValuePath } from './propertyTree';
 import type {
     FilterSearchTokens,
     InclusionOperator,
@@ -87,7 +86,7 @@ export const propertyTokenMatches = (propertiesByKey: Map<string, string[]>, tok
     }
 
     const propertyValue = token.value;
-    return values.some(value => matchesPropertyValuePath(value, propertyValue));
+    return values.some(value => value.includes(propertyValue));
 };
 
 const isPropertySearchToken = (value: unknown): value is PropertySearchToken => {

@@ -21,7 +21,7 @@ import { strings } from '../../i18n';
 import { NavigationBannerModal } from '../../modals/NavigationBannerModal';
 import { NavRainbowSectionModal } from '../../modals/NavRainbowSectionModal';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
-import { isNavRainbowColorMode, type ItemScope, type NavRainbowSettings } from '../types';
+import { isItemScope, isNavRainbowColorMode, type NavRainbowSettings } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
@@ -463,7 +463,10 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
                     .addOption('tags-only', strings.settings.items.collapseBehavior.options.tagsOnly)
                     .addOption('properties-only', strings.settings.items.collapseBehavior.options.propertiesOnly)
                     .setValue(plugin.settings.collapseBehavior)
-                    .onChange(async (value: ItemScope) => {
+                    .onChange(async value => {
+                        if (!isItemScope(value)) {
+                            return;
+                        }
                         plugin.settings.collapseBehavior = value;
                         await plugin.saveSettingsAndUpdate();
                     })

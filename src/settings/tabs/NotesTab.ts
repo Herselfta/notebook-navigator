@@ -25,7 +25,7 @@ import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
-import type { FeatureImagePixelSizeSetting, FeatureImageSizeSetting } from '../types';
+import { isFeatureImagePixelSizeSetting, isFeatureImageSizeSetting } from '../types';
 import {
     normalizeFileNameIconMapKey,
     normalizeFileTypeIconMapKey,
@@ -496,7 +496,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
                 .addOption('96', strings.settings.items.featureImageSize.options.large)
                 .addOption('128', strings.settings.items.featureImageSize.options.extraLarge)
                 .setValue(plugin.settings.featureImageSize)
-                .onChange((value: FeatureImageSizeSetting) => {
+                .onChange(value => {
+                    if (!isFeatureImageSizeSetting(value)) {
+                        return;
+                    }
                     plugin.setFeatureImageSize(value);
                 })
         );
@@ -511,7 +514,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
                 .addOption('384', strings.settings.items.featureImagePixelSize.options.large)
                 .addOption('512', strings.settings.items.featureImagePixelSize.options.extraLarge)
                 .setValue(plugin.settings.featureImagePixelSize)
-                .onChange((value: FeatureImagePixelSizeSetting) => {
+                .onChange(value => {
+                    if (!isFeatureImagePixelSizeSetting(value)) {
+                        return;
+                    }
                     plugin.setFeatureImagePixelSize(value);
                 })
         );
@@ -592,6 +598,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
+    new Setting(fileTagsSubSettingsEl)
+        .setName(strings.settings.items.showFileTagsOnMultipleRows.name)
+        .setDesc(strings.settings.items.showFileTagsOnMultipleRows.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showFileTagsOnMultipleRows).onChange(async value => {
+                plugin.settings.showFileTagsOnMultipleRows = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
     const showFilePropertiesSetting = notePropertyGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showFileProperties.name).setDesc(strings.settings.items.showFileProperties.desc);
     });
@@ -639,11 +655,11 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     new Setting(filePropertiesSubSettingsEl)
-        .setName(strings.settings.items.showPropertiesOnSeparateRows.name)
-        .setDesc(strings.settings.items.showPropertiesOnSeparateRows.desc)
+        .setName(strings.settings.items.showFilePropertiesOnMultipleRows.name)
+        .setDesc(strings.settings.items.showFilePropertiesOnMultipleRows.desc)
         .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showPropertiesOnSeparateRows).onChange(async value => {
-                plugin.settings.showPropertiesOnSeparateRows = value;
+            toggle.setValue(plugin.settings.showFilePropertiesOnMultipleRows).onChange(async value => {
+                plugin.settings.showFilePropertiesOnMultipleRows = value;
                 await plugin.saveSettingsAndUpdate();
             })
         );

@@ -34,7 +34,7 @@ export { normalizePropertyTreeValuePath };
 export interface BuildPropertyTreeOptions {
     excludedFolderPatterns?: string[];
     includedPaths?: Set<string>;
-    includedPropertyKeys?: Set<string>;
+    includedPropertyKeys?: ReadonlySet<string>;
 }
 
 export interface PropertySelectionValue {
@@ -335,7 +335,7 @@ function normalizePropertyTreeKey(value: string): string {
     return casefold(value);
 }
 
-function normalizeIncludedPropertyKeySet(includedPropertyKeys: Set<string> | undefined): Set<string> {
+function normalizeIncludedPropertyKeySet(includedPropertyKeys: ReadonlySet<string> | undefined): Set<string> {
     const normalizedKeys = new Set<string>();
     if (!includedPropertyKeys || includedPropertyKeys.size === 0) {
         return normalizedKeys;

@@ -1,6 +1,6 @@
 # Notebook Navigator API Reference
 
-Updated: March 17, 2026
+Updated: April 30, 2026
 
 The Notebook Navigator plugin exposes a public API for other plugins and scripts to interact with navigator features.
 
@@ -93,16 +93,22 @@ Customize folder, tag, and property node appearance, manage pinned files.
 
 ### Runtime Behavior
 
-- **Icon input format**: Setter methods accept any string. Use `IconString` when you want compile-time validation for
-  emoji literals (`emoji:📁`) and provider-prefixed values for `lucide`, `bootstrap-icons`, `fontawesome-solid`,
-  `material-icons`, `phosphor`, `rpg-awesome`, and `simple-icons`.
+- **Icon input format**: Setter methods parse the same icon value format Notebook Navigator writes to frontmatter.
+  Use `IconString` when you want compile-time validation for short provider-prefixed values such as `ph-folder`,
+  `bi-alarm`, `fas-user`, `mi-crop_16_9`, `ra-harpoon-trident`, and `si-github`. Lucide icons use bare slugs such as
+  `folder-open`. Emoji icons use bare emoji such as `📁`.
+- **Legacy Iconize input**: Setter methods also accept supported legacy Iconize compact IDs such as `LiHome`,
+  `PhAppleLogo`, `FasUser`, `MiCrop169`, and `SiGithub`. These values are normalized before saving and are returned in
+  frontmatter format, not Iconize format.
 - **Icon output format**: `FolderMetadata.icon`, `TagMetadata.icon`, and `PropertyMetadata.icon` use `IconValue`
-  because returned values are normalized strings. Lucide is the default provider and may be returned without a
-  `lucide:` prefix (for example, `'folder-open'`).
-- **Icon normalization**: Icon values are normalized before saving (for example, redundant prefixes like `lucide-`,
-  `ph-`, and `ra-` are stripped, and `material-icons` identifiers are stored as snake case).
-- **Unsupported providers**: The runtime accepts and persists any string. Unsupported providers or malformed IDs do not
-  render and fall back to a default icon.
+  because returned values are normalized strings. Supported icons are returned in the same format Notebook Navigator
+  writes to frontmatter: Lucide slug (`folder-open`), short provider-prefixed slug (`ph-folder`), or bare emoji (`📁`).
+  Supported providers are not returned with colon-separated IDs.
+- **Icon normalization**: Icon values are normalized before saving (for example, short provider values are converted to
+  the internal render ID, redundant external-provider prefixes like `ph-` and `ra-` are stripped, and `material-icons`
+  identifiers are stored as snake case internally).
+- **Unsupported providers**: Setter methods ignore values outside the frontmatter icon format and supported legacy
+  Iconize compact IDs. Existing unsupported or malformed settings values may be returned unchanged.
 - **Color values**: Any string is accepted and saved. Invalid CSS colors will not render correctly but won't throw
   errors.
 - **Tag normalization**: The `getTagMeta()` and `setTagMeta()` methods automatically normalize tags:
@@ -175,7 +181,7 @@ if (folder) {
   await nn.metadata.setFolderMeta(folder, {
     color: '#FF5733', // Hex, or 'red', 'rgb(255, 87, 51)', 'hsl(9, 100%, 60%)'
     backgroundColor: '#FFF3E0', // Light background color
-    icon: 'lucide:folder-open'
+    icon: 'folder-open'
   });
 
   // Update only specific properties (other properties unchanged)
@@ -544,7 +550,7 @@ if (!folder) {
 }
 
 // Icon strings are type-checked at compile time
-const icon: IconString = 'lucide:folder';
+const icon: IconString = 'ph-folder';
 await nn.metadata.setFolderMeta(folder, { color: '#FF5733', icon });
 
 // Events have full type inference
@@ -575,7 +581,7 @@ if (nn) {
 
 The type definitions provide:
 
-- **Template literal types** for canonical icon input (`IconString`)
+- **Template literal types** for short provider frontmatter icon input (`IconString`)
 - **Typed event names and payloads** (`NotebookNavigatorEventType`, `NotebookNavigatorEvents`)
 - **Readonly return types** (selected files arrays, pinned map)
 - **Menu extension context types** (file, folder, tag, and property menus)

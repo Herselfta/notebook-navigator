@@ -280,20 +280,25 @@ export class IndexedDBStorage {
         // Only downgrade schema changes require database recreation; upgrades are handled via onupgradeneeded.
         if (schemaChanged) {
             if (schemaDowngrade) {
+                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
                 console.log(
                     `Database schema version downgraded from ${storedSchemaVersion} to ${currentSchemaVersion}. Recreating database.`
                 );
                 await this.deleteDatabase();
             } else {
+                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
                 console.log(`Database schema version upgraded from ${storedSchemaVersion} to ${currentSchemaVersion}.`);
             }
         } else if (schemaVersionUnknown) {
+            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
             console.log(`Database schema version is missing. Rebuilding database.`);
         }
 
         if (contentChanged) {
+            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
             console.log(`Content version changed from ${storedContentVersion} to ${currentContentVersion}. Rebuilding content.`);
         } else if (contentVersionUnknown) {
+            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
             console.log('Content version is missing. Rebuilding content.');
         }
 
@@ -305,6 +310,7 @@ export class IndexedDBStorage {
             await this.openDatabase(needsRebuild);
         } catch (error: unknown) {
             if (this.isVersionError(error)) {
+                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
                 console.log('Database version mismatch detected. Recreating database.');
             } else {
                 console.error('Database open failed. Recreating database.', error);

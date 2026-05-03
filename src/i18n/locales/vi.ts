@@ -129,13 +129,14 @@ export const STRINGS_VI = {
         newFolder: 'Thư mục mới', // Tooltip for create new folder button (English: New folder)
         newNote: 'Ghi chú mới', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Quay lại điều hướng', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: 'Đổi thứ tự sắp xếp', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: 'Đổi thứ tự sắp xếp',
+        changeSortAndGroup: 'Đổi sắp xếp và nhóm',
         defaultSort: 'Mặc định', // Label for default sorting mode (English: Default)
         descendants: 'phần tử con',
         subfolders: 'thư mục con',
         subtags: 'thẻ con',
         childValues: 'giá trị con',
-        applySortToDescendants: (target: string) => `Áp dụng sắp xếp cho ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `Áp dụng sắp xếp và nhóm cho ${target}`,
         applyAppearanceToDescendants: (target: string) => `Áp dụng giao diện cho ${target}`,
         showFolders: 'Hiện điều hướng', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Sắp xếp lại điều hướng',
@@ -195,11 +196,11 @@ export const STRINGS_VI = {
                     title: 'Thuộc tính',
                     items: [
                         '`.key` Bao gồm ghi chú có khóa thuộc tính.',
-                        '`.key=value` Bao gồm ghi chú có giá trị thuộc tính.',
+                        '`.key=value` Bao gồm ghi chú có giá trị thuộc tính chứa `value`.',
                         '`."Reading Status"` Bao gồm ghi chú có khóa thuộc tính chứa khoảng trắng.',
                         '`."Reading Status"="In Progress"` Khóa và giá trị có khoảng trắng phải được đặt trong dấu ngoặc kép.',
                         '`-.key` Loại trừ ghi chú có khóa thuộc tính.',
-                        '`-.key=value` Loại trừ ghi chú có giá trị thuộc tính.',
+                        '`-.key=value` Loại trừ ghi chú có giá trị thuộc tính chứa `value`.',
                         'Cmd/Ctrl+Nhấp vào thuộc tính để thêm với AND. Cmd/Ctrl+Shift+Nhấp để thêm với OR.'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_VI = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Giao diện',
+        sortBy: 'Sắp xếp theo',
         standardPreset: 'Chuẩn',
         compactPreset: 'Gọn',
         defaultSuffix: '(mặc định)',
@@ -382,7 +385,7 @@ export const STRINGS_VI = {
     modals: {
         bulkApply: {
             applyButton: 'Áp dụng',
-            applySortTitle: (target: string) => `Áp dụng sắp xếp cho ${target}?`,
+            applySortAndGroupTitle: (target: string) => `Áp dụng sắp xếp và nhóm cho ${target}?`,
             applyAppearanceTitle: (target: string) => `Áp dụng giao diện cho ${target}?`,
             affectedCountMessage: (count: number) => `Ghi đè hiện có sẽ thay đổi: ${count}.`
         },
@@ -785,6 +788,8 @@ export const STRINGS_VI = {
         toggleDescendants: 'Bật/tắt phần tử con', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Bật/tắt thư mục, thẻ và ghi chú ẩn', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Bật/tắt sắp xếp thẻ', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'Bật/tắt thẻ theo lựa chọn',
+        togglePropertiesBySelection: 'Bật/tắt thuộc tính theo lựa chọn',
         toggleCompactMode: 'Bật/tắt chế độ gọn', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Thu gọn / mở rộng tất cả', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Thêm thẻ vào tệp đã chọn', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -810,11 +815,13 @@ export const STRINGS_VI = {
         file: 'tệp',
         files: 'tệp',
         folder: 'thư mục',
-        folders: 'thư mục'
+        folders: 'thư mục',
+        wordCount: 'Số từ'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Thay đổi cài đặt mặc định',
         metadataReport: {
             exportSuccess: 'Báo cáo metadata thất bại đã xuất đến: {filename}',
             exportFailed: 'Không thể xuất báo cáo metadata'
@@ -990,7 +997,7 @@ export const STRINGS_VI = {
             fileNameIconMap: {
                 name: 'Bản đồ biểu tượng tên tệp',
                 desc: 'Tệp chứa văn bản sẽ nhận biểu tượng được chỉ định. Một ánh xạ mỗi dòng: văn bản=biểu tượng',
-                placeholder: '# văn bản=biểu tượng\nhọp=LiCalendar\nhóa đơn=PhReceipt',
+                placeholder: '# văn bản=biểu tượng\nhọp=ph-calendar\nhóa đơn=ph-receipt',
                 editTooltip: 'Chỉnh sửa ánh xạ'
             },
             showCategoryIcons: {
@@ -1000,12 +1007,8 @@ export const STRINGS_VI = {
             fileTypeIconMap: {
                 name: 'Bản đồ biểu tượng loại tệp',
                 desc: 'Tệp có phần mở rộng sẽ nhận biểu tượng được chỉ định. Một ánh xạ mỗi dòng: phần mở rộng=biểu tượng',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Chỉnh sửa ánh xạ'
-            },
-            optimizeNoteHeight: {
-                name: 'Chiều cao ghi chú thay đổi',
-                desc: 'Sử dụng chiều cao gọn cho ghi chú đã ghim và ghi chú không có văn bản xem trước.'
             },
             compactItemHeight: {
                 name: 'Chiều cao mục gọn',
@@ -1212,7 +1215,7 @@ export const STRINGS_VI = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Định dạng tên tháng',
-                desc: 'Tên tháng bình thường hoặc viết tắt khi chế độ xem năm bị ẩn.',
+                desc: 'Tên tháng đầy đủ (tháng 1) hoặc viết tắt (Thg 01).',
                 options: {
                     full: 'tháng 1 (đầy đủ)',
                     short: 'Thg 01 (ngắn)'
@@ -1316,6 +1319,10 @@ export const STRINGS_VI = {
             showTooltipPath: {
                 name: 'Hiện đường dẫn',
                 desc: 'Hiển thị đường dẫn thư mục bên dưới tên ghi chú trong chú thích.'
+            },
+            showTooltipWordCount: {
+                name: 'Hiện số từ',
+                desc: 'Hiển thị số từ của ghi chú trong chú thích.'
             },
             resetPaneSeparator: {
                 name: 'Đặt lại vị trí thanh phân cách',
@@ -1497,12 +1504,16 @@ export const STRINGS_VI = {
                 desc: 'Áp dụng màu thẻ cho huy hiệu thẻ trên mục tệp.'
             },
             prioritizeColoredFileTags: {
-                name: 'Hiện thẻ có màu trước',
-                desc: 'Sắp xếp thẻ có màu trước các thẻ khác trên mục tệp.'
+                name: 'Hiện thẻ có màu tùy chỉnh trước',
+                desc: 'Sắp xếp thẻ có màu tùy chỉnh trước các thẻ khác trên mục tệp.'
             },
             showFileTagsInCompactMode: {
                 name: 'Hiện thẻ tệp ở chế độ gọn',
                 desc: 'Hiển thị thẻ khi ngày, xem trước và ảnh bị ẩn.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Hiện thẻ trên nhiều dòng',
+                desc: 'Xuống dòng thẻ tệp sang các dòng bổ sung khi chúng không vừa trên một dòng.'
             },
             showFileProperties: {
                 name: 'Hiện thuộc tính tệp',
@@ -1513,12 +1524,16 @@ export const STRINGS_VI = {
                 desc: 'Áp dụng màu thuộc tính cho huy hiệu thuộc tính trên mục tệp.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Hiện thuộc tính có màu trước',
-                desc: 'Sắp xếp thuộc tính có màu trước các thuộc tính khác trên mục tệp.'
+                name: 'Hiện thuộc tính có màu tùy chỉnh trước',
+                desc: 'Sắp xếp thuộc tính có màu tùy chỉnh trước các thuộc tính khác trên mục tệp.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Hiện thuộc tính ở chế độ gọn',
                 desc: 'Hiển thị thuộc tính khi chế độ gọn đang hoạt động.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Hiện thuộc tính trên nhiều dòng',
+                desc: 'Xuống dòng thuộc tính tệp sang các dòng bổ sung khi chúng không vừa trên một dòng.'
             },
             notePropertyType: {
                 name: 'Thuộc tính ghi chú',
@@ -1536,10 +1551,6 @@ export const STRINGS_VI = {
                 noneConfigured: 'Chưa cấu hình thuộc tính nào',
                 singleConfigured: '1 thuộc tính đã cấu hình: {properties}',
                 multipleConfigured: '{count} thuộc tính đã cấu hình: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Hiển thị thuộc tính trên các dòng riêng',
-                desc: 'Hiển thị mỗi thuộc tính trên một dòng riêng.'
             },
             enablePropertyInternalLinks: {
                 name: 'Liên kết nhãn thuộc tính với ghi chú',

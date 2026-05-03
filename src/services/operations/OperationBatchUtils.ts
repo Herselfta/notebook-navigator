@@ -37,7 +37,7 @@ export async function yieldToEventLoop(): Promise<void> {
             requestAnimationFrame(() => resolve());
             return;
         }
-        setTimeout(resolve, 0);
+        activeWindow.setTimeout(resolve, 0);
     });
 }
 

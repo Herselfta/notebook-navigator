@@ -206,7 +206,7 @@ export class FileDeletionService {
             }
 
             window.setTimeout(() => {
-                const fileListEl = document.querySelector('.nn-list-pane-scroller');
+                const fileListEl = activeDocument.querySelector('.nn-list-pane-scroller');
                 if (fileListEl instanceof HTMLElement) {
                     fileListEl.focus();
                 }
@@ -240,7 +240,7 @@ export class FileDeletionService {
             const deletedSourcePaths = new Set<string>();
 
             const targetPathSet = new Set(sourcePaths);
-            let hasOpenLeaf = false;
+            let hasOpenLeaf: boolean;
 
             try {
                 hasOpenLeaf = getSupportedLeaves(this.app).some(leaf => {
@@ -272,7 +272,7 @@ export class FileDeletionService {
                         deletedSourcePaths.add(sourcePath);
 
                         if (index < files.length - 1) {
-                            await new Promise<void>(resolve => setTimeout(resolve, 0));
+                            await new Promise<void>(resolve => activeWindow.setTimeout(resolve, 0));
                         }
                     } catch (error) {
                         errors.push({ file, error });
@@ -376,7 +376,7 @@ export class FileDeletionService {
             }
 
             window.setTimeout(() => {
-                const fileListEl = document.querySelector('.nn-list-pane-scroller');
+                const fileListEl = activeDocument.querySelector('.nn-list-pane-scroller');
                 if (fileListEl instanceof HTMLElement) {
                     fileListEl.focus();
                 }

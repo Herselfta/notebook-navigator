@@ -19,7 +19,7 @@
 import { DropdownComponent, Platform, Setting, SliderComponent, setIcon } from 'obsidian';
 import { strings } from '../../i18n';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
-import type { ListDisplayMode, ListNoteGroupingOption, ListPaneTitleOption, PropertySortSecondaryOption, SortOption } from '../types';
+import { isListDisplayMode, isListNoteGroupingOption, isListPaneTitleOption, isPropertySortSecondaryOption, isSortOption } from '../types';
 import { PROPERTY_SORT_SECONDARY_OPTIONS, SORT_OPTIONS } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { runAsyncAction } from '../../utils/async';
@@ -58,7 +58,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                         .addOption('list', strings.settings.items.listPaneTitle.options.list)
                         .addOption('hidden', strings.settings.items.listPaneTitle.options.hidden)
                         .setValue(plugin.settings.listPaneTitle)
-                        .onChange(async (value: ListPaneTitleOption) => {
+                        .onChange(async value => {
+                            if (!isListPaneTitleOption(value)) {
+                                return;
+                            }
                             plugin.settings.listPaneTitle = value;
                             await plugin.saveSettingsAndUpdate();
                         })
@@ -74,7 +77,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                 SORT_OPTIONS.forEach(option => {
                     dropdown.addOption(option, strings.settings.items.sortNotesBy.options[option]);
                 });
-                return dropdown.setValue(plugin.settings.defaultFolderSort).onChange(async (value: SortOption) => {
+                return dropdown.setValue(plugin.settings.defaultFolderSort).onChange(async value => {
+                    if (!isSortOption(value)) {
+                        return;
+                    }
                     plugin.settings.defaultFolderSort = value;
                     await plugin.saveSettingsAndUpdate();
                 });
@@ -105,7 +111,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             PROPERTY_SORT_SECONDARY_OPTIONS.forEach(option => {
                 dropdown.addOption(option, strings.settings.items.propertySortSecondary.options[option]);
             });
-            return dropdown.setValue(plugin.settings.propertySortSecondary).onChange(async (value: PropertySortSecondaryOption) => {
+            return dropdown.setValue(plugin.settings.propertySortSecondary).onChange(async value => {
+                if (!isPropertySortSecondaryOption(value)) {
+                    return;
+                }
                 plugin.settings.propertySortSecondary = value;
                 await plugin.saveSettingsAndUpdate();
             });
@@ -254,7 +263,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                     .addOption('standard', strings.settings.items.defaultListMode.options.standard)
                     .addOption('compact', strings.settings.items.defaultListMode.options.compact)
                     .setValue(plugin.settings.defaultListMode)
-                    .onChange(async (value: ListDisplayMode) => {
+                    .onChange(async value => {
+                        if (!isListDisplayMode(value)) {
+                            return;
+                        }
                         plugin.settings.defaultListMode = value === 'compact' ? 'compact' : 'standard';
                         await plugin.saveSettingsAndUpdate();
                     })
@@ -285,7 +297,10 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                     .addOption('date', strings.settings.items.groupNotes.options.date)
                     .addOption('folder', strings.settings.items.groupNotes.options.folder)
                     .setValue(plugin.settings.noteGrouping)
-                    .onChange(async (value: ListNoteGroupingOption) => {
+                    .onChange(async value => {
+                        if (!isListNoteGroupingOption(value)) {
+                            return;
+                        }
                         plugin.settings.noteGrouping = value;
                         await plugin.saveSettingsAndUpdate();
                     })
@@ -299,16 +314,6 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         () => plugin.settings.showSelectedNavigationPills,
         value => {
             plugin.settings.showSelectedNavigationPills = value;
-        }
-    );
-
-    addToggleSetting(
-        displayGroup.addSetting,
-        strings.settings.items.optimizeNoteHeight.name,
-        strings.settings.items.optimizeNoteHeight.desc,
-        () => plugin.settings.optimizeNoteHeight,
-        value => {
-            plugin.settings.optimizeNoteHeight = value;
         }
     );
 

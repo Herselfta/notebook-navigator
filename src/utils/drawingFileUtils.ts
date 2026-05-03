@@ -189,8 +189,11 @@ function ensureMarkdownExtension(fileName: string): string {
  */
 function sanitizeDrawingFileName(fileName: string, type: DrawingType): string {
     const withoutInvalidCharacters = stripInvalidLinkCharacters(fileName);
-    const withoutSeparators = withoutInvalidCharacters.replace(/[\\/]/g, ' ');
-    const withoutTraversal = withoutSeparators.replace(/\.\.(\/|\\)?/g, '');
+    const withoutTraversal = withoutInvalidCharacters
+        .split(/[\\/]+/u)
+        .filter(segment => segment !== '.' && segment !== '..')
+        .map(segment => segment.replace(/\.\./gu, ''))
+        .join(' ');
     const normalizedSpaces = withoutTraversal.replace(/\s+/g, ' ').trim();
 
     if (normalizedSpaces === '') {

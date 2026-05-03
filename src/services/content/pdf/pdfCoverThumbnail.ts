@@ -469,7 +469,7 @@ export async function renderPdfCoverThumbnail(app: App, pdfFile: TFile, options:
 
         const viewport = firstPage.getViewport({ scale });
 
-        const canvas = document.createElement('canvas');
+        const canvas = createEl('canvas');
         canvas.width = Math.max(1, Math.ceil(viewport.width));
         canvas.height = Math.max(1, Math.ceil(viewport.height));
 

@@ -129,13 +129,14 @@ export const STRINGS_EN = {
         newFolder: 'New folder', // Tooltip for create new folder button (English: New folder)
         newNote: 'New note', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Back to navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: 'Change sort order', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: 'Change sort order',
+        changeSortAndGroup: 'Change sort and group',
         defaultSort: 'Default', // Label for default sorting mode (English: Default)
         descendants: 'descendants',
         subfolders: 'subfolders',
         subtags: 'subtags',
         childValues: 'child values',
-        applySortToDescendants: (target: string) => `Apply sort to ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `Apply sort and group to ${target}`,
         applyAppearanceToDescendants: (target: string) => `Apply appearance to ${target}`,
         showFolders: 'Show navigation', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Reorder navigation',
@@ -195,11 +196,11 @@ export const STRINGS_EN = {
                     title: 'Properties',
                     items: [
                         '`.key` Include notes with property key.',
-                        '`.key=value` Include notes with property value.',
+                        '`.key=value` Include notes where the property value contains `value`.',
                         '`."Reading Status"` Include notes with a property key that contains whitespace.',
                         '`."Reading Status"="In Progress"` Keys and values with whitespace must be double-quoted.',
                         '`-.key` Exclude notes with property key.',
-                        '`-.key=value` Exclude notes with property value.',
+                        '`-.key=value` Exclude notes where the property value contains `value`.',
                         'Cmd/Ctrl+Click a property to add with AND. Cmd/Ctrl+Shift+Click to add with OR.'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_EN = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Appearance',
+        sortBy: 'Sort by',
         standardPreset: 'Standard',
         compactPreset: 'Compact',
         defaultSuffix: '(default)',
@@ -382,7 +385,7 @@ export const STRINGS_EN = {
     modals: {
         bulkApply: {
             applyButton: 'Apply',
-            applySortTitle: (target: string) => `Apply sort to ${target}?`,
+            applySortAndGroupTitle: (target: string) => `Apply sort and group to ${target}?`,
             applyAppearanceTitle: (target: string) => `Apply appearance to ${target}?`,
             affectedCountMessage: (count: number) => `Existing overrides that will change: ${count}.`
         },
@@ -780,6 +783,8 @@ export const STRINGS_EN = {
         toggleDescendants: 'Toggle descendants', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Toggle hidden folders, tags, and notes', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Toggle tag sort order', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'Toggle tags by selection',
+        togglePropertiesBySelection: 'Toggle properties by selection',
         toggleCompactMode: 'Toggle compact mode', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Collapse / expand all items', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Add tag to selected files', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -805,11 +810,13 @@ export const STRINGS_EN = {
         file: 'file',
         files: 'files',
         folder: 'folder',
-        folders: 'folders'
+        folders: 'folders',
+        wordCount: 'Word count'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Change default settings',
         metadataReport: {
             exportSuccess: 'Failed metadata report exported to: {filename}',
             exportFailed: 'Failed to export metadata report'
@@ -985,7 +992,7 @@ export const STRINGS_EN = {
             fileNameIconMap: {
                 name: 'File name icon map',
                 desc: 'Files containing the text get the specified icon. One mapping per line: text=icon',
-                placeholder: '# Text=icon\nmeeting=LiCalendar\ninvoice=PhReceipt',
+                placeholder: '# Text=icon\nmeeting=ph-calendar\ninvoice=ph-receipt',
                 editTooltip: 'Edit mappings'
             },
             showCategoryIcons: {
@@ -995,12 +1002,8 @@ export const STRINGS_EN = {
             fileTypeIconMap: {
                 name: 'File type icon map',
                 desc: 'Files with the extension get the specified icon. One mapping per line: extension=icon',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Edit mappings'
-            },
-            optimizeNoteHeight: {
-                name: 'Variable note height',
-                desc: 'Use compact height for pinned notes and notes without preview text.'
             },
             compactItemHeight: {
                 name: 'Compact item height',
@@ -1207,7 +1210,7 @@ export const STRINGS_EN = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Month name format',
-                desc: 'Full or short month name when the year view is hidden.',
+                desc: 'Long (January) or short (Jan) month name.',
                 options: {
                     full: 'January (full)',
                     short: 'Jan (short)'
@@ -1311,6 +1314,10 @@ export const STRINGS_EN = {
             showTooltipPath: {
                 name: 'Show path',
                 desc: 'Display the folder path below note names in tooltips.'
+            },
+            showTooltipWordCount: {
+                name: 'Show word count',
+                desc: 'Display note word counts in tooltips.'
             },
             resetPaneSeparator: {
                 name: 'Reset pane separator position',
@@ -1492,12 +1499,16 @@ export const STRINGS_EN = {
                 desc: 'Apply tag colors to tag badges on file items.'
             },
             prioritizeColoredFileTags: {
-                name: 'Show colored tags first',
-                desc: 'Sort colored tags before other tags on file items.'
+                name: 'Show tags with custom colors first',
+                desc: 'Sort tags with custom colors before other tags on file items.'
             },
             showFileTagsInCompactMode: {
                 name: 'Show file tags in compact mode',
                 desc: 'Display tags when date, preview, and image are hidden.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Show tags on multiple rows',
+                desc: 'Wrap file tags onto additional rows when they do not fit on one row.'
             },
             showFileProperties: {
                 name: 'Show file properties',
@@ -1508,12 +1519,16 @@ export const STRINGS_EN = {
                 desc: 'Apply property colors to property badges on file items.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Show colored properties first',
-                desc: 'Sort colored properties before other properties on file items.'
+                name: 'Show properties with custom colors first',
+                desc: 'Sort properties with custom colors before other properties on file items.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Show properties in compact mode',
                 desc: 'Display properties when compact mode is active.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Show properties on multiple rows',
+                desc: 'Wrap file properties onto additional rows when they do not fit on one row.'
             },
             propertyFields: {
                 name: 'Property keys (vault profile)',
@@ -1522,10 +1537,6 @@ export const STRINGS_EN = {
                 noneConfigured: 'No properties configured',
                 singleConfigured: '1 property configured: {properties}',
                 multipleConfigured: '{count} properties configured: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Show properties on separate rows',
-                desc: 'Display each property on its own row.'
             },
             enablePropertyInternalLinks: {
                 name: 'Link property pills to notes',

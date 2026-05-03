@@ -259,7 +259,7 @@ export function useListPaneRefresh({
             }
 
             if (!shouldRefresh && hiddenFilePropertyMatcher.hasCriteria && showHiddenItems) {
-                shouldRefresh = changes.some(change => change.changes.metadata !== undefined && basePathSet.has(change.path));
+                shouldRefresh = changes.some(change => change.metadataHiddenChanged === true && basePathSet.has(change.path));
             }
 
             if (!shouldRefresh && hasTaskSearchFilters) {

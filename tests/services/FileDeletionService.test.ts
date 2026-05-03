@@ -68,16 +68,29 @@ function createService() {
     });
 }
 
+type FileDeletionServiceTestAccess = {
+    readonly app: App;
+    getLeavesDisplayingFile(file: TFile): WorkspaceLeaf[];
+    getActiveFileViewLeaf(): WorkspaceLeaf | null;
+    replaceOpenLeavesForFileDelete(fileToReplace: TFile, replacement: TFile): Promise<void>;
+    replaceOpenLeavesForFilesDelete(filesToReplace: readonly TFile[], replacement: TFile): Promise<void>;
+};
+
+function getTestAccess(service: FileDeletionService): FileDeletionServiceTestAccess {
+    return service as unknown as FileDeletionServiceTestAccess;
+}
+
 describe('FileDeletionService replacement file activation', () => {
     it('opens the replacement file as active in a fallback leaf when the deleted file is not open', async () => {
         const deletedFile = createTestTFile('daily/2026-03-24.md');
         const replacementFile = createTestTFile('daily/2026-03-25.md');
         const { leaf: fallbackLeaf, openFileMock } = createLeaf();
         const service = createService();
-        const app = (service as unknown as { app: App }).app;
+        const serviceAccess = getTestAccess(service);
+        const app = serviceAccess.app;
         const getLeafMock = vi.fn().mockReturnValue(fallbackLeaf);
 
-        vi.spyOn(service as never, 'getLeavesDisplayingFile').mockReturnValue([]);
+        vi.spyOn(serviceAccess, 'getLeavesDisplayingFile').mockReturnValue([]);
         Object.defineProperty(app, 'workspace', {
             configurable: true,
             value: {
@@ -85,11 +98,7 @@ describe('FileDeletionService replacement file activation', () => {
             }
         });
 
-        await (
-            service as unknown as {
-                replaceOpenLeavesForFileDelete: (fileToReplace: TFile, replacement: TFile) => Promise<void>;
-            }
-        ).replaceOpenLeavesForFileDelete(deletedFile, replacementFile);
+        await serviceAccess.replaceOpenLeavesForFileDelete(deletedFile, replacementFile);
 
         expect(getLeafMock).toHaveBeenCalledWith(false);
         expect(openFileMock).toHaveBeenCalledTimes(1);
@@ -101,15 +110,12 @@ describe('FileDeletionService replacement file activation', () => {
         const replacementFile = createTestTFile('daily/2026-03-25.md');
         const { leaf: deletedFileLeaf, openFileMock } = createLeaf();
         const service = createService();
+        const serviceAccess = getTestAccess(service);
 
-        vi.spyOn(service as never, 'getLeavesDisplayingFile').mockReturnValue([deletedFileLeaf]);
-        vi.spyOn(service as never, 'getActiveFileViewLeaf').mockReturnValue(null);
+        vi.spyOn(serviceAccess, 'getLeavesDisplayingFile').mockReturnValue([deletedFileLeaf]);
+        vi.spyOn(serviceAccess, 'getActiveFileViewLeaf').mockReturnValue(null);
 
-        await (
-            service as unknown as {
-                replaceOpenLeavesForFileDelete: (fileToReplace: TFile, replacement: TFile) => Promise<void>;
-            }
-        ).replaceOpenLeavesForFileDelete(deletedFile, replacementFile);
+        await serviceAccess.replaceOpenLeavesForFileDelete(deletedFile, replacementFile);
 
         expect(openFileMock).toHaveBeenCalledTimes(1);
         expect(openFileMock).toHaveBeenCalledWith(replacementFile, { active: true });
@@ -120,15 +126,12 @@ describe('FileDeletionService replacement file activation', () => {
         const replacementFile = createTestTFile('daily/2026-03-25.md');
         const { leaf: activeLeaf, openFileMock } = createLeaf();
         const service = createService();
+        const serviceAccess = getTestAccess(service);
 
-        vi.spyOn(service as never, 'getLeavesDisplayingFile').mockReturnValue([activeLeaf]);
-        vi.spyOn(service as never, 'getActiveFileViewLeaf').mockReturnValue(activeLeaf);
+        vi.spyOn(serviceAccess, 'getLeavesDisplayingFile').mockReturnValue([activeLeaf]);
+        vi.spyOn(serviceAccess, 'getActiveFileViewLeaf').mockReturnValue(activeLeaf);
 
-        await (
-            service as unknown as {
-                replaceOpenLeavesForFileDelete: (fileToReplace: TFile, replacement: TFile) => Promise<void>;
-            }
-        ).replaceOpenLeavesForFileDelete(deletedFile, replacementFile);
+        await serviceAccess.replaceOpenLeavesForFileDelete(deletedFile, replacementFile);
 
         expect(openFileMock).toHaveBeenCalledTimes(1);
         expect(openFileMock).toHaveBeenCalledWith(replacementFile, { active: true });
@@ -141,17 +144,12 @@ describe('FileDeletionService replacement file activation', () => {
         const { leaf: activeLeaf, openFileMock } = createLeaf();
         const { leaf: secondLeaf } = createLeaf();
         const service = createService();
+        const serviceAccess = getTestAccess(service);
 
-        vi.spyOn(service as never, 'getLeavesDisplayingFile')
-            .mockReturnValueOnce([activeLeaf])
-            .mockReturnValueOnce([secondLeaf]);
-        vi.spyOn(service as never, 'getActiveFileViewLeaf').mockReturnValue(activeLeaf);
+        vi.spyOn(serviceAccess, 'getLeavesDisplayingFile').mockReturnValueOnce([activeLeaf]).mockReturnValueOnce([secondLeaf]);
+        vi.spyOn(serviceAccess, 'getActiveFileViewLeaf').mockReturnValue(activeLeaf);
 
-        await (
-            service as unknown as {
-                replaceOpenLeavesForFilesDelete: (filesToReplace: readonly TFile[], replacement: TFile) => Promise<void>;
-            }
-        ).replaceOpenLeavesForFilesDelete([deletedFileOne, deletedFileTwo], replacementFile);
+        await serviceAccess.replaceOpenLeavesForFilesDelete([deletedFileOne, deletedFileTwo], replacementFile);
 
         expect(openFileMock).toHaveBeenCalledTimes(1);
         expect(openFileMock).toHaveBeenCalledWith(replacementFile, { active: true });

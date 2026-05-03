@@ -188,7 +188,8 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                           displayName: noteDisplayName,
                           extensionSuffix,
                           settings,
-                          getFileTimestamps: context.getFileTimestamps
+                          getFileTimestamps: context.getFileTimestamps,
+                          wordCount: context.getFileWordCount(note)
                       })
                     : undefined;
             const shortcutProps = {
@@ -399,7 +400,8 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                       displayName,
                       extensionSuffix,
                       settings,
-                      getFileTimestamps: context.getFileTimestamps
+                      getFileTimestamps: context.getFileTimestamps,
+                      wordCount: context.getFileWordCount(note)
                   })
                 : undefined;
 

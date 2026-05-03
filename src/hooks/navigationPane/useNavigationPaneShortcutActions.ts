@@ -101,7 +101,7 @@ export function useNavigationPaneShortcutActions({
             return;
         }
 
-        setTimeout(release, 0);
+        activeWindow.setTimeout(release, 0);
     }, [setActiveShortcut]);
 
     const handleShortcutFolderActivate = useCallback(

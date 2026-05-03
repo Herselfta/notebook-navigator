@@ -18,33 +18,28 @@
 
 import { TFile, TFolder, normalizePath } from 'obsidian';
 import type { App } from 'obsidian';
-import type { NotebookNavigatorSettings, SortOption } from '../../settings';
+import type { AlphaSortOrder, NotebookNavigatorSettings, SortOption } from '../../settings';
 import { ListPaneItemType, ItemType, PINNED_SECTION_HEADER_KEY } from '../../types';
 import type { ListPaneItem } from '../../types/virtualization';
 import { strings } from '../../i18n';
 import { FILE_VISIBILITY, type FileVisibility } from '../../utils/fileTypeUtils';
-import { compareByAlphaSortOrder, getDateField, isDateSortOption, resolveFolderChildSortOrder } from '../../utils/sortUtils';
-import { resolveListGrouping } from '../../utils/listGrouping';
+import { compareByAlphaSortOrder, getDateField, isDateSortOption } from '../../utils/sortUtils';
 import { partitionPinnedFiles } from '../../utils/fileFinder';
 import { createHiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { getCachedFileTags } from '../../utils/tagUtils';
 import { DateUtils } from '../../utils/dateUtils';
 import type { SearchResultMeta } from '../../types/search';
 import type { IndexedDBStorage } from '../../storage/IndexedDBStorage';
-import type { PropertySelectionNodeId } from '../../utils/propertyTree';
+import type { ListNoteGroupingOption } from '../../settings/types';
 
 export interface ListPaneConfig {
     filterPinnedByFolder: boolean;
-    folderAppearances: NotebookNavigatorSettings['folderAppearances'];
-    folderSortOrder: NotebookNavigatorSettings['folderSortOrder'];
-    folderTreeSortOverrides: NotebookNavigatorSettings['folderTreeSortOverrides'];
-    noteGrouping: NotebookNavigatorSettings['noteGrouping'];
+    folderGroupSortOrder: AlphaSortOrder;
+    groupBy: ListNoteGroupingOption;
     pinnedNotes: NotebookNavigatorSettings['pinnedNotes'];
-    propertyAppearances: NotebookNavigatorSettings['propertyAppearances'];
     showFileTags: boolean;
     showPinnedGroupHeader: boolean;
     showTags: boolean;
-    tagAppearances: NotebookNavigatorSettings['tagAppearances'];
 }
 
 interface BuildListItemsArgs {
@@ -59,8 +54,6 @@ interface BuildListItemsArgs {
     listConfig: ListPaneConfig;
     searchMetaMap: ReadonlyMap<string, SearchResultMeta>;
     selectedFolder: TFolder | null;
-    selectedProperty: PropertySelectionNodeId | null;
-    selectedTag: string | null;
     selectionType: ItemType | null;
     showHiddenItems: boolean;
     sortOption: SortOption;
@@ -78,8 +71,6 @@ export function buildListItems({
     listConfig,
     searchMetaMap,
     selectedFolder,
-    selectedProperty,
-    selectedTag,
     selectionType,
     showHiddenItems,
     sortOption
@@ -148,19 +139,7 @@ export function buildListItems({
         });
     }
 
-    const groupingInfo = resolveListGrouping({
-        settings: {
-            noteGrouping: listConfig.noteGrouping,
-            folderAppearances: listConfig.folderAppearances,
-            tagAppearances: listConfig.tagAppearances,
-            propertyAppearances: listConfig.propertyAppearances
-        },
-        selectionType: selectionType ?? undefined,
-        folderPath: selectedFolder ? selectedFolder.path : null,
-        tag: selectedTag ?? null,
-        propertyNodeId: selectedProperty ?? null
-    });
-    const groupingMode = groupingInfo.effectiveGrouping;
+    const groupingMode = listConfig.groupBy;
     const shouldGroupByDate = groupingMode === 'date' && isDateSortOption(sortOption);
     const shouldGroupByFolder = groupingMode === 'folder' && selectionType === ItemType.FOLDER;
 
@@ -202,13 +181,7 @@ export function buildListItems({
         const baseFolderName = selectedFolder?.name ?? null;
         const basePrefix = baseFolderPath ? `${baseFolderPath}/` : null;
         const vaultRootLabel = strings.navigationPane.vaultRootLabel;
-        const folderGroupSortOrder = resolveFolderChildSortOrder(
-            {
-                folderSortOrder: listConfig.folderSortOrder,
-                folderTreeSortOverrides: listConfig.folderTreeSortOverrides
-            },
-            baseFolderPath ?? '/'
-        );
+        const folderGroupSortOrder = listConfig.folderGroupSortOrder;
 
         const folderGroups = new Map<
             string,

@@ -593,7 +593,7 @@ function rgbaToHsla(color: RGBA): HSLA {
     }
 
     const s = delta / (1 - Math.abs(2 * l - 1));
-    let h = 0;
+    let h: number;
 
     if (max === r) {
         h = ((g - b) / delta) % 6;

@@ -747,6 +747,32 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
+    // Command to toggle filtering the tags section by the current navigation selection
+    plugin.addCommand({
+        id: 'toggle-tags-by-selection',
+        name: strings.commands.toggleTagsBySelection,
+        callback: () => {
+            runAsyncAction(async () => {
+                await plugin.activateView();
+                plugin.settings.scopeTagsToCurrentContext = !plugin.settings.scopeTagsToCurrentContext;
+                await plugin.saveSettingsAndUpdate();
+            });
+        }
+    });
+
+    // Command to toggle filtering the properties section by the current navigation selection
+    plugin.addCommand({
+        id: 'toggle-properties-by-selection',
+        name: strings.commands.togglePropertiesBySelection,
+        callback: () => {
+            runAsyncAction(async () => {
+                await plugin.activateView();
+                plugin.settings.scopePropertiesToCurrentContext = !plugin.settings.scopePropertiesToCurrentContext;
+                await plugin.saveSettingsAndUpdate();
+            });
+        }
+    });
+
     // Command to toggle the default list mode between standard and compact
     plugin.addCommand({
         id: 'toggle-compact-mode',

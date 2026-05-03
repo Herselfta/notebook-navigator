@@ -128,13 +128,14 @@ export const STRINGS_ZH_TW = {
         newFolder: '新建資料夾',
         newNote: '新筆記',
         mobileBackToNavigation: '返回導覽',
-        changeSortOrder: '變更排序方式',
+        changeChildSortOrder: '變更排序方式',
+        changeSortAndGroup: '變更排序與分組',
         defaultSort: '預設',
         descendants: '子項',
         subfolders: '子資料夾',
         subtags: '子標籤',
         childValues: '子值',
-        applySortToDescendants: (target: string) => `將排序套用到${target}`,
+        applySortAndGroupToDescendants: (target: string) => `將排序與分組套用到${target}`,
         applyAppearanceToDescendants: (target: string) => `將外觀套用到${target}`,
         showFolders: '顯示導覽',
         reorderRootFolders: '重新排列導覽',
@@ -194,11 +195,11 @@ export const STRINGS_ZH_TW = {
                     title: '屬性',
                     items: [
                         '`.key` 包含具有屬性鍵的筆記。',
-                        '`.key=value` 包含具有屬性值的筆記。',
+                        '`.key=value` 包含屬性值含有 `value` 的筆記。',
                         '`."Reading Status"` 包含屬性鍵包含空格的筆記。',
                         '`."Reading Status"="In Progress"` 包含空格的鍵和值必須用雙引號括起來。',
                         '`-.key` 排除具有屬性鍵的筆記。',
-                        '`-.key=value` 排除具有屬性值的筆記。',
+                        '`-.key=value` 排除屬性值含有 `value` 的筆記。',
                         'Cmd/Ctrl+點擊屬性以 AND 方式新增。Cmd/Ctrl+Shift+點擊以 OR 方式新增。'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_ZH_TW = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: '外觀',
+        sortBy: '排序方式',
         standardPreset: '標準',
         compactPreset: '精簡',
         defaultSuffix: '(預設)',
@@ -382,7 +385,7 @@ export const STRINGS_ZH_TW = {
     modals: {
         bulkApply: {
             applyButton: '套用',
-            applySortTitle: (target: string) => `將排序套用到${target}？`,
+            applySortAndGroupTitle: (target: string) => `將排序與分組套用到${target}？`,
             applyAppearanceTitle: (target: string) => `將外觀套用到${target}？`,
             affectedCountMessage: (count: number) => `將更改的現有覆寫：${count}。`
         },
@@ -777,6 +780,8 @@ export const STRINGS_ZH_TW = {
         toggleDescendants: '切換後代',
         toggleHidden: '切換隱藏的資料夾、標籤和筆記',
         toggleTagSort: '切換標籤排序',
+        toggleTagsBySelection: '依選擇切換標籤',
+        togglePropertiesBySelection: '依選擇切換屬性',
         toggleCompactMode: '切換精簡模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: '摺疊/展開所有項目',
         addTag: '為選定檔案新增標籤',
@@ -802,11 +807,13 @@ export const STRINGS_ZH_TW = {
         file: '個檔案',
         files: '個檔案',
         folder: '個資料夾',
-        folders: '個資料夾'
+        folders: '個資料夾',
+        wordCount: '字數'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: '變更預設設定',
         metadataReport: {
             exportSuccess: '失敗的中繼資料報告已匯出至：{filename}',
             exportFailed: '匯出中繼資料報告失敗'
@@ -982,7 +989,7 @@ export const STRINGS_ZH_TW = {
             fileNameIconMap: {
                 name: '檔名圖示對應',
                 desc: '包含指定文字的檔案將取得指定圖示。每行一個對應：文字=圖示',
-                placeholder: '# 文字=圖示\n會議=LiCalendar\n發票=PhReceipt',
+                placeholder: '# 文字=圖示\n會議=ph-calendar\n發票=ph-receipt',
                 editTooltip: '編輯對應'
             },
             showCategoryIcons: {
@@ -992,12 +999,8 @@ export const STRINGS_ZH_TW = {
             fileTypeIconMap: {
                 name: '檔案類型圖示對應',
                 desc: '具有指定副檔名的檔案將取得指定圖示。每行一個對應：副檔名=圖示',
-                placeholder: '# 副檔名=圖示\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# 副檔名=圖示\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: '編輯對應'
-            },
-            optimizeNoteHeight: {
-                name: '可變筆記高度',
-                desc: '為釘選筆記和無預覽文字的筆記使用精簡高度。'
             },
             compactItemHeight: {
                 name: '精簡項目高度',
@@ -1204,7 +1207,7 @@ export const STRINGS_ZH_TW = {
             },
             calendarMonthHeadingFormat: {
                 name: '月份名稱格式',
-                desc: '年檢視隱藏時，顯示正常或縮寫的月份名稱。',
+                desc: '顯示完整（一月）或簡稱（1月）的月份名稱。',
                 options: {
                     full: '一月 (完整)',
                     short: '1月 (簡稱)'
@@ -1308,6 +1311,10 @@ export const STRINGS_ZH_TW = {
             showTooltipPath: {
                 name: '顯示路徑',
                 desc: '在工具提示中的筆記名稱下方顯示資料夾路徑。'
+            },
+            showTooltipWordCount: {
+                name: '顯示字數',
+                desc: '在工具提示中顯示筆記字數。'
             },
             resetPaneSeparator: {
                 name: '重設面板分隔符位置',
@@ -1489,12 +1496,16 @@ export const STRINGS_ZH_TW = {
                 desc: '將標籤顏色套用於檔案項目中的標籤徽章。'
             },
             prioritizeColoredFileTags: {
-                name: '優先顯示彩色標籤',
-                desc: '將彩色標籤排列在其他標籤之前。'
+                name: '優先顯示自訂顏色標籤',
+                desc: '將自訂顏色標籤排列在其他標籤之前。'
             },
             showFileTagsInCompactMode: {
                 name: '在精簡模式中顯示檔案標籤',
                 desc: '當日期、預覽和圖片被隱藏時顯示標籤。'
+            },
+            showFileTagsOnMultipleRows: {
+                name: '多行顯示標籤',
+                desc: '當檔案標籤無法放在一行時，將其換行到更多行。'
             },
             showFileProperties: {
                 name: '顯示檔案屬性',
@@ -1505,12 +1516,16 @@ export const STRINGS_ZH_TW = {
                 desc: '將屬性顏色套用到檔案項目的屬性徽章上。'
             },
             prioritizeColoredFileProperties: {
-                name: '優先顯示彩色屬性',
-                desc: '在檔案項目中將彩色屬性排列在其他屬性之前。'
+                name: '優先顯示自訂顏色屬性',
+                desc: '在檔案項目中將自訂顏色屬性排列在其他屬性之前。'
             },
             showFilePropertiesInCompactMode: {
                 name: '在精簡模式中顯示屬性',
                 desc: '精簡模式啟用時顯示屬性。'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: '多行顯示屬性',
+                desc: '當檔案屬性無法放在一行時，將其換行到更多行。'
             },
             notePropertyType: {
                 name: '筆記屬性',
@@ -1528,10 +1543,6 @@ export const STRINGS_ZH_TW = {
                 noneConfigured: '未設定屬性',
                 singleConfigured: '已設定 1 個屬性：{properties}',
                 multipleConfigured: '已設定 {count} 個屬性：{properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: '在個別行中顯示屬性',
-                desc: '將每個屬性顯示在個別行中。'
             },
             enablePropertyInternalLinks: {
                 name: '將屬性標籤連結到筆記',

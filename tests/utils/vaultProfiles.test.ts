@@ -29,8 +29,11 @@ import {
     getActiveHiddenFileProperties,
     getActiveHiddenFolders,
     getActiveHiddenTags,
+    getActivePropertyKeySet,
     getActiveVaultProfile,
     getHiddenFolderMatcher,
+    getPropertyFieldsFromPropertyKeys,
+    getPropertyKeySet,
     normalizeHiddenFolderPath,
     removeHiddenFileTagPrefixMatches,
     removeHiddenTagPrefixMatches,
@@ -538,6 +541,43 @@ describe('vault profile selectors', () => {
         expect(getActiveHiddenTags(settings)).toBe(settings.vaultProfiles[0].hiddenTags);
         expect(getActiveHiddenFileTags(settings)).toBe(settings.vaultProfiles[0].hiddenFileTags);
         expect(getActiveFileVisibility(settings)).toBe(settings.vaultProfiles[0].fileVisibility);
+    });
+});
+
+describe('property key selectors', () => {
+    it('filters property keys by visibility mode and normalizes duplicates', () => {
+        const propertyKeys = [
+            { key: 'Status', showInNavigation: true, showInList: false, showInFileMenu: false },
+            { key: ' status ', showInNavigation: true, showInList: true, showInFileMenu: true },
+            { key: 'Priority', showInNavigation: false, showInList: true, showInFileMenu: false },
+            { key: 'Menu', showInNavigation: false, showInList: false, showInFileMenu: true },
+            { key: 'Hidden', showInNavigation: false, showInList: false, showInFileMenu: false },
+            { key: ' ', showInNavigation: true, showInList: true, showInFileMenu: true }
+        ];
+
+        expect(Array.from(getPropertyKeySet(propertyKeys, 'navigation'))).toEqual(['status']);
+        expect(Array.from(getPropertyKeySet(propertyKeys, 'list'))).toEqual(['status', 'priority']);
+        expect(Array.from(getPropertyKeySet(propertyKeys, 'file-menu'))).toEqual(['status', 'menu']);
+        expect(Array.from(getPropertyKeySet(propertyKeys, 'any'))).toEqual(['status', 'priority', 'menu']);
+    });
+
+    it('reads property keys from the active profile', () => {
+        const settings = createSettings();
+        settings.vaultProfiles[0].propertyKeys = [{ key: 'Status', showInNavigation: true, showInList: false, showInFileMenu: false }];
+
+        expect(Array.from(getActivePropertyKeySet(settings, 'navigation'))).toEqual(['status']);
+        expect(Array.from(getActivePropertyKeySet(settings, 'list'))).toEqual([]);
+    });
+
+    it('formats property fields from property keys with normalized duplicates removed', () => {
+        const propertyKeys = [
+            { key: 'Status', showInNavigation: true, showInList: false, showInFileMenu: false },
+            { key: ' status ', showInNavigation: true, showInList: true, showInFileMenu: true },
+            { key: 'Priority', showInNavigation: false, showInList: true, showInFileMenu: false },
+            { key: ' ', showInNavigation: true, showInList: true, showInFileMenu: true }
+        ];
+
+        expect(getPropertyFieldsFromPropertyKeys(propertyKeys)).toBe('Status, Priority');
     });
 });
 

@@ -129,13 +129,14 @@ export const STRINGS_FA = {
         newFolder: 'پوشه جدید',
         newNote: 'یادداشت جدید',
         mobileBackToNavigation: 'بازگشت به ناوبری',
-        changeSortOrder: 'تغییر ترتیب',
+        changeChildSortOrder: 'تغییر ترتیب',
+        changeSortAndGroup: 'تغییر ترتیب و گروه‌بندی',
         defaultSort: 'پیش‌فرض',
         descendants: 'فرزندان',
         subfolders: 'زیرپوشه‌ها',
         subtags: 'زیربرچسب‌ها',
         childValues: 'مقادیر فرزند',
-        applySortToDescendants: (target: string) => `اعمال مرتب‌سازی به ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `اعمال مرتب‌سازی و گروه‌بندی به ${target}`,
         applyAppearanceToDescendants: (target: string) => `اعمال ظاهر به ${target}`,
         showFolders: 'نمایش ناوبری',
         reorderRootFolders: 'مرتب‌سازی مجدد ناوبری',
@@ -195,11 +196,11 @@ export const STRINGS_FA = {
                     title: 'ویژگی‌ها',
                     items: [
                         '`.key` شامل کردن یادداشت‌هایی با کلید ویژگی.',
-                        '`.key=value` شامل کردن یادداشت‌هایی با مقدار ویژگی.',
+                        '`.key=value` شامل کردن یادداشت‌هایی که مقدار ویژگی آن‌ها شامل `value` است.',
                         '`."Reading Status"` شامل کردن یادداشت‌هایی با کلید ویژگی حاوی فاصله.',
                         '`."Reading Status"="In Progress"` کلیدها و مقادیر حاوی فاصله باید در گیومه دوتایی قرار گیرند.',
                         '`-.key` حذف یادداشت‌هایی با کلید ویژگی.',
-                        '`-.key=value` حذف یادداشت‌هایی با مقدار ویژگی.',
+                        '`-.key=value` حذف یادداشت‌هایی که مقدار ویژگی آن‌ها شامل `value` است.',
                         'Cmd/Ctrl+کلیک روی ویژگی برای افزودن با AND. Cmd/Ctrl+Shift+کلیک برای افزودن با OR.'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_FA = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'ظاهر',
+        sortBy: 'مرتب‌سازی بر اساس',
         standardPreset: 'استاندارد',
         compactPreset: 'فشرده',
         defaultSuffix: '(پیش‌فرض)',
@@ -382,7 +385,7 @@ export const STRINGS_FA = {
     modals: {
         bulkApply: {
             applyButton: 'اعمال',
-            applySortTitle: (target: string) => `مرتب‌سازی به ${target} اعمال شود؟`,
+            applySortAndGroupTitle: (target: string) => `مرتب‌سازی و گروه‌بندی به ${target} اعمال شود؟`,
             applyAppearanceTitle: (target: string) => `ظاهر به ${target} اعمال شود؟`,
             affectedCountMessage: (count: number) => `بازنویسی‌های موجود که تغییر خواهند کرد: ${count}.`
         },
@@ -784,6 +787,8 @@ export const STRINGS_FA = {
         toggleDescendants: 'تغییر زیرمجموعه‌ها',
         toggleHidden: 'تغییر پوشه‌ها، برچسب‌ها و یادداشت‌های مخفی',
         toggleTagSort: 'تغییر ترتیب مرتب‌سازی برچسب',
+        toggleTagsBySelection: 'تغییر برچسب‌ها بر اساس انتخاب',
+        togglePropertiesBySelection: 'تغییر ویژگی‌ها بر اساس انتخاب',
         toggleCompactMode: 'تغییر حالت فشرده', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'جمع / باز کردن همه آیتم‌ها',
         addTag: 'افزودن برچسب به فایل‌های انتخابی',
@@ -809,11 +814,13 @@ export const STRINGS_FA = {
         file: 'فایل',
         files: 'فایل',
         folder: 'پوشه',
-        folders: 'پوشه'
+        folders: 'پوشه',
+        wordCount: 'تعداد کلمات'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'تغییر تنظیمات پیش‌فرض',
         metadataReport: {
             exportSuccess: 'گزارش متادیتای ناموفق به {filename} صادر شد',
             exportFailed: 'صادر کردن گزارش متادیتا ناموفق بود'
@@ -989,7 +996,7 @@ export const STRINGS_FA = {
             fileNameIconMap: {
                 name: 'نگاشت آیکون نام فایل',
                 desc: 'فایل‌های حاوی متن آیکون مشخص‌شده را دریافت می‌کنند. یک نگاشت در هر خط: متن=آیکون',
-                placeholder: '# متن=آیکون\nجلسه=LiCalendar\nفاکتور=PhReceipt',
+                placeholder: '# متن=آیکون\nجلسه=ph-calendar\nفاکتور=ph-receipt',
                 editTooltip: 'ویرایش نگاشت‌ها'
             },
             showCategoryIcons: {
@@ -999,12 +1006,8 @@ export const STRINGS_FA = {
             fileTypeIconMap: {
                 name: 'نگاشت آیکون نوع فایل',
                 desc: 'فایل‌های با پسوند مشخص آیکون مشخص‌شده را دریافت می‌کنند. یک نگاشت در هر خط: پسوند=آیکون',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'ویرایش نگاشت‌ها'
-            },
-            optimizeNoteHeight: {
-                name: 'ارتفاع متغیر یادداشت',
-                desc: 'استفاده از ارتفاع فشرده برای یادداشت‌های سنجاق‌شده و یادداشت‌های بدون متن پیش‌نمایش.'
             },
             compactItemHeight: {
                 name: 'ارتفاع آیتم فشرده',
@@ -1211,7 +1214,7 @@ export const STRINGS_FA = {
             },
             calendarMonthHeadingFormat: {
                 name: 'قالب نام ماه',
-                desc: 'نام ماه معمولی یا مخفف وقتی نمای سال پنهان است.',
+                desc: 'نام ماه کامل (ژانویه) یا کوتاه (ژانویه).',
                 options: {
                     full: 'ژانویه (کامل)',
                     short: 'ژانویه (کوتاه)'
@@ -1315,6 +1318,10 @@ export const STRINGS_FA = {
             showTooltipPath: {
                 name: 'نمایش مسیر',
                 desc: 'مسیر پوشه را زیر نام یادداشت در راهنماها نمایش دهید.'
+            },
+            showTooltipWordCount: {
+                name: 'نمایش تعداد کلمات',
+                desc: 'تعداد کلمات یادداشت‌ها را در راهنماها نمایش دهید.'
             },
             resetPaneSeparator: {
                 name: 'بازنشانی موقعیت جداکننده پنل',
@@ -1496,12 +1503,16 @@ export const STRINGS_FA = {
                 desc: 'رنگ‌های برچسب را به نشان‌های برچسب روی آیتم‌های فایل اعمال کنید.'
             },
             prioritizeColoredFileTags: {
-                name: 'نمایش اول برچسب‌های رنگی',
-                desc: 'برچسب‌های رنگی را قبل از برچسب‌های دیگر روی آیتم‌های فایل مرتب کنید.'
+                name: 'نمایش اول برچسب‌های دارای رنگ سفارشی',
+                desc: 'برچسب‌های دارای رنگ سفارشی را قبل از برچسب‌های دیگر روی آیتم‌های فایل مرتب کنید.'
             },
             showFileTagsInCompactMode: {
                 name: 'نمایش برچسب‌های فایل در حالت فشرده',
                 desc: 'برچسب‌ها را هنگامی که تاریخ، پیش‌نمایش و تصویر مخفی هستند نمایش دهید.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'نمایش برچسب‌ها در چند ردیف',
+                desc: 'وقتی برچسب‌های فایل در یک ردیف جا نمی‌شوند، آن‌ها را به ردیف‌های اضافی منتقل کنید.'
             },
             showFileProperties: {
                 name: 'نمایش ویژگی‌های فایل',
@@ -1512,12 +1523,16 @@ export const STRINGS_FA = {
                 desc: 'رنگ‌های ویژگی را روی نشان‌های ویژگی در آیتم‌های فایل اعمال کنید.'
             },
             prioritizeColoredFileProperties: {
-                name: 'نمایش ویژگی‌های رنگی در اولویت',
-                desc: 'ویژگی‌های رنگی را قبل از ویژگی‌های دیگر روی آیتم‌های فایل مرتب کنید.'
+                name: 'نمایش اول ویژگی‌های دارای رنگ سفارشی',
+                desc: 'ویژگی‌های دارای رنگ سفارشی را قبل از ویژگی‌های دیگر روی آیتم‌های فایل مرتب کنید.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'نمایش ویژگی‌ها در حالت فشرده',
                 desc: 'نمایش ویژگی‌ها هنگام فعال بودن حالت فشرده.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'نمایش ویژگی‌ها در چند ردیف',
+                desc: 'وقتی ویژگی‌های فایل در یک ردیف جا نمی‌شوند، آن‌ها را به ردیف‌های اضافی منتقل کنید.'
             },
             notePropertyType: {
                 name: 'ویژگی یادداشت',
@@ -1535,10 +1550,6 @@ export const STRINGS_FA = {
                 noneConfigured: 'هیچ ویژگی‌ای پیکربندی نشده',
                 singleConfigured: '۱ ویژگی پیکربندی شده: {properties}',
                 multipleConfigured: '{count} ویژگی پیکربندی شده: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'نمایش ویژگی‌ها در ردیف‌های جداگانه',
-                desc: 'هر ویژگی را در ردیف جداگانه نمایش می‌دهد.'
             },
             enablePropertyInternalLinks: {
                 name: 'پیوند نشان‌های ویژگی به یادداشت‌ها',

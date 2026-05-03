@@ -230,7 +230,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             springLoadedExpandCountRef.current = 0;
 
             const draggable = e.target.closest('[data-draggable="true"]');
-            if (!draggable || !(draggable instanceof HTMLElement)) {
+            if (!draggable || !draggable.instanceOf(HTMLElement)) {
                 return;
             }
 
@@ -1109,6 +1109,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
     useEffect(() => {
         const container = containerRef.current;
         if (!container || isMobile) return;
+        const ownerDocument = container.ownerDocument;
 
         // Global handler for escape key to clean up ghost on cancel
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -1136,7 +1137,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             event.stopImmediatePropagation();
         };
         container.addEventListener('click', handleClickCapture, true);
-        document.addEventListener('keydown', handleKeyDown);
+        ownerDocument.addEventListener('keydown', handleKeyDown);
 
         return () => {
             container.removeEventListener('dragstart', handleDragStart);
@@ -1145,7 +1146,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             container.removeEventListener('drop', handleDropListener);
             container.removeEventListener('dragend', handleDragEnd);
             container.removeEventListener('click', handleClickCapture, true);
-            document.removeEventListener('keydown', handleKeyDown);
+            ownerDocument.removeEventListener('keydown', handleKeyDown);
 
             // Clean up any lingering drag state on unmount
             dragGhostManager.hideGhost();

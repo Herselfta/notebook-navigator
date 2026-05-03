@@ -28,71 +28,71 @@ import { createTestTFile } from './createTestTFile';
 
 describe('resolveFileNameMatchIconId', () => {
     it('returns null for empty basenames', () => {
-        const needles = buildFileNameIconNeedles({ meeting: 'LiCalendar' });
+        const needles = buildFileNameIconNeedles({ meeting: 'ph-calendar' });
         expect(resolveFileNameMatchIconIdFromNeedles('', needles)).toBe(null);
     });
 
     it('matches case-insensitively and prefers longer needles', () => {
         const iconMap = {
-            meet: 'LiCheckCircle',
-            meeting: 'LiCalendar',
-            invoice: 'LiReceipt'
+            meet: 'ph-book',
+            meeting: 'ph-calendar',
+            invoice: 'ph-receipt'
         };
 
         const needles = buildFileNameIconNeedles(iconMap);
-        expect(resolveFileNameMatchIconIdFromNeedles('Meeting notes', needles)).toBe('calendar');
-        expect(resolveFileNameMatchIconIdFromNeedles('Invoice 2025', needles)).toBe('receipt');
-        expect(resolveFileNameMatchIconId('Invoice 2025', iconMap)).toBe('receipt');
+        expect(resolveFileNameMatchIconIdFromNeedles('Meeting notes', needles)).toBe('phosphor:calendar');
+        expect(resolveFileNameMatchIconIdFromNeedles('Invoice 2025', needles)).toBe('phosphor:receipt');
+        expect(resolveFileNameMatchIconId('Invoice 2025', iconMap)).toBe('phosphor:receipt');
     });
 
     it('breaks ties by needle sort order', () => {
         const iconMap = {
-            ab: 'LiReceipt',
-            aa: 'LiCalendar'
+            ab: 'ph-receipt',
+            aa: 'ph-calendar'
         };
 
         const needles = buildFileNameIconNeedles(iconMap);
-        expect(resolveFileNameMatchIconIdFromNeedles('aab', needles)).toBe('calendar');
+        expect(resolveFileNameMatchIconIdFromNeedles('aab', needles)).toBe('phosphor:calendar');
     });
 
     it('ignores empty needles and empty icon IDs', () => {
         const iconMap = {
-            meeting: 'LiCalendar',
+            meeting: 'ph-calendar',
             '': 'invalid',
             invoice: ''
         };
 
         const needles = buildFileNameIconNeedles(iconMap);
-        expect(resolveFileNameMatchIconIdFromNeedles('Invoice meeting', needles)).toBe('calendar');
+        expect(resolveFileNameMatchIconIdFromNeedles('Invoice meeting', needles)).toBe('phosphor:calendar');
     });
 
     it('supports resolving icons from display names', () => {
         const file = createTestTFile('Plain name.md');
         const settings = {
             showFilenameMatchIcons: true,
-            fileNameIconMap: { meeting: 'LiCalendar' },
+            fileNameIconMap: { meeting: 'ph-calendar' },
             showCategoryIcons: false,
             fileTypeIconMap: {}
         };
 
         expect(resolveFileIconId(file, settings)).toBe(null);
-        expect(resolveFileIconId(file, settings, { fileNameForMatch: 'Meeting notes' })).toBe('calendar');
+        expect(resolveFileIconId(file, settings, { fileNameForMatch: 'Meeting notes' })).toBe('phosphor:calendar');
     });
 
     it('supports needles with trailing spaces', () => {
-        const needles = buildFileNameIconNeedles({ 'ai ': 'LiBrain' });
-        expect(resolveFileNameMatchIconIdFromNeedles('AI notes', needles)).toBe('brain');
+        const needles = buildFileNameIconNeedles({ 'ai ': 'ph-brain' });
+        expect(resolveFileNameMatchIconIdFromNeedles('AI notes', needles)).toBe('phosphor:brain');
         expect(resolveFileNameMatchIconIdFromNeedles('AInotes', needles)).toBe(null);
     });
 
     it('matches NFC rule keys against NFD basenames', () => {
-        const needles = buildFileNameIconNeedles({ réunion: 'LiCalendar' });
-        expect(resolveFileNameMatchIconIdFromNeedles('re\u0301union notes', needles)).toBe('calendar');
+        const needles = buildFileNameIconNeedles({ réunion: 'ph-calendar' });
+        expect(resolveFileNameMatchIconIdFromNeedles('re\u0301union notes', needles)).toBe('phosphor:calendar');
     });
 
     it('matches NFD rule keys against NFC basenames', () => {
-        const needles = buildFileNameIconNeedles({ 're\u0301union': 'LiCalendar' });
-        expect(resolveFileNameMatchIconIdFromNeedles('réunion notes', needles)).toBe('calendar');
+        const needles = buildFileNameIconNeedles({ 're\u0301union': 'ph-calendar' });
+        expect(resolveFileNameMatchIconIdFromNeedles('réunion notes', needles)).toBe('phosphor:calendar');
     });
 });
 
@@ -104,11 +104,11 @@ describe('resolveFileTypeIconKey', () => {
 
     describe('resolveFileTypeIconId', () => {
         it('returns null for empty keys', () => {
-            expect(resolveFileTypeIconId('', { md: 'LiFileText' })).toBe(null);
+            expect(resolveFileTypeIconId('', { md: 'ph-file-text' })).toBe(null);
         });
 
         it('uses explicit overrides before built-in mappings', () => {
-            expect(resolveFileTypeIconId('md', { md: 'LiBookOpen' })).toBe('book-open');
+            expect(resolveFileTypeIconId('md', { md: 'ph-book' })).toBe('phosphor:book');
         });
 
         it('falls back to built-in mappings when no override exists', () => {

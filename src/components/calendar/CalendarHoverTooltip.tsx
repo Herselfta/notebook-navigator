@@ -75,6 +75,6 @@ export const CalendarHoverTooltip = React.memo(function CalendarHoverTooltip({
                 {hoverTooltipDateText ? <div className="nn-file-date">{hoverTooltipDateText}</div> : null}
             </div>
         </div>,
-        document.body
+        activeDocument.body
     );
 });

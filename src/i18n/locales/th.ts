@@ -129,13 +129,14 @@ export const STRINGS_TH = {
         newFolder: 'โฟลเดอร์ใหม่',
         newNote: 'โน้ตใหม่',
         mobileBackToNavigation: 'กลับไปการนำทาง',
-        changeSortOrder: 'เปลี่ยนลำดับการเรียง',
+        changeChildSortOrder: 'เปลี่ยนลำดับการเรียง',
+        changeSortAndGroup: 'เปลี่ยนการเรียงและการจัดกลุ่ม',
         defaultSort: 'ค่าเริ่มต้น',
         descendants: 'รายการย่อย',
         subfolders: 'โฟลเดอร์ย่อย',
         subtags: 'แท็กย่อย',
         childValues: 'ค่าย่อย',
-        applySortToDescendants: (target: string) => `ใช้การเรียงลำดับกับ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `ใช้การเรียงและการจัดกลุ่มกับ${target}`,
         applyAppearanceToDescendants: (target: string) => `ใช้รูปลักษณ์กับ${target}`,
         showFolders: 'แสดงการนำทาง',
         reorderRootFolders: 'จัดเรียงการนำทางใหม่',
@@ -195,11 +196,11 @@ export const STRINGS_TH = {
                     title: 'คุณสมบัติ',
                     items: [
                         '`.key` รวมโน้ตที่มีคีย์คุณสมบัติ',
-                        '`.key=value` รวมโน้ตที่มีค่าคุณสมบัติ',
+                        '`.key=value` รวมโน้ตที่ค่าคุณสมบัติมี `value` อยู่',
                         '`."Reading Status"` รวมโน้ตที่มีคีย์คุณสมบัติที่มีช่องว่าง',
                         '`."Reading Status"="In Progress"` คีย์และค่าที่มีช่องว่างต้องอยู่ในเครื่องหมายคำพูดคู่',
                         '`-.key` ไม่รวมโน้ตที่มีคีย์คุณสมบัติ',
-                        '`-.key=value` ไม่รวมโน้ตที่มีค่าคุณสมบัติ',
+                        '`-.key=value` ไม่รวมโน้ตที่ค่าคุณสมบัติมี `value` อยู่',
                         'Cmd/Ctrl+คลิกคุณสมบัติเพื่อเพิ่มด้วย AND Cmd/Ctrl+Shift+คลิกเพื่อเพิ่มด้วย OR'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_TH = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'ลักษณะ',
+        sortBy: 'เรียงตาม',
         standardPreset: 'มาตรฐาน',
         compactPreset: 'กะทัดรัด',
         defaultSuffix: '(ค่าเริ่มต้น)',
@@ -382,7 +385,7 @@ export const STRINGS_TH = {
     modals: {
         bulkApply: {
             applyButton: 'ใช้',
-            applySortTitle: (target: string) => `ใช้การเรียงลำดับกับ${target}?`,
+            applySortAndGroupTitle: (target: string) => `ใช้การเรียงและการจัดกลุ่มกับ${target}?`,
             applyAppearanceTitle: (target: string) => `ใช้รูปลักษณ์กับ${target}?`,
             affectedCountMessage: (count: number) => `การแทนที่ที่มีอยู่ซึ่งจะเปลี่ยนแปลง: ${count}`
         },
@@ -780,6 +783,8 @@ export const STRINGS_TH = {
         toggleDescendants: 'สลับลูกหลาน',
         toggleHidden: 'สลับโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
         toggleTagSort: 'สลับลำดับการเรียงแท็ก',
+        toggleTagsBySelection: 'สลับแท็กตามการเลือก',
+        togglePropertiesBySelection: 'สลับคุณสมบัติตามการเลือก',
         toggleCompactMode: 'สลับโหมดกะทัดรัด', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'ยุบ / ขยายรายการทั้งหมด',
         addTag: 'เพิ่มแท็กในไฟล์ที่เลือก',
@@ -805,11 +810,13 @@ export const STRINGS_TH = {
         file: 'ไฟล์',
         files: 'ไฟล์',
         folder: 'โฟลเดอร์',
-        folders: 'โฟลเดอร์'
+        folders: 'โฟลเดอร์',
+        wordCount: 'จำนวนคำ'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'เปลี่ยนการตั้งค่าเริ่มต้น',
         metadataReport: {
             exportSuccess: 'ส่งออกรายงานเมตาดาต้าที่ล้มเหลวไปยัง: {filename}',
             exportFailed: 'ส่งออกรายงานเมตาดาต้าล้มเหลว'
@@ -985,7 +992,7 @@ export const STRINGS_TH = {
             fileNameIconMap: {
                 name: 'แผนที่ไอคอนชื่อไฟล์',
                 desc: 'ไฟล์ที่มีข้อความจะได้รับไอคอนที่กำหนด หนึ่งการแมปต่อบรรทัด: ข้อความ=ไอคอน',
-                placeholder: '# ข้อความ=ไอคอน\nประชุม=LiCalendar\nใบแจ้งหนี้=PhReceipt',
+                placeholder: '# ข้อความ=ไอคอน\nประชุม=ph-calendar\nใบแจ้งหนี้=ph-receipt',
                 editTooltip: 'แก้ไขการแมป'
             },
             showCategoryIcons: {
@@ -995,12 +1002,8 @@ export const STRINGS_TH = {
             fileTypeIconMap: {
                 name: 'แผนที่ไอคอนประเภทไฟล์',
                 desc: 'ไฟล์ที่มีนามสกุลจะได้รับไอคอนที่กำหนด หนึ่งการแมปต่อบรรทัด: นามสกุล=ไอคอน',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'แก้ไขการแมป'
-            },
-            optimizeNoteHeight: {
-                name: 'ความสูงโน้ตแบบปรับได้',
-                desc: 'ใช้ความสูงแบบกะทัดรัดสำหรับโน้ตที่ปักหมุดและโน้ตที่ไม่มีข้อความตัวอย่าง'
             },
             compactItemHeight: {
                 name: 'ความสูงรายการกะทัดรัด',
@@ -1207,7 +1210,7 @@ export const STRINGS_TH = {
             },
             calendarMonthHeadingFormat: {
                 name: 'รูปแบบชื่อเดือน',
-                desc: 'ชื่อเดือนแบบปกติหรือแบบย่อเมื่อมุมมองปีถูกซ่อน',
+                desc: 'ชื่อเดือนแบบเต็ม (มกราคม) หรือแบบย่อ (ม.ค.)',
                 options: {
                     full: 'มกราคม (เต็ม)',
                     short: 'ม.ค. (ย่อ)'
@@ -1311,6 +1314,10 @@ export const STRINGS_TH = {
             showTooltipPath: {
                 name: 'แสดงเส้นทาง',
                 desc: 'แสดงเส้นทางโฟลเดอร์ใต้ชื่อโน้ตใน tooltips'
+            },
+            showTooltipWordCount: {
+                name: 'แสดงจำนวนคำ',
+                desc: 'แสดงจำนวนคำของโน้ตใน tooltips'
             },
             resetPaneSeparator: {
                 name: 'รีเซ็ตตำแหน่งตัวคั่นแผง',
@@ -1492,12 +1499,16 @@ export const STRINGS_TH = {
                 desc: 'ใช้สีแท็กกับป้ายแท็กบนรายการไฟล์'
             },
             prioritizeColoredFileTags: {
-                name: 'แสดงแท็กที่มีสีก่อน',
-                desc: 'เรียงแท็กที่มีสีก่อนแท็กอื่นบนรายการไฟล์'
+                name: 'แสดงแท็กที่มีสีแบบกำหนดเองก่อน',
+                desc: 'เรียงแท็กที่มีสีแบบกำหนดเองก่อนแท็กอื่นบนรายการไฟล์'
             },
             showFileTagsInCompactMode: {
                 name: 'แสดงแท็กไฟล์ในโหมดกะทัดรัด',
                 desc: 'แสดงแท็กเมื่อวันที่ ตัวอย่าง และรูปภาพถูกซ่อน'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'แสดงแท็กหลายบรรทัด',
+                desc: 'ตัดแท็กไฟล์ไปยังบรรทัดเพิ่มเติมเมื่อไม่พอดีในบรรทัดเดียว'
             },
             showFileProperties: {
                 name: 'แสดงคุณสมบัติไฟล์',
@@ -1508,12 +1519,16 @@ export const STRINGS_TH = {
                 desc: 'ใช้สีคุณสมบัติกับป้ายคุณสมบัติบนรายการไฟล์'
             },
             prioritizeColoredFileProperties: {
-                name: 'แสดงคุณสมบัติที่มีสีก่อน',
-                desc: 'เรียงคุณสมบัติที่มีสีก่อนคุณสมบัติอื่นบนรายการไฟล์'
+                name: 'แสดงคุณสมบัติที่มีสีแบบกำหนดเองก่อน',
+                desc: 'เรียงคุณสมบัติที่มีสีแบบกำหนดเองก่อนคุณสมบัติอื่นบนรายการไฟล์'
             },
             showFilePropertiesInCompactMode: {
                 name: 'แสดงคุณสมบัติในโหมดกะทัดรัด',
                 desc: 'แสดงคุณสมบัติเมื่อโหมดกะทัดรัดเปิดใช้งาน'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'แสดงคุณสมบัติหลายบรรทัด',
+                desc: 'ตัดคุณสมบัติไฟล์ไปยังบรรทัดเพิ่มเติมเมื่อไม่พอดีในบรรทัดเดียว'
             },
             notePropertyType: {
                 name: 'คุณสมบัติโน้ต',
@@ -1531,10 +1546,6 @@ export const STRINGS_TH = {
                 noneConfigured: 'ไม่มีคุณสมบัติที่กำหนดค่า',
                 singleConfigured: 'กำหนดค่าคุณสมบัติ 1 รายการ: {properties}',
                 multipleConfigured: 'กำหนดค่าคุณสมบัติ {count} รายการ: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'แสดงคุณสมบัติแยกเป็นบรรทัด',
-                desc: 'แสดงแต่ละคุณสมบัติในบรรทัดของตัวเอง'
             },
             enablePropertyInternalLinks: {
                 name: 'เชื่อมโยงป้ายคุณสมบัติไปยังบันทึก',

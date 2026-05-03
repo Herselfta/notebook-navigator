@@ -150,6 +150,7 @@ export function useFileItemContentState({
     const [taskUnfinished, setTaskUnfinished] = useState<number | null>(initialData.taskUnfinished);
     const [metadataVersion, setMetadataVersion] = useState(0);
 
+    const propertiesRef = useRef<PropertyItem[] | null>(initialData.properties);
     const featureImageObjectUrlRef = useRef<string | null>(null);
     const lastFeatureImageRegenRef = useRef<{ key: string; at: number } | null>(null);
     useLayoutEffect(() => {
@@ -163,7 +164,10 @@ export function useFileItemContentState({
                 setTags(prev => (areStringArraysEqual(prev, initialSnapshot.tags) ? prev : initialSnapshot.tags));
                 setFeatureImageKey(prev => (prev === initialSnapshot.featureImageKey ? prev : initialSnapshot.featureImageKey));
                 setFeatureImageStatus(prev => (prev === initialSnapshot.featureImageStatus ? prev : initialSnapshot.featureImageStatus));
-                setProperties(prev => (arePropertyItemsEqual(prev, initialSnapshot.properties) ? prev : initialSnapshot.properties));
+                if (!arePropertyItemsEqual(propertiesRef.current, initialSnapshot.properties)) {
+                    propertiesRef.current = initialSnapshot.properties;
+                    setProperties(initialSnapshot.properties);
+                }
                 setWordCount(prev => (prev === initialSnapshot.wordCount ? prev : initialSnapshot.wordCount));
                 setTaskUnfinished(prev => (prev === initialSnapshot.taskUnfinished ? prev : initialSnapshot.taskUnfinished));
             },
@@ -201,8 +205,11 @@ export function useFileItemContentState({
 
                 if (changes.properties !== undefined) {
                     const nextProperties = clonePropertyItems(changes.properties ?? null);
-                    setProperties(prev => (arePropertyItemsEqual(prev, nextProperties) ? prev : nextProperties));
-                    shouldRefreshFrontmatterState = true;
+                    if (!arePropertyItemsEqual(propertiesRef.current, nextProperties)) {
+                        propertiesRef.current = nextProperties;
+                        setProperties(nextProperties);
+                        shouldRefreshFrontmatterState = true;
+                    }
                 }
 
                 if (changes.metadata !== undefined) {

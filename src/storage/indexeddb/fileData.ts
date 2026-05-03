@@ -231,6 +231,54 @@ export interface FileContentChange {
     changeType?: 'metadata' | 'content' | 'both';
     /** True when metadata.name changes between persisted values */
     metadataNameChanged?: boolean;
+    /** True when metadata icon/color changes between persisted values */
+    metadataIconOrColorChanged?: boolean;
+    /** True when metadata.hidden changes between persisted values */
+    metadataHiddenChanged?: boolean;
+}
+
+type FileMetadata = NonNullable<FileData['metadata']>;
+type FileMetadataPatchKey = keyof FileMetadata;
+const FILE_METADATA_PATCH_KEYS: readonly FileMetadataPatchKey[] = ['name', 'created', 'modified', 'icon', 'color', 'background', 'hidden'];
+
+function hasOwnMetadataPatchField(patch: Partial<FileMetadata>, key: keyof FileMetadata): boolean {
+    return Object.prototype.hasOwnProperty.call(patch, key);
+}
+
+function applyMetadataPatchField<K extends FileMetadataPatchKey>(next: FileMetadata, patch: Partial<FileMetadata>, key: K): boolean {
+    if (!hasOwnMetadataPatchField(patch, key)) {
+        return false;
+    }
+
+    const nextValue = patch[key];
+    if (nextValue === undefined) {
+        if (hasOwnMetadataPatchField(next, key)) {
+            delete next[key];
+            return true;
+        }
+        return false;
+    }
+
+    if (next[key] === nextValue) {
+        return false;
+    }
+
+    next[key] = nextValue;
+    return true;
+}
+
+export function applyFileMetadataPatch(
+    existing: FileData['metadata'] | null | undefined,
+    patch: Partial<FileMetadata>
+): { metadata: FileMetadata; changed: boolean } {
+    const next: FileMetadata = { ...(existing ?? {}) };
+    let changed = false;
+
+    for (const key of FILE_METADATA_PATCH_KEYS) {
+        changed = applyMetadataPatchField(next, patch, key) || changed;
+    }
+
+    return { metadata: next, changed };
 }
 
 function normalizeMetadataNameForComparison(metadata: FileData['metadata'] | null | undefined): string | undefined {
@@ -251,4 +299,18 @@ export function hasMetadataNameChanged(
     nextMetadata: FileData['metadata'] | null | undefined
 ): boolean {
     return normalizeMetadataNameForComparison(previousMetadata) !== normalizeMetadataNameForComparison(nextMetadata);
+}
+
+export function hasMetadataHiddenChanged(
+    previousMetadata: FileData['metadata'] | null | undefined,
+    nextMetadata: FileData['metadata'] | null | undefined
+): boolean {
+    return Boolean(previousMetadata?.hidden) !== Boolean(nextMetadata?.hidden);
+}
+
+export function hasMetadataIconOrColorChanged(
+    previousMetadata: FileData['metadata'] | null | undefined,
+    nextMetadata: FileData['metadata'] | null | undefined
+): boolean {
+    return previousMetadata?.icon !== nextMetadata?.icon || previousMetadata?.color !== nextMetadata?.color;
 }

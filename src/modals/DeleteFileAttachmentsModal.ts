@@ -168,7 +168,7 @@ class DeleteFileAttachmentsModal extends Modal {
 
         for (const binding of this.buttonBindings) {
             binding.element.removeEventListener('click', binding.handler);
-            if (binding.element instanceof HTMLInputElement) {
+            if (binding.element.instanceOf(HTMLInputElement)) {
                 binding.element.removeEventListener('change', binding.handler);
             }
         }

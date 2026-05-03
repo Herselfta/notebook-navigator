@@ -128,13 +128,14 @@ export const STRINGS_KO = {
         newFolder: '새 폴더', // Tooltip for create new folder button (English: New folder)
         newNote: '새 노트', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: '탐색으로 돌아가기', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: '정렬 순서 변경', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: '정렬 순서 변경',
+        changeSortAndGroup: '정렬 및 그룹 변경',
         defaultSort: '기본', // Label for default sorting mode (English: Default)
         descendants: '하위 항목',
         subfolders: '하위 폴더',
         subtags: '하위 태그',
         childValues: '하위 값',
-        applySortToDescendants: (target: string) => `${target}에 정렬 적용`,
+        applySortAndGroupToDescendants: (target: string) => `${target}에 정렬 및 그룹 적용`,
         applyAppearanceToDescendants: (target: string) => `${target}에 모양 적용`,
         showFolders: '탐색 표시', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: '내비게이션 재정렬',
@@ -194,11 +195,11 @@ export const STRINGS_KO = {
                     title: '속성',
                     items: [
                         '`.key` 속성 키가 있는 노트를 포함합니다.',
-                        '`.key=value` 속성 값이 있는 노트를 포함합니다.',
+                        '`.key=value` 속성 값에 `value`가 포함된 노트를 포함합니다.',
                         '`."Reading Status"` 공백이 포함된 속성 키가 있는 노트를 포함합니다.',
                         '`."Reading Status"="In Progress"` 공백이 포함된 키와 값은 큰따옴표로 묶어야 합니다.',
                         '`-.key` 속성 키가 있는 노트를 제외합니다.',
-                        '`-.key=value` 속성 값이 있는 노트를 제외합니다.',
+                        '`-.key=value` 속성 값에 `value`가 포함된 노트를 제외합니다.',
                         'Cmd/Ctrl+클릭으로 속성을 AND로 추가. Cmd/Ctrl+Shift+클릭으로 OR로 추가.'
                     ]
                 },
@@ -363,6 +364,8 @@ export const STRINGS_KO = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: '모양',
+        sortBy: '정렬 기준',
         standardPreset: '표준',
         compactPreset: '컴팩트',
         defaultSuffix: '(기본값)',
@@ -381,7 +384,7 @@ export const STRINGS_KO = {
     modals: {
         bulkApply: {
             applyButton: '적용',
-            applySortTitle: (target: string) => `${target}에 정렬을 적용하시겠습니까?`,
+            applySortAndGroupTitle: (target: string) => `${target}에 정렬 및 그룹을 적용하시겠습니까?`,
             applyAppearanceTitle: (target: string) => `${target}에 모양을 적용하시겠습니까?`,
             affectedCountMessage: (count: number) => `변경될 기존 재정의: ${count}.`
         },
@@ -783,6 +786,8 @@ export const STRINGS_KO = {
         toggleDescendants: '하위 항목 전환', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: '숨긴 폴더, 태그, 노트 전환', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: '태그 정렬 전환', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: '선택에 따라 태그 전환',
+        togglePropertiesBySelection: '선택에 따라 속성 전환',
         toggleCompactMode: '컴팩트 모드 전환', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: '모든 항목 접기 / 펼치기', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: '선택한 파일에 태그 추가', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -808,11 +813,13 @@ export const STRINGS_KO = {
         file: '파일',
         files: '파일',
         folder: '폴더',
-        folders: '폴더'
+        folders: '폴더',
+        wordCount: '단어 수'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: '기본 설정 변경',
         metadataReport: {
             exportSuccess: '메타데이터 보고서 내보내기 실패: {filename}',
             exportFailed: '메타데이터 보고서 내보내기 실패'
@@ -988,7 +995,7 @@ export const STRINGS_KO = {
             fileNameIconMap: {
                 name: '파일 이름 아이콘 맵',
                 desc: '텍스트를 포함하는 파일에 지정된 아이콘이 적용됩니다. 줄당 하나의 매핑: 텍스트=아이콘',
-                placeholder: '# 텍스트=아이콘\n회의=LiCalendar\n청구서=PhReceipt',
+                placeholder: '# 텍스트=아이콘\n회의=ph-calendar\n청구서=ph-receipt',
                 editTooltip: '매핑 편집'
             },
             showCategoryIcons: {
@@ -998,12 +1005,8 @@ export const STRINGS_KO = {
             fileTypeIconMap: {
                 name: '파일 유형 아이콘 맵',
                 desc: '확장자가 있는 파일에 지정된 아이콘이 적용됩니다. 줄당 하나의 매핑: 확장자=아이콘',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: '매핑 편집'
-            },
-            optimizeNoteHeight: {
-                name: '가변 노트 높이',
-                desc: '고정된 노트와 미리보기 텍스트가 없는 노트에 컴팩트한 높이를 사용합니다.'
             },
             compactItemHeight: {
                 name: '슬림 항목 높이',
@@ -1210,7 +1213,7 @@ export const STRINGS_KO = {
             },
             calendarMonthHeadingFormat: {
                 name: '월 이름 형식',
-                desc: '연도 보기가 숨겨져 있을 때 월 이름을 일반 또는 약어로 표시합니다.',
+                desc: '월 이름을 긴 형식(1월) 또는 짧은 형식(1월)으로 표시합니다.',
                 options: {
                     full: '1월 (전체)',
                     short: '1월 (축약)'
@@ -1314,6 +1317,10 @@ export const STRINGS_KO = {
             showTooltipPath: {
                 name: '경로 표시',
                 desc: '도구 설명에서 노트 이름 아래에 폴더 경로를 표시합니다.'
+            },
+            showTooltipWordCount: {
+                name: '단어 수 표시',
+                desc: '도구 설명에 노트의 단어 수를 표시합니다.'
             },
             resetPaneSeparator: {
                 name: '창 구분선 위치 초기화',
@@ -1495,12 +1502,16 @@ export const STRINGS_KO = {
                 desc: '파일 항목의 태그 배지에 태그 색상을 적용합니다.'
             },
             prioritizeColoredFileTags: {
-                name: '색상 태그 우선 표시',
-                desc: '색상 태그를 다른 태그보다 먼저 정렬합니다.'
+                name: '사용자 지정 색상 태그 우선 표시',
+                desc: '사용자 지정 색상 태그를 다른 태그보다 먼저 정렬합니다.'
             },
             showFileTagsInCompactMode: {
                 name: '슬림 모드에서 파일 태그 표시',
                 desc: '날짜, 미리보기, 이미지가 숨겨져 있을 때 태그를 표시합니다.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: '태그를 여러 줄로 표시',
+                desc: '파일 태그가 한 줄에 맞지 않으면 추가 줄로 줄바꿈합니다.'
             },
             showFileProperties: {
                 name: '파일 속성 표시',
@@ -1511,12 +1522,16 @@ export const STRINGS_KO = {
                 desc: '파일 항목의 속성 배지에 속성 색상을 적용합니다.'
             },
             prioritizeColoredFileProperties: {
-                name: '색상 속성을 먼저 표시',
-                desc: '파일 항목에서 색상 속성을 다른 속성보다 먼저 정렬합니다.'
+                name: '사용자 지정 색상 속성을 먼저 표시',
+                desc: '파일 항목에서 사용자 지정 색상 속성을 다른 속성보다 먼저 정렬합니다.'
             },
             showFilePropertiesInCompactMode: {
                 name: '간결 모드에서 속성 표시',
                 desc: '간결 모드가 활성화되면 속성을 표시합니다.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: '속성을 여러 줄로 표시',
+                desc: '파일 속성이 한 줄에 맞지 않으면 추가 줄로 줄바꿈합니다.'
             },
             notePropertyType: {
                 name: '노트 속성',
@@ -1534,10 +1549,6 @@ export const STRINGS_KO = {
                 noneConfigured: '구성된 속성 없음',
                 singleConfigured: '1개 속성 구성됨: {properties}',
                 multipleConfigured: '{count}개 속성 구성됨: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: '속성을 별도 행에 표시',
-                desc: '각 속성을 개별 행에 표시합니다.'
             },
             enablePropertyInternalLinks: {
                 name: '속성 필을 노트에 연결',

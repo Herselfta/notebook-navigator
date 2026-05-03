@@ -961,8 +961,8 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
 
             // Skip auto-reveal when the navigator is focused and it opened the currently selected file.
             // This prevents auto-reveal from re-dispatching selection changes for navigator-initiated opens.
-            const navigatorEl = document.querySelector('.nn-split-container');
-            const hasNavigatorFocus = Boolean(navigatorEl && navigatorEl.contains(document.activeElement));
+            const navigatorEl = activeDocument.querySelector('.nn-split-container');
+            const hasNavigatorFocus = Boolean(navigatorEl && navigatorEl.contains(activeDocument.activeElement));
 
             const selectedFilePath = selectedFilePathRef.current;
             const isNavigatorOpeningSelectedFile = selectedFilePath !== null && selectedFilePath === file.path;

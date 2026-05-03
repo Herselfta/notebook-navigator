@@ -282,7 +282,7 @@ export function sortFiles(
                     }
                 }
 
-                let secondaryCmp = 0;
+                let secondaryCmp: number;
                 if (propertySortSecondary === 'created') {
                     secondaryCmp = compareDates(a, b, getCreatedTime, descending);
                 } else if (propertySortSecondary === 'modified') {

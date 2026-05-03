@@ -130,7 +130,7 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: RefObject<
                 lastProgressValue = null;
                 lastProgressMax = null;
 
-                const fragment = document.createDocumentFragment();
+                const fragment = createFragment();
                 const wrapper = fragment.createDiv({ cls: 'nn-cache-rebuild-notice' });
                 wrapper.createDiv({ cls: 'nn-cache-rebuild-notice-title', text: title });
                 wrapper.createDiv({ cls: 'nn-cache-rebuild-notice-description', text: description });

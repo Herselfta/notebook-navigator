@@ -23,12 +23,8 @@ interface SettingGroupController {
     addSetting: (createSetting: (setting: Setting) => void) => Setting;
 }
 
-function supportsSettingGroups(): boolean {
-    return typeof SettingGroup === 'function' && requireApiVersion('1.11.0');
-}
-
 export function createSettingGroupFactory(containerEl: HTMLElement): (heading?: string | DocumentFragment) => SettingGroupController {
-    const useSettingGroups = supportsSettingGroups();
+    const useSettingGroups = typeof SettingGroup === 'function' && requireApiVersion('1.11.0');
 
     return (heading?: string | DocumentFragment): SettingGroupController => {
         if (!useSettingGroups && heading) {

@@ -82,7 +82,7 @@ import { LIST_PANE_SURFACE_COLOR_MAPPINGS } from '../constants/surfaceColorMappi
 import { getListPaneMeasurements } from '../utils/listPaneMeasurements';
 import { resolveUXIcon } from '../utils/uxIcons';
 import { createHiddenTagVisibility } from '../utils/tagPrefixMatcher';
-import { getActivePropertyKeySet } from '../utils/vaultProfiles';
+import { getPropertyKeySet } from '../utils/vaultProfiles';
 import { DateUtils } from '../utils/dateUtils';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../hooks/useNavigatorReveal';
 import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoration';
@@ -320,6 +320,7 @@ export const ListPane = React.memo(
             selectedProperty,
             settings,
             activeProfile,
+            groupBy: appearanceSettings.groupBy,
             searchProvider,
             // Use debounced value for filtering
             searchQuery: isSearchActive ? debouncedSearchQuery : undefined,
@@ -337,10 +338,10 @@ export const ListPane = React.memo(
         }, [selectionType, selectedFolder]);
         const { visibleListPropertyKeys, visibleNavigationPropertyKeys } = useMemo(() => {
             return {
-                visibleListPropertyKeys: getActivePropertyKeySet(settings, 'list'),
-                visibleNavigationPropertyKeys: getActivePropertyKeySet(settings, 'navigation')
+                visibleListPropertyKeys: getPropertyKeySet(activeProfile.propertyKeys, 'list'),
+                visibleNavigationPropertyKeys: getPropertyKeySet(activeProfile.propertyKeys, 'navigation')
             };
-        }, [settings]);
+        }, [activeProfile.propertyKeys]);
         const fileItemStorage = useMemo<FileItemStorageHelpers>(
             () => ({
                 getFileDisplayName,
@@ -443,7 +444,7 @@ export const ListPane = React.memo(
                 return;
             }
 
-            setTimeout(scheduleScroll, 0);
+            activeWindow.setTimeout(scheduleScroll, 0);
         }, [calendarWeekCount, filePathToIndex, rowVirtualizer, selectedFile, shouldRenderCalendarOverlay]);
 
         const listToolbar = useMemo(() => {

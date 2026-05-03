@@ -23,13 +23,16 @@ export default tseslint.config(
                 ...globals.node
             },
             parserOptions: {
-                project: './tsconfig.json'
+                project: './tsconfig.eslint.json'
             }
         },
         rules: {
             // Tests may legitimately use Node built-ins (e.g. reading fixture files).
             // Keep this rule enabled for `src/**` to avoid shipping Node-only imports in the plugin runtime.
             'import/no-nodejs-modules': 'off',
+            'obsidianmd/no-nodejs-modules': 'off',
+            // Tests run in Node and may use test harness globals instead of Obsidian's active document.
+            'obsidianmd/prefer-active-doc': 'off',
             'no-restricted-properties': [
                 'error',
                 {
@@ -97,7 +100,7 @@ export default tseslint.config(
                     message: 'Use showNotice(...) instead of new Notice(...).'
                 }
             ],
-            // Upgrade obsidianmd rules from warn to error
+            // Upgrade the Obsidian trash rule from warn to error.
             'obsidianmd/prefer-file-manager-trash-file': 'error',
 
             // Type assertions

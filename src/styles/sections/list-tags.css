@@ -24,12 +24,29 @@
     display: none;
 }
 
+.nn-file-tags[data-wrap='true'],
+.nn-file-property-row[data-wrap='true'] {
+    flex-wrap: wrap;
+    align-content: flex-start;
+    overflow-x: hidden;
+    height: auto;
+    min-height: var(--nn-file-tag-row-height);
+}
+
+.nn-file-tags[data-wrap='true'] .nn-file-tag,
+.nn-file-property-row[data-wrap='true'] .nn-file-tag {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Individual tag pill */
 .nn-file-tag {
     --nn-file-pill-border-color-resolved: var(--nn-theme-file-tag-border-color);
     display: inline-flex;
     align-items: center;
-    height: 20px;
+    box-sizing: border-box;
+    height: var(--nn-file-tag-row-height);
     line-height: 1;
     padding: 0 8px;
     background-color: var(--nn-theme-file-tag-bg);

@@ -237,7 +237,7 @@ export class OmnisearchService {
         }
 
         // Fallback to global scope
-        const globalApi = (globalThis as { omnisearch?: unknown }).omnisearch;
+        const globalApi = (activeWindow as Window & { omnisearch?: unknown }).omnisearch;
         if (globalApi && isOmnisearchApi(globalApi)) {
             return globalApi;
         }

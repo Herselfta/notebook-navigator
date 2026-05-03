@@ -418,6 +418,10 @@ body {
     --nn-selected-navitem-count-border-color: var(--nn-theme-navitem-selected-count-border-color);
 }
 
+.nn-navigation-pane {
+    --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-bg, var(--nn-theme-navitem-selected-bg));
+}
+
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='navigation'], [data-focus-pane='search']) {
     --nn-selected-file-bg-color: var(--nn-computed-file-selected-inactive-bg, var(--nn-theme-file-selected-inactive-bg));
     --nn-selected-file-name-color: var(--nn-theme-file-selected-inactive-name-color);
@@ -429,6 +433,10 @@ body {
     --nn-selected-file-property-color: var(--nn-theme-file-selected-inactive-property-color);
     --nn-selected-file-property-bg: var(--nn-theme-file-selected-inactive-property-bg);
     --nn-selected-file-border-color: var(--nn-theme-file-selected-inactive-border-color);
+}
+
+.nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search']) .nn-navigation-pane {
+    --nn-selected-navitem-bg-color: var(--nn-computed-navitem-selected-inactive-bg, var(--nn-theme-navitem-selected-inactive-bg));
 }
 
 .nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search']) {
@@ -1969,12 +1977,16 @@ body {
 .nn-desktop .nn-navitem:not([data-search-match]):hover::after {
     content: '';
     position: absolute;
-    top: 0;
-    bottom: 0;
+    top: 0px;
+    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
+    bottom: -0.5px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    background-color: var(--nn-theme-navitem-hover-bg);
-    border-radius: min(14px, var(--nn-theme-navitem-border-radius));
+    background-color: var(--nn-computed-navitem-hover-bg, var(--nn-theme-navitem-hover-bg));
+    border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-bottom-left-radius: var(--nn-navitem-bottom-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    border-bottom-right-radius: var(--nn-navitem-bottom-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
     box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-theme-navitem-hover-border-color);
     z-index: 1;
     pointer-events: none;
@@ -4097,12 +4109,29 @@ body {
     display: none;
 }
 
+.nn-file-tags[data-wrap='true'],
+.nn-file-property-row[data-wrap='true'] {
+    flex-wrap: wrap;
+    align-content: flex-start;
+    overflow-x: hidden;
+    height: auto;
+    min-height: var(--nn-file-tag-row-height);
+}
+
+.nn-file-tags[data-wrap='true'] .nn-file-tag,
+.nn-file-property-row[data-wrap='true'] .nn-file-tag {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 /* Individual tag pill */
 .nn-file-tag {
     --nn-file-pill-border-color-resolved: var(--nn-theme-file-tag-border-color);
     display: inline-flex;
     align-items: center;
-    height: 20px;
+    box-sizing: border-box;
+    height: var(--nn-file-tag-row-height);
     line-height: 1;
     padding: 0 8px;
     background-color: var(--nn-theme-file-tag-bg);
@@ -6189,6 +6218,7 @@ body.nn-resizing {
     top: 0;
     left: 0;
     width: 100%;
+    transform: translateY(var(--nn-virtual-item-start, 0px));
 }
 
 /* Virtual navigation item (folders and tags) */
@@ -6197,6 +6227,7 @@ body.nn-resizing {
     top: 0;
     left: 0;
     width: 100%;
+    transform: translateY(var(--nn-virtual-item-start, 0px));
 }
 
 /* Virtual file item wrapper - position relative for separator positioning */
@@ -7654,7 +7685,7 @@ body.nn-resizing {
  *   reliably when the virtualizer remeasures and updates absolute positioning.
  */
 .notebook-navigator-obsidian-1-11-plus-ios .nn-list-pane .nn-virtual-item {
-    transform: translateZ(0);
+    transform: translateY(var(--nn-virtual-item-start, 0px)) translateZ(0);
 }
 /* Source: src/styles/sections/platform-android-obsidian-1-11.css */
 

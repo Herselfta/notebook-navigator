@@ -189,8 +189,6 @@ export class ExternalIconProviderController {
                 return;
             }
 
-            console.log(`[IconProviders] Updating ${id} from version ${previousVersion} to ${manifest.version} using bundled manifest`);
-
             const config = this.requireProviderConfig(id);
 
             tasks.push(

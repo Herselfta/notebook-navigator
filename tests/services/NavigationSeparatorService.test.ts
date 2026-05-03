@@ -192,7 +192,7 @@ describe('NavigationSeparatorService tag cleanup', () => {
         const validators = {
             ...createValidators([]),
             tagTree: new Map([[reunionNode.path, reunionNode]])
-        } as CleanupValidators;
+        };
 
         const changed = await service.cleanupWithValidators(validators, settings);
 

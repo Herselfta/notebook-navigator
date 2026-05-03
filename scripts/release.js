@@ -21,17 +21,15 @@
  * ==============
  * This script automates the release process for Obsidian plugins by:
  * - Incrementing version numbers in manifest.json, package.json, and versions.json
- * - Committing the changes
- * - Creating a git tag
- * - Pushing everything to trigger GitHub Actions
+ * - Creating a release branch and pull request with the version bump
+ * - Publishing a merged release by creating and pushing a git tag
  *
  * Usage:
- *   node release.js                    # Interactive mode (choose between patch/minor/major)
- *   node release.js patch              # Direct patch release (no interaction)
- *   node release.js minor              # Direct minor release (no interaction)
- *   node release.js major              # Direct major release (no interaction)
+ *   node release.js                    # Publish an untagged merged version, or choose the next release
+ *   node release.js patch              # Prepare a patch release PR
+ *   node release.js minor              # Prepare a minor release PR
+ *   node release.js major              # Prepare a major release PR
  *   node release.js patch --dry-run    # Preview changes without executing
- *   node release.js --dry-run          # Interactive mode with dry run
  *
  * Version numbering follows Semantic Versioning (semver):
  *   MAJOR.MINOR.PATCH (e.g., 1.2.3)
@@ -48,7 +46,8 @@
  *     Example: 1.2.3 → 2.0.0 (minor and patch reset to 0)
  *     Use when: You changed how settings work, removed features, or made changes that require users to reconfigure
  *
- * Make sure you have committed all your changes before running this script!
+ * Make sure you have committed all your changes before running this script.
+ * Release version changes must go through a pull request before publishing.
  */
 
 const fs = require('fs');
@@ -97,11 +96,33 @@ function writeJsonFile(filePath, data) {
     fs.renameSync(tempPath, filePath);
 }
 
+function isDryRunGitMutation(args) {
+    const command = args[0];
+    if (['add', 'commit', 'push', 'checkout'].includes(command)) {
+        return true;
+    }
+    if (command === 'tag') {
+        return args.some(arg => ['-a', '--annotate', '-s', '--sign', '-d', '--delete', '-f', '--force'].includes(arg));
+    }
+    if (command === 'branch') {
+        return args.some(arg => ['-d', '-D', '--delete', '-m', '-M', '--move', '-c', '-C', '--copy'].includes(arg));
+    }
+    return false;
+}
+
+function getDryRunGitResult(options) {
+    return options.encoding ? '' : Buffer.from('');
+}
+
+function logDryRunCommand(command) {
+    console.log(`[DRY RUN] Would run: ${command}`);
+}
+
 // Helper to execute git commands with array syntax (safe from injection)
 function gitExecArray(args, options = {}) {
-    if (isDryRun && ['add', 'commit', 'tag', 'push'].includes(args[0])) {
-        console.log(`[DRY RUN] Would run: git ${args.join(' ')}`);
-        return Buffer.from('');
+    if (isDryRun && isDryRunGitMutation(args)) {
+        logDryRunCommand(`git ${args.join(' ')}`);
+        return getDryRunGitResult(options);
     }
     return execFileSync('git', args, { cwd: projectRoot, ...options });
 }
@@ -110,6 +131,58 @@ function gitExecArray(args, options = {}) {
 function gitExecString(args, options = {}) {
     const result = gitExecArray(args, { encoding: 'utf8', ...options }).trim();
     return result;
+}
+
+function commandAvailable(command) {
+    try {
+        execFileSync(command, ['--version'], { stdio: 'ignore' });
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+function assertOnlyExpectedChanges(expectedFiles) {
+    const expectedFileSet = new Set(expectedFiles);
+    const status = gitExecArray(['status', '--porcelain'], { encoding: 'utf8' }).trimEnd();
+
+    if (!status) {
+        return;
+    }
+
+    const unexpectedChanges = status.split('\n').filter(line => {
+        const pathPart = line.slice(3);
+        const changedPath = pathPart.includes(' -> ') ? pathPart.split(' -> ').pop() : pathPart;
+        return !expectedFileSet.has(changedPath);
+    });
+
+    if (unexpectedChanges.length === 0) {
+        return;
+    }
+
+    throw new Error(
+        [
+            'Build changed files outside the release metadata:',
+            ...unexpectedChanges.map(line => `   ${line}`),
+            '',
+            'Commit or fix these generated changes before preparing the release.'
+        ].join('\n')
+    );
+}
+
+function updatePackageLockVersion(packageLock, newVersion) {
+    if (!packageLock || typeof packageLock !== 'object') {
+        throw new Error('package-lock.json is not a valid object');
+    }
+
+    if ('version' in packageLock) {
+        packageLock.version = newVersion;
+    }
+
+    const rootPackage = packageLock.packages?.[''];
+    if (rootPackage && typeof rootPackage === 'object') {
+        rootPackage.version = newVersion;
+    }
 }
 
 // ============================================================================
@@ -243,7 +316,11 @@ function preReleaseChecks() {
 
         // Check if branch is up to date with remote
         try {
-            gitExecArray(['fetch'], { stdio: 'pipe' });
+            if (isDryRun) {
+                logDryRunCommand('git fetch');
+            } else {
+                gitExecArray(['fetch'], { stdio: 'pipe' });
+            }
         } catch (e) {
             console.error('❌ Failed to fetch from remote:', e.message);
             process.exit(1);
@@ -273,24 +350,86 @@ function preReleaseChecks() {
     }
 }
 
+function syncMainForDefaultFlow(selectedReleaseType, dryRun) {
+    if (selectedReleaseType || dryRun) {
+        return;
+    }
+
+    let currentBranch;
+    try {
+        currentBranch = gitExecString(['rev-parse', '--abbrev-ref', 'HEAD']);
+    } catch (e) {
+        return;
+    }
+
+    if (currentBranch !== 'main') {
+        return;
+    }
+
+    try {
+        gitExecArray(['fetch', 'origin', 'main'], { stdio: 'pipe' });
+
+        const localCommit = gitExecString(['rev-parse', 'main']);
+        const remoteCommit = gitExecString(['rev-parse', 'origin/main']);
+        if (localCommit === remoteCommit) {
+            return;
+        }
+
+        const status = gitExecString(['status', '--porcelain']);
+        if (status) {
+            console.error('❌ Local main is behind origin/main, but the worktree has uncommitted changes.');
+            console.error('   Commit or stash the changes, then run: node scripts/release.js');
+            process.exit(1);
+        }
+
+        const mergeBase = gitExecString(['merge-base', 'main', 'origin/main']);
+        if (mergeBase !== localCommit) {
+            console.error('❌ Local main cannot be fast-forwarded from origin/main.');
+            console.error('   Resolve the branch state manually, then run: node scripts/release.js');
+            process.exit(1);
+        }
+
+        gitExecArray(['merge', '--ff-only', 'origin/main'], { stdio: 'inherit' });
+        console.log('✓ Updated local main from origin/main');
+    } catch (error) {
+        console.error('❌ Failed to update local main:', error.message);
+        process.exit(1);
+    }
+}
+
+function getTagStatus(version) {
+    const localTags = gitExecString(['tag', '-l', version]);
+    const localTagExists = Boolean(localTags);
+
+    try {
+        if (isDryRun) {
+            logDryRunCommand('git fetch --tags');
+        } else {
+            gitExecArray(['fetch', '--tags'], { stdio: 'pipe' });
+        }
+    } catch (e) {
+        console.error('⚠️  Warning: Could not fetch tags:', e.message);
+    }
+
+    const remoteTags = gitExecString(['ls-remote', '--tags', 'origin']);
+    const remoteTagExists = remoteTags.split('\n').some(line => {
+        const ref = line.trim().split(/\s+/)[1];
+        return ref === `refs/tags/${version}` || ref === `refs/tags/${version}^{}`;
+    });
+
+    return { localTagExists, remoteTagExists };
+}
+
 function checkExistingTag(version) {
     try {
-        // Check if tag already exists locally
-        const localTags = gitExecString(['tag', '-l', version]);
-        if (localTags) {
+        const { localTagExists, remoteTagExists } = getTagStatus(version);
+
+        if (localTagExists) {
             console.error(`❌ Tag ${version} already exists locally`);
             process.exit(1);
         }
 
-        // Check remote tags
-        try {
-            gitExecArray(['fetch', '--tags'], { stdio: 'pipe' });
-        } catch (e) {
-            console.error('⚠️  Warning: Could not fetch tags:', e.message);
-        }
-
-        const remoteTags = gitExecString(['ls-remote', '--tags', 'origin']);
-        if (remoteTags.includes(`refs/tags/${version}`)) {
+        if (remoteTagExists) {
             console.error(`❌ Tag ${version} already exists on remote`);
             console.error('   This version has already been released');
             process.exit(1);
@@ -303,12 +442,40 @@ function checkExistingTag(version) {
     }
 }
 
+function checkReleaseBranchAvailable(version) {
+    const branchName = `release/${version}`;
+
+    try {
+        gitExecArray(['rev-parse', '--verify', branchName], { stdio: 'pipe' });
+        console.error(`❌ Local branch ${branchName} already exists`);
+        console.error(`   Delete it or choose a different version before retrying.`);
+        process.exit(1);
+    } catch (e) {
+        // Missing local branch is expected.
+    }
+
+    try {
+        const remoteBranch = gitExecString(['ls-remote', '--heads', 'origin', branchName]);
+        if (remoteBranch) {
+            console.error(`❌ Remote branch ${branchName} already exists`);
+            console.error(`   Close or remove the existing release branch before retrying.`);
+            process.exit(1);
+        }
+    } catch (error) {
+        console.error('❌ Failed to check existing release branches:', error.message);
+        process.exit(1);
+    }
+
+    console.log(`✓ Release branch ${branchName} is available`);
+    return branchName;
+}
+
 // ============================================================================
 // BUILD OPERATIONS
 // ============================================================================
 
 function verifyBuild() {
-    console.log('\n🔨 Running build to verify project integrity...');
+    console.log('\n🔨 Running full build verification...');
 
     try {
         // Check if package.json exists
@@ -319,7 +486,14 @@ function verifyBuild() {
             process.exit(1);
         }
 
-        // Check if build script exists
+        const buildScriptPath = path.join(projectRoot, 'scripts', 'build.sh');
+        if (!fs.existsSync(buildScriptPath)) {
+            console.error('❌ Build script not found');
+            console.error('   Expected: scripts/build.sh');
+            process.exit(1);
+        }
+
+        // Check if package build script exists because scripts/build.sh calls it
         const packageJson = parseJsonFile(packageJsonPath, 'package.json');
         if (!packageJson.scripts || !packageJson.scripts.build) {
             console.error('❌ No build script found in package.json');
@@ -330,11 +504,22 @@ function verifyBuild() {
         // Check if npm is available
         checkNpmAvailable();
 
-        // Run the build (Windows compatibility)
+        if (isDryRun) {
+            logDryRunCommand(os.platform() === 'win32' ? 'bash scripts/build.sh' : './scripts/build.sh');
+            console.log('✓ Full build command is available\n');
+            return;
+        }
+
+        // Run the full build gate used by CI.
         if (os.platform() === 'win32') {
-            execSync('npm.cmd run build', { stdio: 'inherit', cwd: projectRoot, shell: true });
+            if (!commandAvailable('bash')) {
+                console.error('❌ bash is required to run scripts/build.sh on Windows');
+                console.error('   Install Git Bash or run release verification from a Unix-like shell');
+                process.exit(1);
+            }
+            execFileSync('bash', [buildScriptPath], { stdio: 'inherit', cwd: projectRoot });
         } else {
-            execSync('npm run build', { stdio: 'inherit', cwd: projectRoot });
+            execFileSync(buildScriptPath, [], { stdio: 'inherit', cwd: projectRoot });
         }
 
         // Verify build output exists
@@ -346,9 +531,9 @@ function verifyBuild() {
             process.exit(1);
         }
 
-        console.log('✓ Build completed successfully\n');
+        console.log('✓ Full build completed successfully\n');
     } catch (error) {
-        console.error('❌ Build failed:', error.message);
+        console.error('❌ Full build failed:', error.message);
         console.error('   Fix build errors before releasing');
         process.exit(1);
     }
@@ -375,8 +560,24 @@ function validateReleaseReadiness(manifest, currentVersion) {
         console.log('✓ package.json version matches manifest.json');
     }
 
-    // Check required files exist
-    const requiredFiles = ['manifest.json', 'main.js', 'styles.css'];
+    // Check package-lock.json version matches manifest.json
+    const packageLockPath = path.join(projectRoot, 'package-lock.json');
+    if (fs.existsSync(packageLockPath)) {
+        const packageLock = parseJsonFile(packageLockPath, 'package-lock.json');
+        const rootPackageVersion = packageLock.packages?.['']?.version;
+        if (packageLock.version !== currentVersion || rootPackageVersion !== currentVersion) {
+            console.error('❌ Version mismatch between manifest.json and package-lock.json');
+            console.error(`   manifest.json:            ${currentVersion}`);
+            console.error(`   package-lock.json:        ${packageLock.version}`);
+            console.error(`   package-lock root package: ${rootPackageVersion}`);
+            console.error('   Align versions before releasing');
+            process.exit(1);
+        }
+        console.log('✓ package-lock.json version matches manifest.json');
+    }
+
+    // Check required source-controlled files exist. Build artifacts are checked after verifyBuild().
+    const requiredFiles = ['manifest.json', 'styles.css'];
     const missingRequiredFiles = requiredFiles.filter(file => !fs.existsSync(path.join(projectRoot, file)));
 
     if (missingRequiredFiles.length > 0) {
@@ -411,22 +612,39 @@ function validateReleaseReadiness(manifest, currentVersion) {
     console.log('\n✓ All pre-flight checks passed\n');
 }
 
+function validateReleaseNotes(version) {
+    try {
+        execFileSync(process.execPath, [path.join(projectRoot, 'scripts', 'mdReleaseNotes.js'), version], {
+            cwd: projectRoot,
+            stdio: 'ignore'
+        });
+    } catch (e) {
+        console.error(`❌ Release notes missing for version ${version}`);
+        console.error('   Add an entry to src/releaseNotes.ts before publishing');
+        process.exit(1);
+    }
+
+    console.log(`✓ Release notes found for ${version}`);
+}
+
 // ============================================================================
 // RELEASE OPERATIONS
 // ============================================================================
 
-function performRelease(releaseType, manifest, currentVersion, newVersion) {
+function prepareRelease(releaseType, manifest, currentVersion, newVersion) {
     // Run all validations first
     validateReleaseReadiness(manifest, currentVersion);
+    validateReleaseNotes(newVersion);
     checkVersionOverflow(...currentVersion.split('.').map(Number), releaseType);
     preReleaseChecks();
     checkExistingTag(newVersion);
-    verifyBuild();
+    const releaseBranch = checkReleaseBranchAvailable(newVersion);
 
     // Create backups of files we're about to modify
-    const filesToBackup = ['manifest.json', 'package.json', 'versions.json'];
+    const filesToBackup = ['manifest.json', 'package.json', 'package-lock.json', 'versions.json'];
     const backups = {};
     let currentCommit = null;
+    let releaseBranchCreated = false;
 
     try {
         // Get current commit for potential rollback
@@ -477,14 +695,28 @@ function performRelease(releaseType, manifest, currentVersion, newVersion) {
             }
         }
 
+        if (releaseBranchCreated) {
+            try {
+                gitExecArray(['checkout', 'main'], { stdio: 'ignore' });
+                gitExecArray(['branch', '-D', releaseBranch], { stdio: 'ignore' });
+                console.error(`   ✓ Removed local branch ${releaseBranch}`);
+            } catch (e) {
+                console.error(`   ⚠️  Could not remove local branch ${releaseBranch}:`, e.message);
+            }
+        }
+
         if (message) console.error(`\n❌ ${message}`);
         process.exit(1);
     };
 
-    console.log(`\nBumping version from ${currentVersion} to ${newVersion}\n`);
+    console.log(`\nPreparing release branch ${releaseBranch}`);
+    console.log(`Bumping version from ${currentVersion} to ${newVersion}\n`);
     needsCleanup = true;
 
     try {
+        gitExecArray(['checkout', '-b', releaseBranch], { stdio: 'inherit' });
+        releaseBranchCreated = true;
+
         // Update manifest.json
         const manifestPath = path.join(projectRoot, 'manifest.json');
         const updatedManifest = { ...manifest, version: newVersion };
@@ -508,6 +740,20 @@ function performRelease(releaseType, manifest, currentVersion, newVersion) {
             console.log('✓ Updated package.json');
         }
 
+        // Update package-lock.json if it exists
+        const packageLockPath = path.join(projectRoot, 'package-lock.json');
+        if (fs.existsSync(packageLockPath)) {
+            let packageLock;
+            try {
+                packageLock = parseJsonFile(packageLockPath, 'package-lock.json');
+                updatePackageLockVersion(packageLock, newVersion);
+            } catch (e) {
+                rollback(e.message);
+            }
+            writeJsonFile(packageLockPath, packageLock);
+            console.log('✓ Updated package-lock.json');
+        }
+
         // Update versions.json
         const versionsPath = path.join(projectRoot, 'versions.json');
         let versionsJson = {};
@@ -526,10 +772,15 @@ function performRelease(releaseType, manifest, currentVersion, newVersion) {
         rollback(`Failed to update version files: ${error.message}`);
     }
 
+    verifyBuild();
+
     // Git operations
     try {
         // Add only files that exist
-        const filesToAdd = ['manifest.json', 'package.json', 'versions.json'].filter(file => fs.existsSync(path.join(projectRoot, file)));
+        const filesToAdd = ['manifest.json', 'package.json', 'package-lock.json', 'versions.json'].filter(file =>
+            fs.existsSync(path.join(projectRoot, file))
+        );
+        assertOnlyExpectedChanges(filesToAdd);
 
         // Use array syntax to avoid shell injection
         gitExecArray(['add', ...filesToAdd], { stdio: 'inherit' });
@@ -538,38 +789,85 @@ function performRelease(releaseType, manifest, currentVersion, newVersion) {
         gitExecArray(['commit', '-m', `Bump version to ${newVersion}`], { stdio: 'inherit' });
         console.log('✓ Committed version changes');
 
-        // Create annotated tag with atomic operation
-        try {
-            gitExecArray(['tag', '-a', newVersion, '-m', `Release ${newVersion}`], { stdio: 'inherit' });
-            console.log(`✓ Created tag ${newVersion}`);
-        } catch (e) {
-            // If tag creation fails, we've already committed, so note this in error
-            console.error('\n⚠️  Commit succeeded but tag creation failed.');
-            console.error('   The version bump has been committed.');
-            rollback(`Tag creation failed: ${e.message}`);
-        }
-
-        // Push commits and the new tag
-        gitExecArray(['push'], { stdio: 'inherit' });
-        gitExecArray(['push', 'origin', `refs/tags/${newVersion}`], { stdio: 'inherit' });
-        console.log('✓ Pushed to remote');
+        gitExecArray(['push', '-u', 'origin', releaseBranch], { stdio: 'inherit' });
+        console.log(`✓ Pushed ${releaseBranch} to remote`);
 
         needsCleanup = false;
 
         if (isDryRun) {
-            console.log(`\n🔍 DRY RUN COMPLETE - Version ${newVersion} would be released`);
+            console.log(`\n🔍 DRY RUN COMPLETE - Release branch ${releaseBranch} would be prepared`);
         } else {
-            console.log(`\n🎉 Successfully released version ${newVersion}`);
-            console.log('GitHub Actions will now build and publish the GitHub release.');
+            createReleasePullRequest(releaseBranch, newVersion);
+            gitExecArray(['checkout', 'main'], { stdio: 'inherit' });
+            console.log(`\n✓ Release PR prepared for version ${newVersion}`);
             console.log('\nNext steps:');
-            console.log('1. Wait for GitHub Actions to complete');
-            console.log('2. Verify the release on GitHub\n');
+            console.log('1. Wait for CI to pass on the release pull request');
+            console.log('2. Merge the pull request into main');
+            console.log('3. Run: node scripts/release.js\n');
         }
     } catch (error) {
         // If git operations fail, rollback file changes
         console.error('\n⚠️  Note: Git operations may have partially completed.');
         console.error('   Check git status and tags before retrying.');
         rollback(`Git operations failed: ${error.message}`);
+    }
+}
+
+function createReleasePullRequest(releaseBranch, newVersion) {
+    if (!commandAvailable('gh')) {
+        console.log('⚠️  GitHub CLI not found; create the release pull request manually.');
+        console.log(`   Branch: ${releaseBranch}`);
+        return;
+    }
+
+    try {
+        execFileSync(
+            'gh',
+            [
+                'pr',
+                'create',
+                '--base',
+                'main',
+                '--head',
+                releaseBranch,
+                '--title',
+                `Release ${newVersion}`,
+                '--body',
+                `Bumps release metadata to ${newVersion}.`
+            ],
+            { cwd: projectRoot, stdio: 'inherit' }
+        );
+        console.log('✓ Created release pull request');
+    } catch (error) {
+        console.log('⚠️  Could not create the release pull request automatically.');
+        console.log(`   Create it manually from branch: ${releaseBranch}`);
+    }
+}
+
+function publishRelease(manifest, currentVersion) {
+    validateReleaseReadiness(manifest, currentVersion);
+    validateReleaseNotes(currentVersion);
+    preReleaseChecks();
+    checkExistingTag(currentVersion);
+    verifyBuild();
+
+    try {
+        gitExecArray(['tag', '-a', currentVersion, '-m', `Release ${currentVersion}`], { stdio: 'inherit' });
+        console.log(`✓ Created tag ${currentVersion}`);
+
+        gitExecArray(['push', 'origin', `refs/tags/${currentVersion}`], { stdio: 'inherit' });
+        console.log(`✓ Pushed tag ${currentVersion}`);
+
+        if (isDryRun) {
+            console.log(`\n🔍 DRY RUN COMPLETE - Version ${currentVersion} would be published`);
+        } else {
+            console.log(`\n🎉 Successfully published version ${currentVersion}`);
+            console.log('GitHub Actions will now build and publish the GitHub release.');
+        }
+    } catch (error) {
+        console.error('\n❌ Publish failed:', error.message);
+        console.error('   Check local tags and GitHub Actions before retrying.');
+        process.exit(1);
     }
 }
 
@@ -611,7 +909,7 @@ function showInteractivePrompt(currentVersion, versions) {
                 process.exit(1);
         }
 
-        performRelease(releaseType, manifest, currentVersion, versions[releaseType]);
+        prepareRelease(releaseType, manifest, currentVersion, versions[releaseType]);
     });
 }
 
@@ -623,7 +921,21 @@ function acquireLock() {
     if (isDryRun) return;
 
     try {
-        if (fs.existsSync(lockFilePath)) {
+        while (true) {
+            try {
+                const fd = fs.openSync(lockFilePath, 'wx');
+                try {
+                    fs.writeFileSync(fd, process.pid.toString());
+                } finally {
+                    fs.closeSync(fd);
+                }
+                return;
+            } catch (error) {
+                if (error.code !== 'EEXIST') {
+                    throw error;
+                }
+            }
+
             const pid = fs.readFileSync(lockFilePath, 'utf8').trim();
 
             // Check if process is still running
@@ -640,8 +952,6 @@ function acquireLock() {
                 fs.unlinkSync(lockFilePath);
             }
         }
-
-        fs.writeFileSync(lockFilePath, process.pid.toString());
     } catch (error) {
         console.error('❌ Failed to acquire lock:', error.message);
         process.exit(1);
@@ -653,7 +963,10 @@ function releaseLock() {
 
     try {
         if (fs.existsSync(lockFilePath)) {
-            fs.unlinkSync(lockFilePath);
+            const pid = fs.readFileSync(lockFilePath, 'utf8').trim();
+            if (pid === process.pid.toString()) {
+                fs.unlinkSync(lockFilePath);
+            }
         }
     } catch (error) {
         console.error('⚠️  Failed to release lock:', error.message);
@@ -701,17 +1014,12 @@ if (args.length > 0) {
 
 const hasValidArg = releaseTypeArg && validReleaseTypes.includes(releaseTypeArg);
 
-if (releaseTypeArg && !hasValidArg) {
-    console.error(`❌ Invalid release type: ${releaseTypeArg}`);
-    console.error('   Use one of: patch, minor, major');
-    console.error('\n   Usage: node release.js [patch|minor|major] [--dry-run]');
-    process.exit(1);
-}
-
 // Acquire lock before any operations (but never in --dry-run mode)
 if (!isDryRun) {
     acquireLock();
 }
+
+syncMainForDefaultFlow(releaseTypeArg, isDryRun);
 
 // Read and validate manifest
 const manifestPath = path.join(projectRoot, 'manifest.json');
@@ -744,9 +1052,28 @@ const versions = {
 
 // Execute release
 if (hasValidArg) {
-    // Direct release mode
-    performRelease(releaseTypeArg, manifest, currentVersion, versions[releaseTypeArg]);
+    // Direct release preparation mode
+    prepareRelease(releaseTypeArg, manifest, currentVersion, versions[releaseTypeArg]);
+} else if (releaseTypeArg) {
+    console.error(`❌ Invalid release type: ${releaseTypeArg}`);
+    console.error('   Use one of: patch, minor, major');
+    console.error('\n   Usage: node release.js [patch|minor|major] [--dry-run]');
+    process.exit(1);
 } else {
-    // Interactive mode
-    showInteractivePrompt(currentVersion, versions);
+    let tagStatus;
+    try {
+        tagStatus = getTagStatus(currentVersion);
+    } catch (error) {
+        console.error('❌ Failed to check whether the current version is already published:', error.message);
+        process.exit(1);
+    }
+
+    const { localTagExists, remoteTagExists } = tagStatus;
+
+    if (!localTagExists && !remoteTagExists) {
+        console.log(`\nCurrent version ${currentVersion} is not tagged. Publishing merged release.`);
+        publishRelease(manifest, currentVersion);
+    } else {
+        showInteractivePrompt(currentVersion, versions);
+    }
 }

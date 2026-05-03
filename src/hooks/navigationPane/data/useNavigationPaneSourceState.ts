@@ -32,9 +32,9 @@ import {
     type HiddenFileNameMatcher
 } from '../../../utils/fileFilters';
 import { getDirectPropertyKeyNoteCount } from '../../../utils/propertyTree';
-import { casefold } from '../../../utils/recordUtils';
 import { createHiddenTagVisibility } from '../../../utils/tagPrefixMatcher';
 import { excludeFromTagTree } from '../../../utils/tagTree';
+import { getPropertyKeySet } from '../../../utils/vaultProfiles';
 import type { FolderNavigationSourceState } from '../../useFolderNavigationSourceState';
 import { useRootPropertyOrder } from '../../useRootPropertyOrder';
 import { useRootTagOrder } from '../../useRootTagOrder';
@@ -89,7 +89,7 @@ export interface NavigationPaneSourceState {
     propertyKeyComparator: PropertyNodeComparator;
     rootPropertyOrderMap: Map<string, number>;
     missingRootPropertyKeys: string[];
-    visiblePropertyNavigationKeySet: Set<string>;
+    visiblePropertyNavigationKeySet: ReadonlySet<string>;
     metadataDecorationVersion: number;
     getFolderSortName: (folder: TFolder) => string;
     folderExclusionByFolderNote: ((folder: TFolder) => boolean) | undefined;
@@ -213,26 +213,10 @@ export function useNavigationPaneSourceState({
         comparator: propertyKeyComparator
     });
 
-    const visiblePropertyNavigationKeySet = useMemo(() => {
-        const keys = new Set<string>();
-        const seen = new Set<string>();
-        const entries = activeProfile.profile.propertyKeys ?? [];
-        entries.forEach(entry => {
-            if (!entry.showInNavigation) {
-                return;
-            }
-
-            const normalizedKey = casefold(entry.key);
-            if (!normalizedKey || seen.has(normalizedKey)) {
-                return;
-            }
-
-            seen.add(normalizedKey);
-            keys.add(normalizedKey);
-        });
-
-        return keys;
-    }, [activeProfile.profile.propertyKeys]);
+    const visiblePropertyNavigationKeySet = useMemo(
+        () => getPropertyKeySet(activeProfile.propertyKeys, 'navigation'),
+        [activeProfile.propertyKeys]
+    );
 
     const recentNotesHiddenFileMatcher = useMemo(() => {
         return createFileHiddenMatcher(

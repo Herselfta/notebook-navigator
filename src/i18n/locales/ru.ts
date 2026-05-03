@@ -129,13 +129,14 @@ export const STRINGS_RU = {
         newFolder: 'Новая папка', // Tooltip for create new folder button (English: New folder)
         newNote: 'Новая заметка', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Назад к навигации', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: 'Изменить сортировку', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: 'Изменить сортировку',
+        changeSortAndGroup: 'Изменить сортировку и группировку',
         defaultSort: 'По умолчанию', // Label for default sorting mode (English: Default)
         descendants: 'потомков',
         subfolders: 'подпапок',
         subtags: 'подтегов',
         childValues: 'дочерних значений',
-        applySortToDescendants: (target: string) => `Применить сортировку для ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `Применить сортировку и группировку для ${target}`,
         applyAppearanceToDescendants: (target: string) => `Применить оформление для ${target}`,
         showFolders: 'Показать навигацию', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Изменить порядок навигации',
@@ -196,11 +197,11 @@ export const STRINGS_RU = {
                     title: 'Свойства',
                     items: [
                         '`.key` Включить заметки с ключом свойства.',
-                        '`.key=value` Включить заметки с значением свойства.',
+                        '`.key=value` Включить заметки, у которых значение свойства содержит `value`.',
                         '`."Reading Status"` Включить заметки с ключом свойства, содержащим пробелы.',
                         '`."Reading Status"="In Progress"` Ключи и значения с пробелами должны быть заключены в двойные кавычки.',
                         '`-.key` Исключить заметки с ключом свойства.',
-                        '`-.key=value` Исключить заметки с значением свойства.',
+                        '`-.key=value` Исключить заметки, у которых значение свойства содержит `value`.',
                         'Cmd/Ctrl+Клик по свойству для добавления с AND. Cmd/Ctrl+Shift+Клик для добавления с OR.'
                     ]
                 },
@@ -365,6 +366,8 @@ export const STRINGS_RU = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Внешний вид',
+        sortBy: 'Сортировать по',
         standardPreset: 'Стандартный',
         compactPreset: 'Компактный',
         defaultSuffix: '(по умолчанию)',
@@ -383,7 +386,7 @@ export const STRINGS_RU = {
     modals: {
         bulkApply: {
             applyButton: 'Применить',
-            applySortTitle: (target: string) => `Применить сортировку для ${target}?`,
+            applySortAndGroupTitle: (target: string) => `Применить сортировку и группировку для ${target}?`,
             applyAppearanceTitle: (target: string) => `Применить оформление для ${target}?`,
             affectedCountMessage: (count: number) => `Существующих переопределений, которые изменятся: ${count}.`
         },
@@ -781,6 +784,8 @@ export const STRINGS_RU = {
         toggleDescendants: 'Переключить потомков', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Переключить скрытые папки, теги и заметки', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Переключить сортировку тегов', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'Переключить теги по выбору',
+        togglePropertiesBySelection: 'Переключить свойства по выбору',
         toggleCompactMode: 'Переключить компактный режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Свернуть / развернуть все элементы', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Добавить тег к выбранным файлам', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -806,11 +811,13 @@ export const STRINGS_RU = {
         file: 'файл',
         files: 'файлов',
         folder: 'папка',
-        folders: 'папок'
+        folders: 'папок',
+        wordCount: 'Количество слов'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Изменить настройки по умолчанию',
         metadataReport: {
             exportSuccess: 'Отчёт о неудачных метаданных экспортирован в: {filename}',
             exportFailed: 'Не удалось экспортировать отчёт о метаданных'
@@ -986,7 +993,7 @@ export const STRINGS_RU = {
             fileNameIconMap: {
                 name: 'Сопоставление имён и иконок',
                 desc: 'Файлы, содержащие текст, получают указанную иконку. Одно сопоставление на строку: текст=иконка',
-                placeholder: '# текст=иконка\nвстреча=LiCalendar\nсчёт=PhReceipt',
+                placeholder: '# текст=иконка\nвстреча=ph-calendar\nсчёт=ph-receipt',
                 editTooltip: 'Редактировать сопоставления'
             },
             showCategoryIcons: {
@@ -996,12 +1003,8 @@ export const STRINGS_RU = {
             fileTypeIconMap: {
                 name: 'Сопоставление типов и иконок',
                 desc: 'Файлы с расширением получают указанную иконку. Одно сопоставление на строку: расширение=иконка',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Редактировать сопоставления'
-            },
-            optimizeNoteHeight: {
-                name: 'Переменная высота заметок',
-                desc: 'Использовать компактную высоту для закреплённых заметок и заметок без превью.'
             },
             compactItemHeight: {
                 name: 'Высота компактных элементов',
@@ -1208,7 +1211,7 @@ export const STRINGS_RU = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Формат названия месяца',
-                desc: 'Обычное или сокращённое название месяца, когда годовой вид скрыт.',
+                desc: 'Полное (январь) или сокращённое (янв.) название месяца.',
                 options: {
                     full: 'январь (полный)',
                     short: 'янв. (короткий)'
@@ -1312,6 +1315,10 @@ export const STRINGS_RU = {
             showTooltipPath: {
                 name: 'Показывать путь',
                 desc: 'Отображать путь к папке под названиями заметок в подсказках.'
+            },
+            showTooltipWordCount: {
+                name: 'Показывать количество слов',
+                desc: 'Отображать количество слов в заметках в подсказках.'
             },
             resetPaneSeparator: {
                 name: 'Сбросить положение разделителя панелей',
@@ -1494,12 +1501,16 @@ export const STRINGS_RU = {
                 desc: 'Применять цвета тегов к значкам тегов на элементах файлов.'
             },
             prioritizeColoredFileTags: {
-                name: 'Показывать цветные теги первыми',
-                desc: 'Сортировать цветные теги перед другими тегами на элементах файлов.'
+                name: 'Показывать первыми теги с пользовательскими цветами',
+                desc: 'Сортировать теги с пользовательскими цветами перед другими тегами на элементах файлов.'
             },
             showFileTagsInCompactMode: {
                 name: 'Показывать теги файлов в компактном режиме',
                 desc: 'Отображать теги, когда дата, превью и изображение скрыты.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Показывать теги в несколько строк',
+                desc: 'Переносить теги файлов на дополнительные строки, когда они не помещаются в одну строку.'
             },
             showFileProperties: {
                 name: 'Показывать свойства файлов',
@@ -1510,12 +1521,16 @@ export const STRINGS_RU = {
                 desc: 'Применять цвета свойств к значкам свойств на элементах файлов.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Показывать цветные свойства первыми',
-                desc: 'Сортировать цветные свойства перед другими свойствами на элементах файлов.'
+                name: 'Показывать первыми свойства с пользовательскими цветами',
+                desc: 'Сортировать свойства с пользовательскими цветами перед другими свойствами на элементах файлов.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Показывать свойства в компактном режиме',
                 desc: 'Отображать свойства при активном компактном режиме.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Показывать свойства в несколько строк',
+                desc: 'Переносить свойства файлов на дополнительные строки, когда они не помещаются в одну строку.'
             },
             notePropertyType: {
                 name: 'Свойство заметки',
@@ -1533,10 +1548,6 @@ export const STRINGS_RU = {
                 noneConfigured: 'Свойства не настроены',
                 singleConfigured: '1 свойство настроено: {properties}',
                 multipleConfigured: '{count} свойств настроено: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Показывать свойства в отдельных строках',
-                desc: 'Показывать каждое свойство в собственной строке.'
             },
             enablePropertyInternalLinks: {
                 name: 'Связать метки свойств с заметками',

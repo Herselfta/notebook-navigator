@@ -19,7 +19,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MetadataAPI } from '../../src/api/modules/MetadataAPI';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings';
-import type { IconString } from '../../src/api/types';
 import { TFolder } from 'obsidian';
 import { buildPropertyValueNodeId, normalizePropertyTreeValuePath } from '../../src/utils/propertyTree';
 
@@ -48,41 +47,87 @@ describe('MetadataAPI icon normalization', () => {
 
         api = {
             getPlugin: () => plugin as never,
-            getApp: () =>
-                ({
-                    vault: {
-                        getFolderByPath: (path: string) => foldersByPath.get(path) ?? null
-                    }
-                }) as never,
+            getApp: () => ({
+                vault: {
+                    getFolderByPath: (path: string) => foldersByPath.get(path) ?? null
+                }
+            }),
             trigger: triggerMock
         };
     });
 
-    it('normalizes legacy lucide identifiers provided through the API', async () => {
+    it('accepts Lucide slugs provided through the API', async () => {
         const metadataAPI = new MetadataAPI(api);
         const folder = new TFolder();
         folder.path = 'Folder';
         foldersByPath.set(folder.path, folder);
 
         await metadataAPI.setFolderMeta(folder, {
-            icon: 'lucide-sun' as unknown as IconString
+            icon: 'tag'
         });
 
-        expect(plugin.settings.folderIcons.Folder).toBe('sun');
+        expect(plugin.settings.folderIcons.Folder).toBe('tag');
         expect(plugin.saveSettingsAndUpdate).toHaveBeenCalled();
+        metadataAPI.updateFromSettings(plugin.settings);
+        expect(metadataAPI.getFolderMeta(folder)?.icon).toBe('tag');
     });
 
-    it('normalizes provider-prefixed identifiers provided through the API', async () => {
+    it('ignores legacy provider-prefixed identifiers provided through the API', async () => {
         const metadataAPI = new MetadataAPI(api);
         const folder = new TFolder();
         folder.path = 'Folder';
         foldersByPath.set(folder.path, folder);
 
         await metadataAPI.setFolderMeta(folder, {
-            icon: 'phosphor:ph-apple-logo' as IconString
+            icon: 'phosphor:ph-apple-logo'
+        });
+
+        expect(plugin.settings.folderIcons.Folder).toBeUndefined();
+        expect(plugin.saveSettingsAndUpdate).not.toHaveBeenCalled();
+        expect(metadataAPI.getFolderMeta(folder)).toBeNull();
+    });
+
+    it('accepts short icon values provided through the API', async () => {
+        const metadataAPI = new MetadataAPI(api);
+        const folder = new TFolder();
+        folder.path = 'Folder';
+        foldersByPath.set(folder.path, folder);
+
+        await metadataAPI.setFolderMeta(folder, {
+            icon: 'ph-apple-logo'
         });
 
         expect(plugin.settings.folderIcons.Folder).toBe('phosphor:apple-logo');
+        metadataAPI.updateFromSettings(plugin.settings);
+        expect(metadataAPI.getFolderMeta(folder)?.icon).toBe('ph-apple-logo');
+    });
+
+    it('preserves unsupported settings-backed icon identifiers on output', () => {
+        const folder = new TFolder();
+        folder.path = 'Folder';
+        foldersByPath.set(folder.path, folder);
+        plugin.settings.folderIcons.Folder = 'emoji:not-an-emoji';
+        plugin.settings.tagIcons.status = 'lucide:not-real-icon';
+        plugin.settings.propertyIcons['key:status'] = 'custom-pack:icon-name';
+        const metadataAPI = new MetadataAPI(api);
+
+        expect(metadataAPI.getFolderMeta(folder)?.icon).toBe('emoji:not-an-emoji');
+        expect(metadataAPI.getTagMeta('status')?.icon).toBe('lucide:not-real-icon');
+        expect(metadataAPI.getPropertyMeta('key:status')?.icon).toBe('custom-pack:icon-name');
+    });
+
+    it('reports settings-backed icon identifiers in frontmatter format', () => {
+        const folder = new TFolder();
+        folder.path = 'Folder';
+        foldersByPath.set(folder.path, folder);
+        plugin.settings.folderIcons.Folder = 'lucide:tag';
+        plugin.settings.tagIcons.status = 'phosphor:apple-logo';
+        plugin.settings.propertyIcons['key:status'] = 'emoji:📁';
+        const metadataAPI = new MetadataAPI(api);
+
+        expect(metadataAPI.getFolderMeta(folder)?.icon).toBe('tag');
+        expect(metadataAPI.getTagMeta('status')?.icon).toBe('ph-apple-logo');
+        expect(metadataAPI.getPropertyMeta('key:status')?.icon).toBe('📁');
     });
 
     it('normalizes property node ids when setting property metadata', async () => {
@@ -152,7 +197,7 @@ describe('MetadataAPI icon normalization', () => {
         const metadataAPI = new MetadataAPI(api);
 
         const updatedSettings = structuredClone(plugin.settings);
-        updatedSettings.propertyIcons['key:status'] = 'lucide:hash';
+        updatedSettings.propertyIcons['key:status'] = 'phosphor:apple-logo';
 
         metadataAPI.updateFromSettings(updatedSettings);
 
@@ -161,7 +206,7 @@ describe('MetadataAPI icon normalization', () => {
             metadata: {
                 color: undefined,
                 backgroundColor: undefined,
-                icon: 'lucide:hash'
+                icon: 'ph-apple-logo'
             }
         });
     });
@@ -206,7 +251,7 @@ describe('MetadataAPI icon normalization', () => {
         foldersByPath.set(folder.path, folder);
 
         await metadataAPI.setFolderMeta(folder, {
-            icon: 'phosphor:ph-apple-logo' as IconString,
+            icon: 'ph-apple-logo',
             color: '#112233',
             backgroundColor: '#223344'
         });
@@ -222,7 +267,7 @@ describe('MetadataAPI icon normalization', () => {
             metadata: {
                 color: '#112233',
                 backgroundColor: '#223344',
-                icon: 'phosphor:apple-logo'
+                icon: 'ph-apple-logo'
             }
         });
     });
@@ -423,7 +468,7 @@ describe('MetadataAPI icon normalization', () => {
         expect(metadataAPI.getFolderMeta(folder)).toEqual({
             color: '#112233',
             backgroundColor: '#223344',
-            icon: 'phosphor:apple-logo'
+            icon: 'ph-apple-logo'
         });
         expect(plugin.metadataService.getFolderDisplayData).toHaveBeenCalledWith('Folder', {
             includeDisplayName: false,

@@ -148,7 +148,7 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
 
             const sortOrderSubmenu = tryCreateSubmenu(item);
             if (!sortOrderSubmenu) {
-                item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon).setDisabled(true);
+                item.setTitle(strings.paneHeader.changeChildSortOrder).setIcon(sortIcon).setDisabled(true);
                 return;
             }
 
@@ -166,7 +166,7 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
                 }
             })();
 
-            item.setTitle(strings.paneHeader.changeSortOrder).setIcon(sortIcon);
+            item.setTitle(strings.paneHeader.changeChildSortOrder).setIcon(sortIcon);
 
             sortOrderSubmenu.addItem(subItem => {
                 subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride);

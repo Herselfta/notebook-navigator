@@ -163,9 +163,13 @@ const parsePropertyFilterToken = (token: string): PropertySearchToken | null => 
     const rawKey = unescapePropertyFilterPart(tryUnquotePropertyFilterPart(content.slice(0, separatorIndex)));
     const rawValue = unescapePropertyFilterPart(tryUnquotePropertyFilterPart(content.slice(separatorIndex + 1)));
     const normalizedKey = normalizePropertyFilterKey(rawKey);
-    const normalizedValue = normalizePropertyTreeValuePath(rawValue);
-    if (!normalizedKey || !normalizedValue) {
+    if (!normalizedKey) {
         return null;
+    }
+
+    const normalizedValue = normalizePropertyTreeValuePath(rawValue);
+    if (!normalizedValue) {
+        return { key: normalizedKey, value: null };
     }
 
     return {
@@ -789,6 +793,8 @@ const parseFilterModeTokens = (
  * Inclusion patterns (must match):
  * - #tag - Include notes with tags containing "tag"
  * - # - Include only notes that have at least one tag
+ * - .key - Include notes with property key
+ * - .key=value - Include notes where the property value contains "value"
  * - @today - Include notes matching the default date field on the current day
  * - @YYYY-MM-DD / @YYYYMMDD - Include notes matching the default date field on a specific day
  * - @YYYY - Include notes matching the default date field inside a calendar year
@@ -807,6 +813,8 @@ const parseFilterModeTokens = (
  * Exclusion patterns (must NOT match):
  * - -#tag - Exclude notes with tags containing "tag"
  * - -# - Exclude all tagged notes (show only untagged)
+ * - -.key - Exclude notes with property key
+ * - -.key=value - Exclude notes where the property value contains "value"
  * - -@... - Exclude notes matching a date token or range
  * - -has:task - Exclude notes with unfinished tasks
  * - -folder:archive - Exclude notes where any folder segment contains "archive"
@@ -1018,18 +1026,27 @@ const shouldQuoteQueryTokenPart = (value: string): boolean => {
     return /\s/.test(value) || value.includes('"') || value.includes('\\') || value.includes('=');
 };
 
-const escapePropertyFilterPartForQuery = (value: string): string => {
-    return value.replace(/\\/g, '\\\\').replace(/=/g, '\\=');
+const escapePropertyFilterPartForQuery = (value: string, includeQuotes = false): string => {
+    let escaped = '';
+
+    for (const char of value) {
+        if (char === '\\' || char === '=' || (includeQuotes && char === '"')) {
+            escaped += '\\';
+        }
+        escaped += char;
+    }
+
+    return escaped;
 };
 
 const formatPropertyFilterPartForQuery = (value: string): string => {
-    const escaped = escapePropertyFilterPartForQuery(value);
-    if (!shouldQuoteQueryTokenPart(value)) {
+    const shouldQuote = shouldQuoteQueryTokenPart(value);
+    const escaped = escapePropertyFilterPartForQuery(value, shouldQuote);
+    if (!shouldQuote) {
         return escaped;
     }
 
-    const escapedQuotes = escaped.replace(/"/g, '\\"');
-    return `"${escapedQuotes}"`;
+    return `"${escaped}"`;
 };
 
 const formatPropertyTokenForQuery = (propertyToken: PropertySearchToken, negated = false): string => {

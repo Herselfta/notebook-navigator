@@ -179,12 +179,12 @@ describe('extractMetadataFromCache - background extraction', () => {
         });
         const metadata: CachedMetadata = {
             frontmatter: {
-                're\u0301union': 'LiCalendar'
+                're\u0301union': 'ph-calendar'
             }
         };
 
         const result = extractMetadataFromCache(metadata, settings);
 
-        expect(result.icon).toBe('calendar');
+        expect(result.icon).toBe('phosphor:calendar');
     });
 });

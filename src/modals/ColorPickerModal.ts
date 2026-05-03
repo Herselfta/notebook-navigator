@@ -67,13 +67,13 @@ export class ColorPickerModal extends Modal {
     private chooseColorHandler: (color: string | null) => void | Promise<void>;
     private currentColor: string | null = null;
     private selectedColor: string = DEFAULT_COLOR;
-    private hexInput: HTMLInputElement;
-    private previewCurrent: HTMLDivElement;
-    private previewNew: HTMLDivElement;
-    private channelSliders: Record<ColorChannel, HTMLInputElement>;
-    private channelValues: Record<ColorChannel, HTMLSpanElement>;
-    private recentColorsContainer: HTMLDivElement;
-    private userColorsContainer: HTMLDivElement;
+    private hexInput!: HTMLInputElement;
+    private previewCurrent!: HTMLDivElement;
+    private previewNew!: HTMLDivElement;
+    private channelSliders!: Record<ColorChannel, HTMLInputElement>;
+    private channelValues!: Record<ColorChannel, HTMLSpanElement>;
+    private recentColorsContainer!: HTMLDivElement;
+    private userColorsContainer!: HTMLDivElement;
     private userColorDots: HTMLDivElement[] = [];
     private defaultColors: string[] = [...DEFAULT_USER_COLORS];
     private customColors: string[] = [];
@@ -81,11 +81,11 @@ export class ColorPickerModal extends Modal {
     private activeDefaultColorIndex: number | null = null;
     private activeCustomColorIndex: number | null = null;
     private customColorsDirty = false;
-    private copyColorsButton: HTMLButtonElement;
-    private pasteColorsButton: HTMLButtonElement;
-    private clearCustomColorsButton: HTMLButtonElement;
-    private paletteToggleDefault: HTMLElement;
-    private paletteToggleCustom: HTMLElement;
+    private copyColorsButton!: HTMLButtonElement;
+    private pasteColorsButton!: HTMLButtonElement;
+    private clearCustomColorsButton!: HTMLButtonElement;
+    private paletteToggleDefault!: HTMLElement;
+    private paletteToggleCustom!: HTMLElement;
     private paletteDisposers: (() => void)[] = [];
     private recentColorDisposers: (() => void)[] = [];
     private isUpdating = false;
@@ -157,7 +157,7 @@ export class ColorPickerModal extends Modal {
         const previewContainer = previewSection.createDiv('nn-color-preview-container');
 
         const currentSection = previewContainer.createDiv('nn-preview-current');
-        currentSection.createEl('span', { text: strings.modals.colorPicker.currentColor, cls: 'nn-preview-label' });
+        currentSection.createSpan({ text: strings.modals.colorPicker.currentColor, cls: 'nn-preview-label' });
         this.previewCurrent = currentSection.createDiv('nn-preview-color');
         if (this.currentColor) {
             this.applySwatchColor(this.previewCurrent, this.currentColor);
@@ -188,7 +188,7 @@ export class ColorPickerModal extends Modal {
         setIcon(arrow, 'lucide-arrow-right');
 
         const newSection = previewContainer.createDiv('nn-preview-new');
-        newSection.createEl('span', { text: strings.modals.colorPicker.newColor, cls: 'nn-preview-label' });
+        newSection.createSpan({ text: strings.modals.colorPicker.newColor, cls: 'nn-preview-label' });
         this.previewNew = newSection.createDiv('nn-preview-color nn-show-checkerboard');
         this.applySwatchColor(this.previewNew, this.selectedColor);
         this.makeSwatchDraggable(this.previewNew, () => this.selectedColor, this.domDisposers);
@@ -208,7 +208,7 @@ export class ColorPickerModal extends Modal {
             })
         );
 
-        paletteToggle.createEl('span', { text: '|', cls: 'nn-preset-toggle-separator' });
+        paletteToggle.createSpan({ text: '|', cls: 'nn-preset-toggle-separator' });
 
         this.paletteToggleCustom = paletteToggle.createSpan({
             text: strings.modals.colorPicker.paletteCustom,
@@ -265,7 +265,7 @@ export class ColorPickerModal extends Modal {
         const hexSection = rightColumn.createDiv('nn-hex-section');
         hexSection.createEl('label', { text: strings.modals.colorPicker.hexLabel, cls: 'nn-hex-title' });
         const hexContainer = hexSection.createDiv('nn-hex-container');
-        hexContainer.createEl('span', { text: '#', cls: 'nn-hex-label' });
+        hexContainer.createSpan({ text: '#', cls: 'nn-hex-label' });
         this.hexInput = hexContainer.createEl('input', {
             type: 'text',
             cls: 'nn-hex-input',
@@ -280,13 +280,13 @@ export class ColorPickerModal extends Modal {
 
         // RGB sliders section
         const rgbSection = rightColumn.createDiv('nn-rgb-section');
-        rgbSection.createEl('div', { text: strings.modals.colorPicker.rgbLabel, cls: 'nn-rgb-title' });
+        rgbSection.createDiv({ text: strings.modals.colorPicker.rgbLabel, cls: 'nn-rgb-title' });
         this.channelSliders = {} as Record<ColorChannel, HTMLInputElement>;
         this.channelValues = {} as Record<ColorChannel, HTMLSpanElement>;
 
         (['r', 'g', 'b', 'a'] as const).forEach(channel => {
             const sliderRow = rgbSection.createDiv('nn-rgb-row');
-            sliderRow.createEl('span', {
+            sliderRow.createSpan({
                 text: channel.toUpperCase(),
                 cls: 'nn-rgb-label'
             });
@@ -302,7 +302,7 @@ export class ColorPickerModal extends Modal {
             });
             slider.classList.add(`nn-rgb-slider-${channel}`);
 
-            const value = sliderRow.createEl('span', {
+            const value = sliderRow.createSpan({
                 cls: 'nn-rgb-value',
                 text: '0'
             });
@@ -314,7 +314,7 @@ export class ColorPickerModal extends Modal {
         // Recent colors section
         const recentSection = rightColumn.createDiv('nn-recent-section');
         const recentHeader = recentSection.createDiv('nn-recent-header');
-        recentHeader.createEl('div', { text: strings.modals.colorPicker.recentColors, cls: 'nn-section-label' });
+        recentHeader.createDiv({ text: strings.modals.colorPicker.recentColors, cls: 'nn-section-label' });
 
         // Clear button
         const clearButton = recentHeader.createEl('button', {
@@ -451,7 +451,7 @@ export class ColorPickerModal extends Modal {
      */
     private registerKeyboardShortcuts() {
         this.scope.register([], 'Enter', event => {
-            if (document.activeElement === this.hexInput) {
+            if (activeDocument.activeElement === this.hexInput) {
                 event.preventDefault();
                 window.setTimeout(() => {
                     this.hexInput.blur();
@@ -880,7 +880,7 @@ export class ColorPickerModal extends Modal {
      */
     private createDragPreview(color: string): HTMLElement {
         const size = 36;
-        const canvas = document.createElement('canvas');
+        const canvas = createEl('canvas');
         canvas.width = size;
         canvas.height = size;
         canvas.className = 'nn-drag-preview';

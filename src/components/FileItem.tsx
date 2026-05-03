@@ -56,6 +56,7 @@ import { resolveFolderDecorationColors } from '../utils/folderDecoration';
 import { resolveFileDragIconId, resolveFileIconId } from '../utils/fileIconUtils';
 import { buildFileTooltip } from '../utils/navigationTooltipUtils';
 import {
+    FEATURE_IMAGE_MAX_ASPECT_RATIO,
     getFileItemLayoutState,
     isListPaneCompactMode,
     shouldShowFeatureImageArea,
@@ -74,8 +75,6 @@ import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoratio
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { useFileItemContentState, type FileItemContentDb } from './fileItem/useFileItemContentState';
 import { useFileItemPills } from './fileItem/useFileItemPills';
-
-const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
 
 interface FileItemProps {
     file: TFile;
@@ -589,12 +588,9 @@ export const FileItem = React.memo(function FileItem({
     });
 
     const {
-        pinnedItemShouldUseCompactLayout,
         shouldUseSingleLineForDateAndPreview,
-        shouldUseMultiLinePreviewLayout,
-        shouldCollapseEmptyPreviewSpace,
-        shouldUseExpandedMultiLineLayout,
-        shouldSuppressEmptyPreviewLines,
+        shouldShowMultilinePreview,
+        shouldReplaceEmptyPreviewWithPills,
         shouldShowDateForItem,
         shouldShowSingleLineSecondLine
     } = getFileItemLayoutState({
@@ -602,7 +598,6 @@ export const FileItem = React.memo(function FileItem({
         showPreview: appearanceSettings.showPreview,
         showImage: appearanceSettings.showImage,
         previewRows: appearanceSettings.previewRows,
-        optimizeNoteHeight: settings.optimizeNoteHeight,
         isPinned,
         hasPreviewContent,
         showFeatureImageArea,
@@ -613,7 +608,7 @@ export const FileItem = React.memo(function FileItem({
     const parentFolderSource = file.parent;
     const shouldShowParentFolderLine = shouldShowFileItemParentFolderLine({
         showParentFolder: settings.showParentFolder,
-        pinnedItemShouldUseCompactLayout,
+        isPinned,
         selectionType,
         includeDescendantNotes,
         parentFolder,
@@ -729,6 +724,16 @@ export const FileItem = React.memo(function FileItem({
         const clampedRatio = Math.min(ratio, FEATURE_IMAGE_MAX_ASPECT_RATIO);
         setFeatureImageAspectRatio(clampedRatio);
     }, [featureImageUrl, settings.forceSquareFeatureImage]);
+    const fileTooltipSettings = useMemo(
+        () => ({
+            dateFormat: settings.dateFormat,
+            timeFormat: settings.timeFormat,
+            showTooltipPath: settings.showTooltipPath,
+            showTooltipWordCount: settings.showTooltipWordCount
+        }),
+        [settings.dateFormat, settings.showTooltipPath, settings.showTooltipWordCount, settings.timeFormat]
+    );
+    const showTooltips = settings.showTooltips;
 
     // Memoize className to avoid string concatenation on every render
     const className = useMemo(() => {
@@ -790,7 +795,7 @@ export const FileItem = React.memo(function FileItem({
         if (isMobile) return;
 
         // Remove tooltip if disabled
-        if (!settings.showTooltips) {
+        if (!showTooltips) {
             setTooltip(fileRef.current, '');
             return;
         }
@@ -799,10 +804,11 @@ export const FileItem = React.memo(function FileItem({
             file,
             displayName,
             extensionSuffix,
-            settings,
+            settings: fileTooltipSettings,
             getFileTimestamps,
             sortOption,
-            unfinishedTaskTooltipText
+            unfinishedTaskTooltipText,
+            wordCount
         });
 
         setTooltip(fileRef.current, tooltip, {
@@ -813,14 +819,16 @@ export const FileItem = React.memo(function FileItem({
         file,
         file.stat.ctime,
         file.stat.mtime,
-        settings,
+        showTooltips,
+        fileTooltipSettings,
         displayName,
         extensionSuffix,
         getFileTimestamps,
         sortOption,
         metadataVersion,
         file.name,
-        unfinishedTaskTooltipText
+        unfinishedTaskTooltipText,
+        wordCount
     ]);
 
     // Reveals the file by selecting its folder in navigation pane and showing the file in list pane
@@ -1120,7 +1128,7 @@ export const FileItem = React.memo(function FileItem({
                                 {fileTitleElement}
 
                                 {/* ========== SINGLE LINE MODE ========== */}
-                                {/* Conditions: pinnedItemShouldUseCompactLayout OR previewRows < 2 */}
+                                {/* Conditions: pinned note OR previewRows < 2 */}
                                 {/* Layout: Date+Preview share one line, pills below, parent folder last */}
                                 {shouldUseSingleLineForDateAndPreview && (
                                     <>
@@ -1128,7 +1136,7 @@ export const FileItem = React.memo(function FileItem({
                                         {shouldShowSingleLineSecondLine ? (
                                             <div className="nn-file-second-line">
                                                 {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
-                                                {appearanceSettings.showPreview && !shouldSuppressEmptyPreviewLines && (
+                                                {appearanceSettings.showPreview && !shouldReplaceEmptyPreviewWithPills && (
                                                     <div className="nn-file-preview" style={{ '--preview-rows': 1 } as React.CSSProperties}>
                                                         {highlightedPreview}
                                                     </div>
@@ -1145,50 +1153,27 @@ export const FileItem = React.memo(function FileItem({
                                 )}
 
                                 {/* ========== MULTI-LINE MODE ========== */}
-                                {/* Conditions: !pinnedItemShouldUseCompactLayout AND previewRows >= 2 */}
-                                {/* Two sub-cases based on preview content and optimization settings */}
-                                {shouldUseMultiLinePreviewLayout && (
+                                {/* Conditions: unpinned note AND previewRows >= 2 */}
+                                {!shouldUseSingleLineForDateAndPreview && (
                                     <>
-                                        {/* CASE 1: COLLAPSED EMPTY PREVIEW */}
-                                        {/* Conditions: heightOptimizationEnabled AND !hasPreviewContent */}
-                                        {/* Layout: Pills, then Date+Parent on same line (compact) */}
-                                        {shouldCollapseEmptyPreviewSpace && (
-                                            <>
-                                                {/* Pills (show even when no preview text) */}
-                                                {pillRows}
-                                                {/* Date + Parent folder share the second line (compact layout) */}
-                                                <div className="nn-file-second-line">
-                                                    {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
-                                                    {renderParentFolder()}
-                                                </div>
-                                            </>
+                                        {/* Multi-row preview - clamp to the configured rows without forcing empty lines */}
+                                        {shouldShowMultilinePreview && (
+                                            <div
+                                                className="nn-file-preview"
+                                                style={{ '--preview-rows': appearanceSettings.previewRows } as React.CSSProperties}
+                                            >
+                                                {highlightedPreview}
+                                            </div>
                                         )}
 
-                                        {/* CASE 2: KEEP THE EXPANDED MULTI-LINE LAYOUT */}
-                                        {/* Conditions: heightOptimizationDisabled OR hasPreviewContent OR feature image visible */}
-                                        {/* Layout: Preview can shrink to its rendered rows, then pills, then Date+Parent on the metadata line */}
-                                        {shouldUseExpandedMultiLineLayout && (
-                                            <>
-                                                {/* Multi-row preview - clamp to the configured rows without forcing empty lines */}
-                                                {appearanceSettings.showPreview && !shouldSuppressEmptyPreviewLines && (
-                                                    <div
-                                                        className="nn-file-preview"
-                                                        style={{ '--preview-rows': appearanceSettings.previewRows } as React.CSSProperties}
-                                                    >
-                                                        {highlightedPreview}
-                                                    </div>
-                                                )}
+                                        {/* Pills */}
+                                        {pillRows}
 
-                                                {/* Pills */}
-                                                {pillRows}
-
-                                                {/* Date + Parent folder share the metadata line */}
-                                                <div className="nn-file-second-line">
-                                                    {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
-                                                    {renderParentFolder()}
-                                                </div>
-                                            </>
-                                        )}
+                                        {/* Date + Parent folder share the metadata line */}
+                                        <div className="nn-file-second-line">
+                                            {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
+                                            {renderParentFolder()}
+                                        </div>
                                     </>
                                 )}
                             </div>

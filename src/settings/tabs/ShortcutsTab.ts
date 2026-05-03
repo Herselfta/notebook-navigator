@@ -18,7 +18,7 @@
 
 import { DropdownComponent, Setting } from 'obsidian';
 import { strings } from '../../i18n';
-import type { RecentNotesHideMode, ShortcutBadgeDisplayMode } from '../types';
+import { isRecentNotesHideMode, isShortcutBadgeDisplayMode } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
 import { createSettingGroupFactory } from '../settingGroups';
 import { wireToggleSettingWithSubSettings } from '../subSettings';
@@ -61,7 +61,10 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
                 .addOption('count', strings.settings.items.shortcutBadgeDisplay.options.count)
                 .addOption('none', strings.settings.items.shortcutBadgeDisplay.options.none)
                 .setValue(plugin.settings.shortcutBadgeDisplay)
-                .onChange(async (value: ShortcutBadgeDisplayMode) => {
+                .onChange(async value => {
+                    if (!isShortcutBadgeDisplayMode(value)) {
+                        return;
+                    }
                     plugin.settings.shortcutBadgeDisplay = value;
                     await plugin.saveSettingsAndUpdate();
                 })
@@ -98,7 +101,10 @@ export function renderShortcutsTab(context: SettingsTabContext): void {
                 .addOption('none', strings.settings.items.hideRecentNotes.options.none)
                 .addOption('folder-notes', strings.settings.items.hideRecentNotes.options.folderNotes)
                 .setValue(plugin.settings.hideRecentNotes)
-                .onChange(async (value: RecentNotesHideMode) => {
+                .onChange(async value => {
+                    if (!isRecentNotesHideMode(value)) {
+                        return;
+                    }
                     plugin.settings.hideRecentNotes = value;
                     await plugin.saveSettingsAndUpdate();
                 })

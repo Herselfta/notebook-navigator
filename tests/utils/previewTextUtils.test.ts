@@ -230,6 +230,24 @@ describe('PreviewTextUtils.extractPreviewText', () => {
         expect(preview).toBe('Alpha red and underlined text');
     });
 
+    it('keeps word spacing after stripping adjacent html tags', () => {
+        const content = 'Alpha<b>bold</b>Beta';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha bold Beta');
+    });
+
+    it('strips script and style blocks with spaced closing tags', () => {
+        const content = 'Alpha <script>alert("hidden")</script > Beta <style>.hidden { display: none; }</style > Tail';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha Beta Tail');
+    });
+
+    it('strips script blocks with browser-accepted closing tag attributes', () => {
+        const content = 'Alpha <script>alert("hidden")</script\t\n bar="baz"> Beta';
+        const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);
+        expect(preview).toBe('Alpha Beta');
+    });
+
     it('keeps html tags that are inside inline code blocks', () => {
         const content = 'Code sample `const markup = "<div>value</div>";` end';
         const preview = PreviewTextUtils.extractPreviewText(content, skipCodeSettings);

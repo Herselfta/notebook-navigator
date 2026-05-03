@@ -48,7 +48,7 @@ interface FolderGroupHeaderTarget {
     folderNote: TFile | null;
 }
 
-type VirtualRowStyle = React.CSSProperties & Record<'--item-height', string>;
+type VirtualRowStyle = React.CSSProperties & Record<'--item-height' | '--nn-virtual-item-start', string>;
 
 interface ListPaneVirtualContentProps {
     listItems: ListPaneItem[];
@@ -386,7 +386,7 @@ export function ListPaneVirtualContent({
                                         isFileSelected(nextItem.data)));
 
                             const virtualItemStyle: VirtualRowStyle = {
-                                top: Math.max(0, virtualItem.start),
+                                '--nn-virtual-item-start': `${Math.max(0, virtualItem.start)}px`,
                                 '--item-height': `${virtualItem.size}px`
                             };
 

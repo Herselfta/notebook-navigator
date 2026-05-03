@@ -70,6 +70,7 @@ export function migrateLegacySyncedSettings(params: {
     delete mutableSettings.fileVisibility;
     delete mutableSettings.preventInvalidCharacters;
     delete mutableSettings.mobileBackground;
+    delete mutableSettings.optimizeNoteHeight;
 
     const storedNoteGrouping = storedData ? storedData['noteGrouping'] : undefined;
 
@@ -194,11 +195,8 @@ export function migrateLegacySyncedSettings(params: {
     }
     delete mutableSettings['customPropertyFields'];
 
-    const legacyShowPropertiesOnSeparateRows = mutableSettings['showCustomPropertiesOnSeparateRows'];
-    if (typeof storedData?.['showPropertiesOnSeparateRows'] === 'undefined' && typeof legacyShowPropertiesOnSeparateRows === 'boolean') {
-        settings.showPropertiesOnSeparateRows = legacyShowPropertiesOnSeparateRows;
-    }
     delete mutableSettings['showCustomPropertiesOnSeparateRows'];
+    delete mutableSettings['showPropertiesOnSeparateRows'];
 
     const legacyShowFilePropertiesInCompactMode = mutableSettings['showCustomPropertyInCompactMode'];
     if (
@@ -222,15 +220,15 @@ export function migrateLegacySyncedSettings(params: {
         settings.notePropertyType = defaultSettings.notePropertyType;
     }
 
-    if (typeof settings.showPropertiesOnSeparateRows !== 'boolean') {
-        settings.showPropertiesOnSeparateRows = defaultSettings.showPropertiesOnSeparateRows;
-    }
-
     delete mutableSettings['customPropertyColorFields'];
     delete mutableSettings['customPropertyColorMap'];
 
     if (typeof settings.showFilePropertiesInCompactMode !== 'boolean') {
         settings.showFilePropertiesInCompactMode = defaultSettings.showFilePropertiesInCompactMode;
+    }
+
+    if (typeof settings.showFilePropertiesOnMultipleRows !== 'boolean') {
+        settings.showFilePropertiesOnMultipleRows = defaultSettings.showFilePropertiesOnMultipleRows;
     }
 
     if (typeof settings.showFileProperties !== 'boolean') {
@@ -368,6 +366,10 @@ export function migrateLegacySyncedSettings(params: {
         }
     }
     delete mutableSettings['showFileTagsInSlimMode'];
+
+    if (typeof settings.showFileTagsOnMultipleRows !== 'boolean') {
+        settings.showFileTagsOnMultipleRows = defaultSettings.showFileTagsOnMultipleRows;
+    }
 }
 
 // Migrates folder note template setting and removes legacy folderNoteProperties.

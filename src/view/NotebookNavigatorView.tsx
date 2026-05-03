@@ -175,7 +175,7 @@ export class NotebookNavigatorView extends ItemView {
      */
     async onOpen() {
         const container = this.containerEl.children[1];
-        if (!(container instanceof HTMLElement)) {
+        if (!container.instanceOf(HTMLElement)) {
             return;
         }
         this.componentHandle = null;
@@ -291,7 +291,7 @@ export class NotebookNavigatorView extends ItemView {
     async onClose() {
         // Unmount the React app when the view is closed to prevent memory leaks
         const container = this.containerEl.children[1];
-        if (!(container instanceof HTMLElement)) {
+        if (!container.instanceOf(HTMLElement)) {
             return;
         }
         this.plugin.unregisterSettingsUpdateListener(this.settingsUpdateListenerId);

@@ -37,16 +37,16 @@ import { ItemType } from '../types';
 import type { VisibilityPreferences } from '../types';
 import type { ListPaneItem } from '../types/virtualization';
 import { createFrontmatterPropertyExclusionMatcher } from '../utils/fileFilters';
-import { getEffectiveSortOption } from '../utils/sortUtils';
 import { parseFilterSearchTokens, filterSearchHasActiveCriteria } from '../utils/filterSearch';
 import type { NotebookNavigatorSettings } from '../settings';
+import type { ListNoteGroupingOption } from '../settings/types';
 import type { FilterSearchTokens } from '../utils/filterSearch';
 import type { SearchResultMeta } from '../types/search';
 import type { ActiveProfileState } from '../context/SettingsContext';
 import type { SearchProvider } from '../types/search';
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
-import { getActivePropertyFields } from '../utils/vaultProfiles';
+import { getPropertyFieldsFromPropertyKeys } from '../utils/vaultProfiles';
 import { buildHiddenFileState, filterListPaneFiles, useOmnisearchListResult, useSearchableNames } from './listPaneData/searchPipeline';
 import {
     buildFileIndexMap,
@@ -75,6 +75,8 @@ interface UseListPaneDataParams {
     settings: NotebookNavigatorSettings;
     /** Active profile-derived values */
     activeProfile: ActiveProfileState;
+    /** Effective grouping for the current list selection */
+    groupBy: ListNoteGroupingOption;
     /** Active search provider to use for filtering */
     searchProvider: SearchProvider;
     /** Optional search query to filter files */
@@ -121,6 +123,7 @@ export function useListPaneData({
     selectedProperty,
     settings,
     activeProfile,
+    groupBy,
     searchProvider,
     searchQuery,
     searchTokens,
@@ -160,6 +163,16 @@ export function useListPaneData({
         () => createFrontmatterPropertyExclusionMatcher(hiddenFileProperties),
         [hiddenFileProperties]
     );
+    const selectedFolderPath = selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
+    const selectedSortOverride =
+        selectionType === ItemType.TAG && selectedTag
+            ? settings.tagSortOverrides?.[selectedTag]
+            : selectionType === ItemType.PROPERTY && selectedProperty
+              ? settings.propertySortOverrides?.[selectedProperty]
+              : selectedFolderPath
+                ? settings.folderSortOverrides?.[selectedFolderPath]
+                : undefined;
+    const selectedFolderGroupSortOrder = settings.folderTreeSortOverrides?.[selectedFolderPath ?? '/'] ?? settings.folderSortOrder;
     const listConfig = useMemo<ListPaneConfig>(
         () => ({
             pinnedNotes: settings.pinnedNotes,
@@ -167,38 +180,25 @@ export function useListPaneData({
             showPinnedGroupHeader: settings.showPinnedGroupHeader ?? true,
             showTags: settings.showTags,
             showFileTags: settings.showFileTags,
-            noteGrouping: settings.noteGrouping,
-            folderAppearances: settings.folderAppearances,
-            tagAppearances: settings.tagAppearances,
-            propertyAppearances: settings.propertyAppearances,
-            folderSortOrder: settings.folderSortOrder,
-            folderTreeSortOverrides: settings.folderTreeSortOverrides
+            groupBy,
+            folderGroupSortOrder: selectedFolderGroupSortOrder
         }),
         [
             settings.filterPinnedByFolder,
-            settings.folderAppearances,
-            settings.folderSortOrder,
-            settings.folderTreeSortOverrides,
-            settings.noteGrouping,
+            selectedFolderGroupSortOrder,
+            groupBy,
             settings.pinnedNotes,
             settings.showFileTags,
             settings.showPinnedGroupHeader,
-            settings.showTags,
-            settings.tagAppearances,
-            settings.propertyAppearances
+            settings.showTags
         ]
     );
 
-    const sortOption = useMemo(() => {
-        if (selectionType === ItemType.TAG && selectedTag) {
-            return getEffectiveSortOption(settings, ItemType.TAG, null, selectedTag);
-        }
-        if (selectionType === ItemType.PROPERTY && selectedProperty) {
-            return getEffectiveSortOption(settings, ItemType.PROPERTY, null, null, selectedProperty);
-        }
-        return getEffectiveSortOption(settings, ItemType.FOLDER, selectedFolder, selectedTag);
-    }, [selectionType, selectedFolder, selectedTag, selectedProperty, settings]);
-    const activePropertyFields = getActivePropertyFields(settings);
+    const sortOption = useMemo(
+        () => selectedSortOverride ?? settings.defaultFolderSort,
+        [settings.defaultFolderSort, selectedSortOverride]
+    );
+    const activePropertyFields = useMemo(() => getPropertyFieldsFromPropertyKeys(activeProfile.propertyKeys), [activeProfile.propertyKeys]);
 
     const baseFiles = useMemo(() => {
         return getFilesForNavigationSelection(
@@ -245,9 +245,7 @@ export function useListPaneData({
         settings.propertySortSecondary,
         activePropertyFields,
         settings.showProperties,
-        settings.folderSortOverrides,
-        settings.tagSortOverrides,
-        settings.propertySortOverrides,
+        selectedSortOverride,
         propertyTreeService,
         includeDescendantNotes,
         showHiddenItems,
@@ -265,6 +263,7 @@ export function useListPaneData({
         useOmnisearch
     });
     const searchableNames = useSearchableNames({ app, baseFiles, getFileDisplayName });
+    const filterSettings = useMemo(() => ({ alphabeticalDateMode: settings.alphabeticalDateMode }), [settings.alphabeticalDateMode]);
 
     const files = useMemo(() => {
         return filterListPaneFiles({
@@ -275,7 +274,7 @@ export function useListPaneData({
             omnisearchResult,
             searchTokens,
             searchableNames,
-            settings,
+            settings: filterSettings,
             sortOption,
             trimmedQuery,
             useOmnisearch
@@ -285,10 +284,10 @@ export function useListPaneData({
         baseFiles,
         getDB,
         getFileTimestamps,
+        filterSettings,
         omnisearchResult,
         searchTokens,
         searchableNames,
-        settings,
         sortOption,
         trimmedQuery,
         useOmnisearch
@@ -327,8 +326,6 @@ export function useListPaneData({
             listConfig,
             searchMetaMap,
             selectedFolder,
-            selectedProperty,
-            selectedTag,
             selectionType,
             showHiddenItems,
             sortOption
@@ -344,8 +341,6 @@ export function useListPaneData({
         hiddenTags,
         listConfig,
         selectedFolder,
-        selectedProperty,
-        selectedTag,
         selectionType,
         searchMetaMap,
         showHiddenItems,

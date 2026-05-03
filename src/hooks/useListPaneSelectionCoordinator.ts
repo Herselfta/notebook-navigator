@@ -462,8 +462,8 @@ export function useListPaneSelectionCoordinator({
             settings.autoSelectFirstFileOnFocusChange &&
             !isMobile
         ) {
-            const navigatorEl = document.querySelector('.nn-split-container');
-            const hasNavigatorFocus = navigatorEl instanceof HTMLElement && navigatorEl.contains(document.activeElement);
+            const navigatorEl = activeDocument.querySelector('.nn-split-container');
+            const hasNavigatorFocus = navigatorEl instanceof HTMLElement && navigatorEl.contains(activeDocument.activeElement);
 
             if ((!hasNavigatorFocus || isFolderChangeWithAutoSelect) && !settings.enterToOpenFiles) {
                 if (shouldDebounceFolderAutoOpen) {

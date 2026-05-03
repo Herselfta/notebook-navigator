@@ -24,6 +24,7 @@ export const LIST_PANE_SURFACE_COLOR_MAPPINGS: SurfaceVariableMapping[] = [
 ];
 
 export const NAVIGATION_PANE_SURFACE_COLOR_MAPPINGS: SurfaceVariableMapping[] = [
+    { source: '--nn-theme-navitem-hover-bg', target: '--nn-computed-navitem-hover-bg' },
     { source: '--nn-theme-navitem-selected-bg', target: '--nn-computed-navitem-selected-bg' },
     { source: '--nn-theme-navitem-selected-inactive-bg', target: '--nn-computed-navitem-selected-inactive-bg' },
     { source: '--nn-theme-tag-positive-bg', target: '--nn-computed-tag-positive-bg' },

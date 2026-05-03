@@ -372,7 +372,7 @@ export class EditVaultProfilesModal extends Modal {
         this.profiles = updated;
 
         if (this.listEl) {
-            const fragment = document.createDocumentFragment();
+            const fragment = createFragment();
             updated.forEach(profile => {
                 const controls = this.rowControls.get(profile.id);
                 if (controls?.rowEl) {
@@ -523,7 +523,7 @@ export class EditVaultProfilesModal extends Modal {
 
     // Returns the profile ID associated with the provided input element
     private findProfileIdByInputElement(element: Element | null): string | null {
-        if (!element || !(element instanceof HTMLInputElement)) {
+        if (!element || !element.instanceOf(HTMLInputElement)) {
             return null;
         }
 
@@ -539,7 +539,7 @@ export class EditVaultProfilesModal extends Modal {
     // Registers keyboard shortcuts for modal interaction
     private registerKeyboardShortcuts(): void {
         this.scope.register([], 'Enter', event => {
-            const profileId = this.findProfileIdByInputElement(document.activeElement);
+            const profileId = this.findProfileIdByInputElement(activeDocument.activeElement);
             if (!profileId) {
                 return;
             }

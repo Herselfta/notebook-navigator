@@ -121,7 +121,13 @@ export const NavigationPane = React.memo(
         const uxPreferences = useUXPreferences();
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
-        const { fileData, getFileDisplayName, getFileTimestamps, isStorageReady } = useFileCache();
+        const { fileData, getFile, getFileDisplayName, getFileTimestamps, isStorageReady } = useFileCache();
+        const getFileWordCount = useCallback(
+            (file: TFile): number | null => {
+                return getFile(file.path)?.wordCount ?? null;
+            },
+            [getFile]
+        );
         const { startPointerDrag } = usePointerDrag();
         const {
             searchNavFilters,
@@ -670,7 +676,7 @@ export const NavigationPane = React.memo(
                 return;
             }
 
-            setTimeout(scheduleScroll, 0);
+            activeWindow.setTimeout(scheduleScroll, 0);
         }, [calendarWeekCount, handleTreeUpdateComplete, shouldRenderCalendarOverlay]);
 
         useEffect(() => {
@@ -781,6 +787,7 @@ export const NavigationPane = React.memo(
                 hiddenFolders: activeProfile.hiddenFolders,
                 getFileDisplayName,
                 getFileTimestamps,
+                getFileWordCount,
                 getSolidBackground,
                 shortcuts,
                 tree,
@@ -798,6 +805,7 @@ export const NavigationPane = React.memo(
                 activeProfile.hiddenFolders,
                 getFileDisplayName,
                 getFileTimestamps,
+                getFileWordCount,
                 getSolidBackground,
                 handleSectionContextMenu,
                 indentGuideLevelsByKey,

@@ -92,7 +92,7 @@ export default class WorkspaceCoordinator {
     async activateNavigatorView(): Promise<WorkspaceLeaf | null> {
         const { workspace } = this.plugin.app;
 
-        let leaf: WorkspaceLeaf | null = null;
+        let leaf: WorkspaceLeaf | null;
         const leaves = workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
 
         if (leaves.length > 0) {

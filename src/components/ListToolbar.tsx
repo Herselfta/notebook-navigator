@@ -47,7 +47,7 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
         descendantsTooltip,
         getCurrentSortOption,
         hasAppearanceOrSortSelection,
-        isCustomSort,
+        hasCustomSortOrGroup,
         hasCustomAppearance
     } = useListActions();
 
@@ -97,8 +97,8 @@ export function ListToolbar({ isSearchActive, onSearchToggle }: ListToolbarProps
                         ) : null}
                         {showSortButton ? (
                             <button
-                                className={`${leftButtonBaseClassName}${isCustomSort ? ' nn-mobile-toolbar-button-active' : ''}`}
-                                aria-label={strings.paneHeader.changeSortOrder}
+                                className={`${leftButtonBaseClassName}${hasCustomSortOrGroup ? ' nn-mobile-toolbar-button-active' : ''}`}
+                                aria-label={strings.paneHeader.changeSortAndGroup}
                                 onClick={handleSortMenu}
                                 disabled={!hasAppearanceOrSortSelection}
                                 tabIndex={-1}

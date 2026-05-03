@@ -204,8 +204,8 @@ export function SearchInput({
      * Used after closing search or switching focus away from search input.
      */
     const focusListPane = () => {
-        setTimeout(() => {
-            const scope = containerRef?.current ?? document;
+        activeWindow.setTimeout(() => {
+            const scope = containerRef?.current ?? activeDocument;
             const listPaneScroller = scope.querySelector('.nn-list-pane-scroller');
             if (listPaneScroller instanceof HTMLElement) {
                 focusElementPreventScroll(listPaneScroller);

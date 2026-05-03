@@ -112,7 +112,7 @@ export function useContextMenu(elementRef: React.RefObject<HTMLElement | null>, 
             if (!elementRef.current.contains(targetNode)) return;
 
             // Get the target element if it's an HTML element
-            const targetElement = targetNode instanceof HTMLElement ? targetNode : targetNode.parentElement;
+            const targetElement = targetNode.instanceOf(HTMLElement) ? targetNode : targetNode.parentElement;
             let menuElement: HTMLElement = elementRef.current;
 
             // Folder note override:

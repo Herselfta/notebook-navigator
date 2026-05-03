@@ -128,13 +128,14 @@ export const STRINGS_PL = {
         newFolder: 'Nowy folder', // Tooltip for create new folder button (English: New folder)
         newNote: 'Nowa notatka', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Wróć do nawigacji', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: 'Zmień kolejność sortowania', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: 'Zmień kolejność sortowania',
+        changeSortAndGroup: 'Zmień sortowanie i grupowanie',
         defaultSort: 'Domyślne', // Label for default sorting mode (English: Default)
         descendants: 'potomków',
         subfolders: 'podfolderów',
         subtags: 'podtagów',
         childValues: 'wartości podrzędnych',
-        applySortToDescendants: (target: string) => `Zastosuj sortowanie dla ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `Zastosuj sortowanie i grupowanie dla ${target}`,
         applyAppearanceToDescendants: (target: string) => `Zastosuj wygląd dla ${target}`,
         showFolders: 'Pokaż nawigację', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Zmień kolejność elementów',
@@ -195,11 +196,11 @@ export const STRINGS_PL = {
                     title: 'Atrybuty',
                     items: [
                         '`.key` Uwzględnij notatki z atrybutem.',
-                        '`.key=value` Uwzględnij notatki z wartością atrybutu.',
+                        '`.key=value` Uwzględnij notatki, których wartość atrybutu zawiera `value`.',
                         '`."Reading Status"` Uwzględnij notatki z atrybutem zawierającym spacje.',
                         '`."Reading Status"="In Progress"` Atrybuty i ich wartości ze spacjami muszą być w podwójnych cudzysłowach.',
                         '`-.key` Wyklucz notatki z atrybutem.',
-                        '`-.key=value` Wyklucz notatki z wartością atrybutu.',
+                        '`-.key=value` Wyklucz notatki, których wartość atrybutu zawiera `value`.',
                         'Przytrzymaj Cmd/Ctrl i kliknij tag, aby dodać go za pomocą AND. Przytrzymaj Cmd/Ctrl i Shift, a następnie kliknij, aby dodać go za pomocą OR.'
                     ]
                 },
@@ -364,6 +365,8 @@ export const STRINGS_PL = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Wygląd',
+        sortBy: 'Sortuj według',
         standardPreset: 'Standardowy',
         compactPreset: 'Kompaktowy',
         defaultSuffix: '(domyślne)',
@@ -384,7 +387,7 @@ export const STRINGS_PL = {
     modals: {
         bulkApply: {
             applyButton: 'Zastosuj',
-            applySortTitle: (target: string) => `Zastosuj sortowanie dla ${target}?`,
+            applySortAndGroupTitle: (target: string) => `Zastosuj sortowanie i grupowanie dla ${target}?`,
             applyAppearanceTitle: (target: string) => `Zastosuj wygląd dla ${target}?`,
             affectedCountMessage: (count: number) => `Istniejące nadpisania do zmiany: ${count}.`
         },
@@ -786,6 +789,8 @@ export const STRINGS_PL = {
         toggleDescendants: 'Przełącz podfoldery', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Przełącz ukryte foldery, tagi i notatki', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Przełącz sortowanie tagów', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'Przełącz tagi według wyboru',
+        togglePropertiesBySelection: 'Przełącz właściwości według wyboru',
         toggleCompactMode: 'Przełącz tryb kompaktowy', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Zwiń / rozwiń wszystkie elementy', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Dodaj tag do wybranych plików', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -811,11 +816,13 @@ export const STRINGS_PL = {
         file: 'plik',
         files: 'pliki',
         folder: 'folder',
-        folders: 'foldery'
+        folders: 'foldery',
+        wordCount: 'Liczba słów'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Zmień ustawienia domyślne',
         metadataReport: {
             exportSuccess: 'Raport nieprawidłowych metadanych wyeksportowany do: {filename}',
             exportFailed: 'Nie udało się wyeksportować raportu metadanych'
@@ -991,7 +998,7 @@ export const STRINGS_PL = {
             fileNameIconMap: {
                 name: 'Przypisanie ikonek na podstawie nazwy pliku',
                 desc: 'Pliki zawierające dany tekst otrzymują określoną ikonkę. Jedno przypisanie na linię: tekst=ikonka',
-                placeholder: '# tekst=ikona\nspotkanie=LiCalendar\nfaktura=PhReceipt',
+                placeholder: '# tekst=ikona\nspotkanie=ph-calendar\nfaktura=ph-receipt',
                 editTooltip: 'Edytuj przypisania'
             },
             showCategoryIcons: {
@@ -1001,12 +1008,8 @@ export const STRINGS_PL = {
             fileTypeIconMap: {
                 name: 'Przypisanie ikonek na podstawie typu pliku',
                 desc: 'Pliki z danym rozszerzeniem otrzymują określoną ikonkę. Jedno przypisanie na linię: rozszerzenie=ikonka',
-                placeholder: '# rozszerzenie=ikonka\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# rozszerzenie=ikonka\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Edytuj przypisania'
-            },
-            optimizeNoteHeight: {
-                name: 'Zmienna wysokość notatek',
-                desc: 'Używa kompaktowej wysokości dla przypiętych notatek i notatek bez podglądu treści.'
             },
             compactItemHeight: {
                 name: 'Wysokość elementów w trybie kompaktowym',
@@ -1213,7 +1216,7 @@ export const STRINGS_PL = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Format nazwy miesiąca',
-                desc: 'Normalna lub skrócona nazwa miesiąca, gdy widok roku jest ukryty.',
+                desc: 'Pełna (styczeń) lub skrócona (sty) nazwa miesiąca.',
                 options: {
                     full: 'styczeń (pełna)',
                     short: 'sty (krótka)'
@@ -1317,6 +1320,10 @@ export const STRINGS_PL = {
             showTooltipPath: {
                 name: 'Pokaż ścieżkę',
                 desc: 'Po najechaniu kursorem wyświetla ścieżkę folderu pod nazwami notatek.'
+            },
+            showTooltipWordCount: {
+                name: 'Pokaż liczbę słów',
+                desc: 'Wyświetla liczbę słów notatek w podpowiedziach.'
             },
             resetPaneSeparator: {
                 name: 'Przywróć położenie separatora paneli',
@@ -1500,12 +1507,16 @@ export const STRINGS_PL = {
                 desc: 'Zastosuj kolory do tagów w elementach plików.'
             },
             prioritizeColoredFileTags: {
-                name: 'Pokaż kolorowe tagi jako pierwsze',
-                desc: 'Wyświetla kolorowe tagi przed innymi w elementach plików.'
+                name: 'Pokaż najpierw tagi z niestandardowymi kolorami',
+                desc: 'Wyświetla tagi z niestandardowymi kolorami przed innymi w elementach plików.'
             },
             showFileTagsInCompactMode: {
                 name: 'Pokaż tagi plików w trybie kompaktowym',
                 desc: 'Wyświetla tagi, gdy data, podgląd i obraz są ukryte.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Pokaż tagi w wielu wierszach',
+                desc: 'Zawija tagi plików do dodatkowych wierszy, gdy nie mieszczą się w jednym wierszu.'
             },
             showFileProperties: {
                 name: 'Pokaż atrybuty plików',
@@ -1516,12 +1527,16 @@ export const STRINGS_PL = {
                 desc: 'Zastosuj kolory do etykiet atrybutów w elementach plików.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Wyświetl kolorowe atrybuty jako pierwsze',
-                desc: 'Sortuj kolorowe atrybuty przed pozostałymi w elementach plików.'
+                name: 'Wyświetl najpierw atrybuty z niestandardowymi kolorami',
+                desc: 'Sortuj atrybuty z niestandardowymi kolorami przed pozostałymi w elementach plików.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Pokaż atrybuty w trybie kompaktowym',
                 desc: 'Wyświetlaj atrybuty, gdy tryb kompaktowy jest aktywny.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Pokaż atrybuty w wielu wierszach',
+                desc: 'Zawija atrybuty plików do dodatkowych wierszy, gdy nie mieszczą się w jednym wierszu.'
             },
             notePropertyType: {
                 name: 'Atrybut notatki',
@@ -1539,10 +1554,6 @@ export const STRINGS_PL = {
                 noneConfigured: 'Brak skonfigurowanych atrybutów',
                 singleConfigured: '1 atrybut skonfigurowany: {properties}',
                 multipleConfigured: '{count} atrybutów skonfigurowanych: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Pokaż atrybuty w osobnych wierszach',
-                desc: 'Wyświetl każdy atrybut w osobnym wierszu.'
             },
             enablePropertyInternalLinks: {
                 name: 'Połącz etykiety atrybutów z notatkami',

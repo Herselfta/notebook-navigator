@@ -129,13 +129,14 @@ export const STRINGS_UK = {
         newFolder: 'Нова папка', // Tooltip for create new folder button (English: New folder)
         newNote: 'Нова нотатка', // Tooltip for create new note button (English: New note)
         mobileBackToNavigation: 'Назад до навігації', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
-        changeSortOrder: 'Змінити порядок сортування', // Tooltip for the sort order toggle button (English: Change sort order)
+        changeChildSortOrder: 'Змінити порядок сортування',
+        changeSortAndGroup: 'Змінити сортування та групування',
         defaultSort: 'За замовчуванням', // Label for default sorting mode (English: Default)
         descendants: 'нащадків',
         subfolders: 'підпапок',
         subtags: 'підтегів',
         childValues: 'дочірніх значень',
-        applySortToDescendants: (target: string) => `Застосувати сортування для ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `Застосувати сортування та групування для ${target}`,
         applyAppearanceToDescendants: (target: string) => `Застосувати оформлення для ${target}`,
         showFolders: 'Показати навігацію', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Змінити порядок навігації',
@@ -196,11 +197,11 @@ export const STRINGS_UK = {
                     title: 'Властивості',
                     items: [
                         '`.key` Включити нотатки з ключем властивості.',
-                        '`.key=value` Включити нотатки з значенням властивості.',
+                        '`.key=value` Включити нотатки, у яких значення властивості містить `value`.',
                         '`."Reading Status"` Включити нотатки з ключем властивості, що містить пробіли.',
                         '`."Reading Status"="In Progress"` Ключі та значення з пробілами повинні бути в подвійних лапках.',
                         '`-.key` Виключити нотатки з ключем властивості.',
-                        '`-.key=value` Виключити нотатки з значенням властивості.',
+                        '`-.key=value` Виключити нотатки, у яких значення властивості містить `value`.',
                         'Cmd/Ctrl+Клік на властивість для додавання з AND. Cmd/Ctrl+Shift+Клік для додавання з OR.'
                     ]
                 },
@@ -365,6 +366,8 @@ export const STRINGS_UK = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Вигляд',
+        sortBy: 'Сортувати за',
         standardPreset: 'Стандартний',
         compactPreset: 'Компактний',
         defaultSuffix: '(за замовчуванням)',
@@ -383,7 +386,7 @@ export const STRINGS_UK = {
     modals: {
         bulkApply: {
             applyButton: 'Застосувати',
-            applySortTitle: (target: string) => `Застосувати сортування для ${target}?`,
+            applySortAndGroupTitle: (target: string) => `Застосувати сортування та групування для ${target}?`,
             applyAppearanceTitle: (target: string) => `Застосувати оформлення для ${target}?`,
             affectedCountMessage: (count: number) => `Наявних перевизначень, які зміняться: ${count}.`
         },
@@ -781,6 +784,8 @@ export const STRINGS_UK = {
         toggleDescendants: 'Перемкнути нащадків', // Command palette: Toggles showing notes from descendants (English: Toggle descendants)
         toggleHidden: 'Перемкнути приховані папки, теги та нотатки', // Command palette: Toggles showing hidden items (English: Toggle hidden items)
         toggleTagSort: 'Перемкнути порядок сортування тегів', // Command palette: Toggles between alphabetical and frequency tag sorting (English: Toggle tag sort order)
+        toggleTagsBySelection: 'Перемкнути теги за вибором',
+        togglePropertiesBySelection: 'Перемкнути властивості за вибором',
         toggleCompactMode: 'Перемкнути компактний режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Згорнути / розгорнути всі елементи', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Додати тег до вибраних файлів', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
@@ -806,11 +811,13 @@ export const STRINGS_UK = {
         file: 'файл',
         files: 'файлів',
         folder: 'папка',
-        folders: 'папок'
+        folders: 'папок',
+        wordCount: 'Кількість слів'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Змінити стандартні налаштування',
         metadataReport: {
             exportSuccess: 'Звіт про невдалі метадані експортовано до: {filename}',
             exportFailed: 'Не вдалося експортувати звіт метаданих'
@@ -986,7 +993,7 @@ export const STRINGS_UK = {
             fileNameIconMap: {
                 name: 'Зіставлення назв та іконок',
                 desc: 'Файли, що містять текст, отримують вказану іконку. Одне зіставлення на рядок: текст=іконка',
-                placeholder: '# текст=іконка\nзустріч=LiCalendar\nрахунок=PhReceipt',
+                placeholder: '# текст=іконка\nзустріч=ph-calendar\nрахунок=ph-receipt',
                 editTooltip: 'Редагувати зіставлення'
             },
             showCategoryIcons: {
@@ -996,12 +1003,8 @@ export const STRINGS_UK = {
             fileTypeIconMap: {
                 name: 'Зіставлення типів та іконок',
                 desc: 'Файли з розширенням отримують вказану іконку. Одне зіставлення на рядок: розширення=іконка',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Редагувати зіставлення'
-            },
-            optimizeNoteHeight: {
-                name: 'Змінна висота нотаток',
-                desc: 'Використовувати компактну висоту для закріплених нотаток та нотаток без тексту попереднього перегляду.'
             },
             compactItemHeight: {
                 name: 'Висота компактних елементів',
@@ -1208,7 +1211,7 @@ export const STRINGS_UK = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Формат назви місяця',
-                desc: 'Звичайна або скорочена назва місяця, коли річний вигляд приховано.',
+                desc: 'Повна (січень) або скорочена (січ) назва місяця.',
                 options: {
                     full: 'січень (повна)',
                     short: 'січ (коротка)'
@@ -1312,6 +1315,10 @@ export const STRINGS_UK = {
             showTooltipPath: {
                 name: 'Показувати шлях',
                 desc: 'Відображати шлях папки під назвами нотаток у підказках.'
+            },
+            showTooltipWordCount: {
+                name: 'Показувати кількість слів',
+                desc: 'Відображати кількість слів у нотатках у підказках.'
             },
             resetPaneSeparator: {
                 name: 'Скинути позицію роздільника панелей',
@@ -1494,12 +1501,16 @@ export const STRINGS_UK = {
                 desc: 'Застосовувати кольори тегів до значків тегів на елементах файлів.'
             },
             prioritizeColoredFileTags: {
-                name: 'Показувати кольорові теги першими',
-                desc: 'Сортувати кольорові теги перед іншими тегами на елементах файлів.'
+                name: 'Показувати першими теги з користувацькими кольорами',
+                desc: 'Сортувати теги з користувацькими кольорами перед іншими тегами на елементах файлів.'
             },
             showFileTagsInCompactMode: {
                 name: 'Показувати теги файлів у компактному режимі',
                 desc: 'Відображати теги, коли дата, попередній перегляд та зображення приховані.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Показувати теги в кілька рядків',
+                desc: 'Переносити теги файлів на додаткові рядки, коли вони не вміщуються в один рядок.'
             },
             showFileProperties: {
                 name: 'Показувати властивості файлів',
@@ -1510,12 +1521,16 @@ export const STRINGS_UK = {
                 desc: 'Застосовувати кольори властивостей до значків властивостей на елементах файлів.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Показувати кольорові властивості першими',
-                desc: 'Сортувати кольорові властивості перед іншими властивостями на елементах файлів.'
+                name: 'Показувати першими властивості з користувацькими кольорами',
+                desc: 'Сортувати властивості з користувацькими кольорами перед іншими властивостями на елементах файлів.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Показувати властивості в компактному режимі',
                 desc: 'Відображати властивості при активному компактному режимі.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Показувати властивості в кілька рядків',
+                desc: 'Переносити властивості файлів на додаткові рядки, коли вони не вміщуються в один рядок.'
             },
             notePropertyType: {
                 name: 'Властивість нотатки',
@@ -1533,10 +1548,6 @@ export const STRINGS_UK = {
                 noneConfigured: 'Властивості не налаштовані',
                 singleConfigured: '1 властивість налаштована: {properties}',
                 multipleConfigured: '{count} властивостей налаштовано: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Показувати властивості в окремих рядках',
-                desc: 'Показувати кожну властивість у власному рядку.'
             },
             enablePropertyInternalLinks: {
                 name: "Пов'язати мітки властивостей із нотатками",

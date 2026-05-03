@@ -28,11 +28,59 @@ interface ResolveListGroupingParams {
     propertyNodeId?: string | null;
 }
 
-interface ListGroupingResolution {
+export interface ListGroupingResolution {
     defaultGrouping: ListNoteGroupingOption;
     effectiveGrouping: ListNoteGroupingOption;
     normalizedOverride: ListNoteGroupingOption | undefined;
     hasCustomOverride: boolean;
+}
+
+export function resolveListGroupingOverride({
+    noteGrouping,
+    selectionType,
+    groupBy
+}: {
+    noteGrouping: ListNoteGroupingOption;
+    selectionType?: ItemType | null;
+    groupBy?: ListNoteGroupingOption;
+}): ListGroupingResolution {
+    const globalDefault: ListNoteGroupingOption = noteGrouping ?? 'none';
+
+    if (selectionType === ItemType.FOLDER) {
+        return {
+            defaultGrouping: globalDefault,
+            effectiveGrouping: groupBy ?? globalDefault,
+            normalizedOverride: groupBy,
+            hasCustomOverride: groupBy !== undefined
+        };
+    }
+
+    if (selectionType === ItemType.TAG || selectionType === ItemType.PROPERTY) {
+        const defaultGrouping: ListNoteGroupingOption = globalDefault === 'folder' ? 'date' : globalDefault;
+
+        if (groupBy === undefined || groupBy === 'folder') {
+            return {
+                defaultGrouping,
+                effectiveGrouping: defaultGrouping,
+                normalizedOverride: undefined,
+                hasCustomOverride: false
+            };
+        }
+
+        return {
+            defaultGrouping,
+            effectiveGrouping: groupBy,
+            normalizedOverride: groupBy,
+            hasCustomOverride: true
+        };
+    }
+
+    return {
+        defaultGrouping: globalDefault,
+        effectiveGrouping: globalDefault,
+        normalizedOverride: undefined,
+        hasCustomOverride: false
+    };
 }
 
 /**
@@ -47,44 +95,31 @@ export function resolveListGrouping({
     propertyNodeId
 }: ResolveListGroupingParams): ListGroupingResolution {
     const globalDefault: ListNoteGroupingOption = settings.noteGrouping ?? 'none';
-    const resolveNonFolderGrouping = (rawOverride: ListNoteGroupingOption | undefined): ListGroupingResolution => {
-        const defaultGrouping: ListNoteGroupingOption = globalDefault === 'folder' ? 'date' : globalDefault;
-
-        if (rawOverride === undefined || rawOverride === 'folder') {
-            return {
-                defaultGrouping,
-                effectiveGrouping: defaultGrouping,
-                normalizedOverride: undefined,
-                hasCustomOverride: false
-            };
-        }
-
-        return {
-            defaultGrouping,
-            effectiveGrouping: rawOverride,
-            normalizedOverride: rawOverride,
-            hasCustomOverride: true
-        };
-    };
 
     // Folder selection: use folder-specific override if set, otherwise use global default
     if (selectionType === ItemType.FOLDER && folderPath) {
-        const rawOverride = settings.folderAppearances?.[folderPath]?.groupBy;
-        return {
-            defaultGrouping: globalDefault,
-            effectiveGrouping: rawOverride ?? globalDefault,
-            normalizedOverride: rawOverride,
-            hasCustomOverride: rawOverride !== undefined
-        };
+        return resolveListGroupingOverride({
+            noteGrouping: globalDefault,
+            selectionType,
+            groupBy: settings.folderAppearances?.[folderPath]?.groupBy
+        });
     }
 
     // Tag and property selections don't support "folder" grouping.
     if (selectionType === ItemType.TAG && tag) {
-        return resolveNonFolderGrouping(settings.tagAppearances?.[tag]?.groupBy);
+        return resolveListGroupingOverride({
+            noteGrouping: globalDefault,
+            selectionType,
+            groupBy: settings.tagAppearances?.[tag]?.groupBy
+        });
     }
 
     if (selectionType === ItemType.PROPERTY && propertyNodeId) {
-        return resolveNonFolderGrouping(settings.propertyAppearances?.[propertyNodeId]?.groupBy);
+        return resolveListGroupingOverride({
+            noteGrouping: globalDefault,
+            selectionType,
+            groupBy: settings.propertyAppearances?.[propertyNodeId]?.groupBy
+        });
     }
 
     // No specific selection or other selection types: use global default

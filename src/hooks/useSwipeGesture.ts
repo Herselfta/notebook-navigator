@@ -138,7 +138,7 @@ export function useMobileSwipeNavigation(containerRef: React.RefObject<HTMLEleme
     const uiDispatch = useUIDispatch();
 
     // Check if RTL mode is active
-    const isRTL = document.body.classList.contains('mod-rtl');
+    const isRTL = activeDocument.body.classList.contains('mod-rtl');
     const allowAnywhereSwipe = true;
 
     const shouldIgnoreTouchStart = useCallback((event: TouchEvent) => {

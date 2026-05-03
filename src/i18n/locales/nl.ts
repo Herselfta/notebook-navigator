@@ -129,13 +129,14 @@ export const STRINGS_NL = {
         newFolder: 'Nieuwe map',
         newNote: 'Nieuwe notitie',
         mobileBackToNavigation: 'Terug naar navigatie',
-        changeSortOrder: 'Sorteervolgorde wijzigen',
+        changeChildSortOrder: 'Sorteervolgorde wijzigen',
+        changeSortAndGroup: 'Sortering en groepering wijzigen',
         defaultSort: 'Standaard',
         descendants: 'subelementen',
         subfolders: 'submappen',
         subtags: 'subtags',
         childValues: 'onderliggende waarden',
-        applySortToDescendants: (target: string) => `Sortering toepassen op ${target}`,
+        applySortAndGroupToDescendants: (target: string) => `Sortering en groepering toepassen op ${target}`,
         applyAppearanceToDescendants: (target: string) => `Weergave toepassen op ${target}`,
         showFolders: 'Navigatie tonen',
         reorderRootFolders: 'Navigatie herschikken',
@@ -197,11 +198,11 @@ export const STRINGS_NL = {
                     title: 'Eigenschappen',
                     items: [
                         '`.key` Notities met eigenschapssleutel opnemen.',
-                        '`.key=value` Notities met eigenschapswaarde opnemen.',
+                        '`.key=value` Notities opnemen waarvan de eigenschapswaarde `value` bevat.',
                         '`."Reading Status"` Notities opnemen met een eigenschapssleutel die spaties bevat.',
                         '`."Reading Status"="In Progress"` Sleutels en waarden met spaties moeten tussen dubbele aanhalingstekens staan.',
                         '`-.key` Notities met eigenschapssleutel uitsluiten.',
-                        '`-.key=value` Notities met eigenschapswaarde uitsluiten.',
+                        '`-.key=value` Notities uitsluiten waarvan de eigenschapswaarde `value` bevat.',
                         'Cmd/Ctrl+Klik op een eigenschap om toe te voegen met AND. Cmd/Ctrl+Shift+Klik om toe te voegen met OR.'
                     ]
                 },
@@ -366,6 +367,8 @@ export const STRINGS_NL = {
 
     // Folder appearance menu
     folderAppearance: {
+        appearance: 'Uiterlijk',
+        sortBy: 'Sorteren op',
         standardPreset: 'Standaard',
         compactPreset: 'Compact',
         defaultSuffix: '(standaard)',
@@ -384,7 +387,7 @@ export const STRINGS_NL = {
     modals: {
         bulkApply: {
             applyButton: 'Toepassen',
-            applySortTitle: (target: string) => `Sortering toepassen op ${target}?`,
+            applySortAndGroupTitle: (target: string) => `Sortering en groepering toepassen op ${target}?`,
             applyAppearanceTitle: (target: string) => `Weergave toepassen op ${target}?`,
             affectedCountMessage: (count: number) => `Bestaande overschrijvingen die wijzigen: ${count}.`
         },
@@ -785,6 +788,8 @@ export const STRINGS_NL = {
         toggleDescendants: 'Afstammelingen in-/uitschakelen',
         toggleHidden: 'Verborgen mappen, tags en notities in-/uitschakelen',
         toggleTagSort: 'Tag sorteervolgorde in-/uitschakelen',
+        toggleTagsBySelection: 'Tags op selectie in-/uitschakelen',
+        togglePropertiesBySelection: 'Eigenschappen op selectie in-/uitschakelen',
         toggleCompactMode: 'Compacte modus in-/uitschakelen', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         collapseExpand: 'Alle items in-/uitklappen',
         addTag: 'Tag toevoegen aan geselecteerde bestanden',
@@ -810,11 +815,13 @@ export const STRINGS_NL = {
         file: 'bestand',
         files: 'bestanden',
         folder: 'map',
-        folders: 'mappen'
+        folders: 'mappen',
+        wordCount: 'Aantal woorden'
     },
 
     // Settings
     settings: {
+        changeDefaultSettings: 'Standaardinstellingen wijzigen',
         metadataReport: {
             exportSuccess: 'Metadatarapport met fouten geëxporteerd naar: {filename}',
             exportFailed: 'Kan metadatarapport niet exporteren'
@@ -990,7 +997,7 @@ export const STRINGS_NL = {
             fileNameIconMap: {
                 name: 'Bestandsnaam-pictogram toewijzing',
                 desc: 'Bestanden met de tekst krijgen het opgegeven pictogram. Eén toewijzing per regel: tekst=pictogram',
-                placeholder: '# tekst=pictogram\nvergadering=LiCalendar\nfactuur=PhReceipt',
+                placeholder: '# tekst=pictogram\nvergadering=ph-calendar\nfactuur=ph-receipt',
                 editTooltip: 'Toewijzingen bewerken'
             },
             showCategoryIcons: {
@@ -1000,12 +1007,8 @@ export const STRINGS_NL = {
             fileTypeIconMap: {
                 name: 'Bestandstype-pictogram toewijzing',
                 desc: 'Bestanden met de extensie krijgen het opgegeven pictogram. Eén toewijzing per regel: extensie=pictogram',
-                placeholder: '# Extension=icon\ncpp=LiFileCode\npdf=RaBook',
+                placeholder: '# Extension=icon\ncpp=ph-file-code\npdf=ph-file-pdf',
                 editTooltip: 'Toewijzingen bewerken'
-            },
-            optimizeNoteHeight: {
-                name: 'Variabele notitiehoogte',
-                desc: 'Compacte hoogte gebruiken voor vastgepinde notities en notities zonder voorbeeldtekst.'
             },
             compactItemHeight: {
                 name: 'Compacte itemhoogte',
@@ -1212,7 +1215,7 @@ export const STRINGS_NL = {
             },
             calendarMonthHeadingFormat: {
                 name: 'Maandnaam-indeling',
-                desc: 'Normale of afgekorte maandnaam wanneer het jaaroverzicht verborgen is.',
+                desc: 'Lange (januari) of korte (jan.) maandnaam.',
                 options: {
                     full: 'januari (volledig)',
                     short: 'jan. (kort)'
@@ -1316,6 +1319,10 @@ export const STRINGS_NL = {
             showTooltipPath: {
                 name: 'Pad tonen',
                 desc: 'Het mappad onder notitienamen in tooltips weergeven.'
+            },
+            showTooltipWordCount: {
+                name: 'Aantal woorden tonen',
+                desc: 'Het aantal woorden van notities in tooltips weergeven.'
             },
             resetPaneSeparator: {
                 name: 'Paneelscheidingspositie resetten',
@@ -1499,12 +1506,16 @@ export const STRINGS_NL = {
                 desc: 'Tagkleuren toepassen op tagbadges op bestandsitems.'
             },
             prioritizeColoredFileTags: {
-                name: 'Gekleurde tags eerst tonen',
-                desc: 'Sorteert gekleurde tags vóór andere tags in bestandsitems.'
+                name: 'Tags met aangepaste kleuren eerst tonen',
+                desc: 'Sorteert tags met aangepaste kleuren vóór andere tags in bestandsitems.'
             },
             showFileTagsInCompactMode: {
                 name: 'Bestandstags tonen in compacte modus',
                 desc: 'Tags weergeven wanneer datum, voorbeeld en afbeelding verborgen zijn.'
+            },
+            showFileTagsOnMultipleRows: {
+                name: 'Tags op meerdere regels tonen',
+                desc: 'Bestandstags naar extra regels laten doorlopen wanneer ze niet op één regel passen.'
             },
             showFileProperties: {
                 name: 'Bestandseigenschappen tonen',
@@ -1515,12 +1526,16 @@ export const STRINGS_NL = {
                 desc: 'Eigenschapkleuren toepassen op eigenschapbadges in bestandsitems.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Gekleurde eigenschappen eerst tonen',
-                desc: 'Gekleurde eigenschappen sorteren vóór andere eigenschappen in bestandsitems.'
+                name: 'Eigenschappen met aangepaste kleuren eerst tonen',
+                desc: 'Eigenschappen met aangepaste kleuren sorteren vóór andere eigenschappen in bestandsitems.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Eigenschappen tonen in compacte modus',
                 desc: 'Eigenschappen weergeven wanneer de compacte modus actief is.'
+            },
+            showFilePropertiesOnMultipleRows: {
+                name: 'Eigenschappen op meerdere regels tonen',
+                desc: 'Bestandseigenschappen naar extra regels laten doorlopen wanneer ze niet op één regel passen.'
             },
             notePropertyType: {
                 name: 'Notitie-eigenschap',
@@ -1538,10 +1553,6 @@ export const STRINGS_NL = {
                 noneConfigured: 'Geen eigenschappen geconfigureerd',
                 singleConfigured: '1 eigenschap geconfigureerd: {properties}',
                 multipleConfigured: '{count} eigenschappen geconfigureerd: {properties}'
-            },
-            showPropertiesOnSeparateRows: {
-                name: 'Eigenschappen op afzonderlijke regels tonen',
-                desc: 'Toon elke eigenschap op een eigen regel.'
             },
             enablePropertyInternalLinks: {
                 name: 'Eigenschap-pills koppelen aan notities',

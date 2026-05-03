@@ -58,6 +58,7 @@ export interface NavigationPaneRowContext {
     hiddenFolders: string[];
     getFileDisplayName: (file: TFile) => string;
     getFileTimestamps: (file: TFile) => { created: number; modified: number };
+    getFileWordCount: (file: TFile) => number | null;
     getSolidBackground: (color?: string | null) => string | undefined;
     shortcuts: NavigationPaneShortcutRenderState;
     tree: NavigationPaneTreeInteractionsResult;
