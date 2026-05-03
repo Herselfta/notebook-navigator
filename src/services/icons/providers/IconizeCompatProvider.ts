@@ -23,17 +23,15 @@ import { getIconRenderToken, resetIconContainer } from './providerUtils';
 /**
  * Compatibility provider for Iconize (obsidian-icon-folder) plugin icon packs.
  *
- * Iconize stores downloaded SVG icon packs under `.obsidian/icons/<pack-name>/`.
+ * Iconize stores downloaded SVG icon packs under `<vault.configDir>/icons/<pack-name>/`.
  * Each icon file is named in PascalCase (e.g., `SendPlaneLine.svg`).
  *
  * Icon IDs for this provider use the format: `<pack-name>/<PascalCaseIconName>`
  * For example: `remix-icons/SendPlaneLine`, `tabler-icons/Clock`, `simple-icons/Obsidian`
  *
  * This provider reads SVGs directly through the vault adapter so it can access
- * the `.obsidian/` system directory that is excluded from the vault's TFile index.
+ * the vault's configured system directory that is excluded from the vault's TFile index.
  */
-
-const ICONIZE_ICONS_BASE_PATH = '.obsidian/icons';
 const SVG_EXTENSION = '.svg';
 const MAX_SVG_SOURCE_LENGTH = 200_000;
 
@@ -57,7 +55,7 @@ function sanitizeSvg(raw: string): SVGSVGElement | null {
 
     const parsed = new DOMParser().parseFromString(raw, 'image/svg+xml');
     const root = parsed.documentElement;
-    if (!(root instanceof SVGSVGElement)) {
+    if (!(root.instanceOf(SVGSVGElement))) {
         return null;
     }
 
@@ -138,6 +136,10 @@ export class IconizeCompatProvider implements IconProvider {
         this.app = app;
     }
 
+    private getIconizeIconsBasePath(): string {
+        return `${this.app.vault.configDir}/icons`;
+    }
+
     isAvailable(): boolean {
         return true;
     }
@@ -164,7 +166,7 @@ export class IconizeCompatProvider implements IconProvider {
             return 'not-found';
         }
 
-        const svgPath = `${ICONIZE_ICONS_BASE_PATH}/${iconId}${SVG_EXTENSION}`;
+        const svgPath = `${this.getIconizeIconsBasePath()}/${iconId}${SVG_EXTENSION}`;
         const token = getIconRenderToken(container);
 
         if (!token) {
@@ -172,14 +174,13 @@ export class IconizeCompatProvider implements IconProvider {
         }
 
         // Check cache using vault adapter stat for mtime
-        return this.readSvgFromAdapter(svgPath, container, token, size);
+        return this.readSvgFromAdapter(svgPath, container, token);
     }
 
     private async readSvgFromAdapter(
         svgPath: string,
         container: HTMLElement,
-        token: symbol,
-        size?: number
+        token: symbol
     ): Promise<IconRenderResult> {
         try {
             const adapter = this.app.vault.adapter;
@@ -260,14 +261,15 @@ export class IconizeCompatProvider implements IconProvider {
     async refreshIconList(): Promise<void> {
         try {
             const adapter = this.app.vault.adapter;
-            const baseExists = await adapter.exists(ICONIZE_ICONS_BASE_PATH);
+            const iconizeIconsBasePath = this.getIconizeIconsBasePath();
+            const baseExists = await adapter.exists(iconizeIconsBasePath);
             if (!baseExists) {
                 this.iconListCache = [];
                 return;
             }
 
             const icons: IconDefinition[] = [];
-            const listed = await adapter.list(ICONIZE_ICONS_BASE_PATH);
+            const listed = await adapter.list(iconizeIconsBasePath);
 
             // Each item in folders is a pack directory like `remix-icons`
             for (const packDir of listed.folders) {
