@@ -1508,16 +1508,12 @@ export const STRINGS_PT_BR = {
                 desc: 'Aplicar cores de tag aos emblemas de tag em itens de arquivo.'
             },
             prioritizeColoredFileTags: {
-                name: 'Mostrar primeiro tags com cores personalizadas',
-                desc: 'Ordena as tags com cores personalizadas antes das outras tags nos itens de arquivo.'
+                name: 'Mostrar tags coloridas primeiro',
+                desc: 'Ordena as tags coloridas antes das outras tags nos itens de arquivo.'
             },
             showFileTagsInCompactMode: {
                 name: 'Mostrar tags de arquivo no modo compacto',
                 desc: 'Exibir tags quando data, visualização e imagem estão ocultas.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Mostrar tags em várias linhas',
-                desc: 'Quebra tags de arquivo em linhas adicionais quando elas não cabem em uma única linha.'
             },
             showFileProperties: {
                 name: 'Mostrar propriedades de arquivo',
@@ -1528,16 +1524,12 @@ export const STRINGS_PT_BR = {
                 desc: 'Aplicar cores de propriedade aos emblemas de propriedade nos itens de arquivo.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Mostrar primeiro propriedades com cores personalizadas',
-                desc: 'Ordenar propriedades com cores personalizadas antes de outras propriedades nos itens de arquivo.'
+                name: 'Mostrar propriedades coloridas primeiro',
+                desc: 'Ordenar propriedades coloridas antes de outras propriedades nos itens de arquivo.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Mostrar propriedades no modo compacto',
                 desc: 'Exibir propriedades quando o modo compacto está ativo.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Mostrar propriedades em várias linhas',
-                desc: 'Quebra propriedades de arquivo em linhas adicionais quando elas não cabem em uma única linha.'
             },
             notePropertyType: {
                 name: 'Propriedade da nota',
@@ -1555,6 +1547,10 @@ export const STRINGS_PT_BR = {
                 noneConfigured: 'Nenhuma propriedade configurada',
                 singleConfigured: '1 propriedade configurada: {properties}',
                 multipleConfigured: '{count} propriedades configuradas: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Mostrar propriedades em linhas separadas',
+                desc: 'Mostrar cada propriedade na sua própria linha.'
             },
             enablePropertyInternalLinks: {
                 name: 'Vincular etiquetas de propriedade a notas',

@@ -1502,16 +1502,12 @@ export const STRINGS_KO = {
                 desc: '파일 항목의 태그 배지에 태그 색상을 적용합니다.'
             },
             prioritizeColoredFileTags: {
-                name: '사용자 지정 색상 태그 우선 표시',
-                desc: '사용자 지정 색상 태그를 다른 태그보다 먼저 정렬합니다.'
+                name: '색상 태그 우선 표시',
+                desc: '색상 태그를 다른 태그보다 먼저 정렬합니다.'
             },
             showFileTagsInCompactMode: {
                 name: '슬림 모드에서 파일 태그 표시',
                 desc: '날짜, 미리보기, 이미지가 숨겨져 있을 때 태그를 표시합니다.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: '태그를 여러 줄로 표시',
-                desc: '파일 태그가 한 줄에 맞지 않으면 추가 줄로 줄바꿈합니다.'
             },
             showFileProperties: {
                 name: '파일 속성 표시',
@@ -1522,16 +1518,12 @@ export const STRINGS_KO = {
                 desc: '파일 항목의 속성 배지에 속성 색상을 적용합니다.'
             },
             prioritizeColoredFileProperties: {
-                name: '사용자 지정 색상 속성을 먼저 표시',
-                desc: '파일 항목에서 사용자 지정 색상 속성을 다른 속성보다 먼저 정렬합니다.'
+                name: '색상 속성을 먼저 표시',
+                desc: '파일 항목에서 색상 속성을 다른 속성보다 먼저 정렬합니다.'
             },
             showFilePropertiesInCompactMode: {
                 name: '간결 모드에서 속성 표시',
                 desc: '간결 모드가 활성화되면 속성을 표시합니다.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: '속성을 여러 줄로 표시',
-                desc: '파일 속성이 한 줄에 맞지 않으면 추가 줄로 줄바꿈합니다.'
             },
             notePropertyType: {
                 name: '노트 속성',
@@ -1549,6 +1541,10 @@ export const STRINGS_KO = {
                 noneConfigured: '구성된 속성 없음',
                 singleConfigured: '1개 속성 구성됨: {properties}',
                 multipleConfigured: '{count}개 속성 구성됨: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: '속성을 별도 행에 표시',
+                desc: '각 속성을 개별 행에 표시합니다.'
             },
             enablePropertyInternalLinks: {
                 name: '속성 필을 노트에 연결',

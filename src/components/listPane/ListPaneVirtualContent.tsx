@@ -48,7 +48,7 @@ interface FolderGroupHeaderTarget {
     folderNote: TFile | null;
 }
 
-type VirtualRowStyle = React.CSSProperties & Record<'--item-height' | '--nn-virtual-item-start', string>;
+type VirtualRowStyle = React.CSSProperties & Record<'--item-height', string>;
 
 interface ListPaneVirtualContentProps {
     listItems: ListPaneItem[];
@@ -292,12 +292,6 @@ export function ListPaneVirtualContent({
     const handleListMouseLeave = useCallback(() => {
         onHoveredFilePathChange(null, null);
     }, [onHoveredFilePathChange]);
-    const measureFileRowElement = useCallback(
-        (element: HTMLDivElement | null) => {
-            rowVirtualizer.measureElement(element);
-        },
-        [rowVirtualizer]
-    );
 
     return (
         <div
@@ -386,13 +380,12 @@ export function ListPaneVirtualContent({
                                         isFileSelected(nextItem.data)));
 
                             const virtualItemStyle: VirtualRowStyle = {
-                                '--nn-virtual-item-start': `${Math.max(0, virtualItem.start)}px`,
+                                top: Math.max(0, virtualItem.start),
                                 '--item-height': `${virtualItem.size}px`
                             };
 
                             return (
                                 <div
-                                    ref={item.type === ListPaneItemType.FILE ? measureFileRowElement : undefined}
                                     key={virtualItem.key}
                                     className={`nn-virtual-item ${
                                         item.type === ListPaneItemType.FILE ? 'nn-virtual-file-item' : ''

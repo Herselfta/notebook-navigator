@@ -1507,16 +1507,12 @@ export const STRINGS_PL = {
                 desc: 'Zastosuj kolory do tagów w elementach plików.'
             },
             prioritizeColoredFileTags: {
-                name: 'Pokaż najpierw tagi z niestandardowymi kolorami',
-                desc: 'Wyświetla tagi z niestandardowymi kolorami przed innymi w elementach plików.'
+                name: 'Pokaż kolorowe tagi jako pierwsze',
+                desc: 'Wyświetla kolorowe tagi przed innymi w elementach plików.'
             },
             showFileTagsInCompactMode: {
                 name: 'Pokaż tagi plików w trybie kompaktowym',
                 desc: 'Wyświetla tagi, gdy data, podgląd i obraz są ukryte.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Pokaż tagi w wielu wierszach',
-                desc: 'Zawija tagi plików do dodatkowych wierszy, gdy nie mieszczą się w jednym wierszu.'
             },
             showFileProperties: {
                 name: 'Pokaż atrybuty plików',
@@ -1527,16 +1523,12 @@ export const STRINGS_PL = {
                 desc: 'Zastosuj kolory do etykiet atrybutów w elementach plików.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Wyświetl najpierw atrybuty z niestandardowymi kolorami',
-                desc: 'Sortuj atrybuty z niestandardowymi kolorami przed pozostałymi w elementach plików.'
+                name: 'Wyświetl kolorowe atrybuty jako pierwsze',
+                desc: 'Sortuj kolorowe atrybuty przed pozostałymi w elementach plików.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Pokaż atrybuty w trybie kompaktowym',
                 desc: 'Wyświetlaj atrybuty, gdy tryb kompaktowy jest aktywny.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Pokaż atrybuty w wielu wierszach',
-                desc: 'Zawija atrybuty plików do dodatkowych wierszy, gdy nie mieszczą się w jednym wierszu.'
             },
             notePropertyType: {
                 name: 'Atrybut notatki',
@@ -1554,6 +1546,10 @@ export const STRINGS_PL = {
                 noneConfigured: 'Brak skonfigurowanych atrybutów',
                 singleConfigured: '1 atrybut skonfigurowany: {properties}',
                 multipleConfigured: '{count} atrybutów skonfigurowanych: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Pokaż atrybuty w osobnych wierszach',
+                desc: 'Wyświetl każdy atrybut w osobnym wierszu.'
             },
             enablePropertyInternalLinks: {
                 name: 'Połącz etykiety atrybutów z notatkami',

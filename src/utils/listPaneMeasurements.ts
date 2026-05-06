@@ -38,16 +38,11 @@ import { normalizeTagPath } from './tagUtils';
  * These values mirror the CSS variables defined in styles.css.
  */
 export interface ListPaneMeasurements {
-    scrollerHorizontalPadding: number;
-    fileItemHorizontalPadding: number;
-    fileRowGap: number;
-    fileIconSlotGap: number;
     basePadding: number;
     titleLineHeight: number;
     singleTextLineHeight: number;
     multilineTextLineHeight: number;
     tagRowHeight: number;
-    tagRowGap: number;
     featureImageHeight: number;
     firstHeader: number;
     subsequentHeader: number;
@@ -60,8 +55,6 @@ export interface FeatureImageDisplayMeasurements {
     listMaxSize: number;
 }
 
-export const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
-
 const FEATURE_IMAGE_DISPLAY_MEASUREMENTS: Readonly<Record<FeatureImageSizeSetting, FeatureImageDisplayMeasurements>> = Object.freeze({
     '64': { listMaxSize: 64 },
     '96': { listMaxSize: 96 },
@@ -69,16 +62,11 @@ const FEATURE_IMAGE_DISPLAY_MEASUREMENTS: Readonly<Record<FeatureImageSizeSettin
 });
 
 const DESKTOP_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
-    scrollerHorizontalPadding: 10,
-    fileItemHorizontalPadding: 12,
-    fileRowGap: 4,
-    fileIconSlotGap: 6,
     basePadding: 16, // 8px padding on each side
     titleLineHeight: 20,
     singleTextLineHeight: 19,
     multilineTextLineHeight: 18,
     tagRowHeight: 26, // 22px row + 4px gap
-    tagRowGap: 4,
     featureImageHeight: 42,
     firstHeader: 35,
     subsequentHeader: 50,
@@ -88,16 +76,11 @@ const DESKTOP_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
 });
 
 const MOBILE_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
-    scrollerHorizontalPadding: 10,
-    fileItemHorizontalPadding: 12,
-    fileRowGap: 4,
-    fileIconSlotGap: 6,
     basePadding: 24, // 12px padding on each side
     titleLineHeight: 21,
     singleTextLineHeight: 20,
     multilineTextLineHeight: 19,
     tagRowHeight: 26, // 22px row + 4px gap
-    tagRowGap: 4,
     featureImageHeight: 42,
     firstHeader: 43, // 35px + 8px mobile increment
     subsequentHeader: 58, // 50px + 8px mobile increment
@@ -111,17 +94,6 @@ const MOBILE_MEASUREMENTS: ListPaneMeasurements = Object.freeze({
  */
 export function getFeatureImageDisplayMeasurements(featureImageSize: FeatureImageSizeSetting): FeatureImageDisplayMeasurements {
     return FEATURE_IMAGE_DISPLAY_MEASUREMENTS[featureImageSize];
-}
-
-export function getEstimatedFeatureImageInlineSize({
-    blockSize,
-    forceSquareFeatureImage
-}: {
-    blockSize: number;
-    forceSquareFeatureImage: boolean;
-}): number {
-    const normalizedBlockSize = Number.isFinite(blockSize) && blockSize > 0 ? blockSize : 0;
-    return normalizedBlockSize * (forceSquareFeatureImage ? 1 : FEATURE_IMAGE_MAX_ASPECT_RATIO);
 }
 
 export function getListPaneMeasurements(isMobile: boolean): ListPaneMeasurements {
@@ -272,67 +244,6 @@ export function isListPaneCompactMode({
     return !showDate && !showPreview && !showImage;
 }
 
-export function estimateRenderedTextRows({
-    text,
-    maxRows,
-    charsPerRow
-}: {
-    text: string | null | undefined;
-    maxRows: number;
-    charsPerRow: number;
-}): number {
-    const normalizedMaxRows = Number.isFinite(maxRows) && maxRows > 0 ? Math.floor(maxRows) : 1;
-    const normalizedCharsPerRow = Number.isFinite(charsPerRow) && charsPerRow > 0 ? Math.floor(charsPerRow) : 1;
-    const normalizedText = typeof text === 'string' ? text.replace(/\s+/g, ' ').trim() : '';
-    if (normalizedText.length === 0) {
-        return 0;
-    }
-
-    if (normalizedMaxRows === 1) {
-        return 1;
-    }
-
-    return Math.min(normalizedMaxRows, Math.max(1, Math.ceil(normalizedText.length / normalizedCharsPerRow)));
-}
-
-const DEFAULT_PILL_CONTAINER_WIDTH = 240;
-const ESTIMATED_TAG_PILL_INLINE_SIZE = 72;
-const ESTIMATED_TAG_ANCESTOR_PILL_INLINE_SIZE = 120;
-const ESTIMATED_PROPERTY_PILL_INLINE_SIZE = 96;
-
-export function estimateWrappedPillRowCount({
-    pillCount,
-    availableWidth,
-    rowGap,
-    estimatedPillInlineSize
-}: {
-    pillCount: number;
-    availableWidth?: number;
-    rowGap: number;
-    estimatedPillInlineSize: number;
-}): number {
-    const normalizedPillCount = Number.isFinite(pillCount) && pillCount > 0 ? Math.floor(pillCount) : 0;
-    if (normalizedPillCount === 0) {
-        return 0;
-    }
-
-    const normalizedAvailableWidth =
-        typeof availableWidth === 'number' && Number.isFinite(availableWidth) && availableWidth > 0
-            ? availableWidth
-            : DEFAULT_PILL_CONTAINER_WIDTH;
-    const normalizedRowGap = Number.isFinite(rowGap) && rowGap > 0 ? rowGap : 0;
-    const normalizedPillInlineSize =
-        Number.isFinite(estimatedPillInlineSize) && estimatedPillInlineSize > 0
-            ? Math.min(estimatedPillInlineSize, normalizedAvailableWidth)
-            : normalizedAvailableWidth;
-    const pillsPerRow = Math.max(
-        1,
-        Math.floor((normalizedAvailableWidth + normalizedRowGap) / (normalizedPillInlineSize + normalizedRowGap))
-    );
-
-    return Math.ceil(normalizedPillCount / pillsPerRow);
-}
-
 export function getTagPillDisplayName(tag: string, showFileTagAncestors: boolean): string {
     if (showFileTagAncestors) {
         return tag;
@@ -344,52 +255,6 @@ export function getTagPillDisplayName(tag: string, showFileTagAncestors: boolean
     }
 
     return segments[segments.length - 1];
-}
-
-export function getTagPillRowCount({
-    tags,
-    hiddenTagVisibility,
-    selectedTagToHide,
-    showFileTagsOnMultipleRows,
-    showFileTagAncestors,
-    availableWidth,
-    rowGap
-}: {
-    tags: readonly string[];
-    hiddenTagVisibility?: HiddenTagVisibility | null;
-    selectedTagToHide?: string | null;
-    showFileTagsOnMultipleRows: boolean;
-    showFileTagAncestors: boolean;
-    availableWidth?: number;
-    rowGap: number;
-}): number {
-    let visibleTagCount = 0;
-    for (const tag of tags) {
-        if (hiddenTagVisibility?.shouldFilterHiddenTags && !hiddenTagVisibility.isTagVisible(tag)) {
-            continue;
-        }
-
-        if (selectedTagToHide && normalizeTagPath(tag) === selectedTagToHide) {
-            continue;
-        }
-
-        if (!showFileTagsOnMultipleRows) {
-            return 1;
-        }
-
-        visibleTagCount += 1;
-    }
-
-    if (visibleTagCount === 0) {
-        return 0;
-    }
-
-    return estimateWrappedPillRowCount({
-        pillCount: visibleTagCount,
-        availableWidth,
-        rowGap,
-        estimatedPillInlineSize: showFileTagAncestors ? ESTIMATED_TAG_ANCESTOR_PILL_INLINE_SIZE : ESTIMATED_TAG_PILL_INLINE_SIZE
-    });
 }
 
 export interface FileItemLayoutState {
@@ -496,14 +361,24 @@ export function shouldShowFeatureImageArea({
     return featureImageStatus === 'has';
 }
 
-type VisibleFrontmatterPropertyPillCountCache = {
-    unfiltered: Map<string, number>;
-    filtered: WeakMap<ReadonlySet<string>, Map<string, number>>;
+type VisibleFrontmatterPropertySummary = {
+    hasVisiblePills: boolean;
+    separateRowCount: number;
 };
 
-const visibleFrontmatterPropertyPillCountCache = new WeakMap<FrontmatterPropertyEntries, VisibleFrontmatterPropertyPillCountCache>();
+const EMPTY_VISIBLE_FRONTMATTER_PROPERTY_SUMMARY: VisibleFrontmatterPropertySummary = {
+    hasVisiblePills: false,
+    separateRowCount: 0
+};
 
-function getVisibleFrontmatterPropertyPillCount({
+type VisibleFrontmatterPropertySummaryCache = {
+    unfiltered: Map<string, VisibleFrontmatterPropertySummary>;
+    filtered: WeakMap<ReadonlySet<string>, Map<string, VisibleFrontmatterPropertySummary>>;
+};
+
+const visibleFrontmatterPropertySummaryCache = new WeakMap<FrontmatterPropertyEntries, VisibleFrontmatterPropertySummaryCache>();
+
+function getVisibleFrontmatterPropertySummary({
     properties,
     visiblePropertyKeys,
     hiddenPropertyValueNodeId
@@ -511,21 +386,21 @@ function getVisibleFrontmatterPropertyPillCount({
     properties: FileData['properties'] | undefined;
     visiblePropertyKeys?: ReadonlySet<string>;
     hiddenPropertyValueNodeId?: string | null;
-}): number {
+}): VisibleFrontmatterPropertySummary {
     if (!properties || properties.length === 0) {
-        return 0;
+        return EMPTY_VISIBLE_FRONTMATTER_PROPERTY_SUMMARY;
     }
 
-    let cacheContainer = visibleFrontmatterPropertyPillCountCache.get(properties);
+    let cacheContainer = visibleFrontmatterPropertySummaryCache.get(properties);
     if (!cacheContainer) {
         cacheContainer = {
-            unfiltered: new Map<string, number>(),
-            filtered: new WeakMap<ReadonlySet<string>, Map<string, number>>()
+            unfiltered: new Map<string, VisibleFrontmatterPropertySummary>(),
+            filtered: new WeakMap<ReadonlySet<string>, Map<string, VisibleFrontmatterPropertySummary>>()
         };
-        visibleFrontmatterPropertyPillCountCache.set(properties, cacheContainer);
+        visibleFrontmatterPropertySummaryCache.set(properties, cacheContainer);
     }
 
-    let cacheBucket: Map<string, number>;
+    let cacheBucket: Map<string, VisibleFrontmatterPropertySummary>;
     if (!visiblePropertyKeys) {
         cacheBucket = cacheContainer.unfiltered;
     } else {
@@ -533,49 +408,60 @@ function getVisibleFrontmatterPropertyPillCount({
         if (existingFilteredBucket) {
             cacheBucket = existingFilteredBucket;
         } else {
-            cacheBucket = new Map<string, number>();
+            cacheBucket = new Map<string, VisibleFrontmatterPropertySummary>();
             cacheContainer.filtered.set(visiblePropertyKeys, cacheBucket);
         }
     }
 
     const hiddenPropertyCacheKey = hiddenPropertyValueNodeId ?? '';
-    const cachedCount = cacheBucket.get(hiddenPropertyCacheKey);
-    if (cachedCount !== undefined) {
-        return cachedCount;
+    const cachedSummary = cacheBucket.get(hiddenPropertyCacheKey);
+    if (cachedSummary) {
+        return cachedSummary;
     }
 
-    let pillCount = 0;
+    let hasVisiblePills = false;
+    let hasUnkeyedRow = false;
+    const separateRows = new Set<string>();
 
     forEachVisibleFrontmatterProperty({
         properties,
         visiblePropertyKeys,
         hiddenPropertyValueNodeId,
-        visitor: () => {
-            pillCount += 1;
+        visitor: ({ trimmedFieldKey }) => {
+            hasVisiblePills = true;
+
+            if (trimmedFieldKey.length === 0) {
+                hasUnkeyedRow = true;
+                return;
+            }
+
+            separateRows.add(trimmedFieldKey);
         }
     });
 
-    cacheBucket.set(hiddenPropertyCacheKey, pillCount);
-    return pillCount;
+    const summary = {
+        hasVisiblePills,
+        separateRowCount: separateRows.size + (hasUnkeyedRow ? 1 : 0)
+    };
+    cacheBucket.set(hiddenPropertyCacheKey, summary);
+    return summary;
 }
 
 export function getPropertyRowCount({
     notePropertyType,
     showFileProperties,
-    showFilePropertiesOnMultipleRows,
+    showPropertiesOnSeparateRows,
     showFilePropertiesInCompactMode,
     isCompactMode,
     file,
     wordCount,
     properties,
     visiblePropertyKeys,
-    hiddenPropertyValueNodeId,
-    availableWidth,
-    rowGap
+    hiddenPropertyValueNodeId
 }: {
     notePropertyType: NotePropertyType;
     showFileProperties: boolean;
-    showFilePropertiesOnMultipleRows?: boolean;
+    showPropertiesOnSeparateRows: boolean;
     showFilePropertiesInCompactMode: boolean;
     isCompactMode: boolean;
     file: TFile | null;
@@ -583,8 +469,6 @@ export function getPropertyRowCount({
     properties: FileData['properties'] | undefined;
     visiblePropertyKeys?: ReadonlySet<string>;
     hiddenPropertyValueNodeId?: string | null;
-    availableWidth?: number;
-    rowGap?: number;
 }): number {
     // Computes the number of visual rows the property area will occupy.
     // This is used by the list pane virtualizer height estimator and must stay consistent with FileItem rendering.
@@ -598,37 +482,34 @@ export function getPropertyRowCount({
 
     const wordCountEnabled =
         notePropertyType === 'wordCount' && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const propertySummary = showFileProperties
+        ? getVisibleFrontmatterPropertySummary({
+              properties,
+              visiblePropertyKeys,
+              hiddenPropertyValueNodeId
+          })
+        : EMPTY_VISIBLE_FRONTMATTER_PROPERTY_SUMMARY;
+
+    if (!wordCountEnabled && !propertySummary.hasVisiblePills) {
+        return 0;
+    }
+
     const wordCountRowCount = wordCountEnabled ? 1 : 0;
 
-    if (!showFileProperties) {
+    let frontmatterPropertyRowCount = 0;
+    if (!showPropertiesOnSeparateRows) {
+        frontmatterPropertyRowCount = propertySummary.hasVisiblePills ? 1 : 0;
+    } else if (propertySummary.hasVisiblePills) {
+        frontmatterPropertyRowCount = propertySummary.separateRowCount;
+    }
+
+    if (frontmatterPropertyRowCount === 0) {
         return wordCountRowCount;
     }
 
-    if (!showFilePropertiesOnMultipleRows) {
-        return getVisibleFrontmatterPropertyPillCount({
-            properties,
-            visiblePropertyKeys,
-            hiddenPropertyValueNodeId
-        }) > 0
-            ? 1 + wordCountRowCount
-            : wordCountRowCount;
+    if (!showPropertiesOnSeparateRows) {
+        return 1 + wordCountRowCount;
     }
 
-    const frontmatterPillCount = getVisibleFrontmatterPropertyPillCount({
-        properties,
-        visiblePropertyKeys,
-        hiddenPropertyValueNodeId
-    });
-    if (frontmatterPillCount === 0) {
-        return wordCountRowCount;
-    }
-
-    return (
-        estimateWrappedPillRowCount({
-            pillCount: frontmatterPillCount,
-            availableWidth,
-            rowGap: rowGap ?? 0,
-            estimatedPillInlineSize: ESTIMATED_PROPERTY_PILL_INLINE_SIZE
-        }) + wordCountRowCount
-    );
+    return frontmatterPropertyRowCount + wordCountRowCount;
 }

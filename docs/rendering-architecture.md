@@ -416,8 +416,8 @@ graph TD
   operations.
 - `NavigationPaneContent` delegates virtual row layout to `NavigationPaneLayout`, which maps
   `rowVirtualizer.getVirtualItems()` and renders rows through `NavigationPaneItemRenderer`.
-- Because `virtualItem.start` includes `scrollMargin`, row wrappers subtract it when positioning inside the virtual
-  container (`virtualItem.start - scrollMargin`).
+- Because `virtualItem.start` includes `scrollMargin`, navigation row wrappers subtract it when positioning inside the
+  virtual container (`virtualItem.start - scrollMargin`).
 - Root reorder mode swaps the virtual list for `NavigationRootReorderPanel` (non-virtualized), which renders
   `RootFolderReorderItem` rows.
 - `pathToIndex` is passed to `useNavigationPaneScroll` so scroll targets resolve to indices at execution time.
@@ -458,8 +458,8 @@ const { rowVirtualizer, scrollContainerRefCallback, requestScroll } = useNavigat
   `<div className="nn-date-group-header">` nodes, matching the measurement logic.
 - `ListPaneVirtualContent` tracks hovered file path at the scroller level and `ListPane` suppresses quick-action hover
   panels while the virtualizer reports active scrolling.
-- Because `virtualItem.start` includes `scrollMargin`, row wrappers subtract it when positioning inside the virtual
-  container (`virtualItem.start - scrollMargin`).
+- List row wrappers position from `virtualItem.start`; the current list pane passes `scrollMargin: 0`, and calendar
+  overlay alignment is handled by follow-up scroll correction.
 
 ```typescript
 const { listItems, filePathToIndex, orderedFiles } = useListPaneData({

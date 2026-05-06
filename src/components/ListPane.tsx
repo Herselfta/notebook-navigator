@@ -23,9 +23,9 @@
  *
  * 2. Virtualization:
  *    - TanStack Virtual for rendering only visible items
- *    - Dynamic height calculation based on content (preview text, tags, metadata)
+ *    - Estimated row heights from fixed measurements and visible row sections
  *    - Direct memory cache lookups in estimateSize function
- *    - Virtualizer resets only when list order changes (tracked by key)
+ *    - Virtualizer refreshes size estimates when row-height inputs change
  *
  * 3. List building optimization:
  *    - useMemo rebuilds list items only when dependencies change
@@ -36,7 +36,7 @@
  * 4. Event handling:
  *    - Debounced vault event handlers via forceUpdate
  *    - Selective updates based on file location (folder/tag context)
- *    - Database content changes trigger selective remeasurement
+ *    - Database content changes trigger selective size-estimate refreshes
  *
  * 5. Selection handling:
  *    - Stable file index for onClick handlers

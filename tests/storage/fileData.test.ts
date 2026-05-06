@@ -17,12 +17,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import {
-    applyFileMetadataPatch,
-    hasMetadataHiddenChanged,
-    hasMetadataIconOrColorChanged,
-    hasMetadataNameChanged
-} from '../../src/storage/indexeddb/fileData';
+import { applyFileMetadataPatch, hasMetadataHiddenChanged, hasMetadataNameChanged } from '../../src/storage/indexeddb/fileData';
 
 describe('hasMetadataNameChanged', () => {
     it('treats trimmed-equivalent names as unchanged', () => {
@@ -49,23 +44,6 @@ describe('hasMetadataHiddenChanged', () => {
     it('detects frontmatter visibility changes', () => {
         expect(hasMetadataHiddenChanged({ hidden: false }, { hidden: true })).toBe(true);
         expect(hasMetadataHiddenChanged({ hidden: true }, null)).toBe(true);
-    });
-});
-
-describe('hasMetadataIconOrColorChanged', () => {
-    it('treats unchanged missing icon and color fields as unchanged', () => {
-        expect(hasMetadataIconOrColorChanged({}, null)).toBe(false);
-        expect(hasMetadataIconOrColorChanged(null, {})).toBe(false);
-    });
-
-    it('detects icon and color changes', () => {
-        expect(hasMetadataIconOrColorChanged({ icon: 'lucide-star' }, { icon: 'lucide-book' })).toBe(true);
-        expect(hasMetadataIconOrColorChanged({ color: 'red' }, { color: 'blue' })).toBe(true);
-    });
-
-    it('detects icon and color removals', () => {
-        expect(hasMetadataIconOrColorChanged({ icon: 'lucide-star' }, {})).toBe(true);
-        expect(hasMetadataIconOrColorChanged({ color: 'red' }, null)).toBe(true);
     });
 });
 

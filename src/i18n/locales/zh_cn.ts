@@ -1496,16 +1496,12 @@ export const STRINGS_ZH_CN = {
                 desc: '将标签颜色应用于文件项中的标签徽章。'
             },
             prioritizeColoredFileTags: {
-                name: '优先显示自定义颜色标签',
-                desc: '将自定义颜色标签排列在其他标签之前。'
+                name: '优先显示彩色标签',
+                desc: '将彩色标签排列在其他标签之前。'
             },
             showFileTagsInCompactMode: {
                 name: '在精简模式中显示文件标签',
                 desc: '当日期、预览和图像被隐藏时显示标签。'
-            },
-            showFileTagsOnMultipleRows: {
-                name: '多行显示标签',
-                desc: '当文件标签无法放在一行时，将其换行到更多行。'
             },
             showFileProperties: {
                 name: '显示文件属性',
@@ -1516,16 +1512,12 @@ export const STRINGS_ZH_CN = {
                 desc: '将属性颜色应用到文件项的属性徽章上。'
             },
             prioritizeColoredFileProperties: {
-                name: '优先显示自定义颜色属性',
-                desc: '在文件项中将自定义颜色属性排列在其他属性之前。'
+                name: '优先显示彩色属性',
+                desc: '在文件项中将彩色属性排列在其他属性之前。'
             },
             showFilePropertiesInCompactMode: {
                 name: '在精简模式中显示属性',
                 desc: '精简模式启用时显示属性。'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: '多行显示属性',
-                desc: '当文件属性无法放在一行时，将其换行到更多行。'
             },
             notePropertyType: {
                 name: '笔记属性',
@@ -1543,6 +1535,10 @@ export const STRINGS_ZH_CN = {
                 noneConfigured: '未配置属性',
                 singleConfigured: '已配置 1 个属性：{properties}',
                 multipleConfigured: '已配置 {count} 个属性：{properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: '在单独的行中显示属性',
+                desc: '将每个属性显示在单独的行中。'
             },
             enablePropertyInternalLinks: {
                 name: '将属性标签链接到笔记',

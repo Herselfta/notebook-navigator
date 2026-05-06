@@ -35,7 +35,7 @@
  * - **Stabilization**: Handles rapid consecutive rebuilds gracefully
  *
  * ## Handles:
- * - Virtual list initialization with dynamic heights
+ * - Virtual list initialization with estimated item heights
  * - Folder/tag navigation with file preservation
  * - Configuration changes (descendants, appearance)
  * - Mobile drawer visibility
@@ -57,15 +57,11 @@ import type { ListDisplayMode, ListNoteGroupingOption, NotePropertyType, SortOpt
 import type { FileContentChange } from '../storage/IndexedDBStorage';
 import type { SelectionDispatch, SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
-import { getExtensionSuffix } from '../utils/fileTypeUtils';
 import {
-    estimateRenderedTextRows,
-    getEstimatedFeatureImageInlineSize,
     getFileItemLayoutState,
-    getFeatureImageDisplayMeasurements,
     getSelectedPropertyValuePillToHide,
     getSelectedTagPillToHide,
-    getTagPillRowCount,
+    hasVisibleTagPills,
     getListPaneMeasurements,
     getPropertyRowCount,
     isListPaneCompactMode,
@@ -75,8 +71,6 @@ import {
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getCachedFileTags } from '../utils/tagUtils';
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
-
-const LIST_PANE_WIDTH_CHANGE_EPSILON = 0.25;
 
 /**
  * Parameters for the useListPaneScroll hook
@@ -145,31 +139,14 @@ type ListLayoutSignatureSettings = Pick<
     NotebookNavigatorSettings,
     | 'compactItemHeight'
     | 'compactItemHeightScaleText'
-    | 'featureImageSize'
-    | 'forceSquareFeatureImage'
-    | 'showFileIcons'
     | 'showFileProperties'
     | 'showFilePropertiesInCompactMode'
-    | 'showFilePropertiesOnMultipleRows'
-    | 'showFileTagAncestors'
+    | 'showPropertiesOnSeparateRows'
     | 'showFileTags'
     | 'showFileTagsInCompactMode'
-    | 'showFileTagsOnMultipleRows'
     | 'showParentFolder'
     | 'showSelectedNavigationPills'
     | 'showTags'
->;
-type VisibleRowMeasurementSettings = Pick<
-    NotebookNavigatorSettings,
-    | 'colorFileProperties'
-    | 'colorFileTags'
-    | 'colorIconOnly'
-    | 'enablePropertyExternalLinks'
-    | 'inheritPropertyColors'
-    | 'inheritTagColors'
-    | 'prioritizeColoredFileProperties'
-    | 'prioritizeColoredFileTags'
-    | 'showParentFolderColor'
 >;
 
 /**
@@ -212,8 +189,6 @@ interface ListLayoutSignatureParams {
     includeDescendantNotes: boolean;
     hiddenTagVisibilitySignature: string;
     visiblePropertyKeySignature: string;
-    estimatedPreviewCharsPerRow: number;
-    estimatedTitleCharsPerRow: number;
     listMeasurements: ReturnType<typeof getListPaneMeasurements>;
 }
 
@@ -255,8 +230,6 @@ function getListLayoutSignature({
     includeDescendantNotes,
     hiddenTagVisibilitySignature,
     visiblePropertyKeySignature,
-    estimatedPreviewCharsPerRow,
-    estimatedTitleCharsPerRow,
     listMeasurements
 }: ListLayoutSignatureParams): string {
     return JSON.stringify({
@@ -276,36 +249,25 @@ function getListLayoutSignature({
         rowContent: {
             showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
-            showFilePropertiesOnMultipleRows: settings.showFilePropertiesOnMultipleRows,
+            showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
             showSelectedNavigationPills: settings.showSelectedNavigationPills,
             visiblePropertyKeySignature,
             showParentFolder: settings.showParentFolder,
             showTags: settings.showTags,
             showFileTags: settings.showFileTags,
             showFileTagsInCompactMode: settings.showFileTagsInCompactMode,
-            showFileTagsOnMultipleRows: settings.showFileTagsOnMultipleRows,
-            showFileTagAncestors: settings.showFileTagAncestors,
-            showFileIcons: settings.showFileIcons,
-            featureImageSize: settings.featureImageSize,
-            forceSquareFeatureImage: settings.forceSquareFeatureImage,
             selectionType: selectionType ?? null,
             selectedTagToHide,
             selectedPropertyValueNodeIdToHide,
             includeDescendantNotes,
             hiddenTagVisibilitySignature
         },
-        variableHeight: {
+        rowSizing: {
             compactItemHeight: settings.compactItemHeight,
-            compactItemHeightScaleText: settings.compactItemHeightScaleText,
-            estimatedPreviewCharsPerRow,
-            estimatedTitleCharsPerRow
+            compactItemHeightScaleText: settings.compactItemHeightScaleText
         },
         measurements: listMeasurements
     });
-}
-
-function getVisibleRowMeasurementSignature(settings: VisibleRowMeasurementSettings): string {
-    return JSON.stringify(settings);
 }
 
 function getScrollPreservationSignature({
@@ -328,90 +290,14 @@ function getScrollPreservationSignature({
     });
 }
 
-export function getListPaneScrollerClientWidth(element: HTMLElement): number {
-    const width = element.clientWidth;
-    return Number.isFinite(width) ? Math.max(0, width) : 0;
-}
-
-function hasMeaningfulListPaneWidthChange(previousWidth: number, nextWidth: number): boolean {
-    return Math.abs(previousWidth - nextWidth) >= LIST_PANE_WIDTH_CHANGE_EPSILON;
-}
-
-export function getEstimatedPillContainerWidth({
-    scrollContainerWidth,
-    scrollerHorizontalPadding,
-    fileItemHorizontalPadding,
-    showFileIcons,
-    fileIconSize,
-    fileIconSlotGap,
-    showFeatureImageArea,
-    featureImageInlineSize,
-    fileRowGap
-}: {
-    scrollContainerWidth: number;
-    scrollerHorizontalPadding: number;
-    fileItemHorizontalPadding: number;
-    showFileIcons: boolean;
-    fileIconSize: number;
-    fileIconSlotGap: number;
-    showFeatureImageArea: boolean;
-    featureImageInlineSize: number;
-    fileRowGap: number;
-}): number | undefined {
-    if (scrollContainerWidth <= 0) {
-        return undefined;
-    }
-
-    return Math.max(
-        1,
-        scrollContainerWidth -
-            scrollerHorizontalPadding * 2 -
-            fileItemHorizontalPadding * 2 -
-            (showFileIcons ? fileIconSize + fileIconSlotGap : 0) -
-            (showFeatureImageArea ? featureImageInlineSize + fileRowGap : 0)
-    );
-}
-
-function hasFiniteBlockSize(value: unknown): value is { blockSize: number } {
-    return (
-        typeof value === 'object' &&
-        value !== null &&
-        'blockSize' in value &&
-        typeof value.blockSize === 'number' &&
-        Number.isFinite(value.blockSize)
-    );
-}
-
-function getResizeObserverEntryBorderBoxHeight(entry: ResizeObserverEntry): number | null {
-    const borderBoxSizeEntry: unknown = entry.borderBoxSize;
-    const borderBoxSize: unknown = Array.isArray(borderBoxSizeEntry) ? (borderBoxSizeEntry as unknown[])[0] : borderBoxSizeEntry;
-    if (hasFiniteBlockSize(borderBoxSize)) {
-        return Math.max(0, borderBoxSize.blockSize);
-    }
-
-    return null;
-}
-
-export function getMeasuredVirtualItemHeight(element: Element, entry: ResizeObserverEntry | undefined): number {
-    const borderBoxHeight = entry ? getResizeObserverEntryBorderBoxHeight(entry) : null;
-    if (borderBoxHeight !== null) {
-        return borderBoxHeight;
-    }
-
-    const height = element.getBoundingClientRect().height;
-    return Number.isFinite(height) ? Math.max(0, height) : 0;
-}
-
 export function isListRowHeightAffectingContentChange(change: FileContentChange): boolean {
     return (
         change.changes.preview !== undefined ||
         change.changes.featureImageKey !== undefined ||
         change.changes.featureImageStatus !== undefined ||
-        change.metadataNameChanged === true ||
         change.changes.properties !== undefined ||
         change.changes.tags !== undefined ||
-        change.changes.wordCount !== undefined ||
-        change.metadataIconOrColorChanged === true
+        change.changes.wordCount !== undefined
     );
 }
 
@@ -447,7 +333,7 @@ export function useListPaneScroll({
 }: UseListPaneScrollParams): UseListPaneScrollResult {
     const { app, isMobile } = useServices();
     const listMeasurements = getListPaneMeasurements(isMobile);
-    const { hasPreview, getDB, getFileDisplayName, isStorageReady } = useFileCache();
+    const { hasPreview, getDB, isStorageReady } = useFileCache();
     // The list pane only renders after StorageContext marks storage ready.
     const db = getDB();
 
@@ -461,12 +347,9 @@ export function useListPaneScroll({
             }),
         [listMeasurements.titleLineHeight, settings.compactItemHeight, settings.compactItemHeightScaleText]
     );
-    const estimatedTitleCharsPerRow = isMobile ? 22 : 28;
-    const estimatedPreviewCharsPerRow = isMobile ? 44 : 60;
 
     // Reference to the scroll container DOM element
     const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-    const scrollContainerWidthRef = useRef<number>(0);
     const [scrollContainerEl, setScrollContainerEl] = useState<HTMLDivElement | null>(null);
     const [containerVisible, setContainerVisible] = useState<boolean>(false);
 
@@ -527,17 +410,17 @@ export function useListPaneScroll({
             }),
         [selectionState.selectedProperty, selectionState.selectionType, settings.showSelectedNavigationPills]
     );
+    const getListItemKey = useCallback((index: number) => listItems[index]?.key ?? index, [listItems]);
 
     /**
-     * Initialize TanStack Virtual virtualizer with dynamic height calculation.
+     * Initialize TanStack Virtual virtualizer with per-item height estimates.
      * Handles different item types (headers, files, spacers) with appropriate heights.
      */
     const effectiveScrollMargin = Number.isFinite(scrollMargin) && scrollMargin > 0 ? scrollMargin : 0;
     const effectiveScrollPaddingEnd = Number.isFinite(scrollPaddingEnd) && scrollPaddingEnd > 0 ? scrollPaddingEnd : 0;
-    const measureVirtualItemElement = useCallback(getMeasuredVirtualItemHeight, []);
     const rowVirtualizer = useVirtualizer({
         count: listItems.length,
-        getItemKey: index => listItems[index]?.key ?? index,
+        getItemKey: getListItemKey,
         getScrollElement: () => {
             const element = scrollContainerRef.current;
             if (!element) {
@@ -547,7 +430,6 @@ export function useListPaneScroll({
         },
         // Align virtualizer scroll math with the start of the file rows (excluding overlay chrome).
         scrollMargin: effectiveScrollMargin,
-        measureElement: measureVirtualItemElement,
         // Ensure scrollToIndex aligns items below the overlay chrome instead of under it.
         scrollPaddingStart: effectiveScrollMargin,
         estimateSize: index => {
@@ -578,7 +460,6 @@ export function useListPaneScroll({
             // Get actual preview status for accurate height calculation
             let hasPreviewText = false;
             let hasOmnisearchExcerpt = false;
-            let effectivePreviewText = '';
             if (file && folderSettings.showPreview) {
                 if (file.extension === 'md') {
                     // Use synchronous check from cache for markdown preview text
@@ -586,7 +467,6 @@ export function useListPaneScroll({
                 }
                 const excerpt = item.searchMeta?.excerpt;
                 hasOmnisearchExcerpt = typeof excerpt === 'string' && excerpt.length > 0;
-                effectivePreviewText = hasOmnisearchExcerpt && typeof excerpt === 'string' ? excerpt : db.getCachedPreviewText(file.path);
             }
             const hasPreviewContent = hasPreviewText || hasOmnisearchExcerpt;
 
@@ -598,16 +478,24 @@ export function useListPaneScroll({
                 file,
                 featureImageStatus
             });
-            const featureImageMaxSize = showFeatureImageArea
-                ? getFeatureImageDisplayMeasurements(settings.featureImageSize).listMaxSize
-                : 0;
 
-            // Visibility and wrapping estimate for the tags area.
+            // Visibility estimate for the single-row tags area.
             const shouldShowFileTags = settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode);
-            const cachedTags =
-                shouldShowFileTags && item.type === ListPaneItemType.FILE && item.hasTags && file
-                    ? getCachedFileTags({ app, file, db, fileData: fileRecord })
-                    : [];
+            const hasTagRow = (() => {
+                if (!shouldShowFileTags || item.type !== ListPaneItemType.FILE || !item.hasTags) {
+                    return false;
+                }
+
+                if (!selectedTagToHide || !file) {
+                    return true;
+                }
+
+                return hasVisibleTagPills({
+                    tags: getCachedFileTags({ app, file, db, fileData: fileRecord }),
+                    hiddenTagVisibility,
+                    selectedTagToHide
+                });
+            })();
             const showParentFolderLine = shouldShowFileItemParentFolderLine({
                 showParentFolder: settings.showParentFolder,
                 isPinned: Boolean(item.isPinned),
@@ -617,128 +505,73 @@ export function useListPaneScroll({
                 fileParentPath: file?.parent?.path ?? null
             });
 
-            const estimatedTitleText = file ? `${getFileDisplayName(file)}${getExtensionSuffix(file)}` : '';
-            const estimatedTitleRows = estimateRenderedTextRows({
-                text: estimatedTitleText,
-                maxRows: folderSettings.titleRows || 1,
-                charsPerRow: estimatedTitleCharsPerRow
-            });
-            const estimatedPreviewRows = estimateRenderedTextRows({
-                text: effectivePreviewText,
-                maxRows: folderSettings.previewRows,
-                charsPerRow: estimatedPreviewCharsPerRow
-            });
-
-            const availablePillWidth =
-                scrollContainerWidthRef.current > 0
-                    ? getEstimatedPillContainerWidth({
-                          scrollContainerWidth: scrollContainerWidthRef.current,
-                          scrollerHorizontalPadding: heights.scrollerHorizontalPadding,
-                          fileItemHorizontalPadding: heights.fileItemHorizontalPadding,
-                          showFileIcons: settings.showFileIcons,
-                          fileIconSize: heights.fileIconSize,
-                          fileIconSlotGap: heights.fileIconSlotGap,
-                          showFeatureImageArea,
-                          featureImageInlineSize: showFeatureImageArea
-                              ? getEstimatedFeatureImageInlineSize({
-                                    blockSize: featureImageMaxSize,
-                                    forceSquareFeatureImage: settings.forceSquareFeatureImage
-                                })
-                              : 0,
-                          fileRowGap: heights.fileRowGap
-                      })
-                    : undefined;
-            const tagRowCount =
-                cachedTags.length > 0
-                    ? getTagPillRowCount({
-                          tags: cachedTags,
-                          hiddenTagVisibility,
-                          selectedTagToHide,
-                          showFileTagsOnMultipleRows: settings.showFileTagsOnMultipleRows,
-                          showFileTagAncestors: settings.showFileTagAncestors,
-                          availableWidth: availablePillWidth,
-                          rowGap: heights.tagRowGap
-                      })
-                    : 0;
-
-            // Keep visibility filtering aligned with FileItem rendering; wrapping is intentionally approximate.
+            // Keep visibility filtering aligned with FileItem rendering.
             const propertyRowCount = getPropertyRowCount({
                 notePropertyType: folderSettings.notePropertyType,
                 showFileProperties: settings.showFileProperties,
-                showFilePropertiesOnMultipleRows: settings.showFilePropertiesOnMultipleRows,
+                showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
                 showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
                 isCompactMode,
                 file,
                 wordCount: fileRecord?.wordCount ?? undefined,
                 properties: fileRecord?.properties ?? undefined,
                 visiblePropertyKeys,
-                hiddenPropertyValueNodeId: selectedPropertyValueNodeIdToHide,
-                availableWidth: availablePillWidth,
-                rowGap: heights.tagRowGap
+                hiddenPropertyValueNodeId: selectedPropertyValueNodeIdToHide
             });
 
-            const estimateTextContentHeight = (tagRowCount: number, propertyRowCount: number): number => {
-                const hasVisiblePillRows = tagRowCount > 0 || propertyRowCount > 0;
-                const layoutState = getFileItemLayoutState({
-                    showDate: folderSettings.showDate,
-                    showPreview: folderSettings.showPreview,
-                    showImage: folderSettings.showImage,
-                    previewRows: folderSettings.previewRows,
-                    isPinned: Boolean(item.isPinned),
-                    hasPreviewContent,
-                    showFeatureImageArea,
-                    hasVisiblePillRows
-                });
+            const hasVisiblePillRows = hasTagRow || propertyRowCount > 0;
+            const layoutState = getFileItemLayoutState({
+                showDate: folderSettings.showDate,
+                showPreview: folderSettings.showPreview,
+                showImage: folderSettings.showImage,
+                previewRows: folderSettings.previewRows,
+                isPinned: Boolean(item.isPinned),
+                hasPreviewContent,
+                showFeatureImageArea,
+                hasVisiblePillRows
+            });
 
-                // Start with base padding
-                let nextTextContentHeight = 0;
-                if (layoutState.isCompactMode) {
-                    // Compact mode: only shows file name
-                    nextTextContentHeight = heights.titleLineHeight * Math.max(1, estimatedTitleRows);
+            // Start with base padding.
+            let textContentHeight = 0;
+            const titleRows = folderSettings.titleRows || 1;
+            if (layoutState.isCompactMode) {
+                textContentHeight = heights.titleLineHeight * titleRows;
+            } else {
+                textContentHeight += heights.titleLineHeight * titleRows;
+
+                if (layoutState.shouldUseSingleLineForDateAndPreview) {
+                    if (layoutState.shouldShowSingleLineSecondLine) {
+                        textContentHeight += heights.singleTextLineHeight;
+                    }
+
+                    if (showParentFolderLine) {
+                        textContentHeight += heights.singleTextLineHeight;
+                    }
                 } else {
-                    // Normal mode
-                    nextTextContentHeight += heights.titleLineHeight * Math.max(1, estimatedTitleRows); // File name
+                    if (layoutState.shouldShowMultilinePreview) {
+                        textContentHeight += heights.multilineTextLineHeight * folderSettings.previewRows;
+                    }
 
-                    // Single row mode - show date+preview, tags, and parent folder
-                    if (layoutState.shouldUseSingleLineForDateAndPreview) {
-                        // Date and preview share one line
-                        if (layoutState.shouldShowSingleLineSecondLine) {
-                            nextTextContentHeight += heights.singleTextLineHeight;
-                        }
-
-                        if (showParentFolderLine) {
-                            nextTextContentHeight += heights.singleTextLineHeight;
-                        }
-                    } else {
-                        if (layoutState.shouldShowMultilinePreview && estimatedPreviewRows > 0) {
-                            nextTextContentHeight += heights.multilineTextLineHeight * estimatedPreviewRows;
-                        }
-
-                        if (layoutState.shouldShowDateForItem || showParentFolderLine) {
-                            nextTextContentHeight += heights.singleTextLineHeight;
-                        }
+                    if (layoutState.shouldShowDateForItem || showParentFolderLine) {
+                        textContentHeight += heights.singleTextLineHeight;
                     }
                 }
+            }
 
-                // Add space for tags if file has tags and they are visible in this mode
-                if (tagRowCount > 0) {
-                    nextTextContentHeight += heights.tagRowHeight * tagRowCount;
-                }
+            // Add space for tags if file has tags and they are visible in this mode.
+            if (hasTagRow) {
+                textContentHeight += heights.tagRowHeight;
+            }
 
-                if (propertyRowCount > 0) {
-                    // `tagRowHeight` mirrors the combined CSS row height + margin-top gap for pill rows.
-                    nextTextContentHeight += heights.tagRowHeight * propertyRowCount;
-                }
+            if (propertyRowCount > 0) {
+                // `tagRowHeight` mirrors the combined CSS row height + margin-top gap for pill rows.
+                textContentHeight += heights.tagRowHeight * propertyRowCount;
+            }
 
-                // Keep the estimated text area at least as tall as the shared thumbnail floor in normal mode.
-                if (!isCompactMode && nextTextContentHeight < heights.featureImageHeight) {
-                    nextTextContentHeight = heights.featureImageHeight;
-                }
-
-                return nextTextContentHeight;
-            };
-
-            const textContentHeight = estimateTextContentHeight(tagRowCount, propertyRowCount);
+            // Keep the estimated text area at least as tall as the shared thumbnail floor in normal mode.
+            if (!isCompactMode && textContentHeight < heights.featureImageHeight) {
+                textContentHeight = heights.featureImageHeight;
+            }
 
             // Use reduced padding for compact mode (with mobile-specific padding)
             const padding = isCompactMode
@@ -751,7 +584,6 @@ export function useListPaneScroll({
         overscan: OVERSCAN,
         scrollPaddingEnd: effectiveScrollPaddingEnd,
         useScrollendEvent: true,
-        useAnimationFrameWithResizeObserver: true,
         onChange: instance => {
             const nextIsScrolling = instance.isScrolling;
             if (lastReportedVirtualizerScrollingRef.current === nextIsScrolling) {
@@ -762,43 +594,6 @@ export function useListPaneScroll({
             onVirtualizerScrollingChange?.(nextIsScrolling, instance.scrollElement);
         }
     });
-    const remeasureRafRef = useRef<number | null>(null);
-    const remeasureVisibleRows = useCallback(() => {
-        if (!rowVirtualizer) {
-            return;
-        }
-        if (remeasureRafRef.current !== null) {
-            return;
-        }
-
-        remeasureRafRef.current = requestAnimationFrame(() => {
-            remeasureRafRef.current = null;
-
-            const scrollEl = scrollContainerRef.current;
-            if (!scrollEl) {
-                return;
-            }
-
-            const visibleFileRows = scrollEl.querySelectorAll<HTMLElement>('.nn-virtual-file-item[data-index]');
-            visibleFileRows.forEach(node => {
-                if (node.isConnected) {
-                    rowVirtualizer.measureElement(node);
-                }
-            });
-        });
-    }, [rowVirtualizer]);
-    const resetAndRemeasureVisibleRows = useCallback(() => {
-        if (!rowVirtualizer) {
-            return;
-        }
-
-        // TanStack Virtual clears the item size cache on `measure()`.
-        // Re-measure the mounted rows on the next frame so visible items settle
-        // to their exact post-commit heights instead of waiting for remount/resize.
-        rowVirtualizer.measure();
-        remeasureVisibleRows();
-    }, [rowVirtualizer, remeasureVisibleRows]);
-
     /**
      * Callback for when scroll container ref is set.
      * Used as a ref callback to capture the DOM element.
@@ -808,11 +603,7 @@ export function useListPaneScroll({
         setScrollContainerEl(element);
         if (!element) {
             setContainerVisible(false);
-            scrollContainerWidthRef.current = 0;
-            return;
         }
-
-        scrollContainerWidthRef.current = getListPaneScrollerClientWidth(element);
     }, []);
 
     /**
@@ -824,22 +615,13 @@ export function useListPaneScroll({
         const element = scrollContainerEl;
         if (!element) {
             setContainerVisible(false);
-            scrollContainerWidthRef.current = 0;
             return;
         }
 
         const updateVisibility = () => {
             const rect = element.getBoundingClientRect();
             const isContainerVisible = rect.width > 0 && rect.height > 0;
-            const nextWidth = getListPaneScrollerClientWidth(element);
-            const previousWidth = scrollContainerWidthRef.current;
             setContainerVisible(prev => (prev === isContainerVisible ? prev : isContainerVisible));
-            if (hasMeaningfulListPaneWidthChange(previousWidth, nextWidth)) {
-                scrollContainerWidthRef.current = nextWidth;
-                if (isContainerVisible) {
-                    remeasureVisibleRows();
-                }
-            }
         };
 
         updateVisibility();
@@ -859,50 +641,28 @@ export function useListPaneScroll({
             }
             const { width, height } = entry.contentRect;
             const isContainerVisible = width > 0 && height > 0;
-            const nextWidth = getListPaneScrollerClientWidth(element);
-            const previousWidth = scrollContainerWidthRef.current;
             setContainerVisible(prev => (prev === isContainerVisible ? prev : isContainerVisible));
-            if (hasMeaningfulListPaneWidthChange(previousWidth, nextWidth)) {
-                scrollContainerWidthRef.current = nextWidth;
-                if (isContainerVisible) {
-                    remeasureVisibleRows();
-                }
-            }
         });
 
         observer.observe(element);
 
         return () => observer.disconnect();
-    }, [remeasureVisibleRows, scrollContainerEl]);
-
-    useEffect(() => {
-        return () => {
-            if (remeasureRafRef.current !== null) {
-                cancelAnimationFrame(remeasureRafRef.current);
-                remeasureRafRef.current = null;
-            }
-        };
-    }, []);
+    }, [scrollContainerEl]);
 
     // Container is ready when both the list pane and the physical container are visible
     const isScrollContainerReady = isVisible && containerVisible;
 
-    // Tracks inputs that affect estimated or measured row heights.
+    // Tracks inputs that affect estimated row heights.
     const hiddenTagVisibilitySignature = useMemo(() => getHiddenTagVisibilitySignature(hiddenTagVisibility), [hiddenTagVisibility]);
     const listLayoutSettings = useMemo<ListLayoutSignatureSettings>(
         () => ({
             compactItemHeight: settings.compactItemHeight,
             compactItemHeightScaleText: settings.compactItemHeightScaleText,
-            featureImageSize: settings.featureImageSize,
-            forceSquareFeatureImage: settings.forceSquareFeatureImage,
-            showFileIcons: settings.showFileIcons,
             showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
-            showFilePropertiesOnMultipleRows: settings.showFilePropertiesOnMultipleRows,
-            showFileTagAncestors: settings.showFileTagAncestors,
+            showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
             showFileTags: settings.showFileTags,
             showFileTagsInCompactMode: settings.showFileTagsInCompactMode,
-            showFileTagsOnMultipleRows: settings.showFileTagsOnMultipleRows,
             showParentFolder: settings.showParentFolder,
             showSelectedNavigationPills: settings.showSelectedNavigationPills,
             showTags: settings.showTags
@@ -910,48 +670,15 @@ export function useListPaneScroll({
         [
             settings.compactItemHeight,
             settings.compactItemHeightScaleText,
-            settings.featureImageSize,
-            settings.forceSquareFeatureImage,
-            settings.showFileIcons,
             settings.showFileProperties,
             settings.showFilePropertiesInCompactMode,
-            settings.showFilePropertiesOnMultipleRows,
-            settings.showFileTagAncestors,
+            settings.showPropertiesOnSeparateRows,
             settings.showFileTags,
             settings.showFileTagsInCompactMode,
-            settings.showFileTagsOnMultipleRows,
             settings.showParentFolder,
             settings.showSelectedNavigationPills,
             settings.showTags
         ]
-    );
-    const visibleRowMeasurementSettings = useMemo<VisibleRowMeasurementSettings>(
-        () => ({
-            colorFileProperties: settings.colorFileProperties,
-            colorFileTags: settings.colorFileTags,
-            colorIconOnly: settings.colorIconOnly,
-            enablePropertyExternalLinks: settings.enablePropertyExternalLinks,
-            inheritPropertyColors: settings.inheritPropertyColors,
-            inheritTagColors: settings.inheritTagColors,
-            prioritizeColoredFileProperties: settings.prioritizeColoredFileProperties,
-            prioritizeColoredFileTags: settings.prioritizeColoredFileTags,
-            showParentFolderColor: settings.showParentFolderColor
-        }),
-        [
-            settings.colorFileProperties,
-            settings.colorFileTags,
-            settings.colorIconOnly,
-            settings.enablePropertyExternalLinks,
-            settings.inheritPropertyColors,
-            settings.inheritTagColors,
-            settings.prioritizeColoredFileProperties,
-            settings.prioritizeColoredFileTags,
-            settings.showParentFolderColor
-        ]
-    );
-    const visibleRowMeasurementSignature = useMemo(
-        () => getVisibleRowMeasurementSignature(visibleRowMeasurementSettings),
-        [visibleRowMeasurementSettings]
     );
     const listLayoutSignature = useMemo(
         () =>
@@ -965,8 +692,6 @@ export function useListPaneScroll({
                 includeDescendantNotes,
                 hiddenTagVisibilitySignature,
                 visiblePropertyKeySignature,
-                estimatedPreviewCharsPerRow,
-                estimatedTitleCharsPerRow,
                 listMeasurements
             }),
         [
@@ -979,8 +704,6 @@ export function useListPaneScroll({
             includeDescendantNotes,
             hiddenTagVisibilitySignature,
             visiblePropertyKeySignature,
-            estimatedPreviewCharsPerRow,
-            estimatedTitleCharsPerRow,
             listMeasurements
         ]
     );
@@ -1187,43 +910,27 @@ export function useListPaneScroll({
     ]);
 
     /**
-     * Subscribe to database content changes and re-measure virtualizer when needed.
-     * Handles preview text, feature images, tags, and metadata changes.
+     * Subscribe to database content changes and refresh virtualizer size estimates when needed.
+     * Handles preview text, feature images, tags, properties, and word count changes.
      */
     useEffect(() => {
         if (!rowVirtualizer) return;
 
         const db = getDB();
         const unsubscribe = db.onContentChange(changes => {
-            const heightAffectingChanges = changes.filter(change => {
+            const needsRemeasure = changes.some(change => {
                 return filePathToIndex.has(change.path) && isListRowHeightAffectingContentChange(change);
             });
-            if (heightAffectingChanges.length === 0) {
-                return;
-            }
 
-            const visibleFilePaths = new Set<string>();
-            rowVirtualizer.getVirtualItems().forEach(virtualItem => {
-                const item = listItems[virtualItem.index];
-                if (item?.type === ListPaneItemType.FILE && item.data instanceof TFile) {
-                    visibleFilePaths.add(item.data.path);
-                }
-            });
-            const hasOffscreenHeightChanges = heightAffectingChanges.some(change => !visibleFilePaths.has(change.path));
-
-            // Visible rows can be re-measured in place.
-            // Offscreen row changes need a cache reset so stale measured heights do not persist until remount.
-            if (hasOffscreenHeightChanges) {
-                resetAndRemeasureVisibleRows();
-            } else {
-                remeasureVisibleRows();
+            if (needsRemeasure) {
+                rowVirtualizer.measure();
             }
         });
 
         return () => {
             unsubscribe();
         };
-    }, [filePathToIndex, getDB, listItems, remeasureVisibleRows, resetAndRemeasureVisibleRows, rowVirtualizer]);
+    }, [filePathToIndex, getDB, rowVirtualizer]);
 
     /**
      * Listen for mobile drawer visibility events.
@@ -1251,34 +958,24 @@ export function useListPaneScroll({
     }, [isMobile, selectedFile, rowVirtualizer, filePathToIndex, setPending]);
 
     /**
-     * Re-measure all items when height-affecting settings change.
+     * Refresh all item size estimates when height-affecting settings change.
      * Includes date display, preview settings, feature images, etc.
      */
     useEffect(() => {
         if (!rowVirtualizer) return;
 
-        resetAndRemeasureVisibleRows();
-    }, [listLayoutSignature, rowVirtualizer, resetAndRemeasureVisibleRows]);
+        rowVirtualizer.measure();
+    }, [listLayoutSignature, rowVirtualizer]);
 
     /**
-     * Re-measure mounted rows when visual decoration can alter actual pill wrapping.
-     * These settings do not change the height estimator, so keep TanStack's measured-size cache intact.
-     */
-    useEffect(() => {
-        if (!rowVirtualizer) return;
-
-        remeasureVisibleRows();
-    }, [remeasureVisibleRows, rowVirtualizer, visibleRowMeasurementSignature]);
-
-    /**
-     * Re-measure when storage becomes ready after cold boot.
-     * Ensures heights are correct once preview data is available.
+     * Refresh size estimates when storage becomes ready after cold boot.
+     * Ensures estimated heights are correct once preview data is available.
      */
     useEffect(() => {
         if (isStorageReady && rowVirtualizer) {
-            resetAndRemeasureVisibleRows();
+            rowVirtualizer.measure();
         }
-    }, [isStorageReady, rowVirtualizer, resetAndRemeasureVisibleRows]);
+    }, [isStorageReady, rowVirtualizer]);
 
     /**
      * Handle scrolling when list configuration changes (descendants toggle, appearance, grouping, or sort).
@@ -1546,13 +1243,13 @@ export function useListPaneScroll({
 
     /**
      * Handle reveal operations (e.g., reveal active file command).
-     * Uses pending scroll for proper timing and measurement.
+     * Uses pending scroll for proper timing and size estimates.
      * SCROLL_REVEAL_OPERATION: Sets pending scroll with 'reveal' reason
      */
     useEffect(() => {
         if (selectionState.isRevealOperation && selectedFile && isScrollContainerReady) {
             // Always use pending scroll for reveal operations
-            // This ensures proper timing and measurement before scrolling
+            // This ensures proper timing and size estimates before scrolling
             setPending({
                 type: 'file',
                 filePath: selectedFile.path,

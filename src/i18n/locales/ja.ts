@@ -1503,16 +1503,12 @@ export const STRINGS_JA = {
                 desc: 'ファイルアイテムのタグバッジにタグの色を適用します。'
             },
             prioritizeColoredFileTags: {
-                name: 'カスタムカラーのタグを先頭に配置',
-                desc: 'カスタムカラーのタグを他のタグより前に並べ替えます。'
+                name: '色付きタグを先頭に配置',
+                desc: '色付きタグを他のタグより前に並べ替えます。'
             },
             showFileTagsInCompactMode: {
                 name: 'スリムモードでファイルタグを表示',
                 desc: '日付、プレビュー、画像が非表示のときにタグを表示します。'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'タグを複数行に表示',
-                desc: 'ファイルタグが1行に収まらない場合、追加の行に折り返します。'
             },
             showFileProperties: {
                 name: 'ファイルプロパティを表示',
@@ -1523,16 +1519,12 @@ export const STRINGS_JA = {
                 desc: 'ファイル項目のプロパティバッジにプロパティの色を適用します。'
             },
             prioritizeColoredFileProperties: {
-                name: 'カスタムカラーのプロパティを先に表示',
-                desc: 'ファイル項目でカスタムカラーのプロパティを他のプロパティより前に並べ替えます。'
+                name: '色付きプロパティを先に表示',
+                desc: 'ファイル項目で色付きプロパティを他のプロパティより前に並べ替えます。'
             },
             showFilePropertiesInCompactMode: {
                 name: 'コンパクトモードでプロパティを表示',
                 desc: 'コンパクトモードが有効な時にプロパティを表示します。'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'プロパティを複数行に表示',
-                desc: 'ファイルプロパティが1行に収まらない場合、追加の行に折り返します。'
             },
             notePropertyType: {
                 name: 'ノートプロパティ',
@@ -1550,6 +1542,10 @@ export const STRINGS_JA = {
                 noneConfigured: 'プロパティが設定されていません',
                 singleConfigured: '1件のプロパティが設定済み: {properties}',
                 multipleConfigured: '{count}件のプロパティが設定済み: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'プロパティを別の行に表示',
+                desc: '各プロパティを個別の行に表示します。'
             },
             enablePropertyInternalLinks: {
                 name: 'プロパティピルをノートにリンク',

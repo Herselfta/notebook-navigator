@@ -1503,16 +1503,12 @@ export const STRINGS_IT = {
                 desc: 'Applica colori tag ai badge tag sugli elementi file.'
             },
             prioritizeColoredFileTags: {
-                name: 'Mostra prima i tag con colori personalizzati',
-                desc: 'Ordina i tag con colori personalizzati prima degli altri tag sugli elementi file.'
+                name: 'Mostra tag colorati prima',
+                desc: 'Ordina i tag colorati prima degli altri tag sugli elementi file.'
             },
             showFileTagsInCompactMode: {
                 name: 'Mostra tag file in modalità compatta',
                 desc: 'Visualizza tag quando data, anteprima e immagine sono nascosti.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Mostra i tag su più righe',
-                desc: 'Manda i tag file su righe aggiuntive quando non entrano in una sola riga.'
             },
             showFileProperties: {
                 name: 'Mostra proprietà file',
@@ -1523,16 +1519,12 @@ export const STRINGS_IT = {
                 desc: 'Applica i colori delle proprietà ai badge delle proprietà negli elementi file.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Mostra prima le proprietà con colori personalizzati',
-                desc: 'Ordina le proprietà con colori personalizzati prima delle altre proprietà negli elementi file.'
+                name: 'Mostra proprietà colorate prima',
+                desc: 'Ordina le proprietà colorate prima delle altre proprietà negli elementi file.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Mostra proprietà in modalità compatta',
                 desc: 'Visualizza le proprietà quando la modalità compatta è attiva.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Mostra le proprietà su più righe',
-                desc: 'Manda le proprietà file su righe aggiuntive quando non entrano in una sola riga.'
             },
             notePropertyType: {
                 name: 'Proprietà della nota',
@@ -1550,6 +1542,10 @@ export const STRINGS_IT = {
                 noneConfigured: 'Nessuna proprietà configurata',
                 singleConfigured: '1 proprietà configurata: {properties}',
                 multipleConfigured: '{count} proprietà configurate: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Mostra proprietà su righe separate',
+                desc: 'Mostra ogni proprietà sulla propria riga.'
             },
             enablePropertyInternalLinks: {
                 name: 'Collega le etichette proprietà alle note',

@@ -95,8 +95,8 @@ Key principles:
 Both panes maintain `indexVersionRef` counters.
 
 - **Navigation pane** increments when the `pathToIndex` map changes size or identity.
-- **List pane** increments when the `filePathToIndex` map changes size or identity and triggers `rowVirtualizer.measure()`
-  so item heights stay current.
+- **List pane** increments when the effective `filePathToIndex` mapping changes, so pending scrolls wait for the
+  rebuilt list before executing.
 
 These counters allow pending scrolls to specify the version they require before execution.
 
@@ -203,8 +203,8 @@ spacers).
 - **Settings and search**: Appearance changes and descendant toggles queue `list-structure-change` entries. Search
   filters queue a `top` scroll when the selected file drops out of the filtered list, respecting mobile suppression
   flags.
-- **Dynamic height updates**: The hook re-measures the list when list indices change and when the in-memory database
-  reports preview, feature image, tag, metadata, or property updates.
+- **Height estimate updates**: The hook refreshes virtualizer size estimates when row-height inputs change and when the in-memory
+  database reports preview, feature image, tag, property, or word count updates.
 
 ## Common Scenarios
 

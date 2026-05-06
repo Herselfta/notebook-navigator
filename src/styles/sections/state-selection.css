@@ -55,6 +55,11 @@
     pointer-events: none;
 }
 
+.nn-split-container:is([data-navigator-focused='false'], [data-focus-pane='files'], [data-focus-pane='search'])
+    .nn-navitem.nn-selected::after {
+    top: 0.5px;
+}
+
 .nn-navitem.nn-selected > .nn-navitem-content {
     position: relative;
     z-index: 2;

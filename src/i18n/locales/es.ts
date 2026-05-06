@@ -1507,16 +1507,12 @@ export const STRINGS_ES = {
                 desc: 'Aplicar colores de etiquetas a las insignias de etiquetas en elementos de archivo.'
             },
             prioritizeColoredFileTags: {
-                name: 'Mostrar primero las etiquetas con colores personalizados',
-                desc: 'Ordena las etiquetas con colores personalizados antes que otras etiquetas en los elementos de archivo.'
+                name: 'Mostrar primero las etiquetas coloreadas',
+                desc: 'Ordena las etiquetas coloreadas antes que otras etiquetas en los elementos de archivo.'
             },
             showFileTagsInCompactMode: {
                 name: 'Mostrar etiquetas de archivo en modo compacto',
                 desc: 'Mostrar etiquetas cuando la fecha, vista previa e imagen están ocultas.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Mostrar etiquetas en varias filas',
-                desc: 'Ajusta las etiquetas de archivo en filas adicionales cuando no caben en una sola fila.'
             },
             showFileProperties: {
                 name: 'Mostrar propiedades de archivo',
@@ -1527,16 +1523,12 @@ export const STRINGS_ES = {
                 desc: 'Aplicar colores de propiedad a las insignias de propiedad en los elementos de archivo.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Mostrar primero las propiedades con colores personalizados',
-                desc: 'Ordenar las propiedades con colores personalizados antes que otras propiedades en los elementos de archivo.'
+                name: 'Mostrar primero las propiedades coloreadas',
+                desc: 'Ordenar las propiedades coloreadas antes que otras propiedades en los elementos de archivo.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Mostrar propiedades en modo compacto',
                 desc: 'Mostrar propiedades cuando el modo compacto está activo.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Mostrar propiedades en varias filas',
-                desc: 'Ajusta las propiedades de archivo en filas adicionales cuando no caben en una sola fila.'
             },
             notePropertyType: {
                 name: 'Propiedad de nota',
@@ -1554,6 +1546,10 @@ export const STRINGS_ES = {
                 noneConfigured: 'No hay propiedades configuradas',
                 singleConfigured: '1 propiedad configurada: {properties}',
                 multipleConfigured: '{count} propiedades configuradas: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Mostrar propiedades en filas separadas',
+                desc: 'Mostrar cada propiedad en su propia fila.'
             },
             enablePropertyInternalLinks: {
                 name: 'Vincular etiquetas de propiedad a notas',

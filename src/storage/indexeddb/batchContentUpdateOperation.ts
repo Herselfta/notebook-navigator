@@ -24,7 +24,6 @@ import { PREVIEW_STORE_NAME, STORE_NAME } from './constants';
 import {
     createDefaultFileData,
     hasMetadataHiddenChanged,
-    hasMetadataIconOrColorChanged,
     hasMetadataNameChanged,
     normalizeTaskCounters,
     type FileContentChange,
@@ -144,7 +143,6 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                 const newData: FileData = { ...existing };
                 const changes: FileContentChange['changes'] = {};
                 let metadataHiddenChanged = false;
-                let metadataIconOrColorChanged = false;
                 let metadataNameChanged = false;
                 let hasContentChanges = false;
                 const providerField = provider ? getProviderProcessedMtimeField(provider) : null;
@@ -245,7 +243,6 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
 
                     if (guardedUpdate.metadata !== undefined) {
                         metadataHiddenChanged = hasMetadataHiddenChanged(existing.metadata, guardedUpdate.metadata);
-                        metadataIconOrColorChanged = hasMetadataIconOrColorChanged(existing.metadata, guardedUpdate.metadata);
                         metadataNameChanged = hasMetadataNameChanged(existing.metadata, guardedUpdate.metadata);
                         newData.metadata = guardedUpdate.metadata;
                         changes.metadata = guardedUpdate.metadata;
@@ -323,7 +320,6 @@ export async function runBatchUpdateFileContentAndProviderProcessedMtimes(
                         const contentChange: FileContentChange = { path, changes, changeType: updateType };
                         if (changes.metadata !== undefined) {
                             contentChange.metadataHiddenChanged = metadataHiddenChanged;
-                            contentChange.metadataIconOrColorChanged = metadataIconOrColorChanged;
                             contentChange.metadataNameChanged = metadataNameChanged;
                         }
                         changeNotifications.push(contentChange);

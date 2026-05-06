@@ -1507,16 +1507,12 @@ export const STRINGS_DE = {
                 desc: 'Tag-Farben auf Tag-Abzeichen in Datei-Elementen anwenden.'
             },
             prioritizeColoredFileTags: {
-                name: 'Tags mit benutzerdefinierten Farben zuerst anzeigen',
-                desc: 'Tags mit benutzerdefinierten Farben vor anderen Tags in Datei-Elementen sortieren.'
+                name: 'Farbige Tags zuerst anzeigen',
+                desc: 'Farbige Tags vor anderen Tags in Datei-Elementen sortieren.'
             },
             showFileTagsInCompactMode: {
                 name: 'Datei-Tags im schlanken Modus anzeigen',
                 desc: 'Tags anzeigen, wenn Datum, Vorschau und Bild ausgeblendet sind.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Tags auf mehreren Zeilen anzeigen',
-                desc: 'Datei-Tags auf zusätzliche Zeilen umbrechen, wenn sie nicht in eine Zeile passen.'
             },
             showFileProperties: {
                 name: 'Datei-Eigenschaften anzeigen',
@@ -1527,16 +1523,12 @@ export const STRINGS_DE = {
                 desc: 'Eigenschaftsfarben auf Eigenschafts-Badges in Datei-Elementen anwenden.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Eigenschaften mit benutzerdefinierten Farben zuerst anzeigen',
-                desc: 'Eigenschaften mit benutzerdefinierten Farben vor anderen Eigenschaften in Datei-Elementen sortieren.'
+                name: 'Farbige Eigenschaften zuerst anzeigen',
+                desc: 'Farbige Eigenschaften vor anderen Eigenschaften in Datei-Elementen sortieren.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Eigenschaften im Kompaktmodus anzeigen',
                 desc: 'Eigenschaften anzeigen, wenn der Kompaktmodus aktiv ist.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Eigenschaften auf mehreren Zeilen anzeigen',
-                desc: 'Datei-Eigenschaften auf zusätzliche Zeilen umbrechen, wenn sie nicht in eine Zeile passen.'
             },
             notePropertyType: {
                 name: 'Notiz-Eigenschaft',
@@ -1554,6 +1546,10 @@ export const STRINGS_DE = {
                 noneConfigured: 'Keine Eigenschaften konfiguriert',
                 singleConfigured: '1 Eigenschaft konfiguriert: {properties}',
                 multipleConfigured: '{count} Eigenschaften konfiguriert: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Eigenschaften in separaten Zeilen anzeigen',
+                desc: 'Jede Eigenschaft in einer eigenen Zeile anzeigen.'
             },
             enablePropertyInternalLinks: {
                 name: 'Eigenschafts-Pills mit Notizen verknüpfen',

@@ -174,16 +174,13 @@
 .nn-desktop .nn-navitem:not([data-search-match]):hover::after {
     content: '';
     position: absolute;
-    top: 0px;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
+    top: 0.5px;
+    /* Match row overlay overdraw while avoiding overlap with the previous row */
     bottom: -0.5px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    background-color: var(--nn-computed-navitem-hover-bg, var(--nn-theme-navitem-hover-bg));
-    border-top-left-radius: var(--nn-navitem-top-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
-    border-top-right-radius: var(--nn-navitem-top-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
-    border-bottom-left-radius: var(--nn-navitem-bottom-left-radius, min(14px, var(--nn-theme-navitem-border-radius)));
-    border-bottom-right-radius: var(--nn-navitem-bottom-right-radius, min(14px, var(--nn-theme-navitem-border-radius)));
+    background-color: var(--nn-theme-navitem-hover-bg);
+    border-radius: min(14px, var(--nn-theme-navitem-border-radius));
     box-shadow: inset 0 0 0 var(--nn-theme-navitem-border-width) var(--nn-theme-navitem-hover-border-color);
     z-index: 1;
     pointer-events: none;

@@ -40,8 +40,12 @@
  * - Markdown link: [label](https://example.com)
  * - Auto-link: https://example.com
  *
+ * Supported block formats in info:
+ * - Line break: single newline or <br>
+ * - Paragraph break: blank line or two consecutive <br> markers
+ *
  * Not supported:
- * - Italics, headings, inline code, HTML
+ * - Italics, headings, inline code, HTML except <br> line break markers
  *
  * Writing rules:
  * - Use factual, concise statements
@@ -78,20 +82,19 @@ export interface ReleaseNote {
 const RELEASE_NOTES: ReleaseNote[] = [
     {
         version: '2.6.4',
-        date: '2026-05-05',
+        date: '2026-05-06',
         showOnUpdate: true,
-        bannerUrl: true,
-        info: 'Notebook Navigator 2.6.4 now lets file tags and properties wrap onto multiple rows in the list pane. This is yet another feature many of you have requested for a long time, and I am glad to finally have the time to add it.',
-        new: [
-            '**Settings.** New setting: List > Notes > ==Show tags on multiple rows==. Automatically wrap tags so all tags are visible in the list pane. Default enabled.',
-            '**Settings.** New setting: List > Notes > ==Show properties on multiple rows==. Automatically wrap properties so all properties are visible in the list pane. Default enabled.'
+        info: [
+            '**Important!** After spending over 100 hours trying to get decent performance with variable title rows, variable preview rows, and variable tags/property rows, I made the difficult decision to roll back and abandon the idea of variable item heights. As of 2.6.4 ==Notebook Navigator no longer supports variable item heights==.',
+            'There are many reasons behind this. The main reason is that to support variable item heights in list pane we always have to measure the rendered height of each and every file in the list pane to make scrolling to current item and scroll bar work correctly. This slows down the performance significantly when opening folders/tags/properties, and it also works poorly with the asynchronous architecture of Notebook Navigator where metadata is loaded asynchronously to improve "snappiness". In practice it means that the list will have to re-measure and re-update every time an asynchronous data update happens.',
+            'Performance will always be the main driving factor behind the software design of Notebook Navigator, and variable item heights was unfortunately the wrong decision. Thank you for your understanding.'
+        ].join('\n\n'),
+        changed: [
+            '==IMPORTANT!== Due to several technical issues and performance decradations I have rolled back variable line heights for title and preview text.'
         ],
         improved: [
             '**Icon packs.** Updated Simple Icons to 16.18.0.',
             '**Internal.** Decreased the size of main.js by about 900 KB by changing packaging to UTF-8.'
-        ],
-        changed: [
-            '**Settings.** Removed the setting: List > Notes > ==Show properties on separate rows==. It became redundant with the new setting **Show properties on multiple rows**.'
         ]
     },
     {

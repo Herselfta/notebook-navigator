@@ -1496,16 +1496,12 @@ export const STRINGS_ZH_TW = {
                 desc: '將標籤顏色套用於檔案項目中的標籤徽章。'
             },
             prioritizeColoredFileTags: {
-                name: '優先顯示自訂顏色標籤',
-                desc: '將自訂顏色標籤排列在其他標籤之前。'
+                name: '優先顯示彩色標籤',
+                desc: '將彩色標籤排列在其他標籤之前。'
             },
             showFileTagsInCompactMode: {
                 name: '在精簡模式中顯示檔案標籤',
                 desc: '當日期、預覽和圖片被隱藏時顯示標籤。'
-            },
-            showFileTagsOnMultipleRows: {
-                name: '多行顯示標籤',
-                desc: '當檔案標籤無法放在一行時，將其換行到更多行。'
             },
             showFileProperties: {
                 name: '顯示檔案屬性',
@@ -1516,16 +1512,12 @@ export const STRINGS_ZH_TW = {
                 desc: '將屬性顏色套用到檔案項目的屬性徽章上。'
             },
             prioritizeColoredFileProperties: {
-                name: '優先顯示自訂顏色屬性',
-                desc: '在檔案項目中將自訂顏色屬性排列在其他屬性之前。'
+                name: '優先顯示彩色屬性',
+                desc: '在檔案項目中將彩色屬性排列在其他屬性之前。'
             },
             showFilePropertiesInCompactMode: {
                 name: '在精簡模式中顯示屬性',
                 desc: '精簡模式啟用時顯示屬性。'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: '多行顯示屬性',
-                desc: '當檔案屬性無法放在一行時，將其換行到更多行。'
             },
             notePropertyType: {
                 name: '筆記屬性',
@@ -1543,6 +1535,10 @@ export const STRINGS_ZH_TW = {
                 noneConfigured: '未設定屬性',
                 singleConfigured: '已設定 1 個屬性：{properties}',
                 multipleConfigured: '已設定 {count} 個屬性：{properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: '在個別行中顯示屬性',
+                desc: '將每個屬性顯示在個別行中。'
             },
             enablePropertyInternalLinks: {
                 name: '將屬性標籤連結到筆記',

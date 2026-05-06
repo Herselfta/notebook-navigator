@@ -30,13 +30,17 @@ export class WhatsNewModal extends Modal {
     private onCloseCallback?: () => void;
     private domDisposers: (() => void)[] = [];
 
+    private normalizeTextBreaks(text: string): string {
+        return text.replace(/\r\n?/g, '\n').replace(/<br\s*\/?>/gi, '\n');
+    }
+
     // Renders limited formatting into a container element.
     // Supports:
     // - **bold**
     // - ==text== (highlight as red + bold)
     // - [label](https://link)
     // - Auto-link bare http(s) URLs
-    // - Line breaks: single \n becomes <br>
+    // - Line breaks: single \n or <br> becomes <br>
     private renderFormattedText(container: HTMLElement, text: string): void {
         const renderInline = (segment: string, dest: HTMLElement) => {
             const pattern = /==([\s\S]*?)==|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|\*\*([^*]+)\*\*|(https?:\/\/[^\s]+)/g;
@@ -87,13 +91,30 @@ export class WhatsNewModal extends Modal {
             appendText(segment.slice(lastIndex));
         };
 
-        const lines = text.split('\n');
+        const lines = this.normalizeTextBreaks(text).split('\n');
         for (let i = 0; i < lines.length; i++) {
             renderInline(lines[i], container);
             if (i < lines.length - 1) {
                 container.createEl('br');
             }
         }
+    }
+
+    private renderInfoText(container: HTMLElement, text: string): void {
+        const normalizedText = this.normalizeTextBreaks(text).trim();
+        if (normalizedText.length === 0) {
+            return;
+        }
+
+        const paragraphs = normalizedText
+            .split(/\n[ \t]*\n+/)
+            .map(paragraph => paragraph.trim())
+            .filter(paragraph => paragraph.length > 0);
+
+        paragraphs.forEach(paragraph => {
+            const p = container.createEl('p', { cls: 'nn-whats-new-info' });
+            this.renderFormattedText(p, paragraph);
+        });
     }
 
     private renderReleaseBanner(container: HTMLElement, imageUrl: string): void {
@@ -184,13 +205,8 @@ export class WhatsNewModal extends Modal {
                 this.renderYoutubeLink(versionContainer, note.youtubeUrl);
             }
 
-            // Show info text first if present (supports paragraphs and line breaks)
             if (note.info) {
-                const paragraphs = note.info.split(/\n\s*\n/);
-                paragraphs.forEach(para => {
-                    const p = versionContainer.createEl('p', { cls: 'nn-whats-new-info' });
-                    this.renderFormattedText(p, para);
-                });
+                this.renderInfoText(versionContainer, note.info);
             }
 
             const categories = [

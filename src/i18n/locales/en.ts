@@ -1499,16 +1499,12 @@ export const STRINGS_EN = {
                 desc: 'Apply tag colors to tag badges on file items.'
             },
             prioritizeColoredFileTags: {
-                name: 'Show tags with custom colors first',
-                desc: 'Sort tags with custom colors before other tags on file items.'
+                name: 'Show colored tags first',
+                desc: 'Sort colored tags before other tags on file items.'
             },
             showFileTagsInCompactMode: {
                 name: 'Show file tags in compact mode',
                 desc: 'Display tags when date, preview, and image are hidden.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Show tags on multiple rows',
-                desc: 'Wrap file tags onto additional rows when they do not fit on one row.'
             },
             showFileProperties: {
                 name: 'Show file properties',
@@ -1519,16 +1515,12 @@ export const STRINGS_EN = {
                 desc: 'Apply property colors to property badges on file items.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Show properties with custom colors first',
-                desc: 'Sort properties with custom colors before other properties on file items.'
+                name: 'Show colored properties first',
+                desc: 'Sort colored properties before other properties on file items.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Show properties in compact mode',
                 desc: 'Display properties when compact mode is active.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Show properties on multiple rows',
-                desc: 'Wrap file properties onto additional rows when they do not fit on one row.'
             },
             propertyFields: {
                 name: 'Property keys (vault profile)',
@@ -1537,6 +1529,10 @@ export const STRINGS_EN = {
                 noneConfigured: 'No properties configured',
                 singleConfigured: '1 property configured: {properties}',
                 multipleConfigured: '{count} properties configured: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Show properties on separate rows',
+                desc: 'Display each property on its own row.'
             },
             enablePropertyInternalLinks: {
                 name: 'Link property pills to notes',

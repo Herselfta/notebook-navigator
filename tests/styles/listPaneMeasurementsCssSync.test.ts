@@ -58,11 +58,6 @@ describe('List pane measurements stay in sync with CSS', () => {
         const coreVars = readTextFile('src/styles/sections/core-variables.css');
         const desktop = getListPaneMeasurements(false);
 
-        expect(desktop.scrollerHorizontalPadding).toBe(extractPxVariableValue(coreVars, 'nn-scroller-padding'));
-        expect(desktop.fileItemHorizontalPadding).toBe(extractPxVariableValue(coreVars, 'nn-file-item-padding-horizontal'));
-        expect(desktop.fileRowGap).toBe(extractPxVariableValue(coreVars, 'nn-file-row-gap'));
-        expect(desktop.fileIconSlotGap).toBe(extractPxVariableValue(coreVars, 'nn-file-icon-slot-gap'));
-
         const paddingVertical = extractPxVariableValue(coreVars, 'nn-file-padding-vertical');
         const paddingTotal = paddingVertical * 2;
         expect(desktop.basePadding).toBe(paddingTotal);
@@ -74,7 +69,6 @@ describe('List pane measurements stay in sync with CSS', () => {
         const tagRowHeight = extractPxVariableValue(coreVars, 'nn-file-tag-row-height-base');
         const tagRowGap = extractPxVariableValue(coreVars, 'nn-file-tag-row-gap-base');
         expect(desktop.tagRowHeight).toBe(tagRowHeight + tagRowGap);
-        expect(desktop.tagRowGap).toBe(tagRowGap);
 
         expect(desktop.featureImageHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
 
@@ -89,11 +83,6 @@ describe('List pane measurements stay in sync with CSS', () => {
         const mobileVars = readTextFile('src/styles/sections/mobile-variables.css');
         const mobile = getListPaneMeasurements(true);
 
-        expect(mobile.scrollerHorizontalPadding).toBe(extractPxVariableValue(coreVars, 'nn-scroller-padding'));
-        expect(mobile.fileItemHorizontalPadding).toBe(extractPxVariableValue(coreVars, 'nn-file-item-padding-horizontal'));
-        expect(mobile.fileRowGap).toBe(extractPxVariableValue(coreVars, 'nn-file-row-gap'));
-        expect(mobile.fileIconSlotGap).toBe(extractPxVariableValue(coreVars, 'nn-file-icon-slot-gap'));
-
         const paddingVertical = extractPxVariableValue(coreVars, 'nn-file-padding-vertical');
         const paddingMobileIncrement = extractCalcAddPx(mobileVars, 'nn-file-padding-vertical-mobile', 'nn-file-padding-vertical');
         const paddingTotal = (paddingVertical + paddingMobileIncrement) * 2;
@@ -106,7 +95,6 @@ describe('List pane measurements stay in sync with CSS', () => {
         const tagRowHeight = extractPxVariableValue(coreVars, 'nn-file-tag-row-height-base');
         const tagRowGap = extractPxVariableValue(coreVars, 'nn-file-tag-row-gap-base');
         expect(mobile.tagRowHeight).toBe(tagRowHeight + tagRowGap);
-        expect(mobile.tagRowGap).toBe(tagRowGap);
 
         expect(mobile.featureImageHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
 
@@ -129,7 +117,7 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(mobileVars).not.toMatch(/--nn-file-tag-row-gap\\s*:/);
     });
 
-    test('android text zoom caps title and preview rows without forcing fixed heights', () => {
+    test('android text zoom keeps title and preview clamps in sync', () => {
         const androidCss = readTextFile('src/styles/sections/android-textzoom.css');
         const titleRule = extractRuleBlock(androidCss, '.notebook-navigator-android .nn-file-name');
         const previewRule = extractRuleBlock(
@@ -140,17 +128,16 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(titleRule).toMatch(
             /max-height:\s*calc\(var\(--nn-file-title-line-height\)\s*\*\s*var\(--filename-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
         );
+        expect(titleRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
+        expect(titleRule).not.toMatch(/(^|\n)\s*height:\s*/m);
         expect(previewRule).toMatch(
             /max-height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
         );
-
-        expect(titleRule).not.toMatch(/(^|\n)\s*min-height\s*:/m);
-        expect(titleRule).not.toMatch(/(^|\n)\s*height\s*:/m);
-        expect(previewRule).not.toMatch(/(^|\n)\s*min-height\s*:/m);
-        expect(previewRule).not.toMatch(/(^|\n)\s*height\s*:/m);
+        expect(previewRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
+        expect(previewRule).not.toMatch(/(^|\n)\s*height:\s*/m);
     });
 
-    test('pill height uses the measured row height as border-box height', () => {
+    test('pill height uses the fixed row height as border-box height', () => {
         const listTagsCss = readTextFile('src/styles/sections/list-tags.css');
         const pillRule = listTagsCss.match(/(^|\n)\.nn-file-tag\s*\{([^}]*)\}/)?.[2];
         if (!pillRule) {
@@ -161,12 +148,46 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(pillRule).toMatch(/(^|\n)\s*height:\s*var\(--nn-file-tag-row-height\)\s*;/m);
     });
 
-    test('preview flex behavior keeps empty multi-line previews from adding vertical spacer height', () => {
+    test('file text stack top-aligns inside fixed virtual file rows', () => {
         const listFilesCss = readTextFile('src/styles/sections/list-files.css');
+        const virtualListCss = readTextFile('src/styles/sections/layout-virtual-list.css');
+        const virtualFileItemRule = extractRuleBlock(virtualListCss, '.nn-virtual-file-item');
+        const fileRule = extractRuleBlock(listFilesCss, '.nn-file');
+        const fileContentRule = extractRuleBlock(listFilesCss, '.nn-file-content');
+        const fileInnerContentRule = extractRuleBlock(listFilesCss, '.nn-file-inner-content');
+        const fileTextContentRule = extractRuleBlock(listFilesCss, '.nn-file-text-content');
+        const fileNameRule = extractRuleBlock(listFilesCss, '.nn-file-name');
         const multiLinePreviewRule = extractRuleBlock(listFilesCss, '.nn-file-preview:not(.nn-file-second-line .nn-file-preview)');
         const secondLinePreviewRule = extractRuleBlock(listFilesCss, '.nn-file-second-line .nn-file-preview');
 
-        expect(multiLinePreviewRule).toMatch(/(^|\n)\s*flex:\s*0 0 auto\s*;/m);
+        expect(virtualFileItemRule).toMatch(/(^|\n)\s*height:\s*var\(--item-height\)\s*;/m);
+        expect(fileRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
+        expect(fileContentRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
+        expect(fileContentRule).toMatch(/(^|\n)\s*box-sizing:\s*border-box\s*;/m);
+        expect(fileInnerContentRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
+        expect(fileTextContentRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
+        expect(fileTextContentRule).toMatch(/(^|\n)\s*justify-content:\s*flex-start\s*;/m);
+        expect(fileNameRule).toMatch(
+            /(^|\n)\s*max-height:\s*calc\(var\(--nn-file-title-line-height\)\s*\*\s*var\(--filename-rows, 1\)\)\s*;/m
+        );
+        expect(multiLinePreviewRule).toMatch(
+            /(^|\n)\s*max-height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\)\s*;/m
+        );
+        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*flex:\s*1\s*;/m);
+        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
+        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*height:\s*/m);
         expect(secondLinePreviewRule).toMatch(/(^|\n)\s*flex:\s*1\s*;/m);
+    });
+
+    test('parent folder background stays inside the fixed metadata line height', () => {
+        const listFilesCss = readTextFile('src/styles/sections/list-files.css');
+        const parentFolderBackgroundRule = extractRuleBlock(listFilesCss, ".nn-parent-folder-content[data-has-background='true']");
+
+        expect(parentFolderBackgroundRule).toMatch(/(^|\n)\s*box-sizing:\s*border-box\s*;/m);
+        expect(parentFolderBackgroundRule).toMatch(/(^|\n)\s*height:\s*var\(--nn-file-single-text-line-height\)\s*;/m);
+        expect(parentFolderBackgroundRule).toMatch(
+            /(^|\n)\s*line-height:\s*calc\(var\(--nn-file-single-text-line-height\)\s*-\s*2px\)\s*;/m
+        );
+        expect(parentFolderBackgroundRule).toMatch(/(^|\n)\s*padding:\s*1px 4px\s*;/m);
     });
 });

@@ -1504,16 +1504,12 @@ export const STRINGS_VI = {
                 desc: 'Áp dụng màu thẻ cho huy hiệu thẻ trên mục tệp.'
             },
             prioritizeColoredFileTags: {
-                name: 'Hiện thẻ có màu tùy chỉnh trước',
-                desc: 'Sắp xếp thẻ có màu tùy chỉnh trước các thẻ khác trên mục tệp.'
+                name: 'Hiện thẻ có màu trước',
+                desc: 'Sắp xếp thẻ có màu trước các thẻ khác trên mục tệp.'
             },
             showFileTagsInCompactMode: {
                 name: 'Hiện thẻ tệp ở chế độ gọn',
                 desc: 'Hiển thị thẻ khi ngày, xem trước và ảnh bị ẩn.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Hiện thẻ trên nhiều dòng',
-                desc: 'Xuống dòng thẻ tệp sang các dòng bổ sung khi chúng không vừa trên một dòng.'
             },
             showFileProperties: {
                 name: 'Hiện thuộc tính tệp',
@@ -1524,16 +1520,12 @@ export const STRINGS_VI = {
                 desc: 'Áp dụng màu thuộc tính cho huy hiệu thuộc tính trên mục tệp.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Hiện thuộc tính có màu tùy chỉnh trước',
-                desc: 'Sắp xếp thuộc tính có màu tùy chỉnh trước các thuộc tính khác trên mục tệp.'
+                name: 'Hiện thuộc tính có màu trước',
+                desc: 'Sắp xếp thuộc tính có màu trước các thuộc tính khác trên mục tệp.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Hiện thuộc tính ở chế độ gọn',
                 desc: 'Hiển thị thuộc tính khi chế độ gọn đang hoạt động.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Hiện thuộc tính trên nhiều dòng',
-                desc: 'Xuống dòng thuộc tính tệp sang các dòng bổ sung khi chúng không vừa trên một dòng.'
             },
             notePropertyType: {
                 name: 'Thuộc tính ghi chú',
@@ -1551,6 +1543,10 @@ export const STRINGS_VI = {
                 noneConfigured: 'Chưa cấu hình thuộc tính nào',
                 singleConfigured: '1 thuộc tính đã cấu hình: {properties}',
                 multipleConfigured: '{count} thuộc tính đã cấu hình: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Hiển thị thuộc tính trên các dòng riêng',
+                desc: 'Hiển thị mỗi thuộc tính trên một dòng riêng.'
             },
             enablePropertyInternalLinks: {
                 name: 'Liên kết nhãn thuộc tính với ghi chú',

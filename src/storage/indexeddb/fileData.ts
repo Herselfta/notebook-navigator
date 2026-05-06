@@ -231,8 +231,6 @@ export interface FileContentChange {
     changeType?: 'metadata' | 'content' | 'both';
     /** True when metadata.name changes between persisted values */
     metadataNameChanged?: boolean;
-    /** True when metadata icon/color changes between persisted values */
-    metadataIconOrColorChanged?: boolean;
     /** True when metadata.hidden changes between persisted values */
     metadataHiddenChanged?: boolean;
 }
@@ -306,11 +304,4 @@ export function hasMetadataHiddenChanged(
     nextMetadata: FileData['metadata'] | null | undefined
 ): boolean {
     return Boolean(previousMetadata?.hidden) !== Boolean(nextMetadata?.hidden);
-}
-
-export function hasMetadataIconOrColorChanged(
-    previousMetadata: FileData['metadata'] | null | undefined,
-    nextMetadata: FileData['metadata'] | null | undefined
-): boolean {
-    return previousMetadata?.icon !== nextMetadata?.icon || previousMetadata?.color !== nextMetadata?.color;
 }

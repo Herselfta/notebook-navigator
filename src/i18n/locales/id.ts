@@ -1504,16 +1504,12 @@ export const STRINGS_ID = {
                 desc: 'Terapkan warna tag ke badge tag di item file.'
             },
             prioritizeColoredFileTags: {
-                name: 'Tampilkan tag dengan warna khusus terlebih dahulu',
-                desc: 'Urutkan tag dengan warna khusus sebelum tag lain di item file.'
+                name: 'Tampilkan tag berwarna terlebih dahulu',
+                desc: 'Urutkan tag berwarna sebelum tag lain di item file.'
             },
             showFileTagsInCompactMode: {
                 name: 'Tampilkan tag file dalam mode kompak',
                 desc: 'Tampilkan tag saat tanggal, pratinjau, dan gambar disembunyikan.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Tampilkan tag pada beberapa baris',
-                desc: 'Pindahkan tag file ke baris tambahan saat tidak muat dalam satu baris.'
             },
             showFileProperties: {
                 name: 'Tampilkan properti file',
@@ -1524,16 +1520,12 @@ export const STRINGS_ID = {
                 desc: 'Terapkan warna properti pada lencana properti di item file.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Tampilkan properti dengan warna khusus terlebih dahulu',
-                desc: 'Urutkan properti dengan warna khusus sebelum properti lain di item file.'
+                name: 'Tampilkan properti berwarna terlebih dahulu',
+                desc: 'Urutkan properti berwarna sebelum properti lain di item file.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Tampilkan properti dalam mode kompak',
                 desc: 'Tampilkan properti saat mode kompak aktif.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Tampilkan properti pada beberapa baris',
-                desc: 'Pindahkan properti file ke baris tambahan saat tidak muat dalam satu baris.'
             },
             notePropertyType: {
                 name: 'Properti catatan',
@@ -1551,6 +1543,10 @@ export const STRINGS_ID = {
                 noneConfigured: 'Tidak ada properti yang dikonfigurasi',
                 singleConfigured: '1 properti dikonfigurasi: {properties}',
                 multipleConfigured: '{count} properti dikonfigurasi: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Tampilkan properti pada baris terpisah',
+                desc: 'Tampilkan setiap properti pada barisnya sendiri.'
             },
             enablePropertyInternalLinks: {
                 name: 'Tautkan pil properti ke catatan',

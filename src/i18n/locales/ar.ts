@@ -1501,16 +1501,12 @@ export const STRINGS_AR = {
                 desc: 'تطبيق ألوان الوسوم على شارات الوسوم في عناصر الملفات.'
             },
             prioritizeColoredFileTags: {
-                name: 'إظهار الوسوم ذات الألوان المخصصة أولاً',
-                desc: 'ترتيب الوسوم ذات الألوان المخصصة قبل الوسوم الأخرى في عناصر الملفات.'
+                name: 'إظهار الوسوم الملونة أولاً',
+                desc: 'ترتيب الوسوم الملونة قبل الوسوم الأخرى في عناصر الملفات.'
             },
             showFileTagsInCompactMode: {
                 name: 'إظهار وسوم الملفات في الوضع المضغوط',
                 desc: 'عرض الوسوم عند إخفاء التاريخ والمعاينة والصورة.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'إظهار الوسوم على عدة صفوف',
-                desc: 'التفاف وسوم الملفات إلى صفوف إضافية عندما لا تتسع في صف واحد.'
             },
             showFileProperties: {
                 name: 'إظهار خصائص الملفات',
@@ -1521,16 +1517,12 @@ export const STRINGS_AR = {
                 desc: 'تطبيق ألوان الخصائص على شارات الخصائص في عناصر الملفات.'
             },
             prioritizeColoredFileProperties: {
-                name: 'إظهار الخصائص ذات الألوان المخصصة أولاً',
-                desc: 'ترتيب الخصائص ذات الألوان المخصصة قبل الخصائص الأخرى في عناصر الملفات.'
+                name: 'إظهار الخصائص الملونة أولاً',
+                desc: 'ترتيب الخصائص الملونة قبل الخصائص الأخرى في عناصر الملفات.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'إظهار الخصائص في الوضع المضغوط',
                 desc: 'عرض الخصائص عند تفعيل الوضع المضغوط.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'إظهار الخصائص على عدة صفوف',
-                desc: 'التفاف خصائص الملفات إلى صفوف إضافية عندما لا تتسع في صف واحد.'
             },
             notePropertyType: {
                 name: 'خاصية الملاحظة',
@@ -1548,6 +1540,10 @@ export const STRINGS_AR = {
                 noneConfigured: 'لم يتم تكوين أي خصائص',
                 singleConfigured: 'خاصية واحدة مكوّنة: {properties}',
                 multipleConfigured: '{count} خصائص مكوّنة: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'إظهار الخصائص في صفوف منفصلة',
+                desc: 'عرض كل خاصية في صف منفصل.'
             },
             enablePropertyInternalLinks: {
                 name: 'ربط شارات الخصائص بالملاحظات',

@@ -18,14 +18,9 @@
 
 import { describe, expect, it } from 'vitest';
 import {
-    estimateRenderedTextRows,
-    estimateWrappedPillRowCount,
-    FEATURE_IMAGE_MAX_ASPECT_RATIO,
-    getEstimatedFeatureImageInlineSize,
     getFileItemLayoutState,
     getSelectedPropertyValuePillToHide,
     getSelectedTagPillToHide,
-    getTagPillRowCount,
     hasVisibleTagPills,
     getPropertyRowCount,
     isListPaneCompactMode,
@@ -54,85 +49,6 @@ describe('listPaneMeasurements layout helpers', () => {
                 showImage: false
             })
         ).toBe(false);
-    });
-
-    it('estimates one rendered title row for short capped text', () => {
-        expect(
-            estimateRenderedTextRows({
-                text: 'Daily note',
-                maxRows: 2,
-                charsPerRow: 28
-            })
-        ).toBe(1);
-    });
-
-    it('caps estimated rendered rows at the configured maximum', () => {
-        expect(
-            estimateRenderedTextRows({
-                text: 'This preview text is long enough to wrap across multiple estimated rows in the list pane',
-                maxRows: 2,
-                charsPerRow: 20
-            })
-        ).toBe(2);
-    });
-
-    it('estimates wrapped pill rows from count and available width', () => {
-        expect(
-            estimateWrappedPillRowCount({
-                pillCount: 5,
-                availableWidth: 160,
-                rowGap: 4,
-                estimatedPillInlineSize: 72
-            })
-        ).toBe(3);
-    });
-
-    it('uses a single column when the estimated pill width fills the available width', () => {
-        expect(
-            estimateWrappedPillRowCount({
-                pillCount: 3,
-                availableWidth: 60,
-                rowGap: 4,
-                estimatedPillInlineSize: 72
-            })
-        ).toBe(3);
-    });
-
-    it('falls back to a default width when no container width has been measured', () => {
-        expect(
-            estimateWrappedPillRowCount({
-                pillCount: 6,
-                rowGap: 4,
-                estimatedPillInlineSize: 72
-            })
-        ).toBe(2);
-    });
-
-    it('returns zero rows for empty pill counts', () => {
-        expect(
-            estimateWrappedPillRowCount({
-                pillCount: 0,
-                availableWidth: 160,
-                rowGap: 4,
-                estimatedPillInlineSize: 72
-            })
-        ).toBe(0);
-    });
-
-    it('counts wrapped tag pill rows after hidden and selected tag filtering', () => {
-        const hiddenTagVisibility = createHiddenTagVisibility(['archive'], false);
-
-        expect(
-            getTagPillRowCount({
-                tags: ['project/alpha', 'project/beta', 'archive/private'],
-                hiddenTagVisibility,
-                selectedTagToHide: null,
-                showFileTagsOnMultipleRows: true,
-                showFileTagAncestors: false,
-                availableWidth: 60,
-                rowGap: 4
-            })
-        ).toBe(2);
     });
 
     it('keeps the multiline preview slot when the feature image area is visible', () => {
@@ -243,18 +159,12 @@ describe('listPaneMeasurements layout helpers', () => {
         ).toBe(true);
     });
 
-    it('estimates natural feature image inline width from the clamped render aspect ratio', () => {
-        expect(getEstimatedFeatureImageInlineSize({ blockSize: 64, forceSquareFeatureImage: true })).toBe(64);
-        expect(getEstimatedFeatureImageInlineSize({ blockSize: 64, forceSquareFeatureImage: false })).toBe(
-            64 * FEATURE_IMAGE_MAX_ASPECT_RATIO
-        );
-    });
-
     it('counts numeric frontmatter properties as visible property rows', () => {
         expect(
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
+                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Numbers.md'),
@@ -270,6 +180,7 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
+                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Flags.md'),
@@ -280,26 +191,25 @@ describe('listPaneMeasurements layout helpers', () => {
         ).toBe(1);
     });
 
-    it('counts wrapped frontmatter property pill rows when multiple rows are enabled', () => {
+    it('counts frontmatter property rows when separate rows are enabled', () => {
         const file = createTestTFile('Notes/Properties.md');
         const properties = [
             { fieldKey: 'topic', value: 'alpha', valueKind: 'string' as const },
-            { fieldKey: 'topic', value: 'beta', valueKind: 'string' as const }
+            { fieldKey: 'topic', value: 'beta', valueKind: 'string' as const },
+            { fieldKey: 'priority', value: 'high', valueKind: 'string' as const }
         ];
 
         expect(
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showFilePropertiesOnMultipleRows: false,
+                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file,
                 wordCount: null,
                 properties,
-                visiblePropertyKeys: new Set<string>(['topic']),
-                availableWidth: 60,
-                rowGap: 4
+                visiblePropertyKeys: new Set<string>(['topic', 'priority'])
             })
         ).toBe(1);
 
@@ -307,15 +217,13 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
-                showFilePropertiesOnMultipleRows: true,
+                showPropertiesOnSeparateRows: true,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file,
                 wordCount: null,
                 properties,
-                visiblePropertyKeys: new Set<string>(['topic']),
-                availableWidth: 60,
-                rowGap: 4
+                visiblePropertyKeys: new Set<string>(['topic', 'priority'])
             })
         ).toBe(2);
     });
@@ -356,6 +264,7 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
+                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),
@@ -370,6 +279,7 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
+                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),
@@ -394,6 +304,7 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
+                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),
@@ -407,6 +318,7 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
+                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),
@@ -420,6 +332,7 @@ describe('listPaneMeasurements layout helpers', () => {
             getPropertyRowCount({
                 notePropertyType: 'none',
                 showFileProperties: true,
+                showPropertiesOnSeparateRows: false,
                 showFilePropertiesInCompactMode: true,
                 isCompactMode: false,
                 file: createTestTFile('Notes/Status.md'),

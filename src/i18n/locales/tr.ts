@@ -1503,16 +1503,12 @@ export const STRINGS_TR = {
                 desc: 'Dosya öğelerindeki etiket rozetlerine etiket renklerini uygula.'
             },
             prioritizeColoredFileTags: {
-                name: 'Özel renkli etiketleri önce göster',
-                desc: 'Dosya öğelerinde özel renkli etiketleri diğer etiketlerden önce sırala.'
+                name: 'Renkli etiketleri önce göster',
+                desc: 'Dosya öğelerinde renkli etiketleri diğer etiketlerden önce sırala.'
             },
             showFileTagsInCompactMode: {
                 name: 'Kompakt modda dosya etiketlerini göster',
                 desc: 'Tarih, önizleme ve görsel gizlendiğinde etiketleri görüntüle.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Etiketleri birden çok satırda göster',
-                desc: 'Dosya etiketleri tek satıra sığmadığında ek satırlara kaydır.'
             },
             showFileProperties: {
                 name: 'Dosya özelliklerini göster',
@@ -1523,16 +1519,12 @@ export const STRINGS_TR = {
                 desc: 'Dosya öğelerindeki özellik rozetlerine özellik renklerini uygula.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Özel renkli özellikleri önce göster',
-                desc: 'Dosya öğelerinde özel renkli özellikleri diğer özelliklerden önce sırala.'
+                name: 'Renkli özellikleri önce göster',
+                desc: 'Dosya öğelerinde renkli özellikleri diğer özelliklerden önce sırala.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Kompakt modda özellikleri göster',
                 desc: 'Kompakt mod etkinken özellikleri görüntüle.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Özellikleri birden çok satırda göster',
-                desc: 'Dosya özellikleri tek satıra sığmadığında ek satırlara kaydır.'
             },
             notePropertyType: {
                 name: 'Not özelliği',
@@ -1550,6 +1542,10 @@ export const STRINGS_TR = {
                 noneConfigured: 'Yapılandırılmış özellik yok',
                 singleConfigured: '1 özellik yapılandırıldı: {properties}',
                 multipleConfigured: '{count} özellik yapılandırıldı: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Özellikleri ayrı satırlarda göster',
+                desc: 'Her özelliği kendi satırında göster.'
             },
             enablePropertyInternalLinks: {
                 name: 'Özellik etiketlerini notlara bağla',

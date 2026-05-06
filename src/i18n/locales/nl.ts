@@ -1506,16 +1506,12 @@ export const STRINGS_NL = {
                 desc: 'Tagkleuren toepassen op tagbadges op bestandsitems.'
             },
             prioritizeColoredFileTags: {
-                name: 'Tags met aangepaste kleuren eerst tonen',
-                desc: 'Sorteert tags met aangepaste kleuren vóór andere tags in bestandsitems.'
+                name: 'Gekleurde tags eerst tonen',
+                desc: 'Sorteert gekleurde tags vóór andere tags in bestandsitems.'
             },
             showFileTagsInCompactMode: {
                 name: 'Bestandstags tonen in compacte modus',
                 desc: 'Tags weergeven wanneer datum, voorbeeld en afbeelding verborgen zijn.'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'Tags op meerdere regels tonen',
-                desc: 'Bestandstags naar extra regels laten doorlopen wanneer ze niet op één regel passen.'
             },
             showFileProperties: {
                 name: 'Bestandseigenschappen tonen',
@@ -1526,16 +1522,12 @@ export const STRINGS_NL = {
                 desc: 'Eigenschapkleuren toepassen op eigenschapbadges in bestandsitems.'
             },
             prioritizeColoredFileProperties: {
-                name: 'Eigenschappen met aangepaste kleuren eerst tonen',
-                desc: 'Eigenschappen met aangepaste kleuren sorteren vóór andere eigenschappen in bestandsitems.'
+                name: 'Gekleurde eigenschappen eerst tonen',
+                desc: 'Gekleurde eigenschappen sorteren vóór andere eigenschappen in bestandsitems.'
             },
             showFilePropertiesInCompactMode: {
                 name: 'Eigenschappen tonen in compacte modus',
                 desc: 'Eigenschappen weergeven wanneer de compacte modus actief is.'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'Eigenschappen op meerdere regels tonen',
-                desc: 'Bestandseigenschappen naar extra regels laten doorlopen wanneer ze niet op één regel passen.'
             },
             notePropertyType: {
                 name: 'Notitie-eigenschap',
@@ -1553,6 +1545,10 @@ export const STRINGS_NL = {
                 noneConfigured: 'Geen eigenschappen geconfigureerd',
                 singleConfigured: '1 eigenschap geconfigureerd: {properties}',
                 multipleConfigured: '{count} eigenschappen geconfigureerd: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'Eigenschappen op afzonderlijke regels tonen',
+                desc: 'Toon elke eigenschap op een eigen regel.'
             },
             enablePropertyInternalLinks: {
                 name: 'Eigenschap-pills koppelen aan notities',

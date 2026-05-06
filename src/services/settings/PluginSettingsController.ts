@@ -569,7 +569,6 @@ export class PluginSettingsController {
         delete rest.saveMetadataToFrontmatter;
         delete rest.propertyFields;
         delete rest.optimizeNoteHeight;
-        delete rest.showPropertiesOnSeparateRows;
 
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {

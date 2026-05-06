@@ -103,6 +103,7 @@ export class NotebookNavigatorView extends ItemView {
     private readonly settingsUpdateListenerId: string;
     private viewContainer: HTMLElement | null = null;
     private readonly readyWaiters = new Set<(ready: boolean) => void>();
+    private wasMobileContainerVisible = false;
 
     /**
      * Creates a new NotebookNavigatorView instance
@@ -180,6 +181,7 @@ export class NotebookNavigatorView extends ItemView {
         }
         this.componentHandle = null;
         this.viewContainer = container;
+        this.wasMobileContainerVisible = false;
         const { isMobile } = setupNotebookNavigatorViewContainer(container, {
             useFloatingToolbars: this.plugin.settings.useFloatingToolbars
         });
@@ -296,6 +298,7 @@ export class NotebookNavigatorView extends ItemView {
         }
         this.plugin.unregisterSettingsUpdateListener(this.settingsUpdateListenerId);
         this.viewContainer = null;
+        this.wasMobileContainerVisible = false;
         this.root?.unmount();
         teardownNotebookNavigatorViewContainer(container);
         this.componentHandle = null;
@@ -554,8 +557,15 @@ export class NotebookNavigatorView extends ItemView {
         if (!Platform.isMobile) return;
 
         const rect = this.containerEl.getBoundingClientRect();
+        const isVisible = rect.width > 0 && rect.height > 0;
 
-        if (rect.width > 0 && rect.height > 0) {
+        if (!isVisible) {
+            this.wasMobileContainerVisible = false;
+            return;
+        }
+
+        if (!this.wasMobileContainerVisible) {
+            this.wasMobileContainerVisible = true;
             window.dispatchEvent(new CustomEvent('notebook-navigator-visible'));
         }
     }

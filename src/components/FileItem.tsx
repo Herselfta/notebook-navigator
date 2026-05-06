@@ -56,7 +56,6 @@ import { resolveFolderDecorationColors } from '../utils/folderDecoration';
 import { resolveFileDragIconId, resolveFileIconId } from '../utils/fileIconUtils';
 import { buildFileTooltip } from '../utils/navigationTooltipUtils';
 import {
-    FEATURE_IMAGE_MAX_ASPECT_RATIO,
     getFileItemLayoutState,
     isListPaneCompactMode,
     shouldShowFeatureImageArea,
@@ -75,6 +74,8 @@ import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoratio
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { useFileItemContentState, type FileItemContentDb } from './fileItem/useFileItemContentState';
 import { useFileItemPills } from './fileItem/useFileItemPills';
+
+const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
 
 interface FileItemProps {
     file: TFile;
@@ -1156,7 +1157,7 @@ export const FileItem = React.memo(function FileItem({
                                 {/* Conditions: unpinned note AND previewRows >= 2 */}
                                 {!shouldUseSingleLineForDateAndPreview && (
                                     <>
-                                        {/* Multi-row preview - clamp to the configured rows without forcing empty lines */}
+                                        {/* Multi-row preview clamps to the configured row count. */}
                                         {shouldShowMultilinePreview && (
                                             <div
                                                 className="nn-file-preview"

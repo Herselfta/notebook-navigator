@@ -1499,16 +1499,12 @@ export const STRINGS_TH = {
                 desc: 'ใช้สีแท็กกับป้ายแท็กบนรายการไฟล์'
             },
             prioritizeColoredFileTags: {
-                name: 'แสดงแท็กที่มีสีแบบกำหนดเองก่อน',
-                desc: 'เรียงแท็กที่มีสีแบบกำหนดเองก่อนแท็กอื่นบนรายการไฟล์'
+                name: 'แสดงแท็กที่มีสีก่อน',
+                desc: 'เรียงแท็กที่มีสีก่อนแท็กอื่นบนรายการไฟล์'
             },
             showFileTagsInCompactMode: {
                 name: 'แสดงแท็กไฟล์ในโหมดกะทัดรัด',
                 desc: 'แสดงแท็กเมื่อวันที่ ตัวอย่าง และรูปภาพถูกซ่อน'
-            },
-            showFileTagsOnMultipleRows: {
-                name: 'แสดงแท็กหลายบรรทัด',
-                desc: 'ตัดแท็กไฟล์ไปยังบรรทัดเพิ่มเติมเมื่อไม่พอดีในบรรทัดเดียว'
             },
             showFileProperties: {
                 name: 'แสดงคุณสมบัติไฟล์',
@@ -1519,16 +1515,12 @@ export const STRINGS_TH = {
                 desc: 'ใช้สีคุณสมบัติกับป้ายคุณสมบัติบนรายการไฟล์'
             },
             prioritizeColoredFileProperties: {
-                name: 'แสดงคุณสมบัติที่มีสีแบบกำหนดเองก่อน',
-                desc: 'เรียงคุณสมบัติที่มีสีแบบกำหนดเองก่อนคุณสมบัติอื่นบนรายการไฟล์'
+                name: 'แสดงคุณสมบัติที่มีสีก่อน',
+                desc: 'เรียงคุณสมบัติที่มีสีก่อนคุณสมบัติอื่นบนรายการไฟล์'
             },
             showFilePropertiesInCompactMode: {
                 name: 'แสดงคุณสมบัติในโหมดกะทัดรัด',
                 desc: 'แสดงคุณสมบัติเมื่อโหมดกะทัดรัดเปิดใช้งาน'
-            },
-            showFilePropertiesOnMultipleRows: {
-                name: 'แสดงคุณสมบัติหลายบรรทัด',
-                desc: 'ตัดคุณสมบัติไฟล์ไปยังบรรทัดเพิ่มเติมเมื่อไม่พอดีในบรรทัดเดียว'
             },
             notePropertyType: {
                 name: 'คุณสมบัติโน้ต',
@@ -1546,6 +1538,10 @@ export const STRINGS_TH = {
                 noneConfigured: 'ไม่มีคุณสมบัติที่กำหนดค่า',
                 singleConfigured: 'กำหนดค่าคุณสมบัติ 1 รายการ: {properties}',
                 multipleConfigured: 'กำหนดค่าคุณสมบัติ {count} รายการ: {properties}'
+            },
+            showPropertiesOnSeparateRows: {
+                name: 'แสดงคุณสมบัติแยกเป็นบรรทัด',
+                desc: 'แสดงแต่ละคุณสมบัติในบรรทัดของตัวเอง'
             },
             enablePropertyInternalLinks: {
                 name: 'เชื่อมโยงป้ายคุณสมบัติไปยังบันทึก',

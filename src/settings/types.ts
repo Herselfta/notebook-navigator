@@ -551,12 +551,11 @@ export interface NotebookNavigatorSettings {
     prioritizeColoredFileTags: boolean;
     showFileTagAncestors: boolean;
     showFileTagsInCompactMode: boolean;
-    showFileTagsOnMultipleRows: boolean;
     showFileProperties: boolean;
     colorFileProperties: boolean;
     prioritizeColoredFileProperties: boolean;
     showFilePropertiesInCompactMode: boolean;
-    showFilePropertiesOnMultipleRows: boolean;
+    showPropertiesOnSeparateRows: boolean;
     enablePropertyInternalLinks: boolean;
     enablePropertyExternalLinks: boolean;
     notePropertyType: NotePropertyType;

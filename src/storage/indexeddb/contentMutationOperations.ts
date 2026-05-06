@@ -24,7 +24,6 @@ import {
     applyFileMetadataPatch,
     getDefaultPreviewStatusForPath,
     hasMetadataHiddenChanged,
-    hasMetadataIconOrColorChanged,
     hasMetadataNameChanged,
     type FileContentChange,
     type FileData,
@@ -64,7 +63,6 @@ export async function runUpdateFileContent(
     const changes: FileContentChange['changes'] = {};
     let updated: FileData | null = null;
     let metadataHiddenChanged = false;
-    let metadataIconOrColorChanged = false;
     let metadataNameChanged = false;
     let shouldClearFeatureImageCache = false;
     const opUpdate = 'updateFileContent';
@@ -131,7 +129,6 @@ export async function runUpdateFileContent(
                 next.metadata = metadata;
                 changes.metadata = metadata;
                 metadataHiddenChanged = hasMetadataHiddenChanged(existing.metadata, metadata);
-                metadataIconOrColorChanged = hasMetadataIconOrColorChanged(existing.metadata, metadata);
                 metadataNameChanged = hasMetadataNameChanged(existing.metadata, metadata);
             }
 
@@ -234,7 +231,6 @@ export async function runUpdateFileContent(
             const contentChange: FileContentChange = { path, changes, changeType };
             if (changes.metadata !== undefined) {
                 contentChange.metadataHiddenChanged = metadataHiddenChanged;
-                contentChange.metadataIconOrColorChanged = metadataIconOrColorChanged;
                 contentChange.metadataNameChanged = metadataNameChanged;
             }
             deps.emitChanges([contentChange]);
@@ -261,7 +257,6 @@ export async function runUpdateFileMetadata(
     const store = transaction.objectStore(STORE_NAME);
     let updated: FileData | null = null;
     let metadataHiddenChanged = false;
-    let metadataIconOrColorChanged = false;
     let metadataNameChanged = false;
     const opMeta = 'updateFileMetadata';
     let lastRequestErrorMeta: DOMException | Error | null = null;
@@ -283,7 +278,6 @@ export async function runUpdateFileMetadata(
 
             const newMeta = metadataPatch.metadata;
             metadataHiddenChanged = hasMetadataHiddenChanged(existing.metadata, newMeta);
-            metadataIconOrColorChanged = hasMetadataIconOrColorChanged(existing.metadata, newMeta);
             metadataNameChanged = hasMetadataNameChanged(existing.metadata, newMeta);
             updated = { ...existing, metadata: newMeta };
             const putReq = store.put(updated, path);
@@ -345,7 +339,6 @@ export async function runUpdateFileMetadata(
                 changes: { metadata: updatedRecord.metadata },
                 changeType: 'metadata',
                 metadataHiddenChanged,
-                metadataIconOrColorChanged,
                 metadataNameChanged
             }
         ]);
@@ -364,7 +357,6 @@ export async function runClearFileContent(
     const changes: FileContentChange['changes'] = {};
     let updated: FileData | null = null;
     let metadataHiddenChanged = false;
-    let metadataIconOrColorChanged = false;
     let metadataNameChanged = false;
     let shouldClearFeatureImageCache = false;
     const op = 'clearFileContent';
@@ -424,7 +416,6 @@ export async function runClearFileContent(
             if (type === 'metadata' || type === 'all') {
                 if (file.metadata !== null) {
                     metadataHiddenChanged = hasMetadataHiddenChanged(file.metadata, null);
-                    metadataIconOrColorChanged = hasMetadataIconOrColorChanged(file.metadata, null);
                     metadataNameChanged = hasMetadataNameChanged(file.metadata, null);
                     file.metadata = null;
                     changes.metadata = null;
@@ -494,7 +485,6 @@ export async function runClearFileContent(
             const contentChange: FileContentChange = { path, changes, changeType };
             if (changes.metadata !== undefined) {
                 contentChange.metadataHiddenChanged = metadataHiddenChanged;
-                contentChange.metadataIconOrColorChanged = metadataIconOrColorChanged;
                 contentChange.metadataNameChanged = metadataNameChanged;
             }
             deps.emitChanges([contentChange]);
@@ -551,7 +541,6 @@ export async function runBatchClearAllFileContent(
                 const updated: FileData = { ...current };
                 const changes: FileContentChange['changes'] = {};
                 let metadataHiddenChanged = false;
-                let metadataIconOrColorChanged = false;
                 let metadataNameChanged = false;
                 let hasChanges = false;
 
@@ -587,7 +576,6 @@ export async function runBatchClearAllFileContent(
                     if (isMarkdown) {
                         if (updated.metadata !== null) {
                             metadataHiddenChanged = hasMetadataHiddenChanged(current.metadata, null);
-                            metadataIconOrColorChanged = hasMetadataIconOrColorChanged(current.metadata, null);
                             metadataNameChanged = hasMetadataNameChanged(current.metadata, null);
                             updated.metadata = null;
                             changes.metadata = null;
@@ -595,7 +583,6 @@ export async function runBatchClearAllFileContent(
                         }
                     } else if (updated.metadata === null) {
                         metadataHiddenChanged = hasMetadataHiddenChanged(current.metadata, {});
-                        metadataIconOrColorChanged = hasMetadataIconOrColorChanged(current.metadata, {});
                         metadataNameChanged = hasMetadataNameChanged(current.metadata, {});
                         updated.metadata = {};
                         changes.metadata = {};
@@ -649,7 +636,6 @@ export async function runBatchClearAllFileContent(
                     const contentChange: FileContentChange = { path, changes, changeType: clearType };
                     if (changes.metadata !== undefined) {
                         contentChange.metadataHiddenChanged = metadataHiddenChanged;
-                        contentChange.metadataIconOrColorChanged = metadataIconOrColorChanged;
                         contentChange.metadataNameChanged = metadataNameChanged;
                     }
                     changeNotifications.push(contentChange);
@@ -871,7 +857,6 @@ export async function runBatchClearFileContent(
                 const file = { ...deps.normalizeFileData(existingRaw) };
                 const changes: FileContentChange['changes'] = {};
                 let metadataHiddenChanged = false;
-                let metadataIconOrColorChanged = false;
                 let metadataNameChanged = false;
                 let hasChanges = false;
                 if (type === 'preview' || type === 'all') {
@@ -908,7 +893,6 @@ export async function runBatchClearFileContent(
                 }
                 if ((type === 'metadata' || type === 'all') && file.metadata !== null) {
                     metadataHiddenChanged = hasMetadataHiddenChanged(file.metadata, null);
-                    metadataIconOrColorChanged = hasMetadataIconOrColorChanged(file.metadata, null);
                     metadataNameChanged = hasMetadataNameChanged(file.metadata, null);
                     file.metadata = null;
                     changes.metadata = null;
@@ -961,7 +945,6 @@ export async function runBatchClearFileContent(
                     const contentChange: FileContentChange = { path, changes, changeType: clearType };
                     if (changes.metadata !== undefined) {
                         contentChange.metadataHiddenChanged = metadataHiddenChanged;
-                        contentChange.metadataIconOrColorChanged = metadataIconOrColorChanged;
                         contentChange.metadataNameChanged = metadataNameChanged;
                     }
                     changeNotifications.push(contentChange);

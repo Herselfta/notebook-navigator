@@ -47,10 +47,7 @@
     font-size: calc(var(--nn-file-icon-size-mobile, var(--nn-file-icon-size)) * var(--nn-android-font-scale-reciprocal, 1)) !important;
 }
 
-/* Row-cap compensation - Android doesn't scale max-height, but the line-height
-   variables above are pre-divided to offset textZoom. Multiply the cap by the
-   detected font scale so the final row limit matches the rendered line height
-   while still allowing shorter titles and previews to shrink naturally. */
+/* Clamp height compensation - Android doesn't scale max-height, so match the compensated line-height after textZoom applies. */
 .notebook-navigator-android .nn-file-name {
     max-height: calc(var(--nn-file-title-line-height) * var(--filename-rows, 1) * var(--nn-android-font-scale, 1));
 }

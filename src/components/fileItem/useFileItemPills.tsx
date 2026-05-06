@@ -639,6 +639,38 @@ export function useFileItemPills({
     const shouldShowProperty = propertyPills.length > 0;
     const shouldShowWordCountProperty = Boolean(wordCountPropertyPill);
 
+    const propertyRows = useMemo((): PropertyPill[][] => {
+        if (!settings.showPropertiesOnSeparateRows) {
+            return [];
+        }
+
+        const rows: PropertyPill[][] = [];
+        const rowsByKey = new Map<string, PropertyPill[]>();
+        let unkeyedRow: PropertyPill[] | null = null;
+
+        for (const pill of propertyPills) {
+            const fieldKey = pill.fieldKey?.trim() ?? '';
+            if (!fieldKey) {
+                if (!unkeyedRow) {
+                    unkeyedRow = [];
+                    rows.push(unkeyedRow);
+                }
+                unkeyedRow.push(pill);
+                continue;
+            }
+
+            let row = rowsByKey.get(fieldKey);
+            if (!row) {
+                row = [];
+                rowsByKey.set(fieldKey, row);
+                rows.push(row);
+            }
+            row.push(pill);
+        }
+
+        return rows;
+    }, [propertyPills, settings.showPropertiesOnSeparateRows]);
+
     const getTagDisplayName = useCallback(
         (tag: string): string => {
             return getTagPillDisplayName(tag, settings.showFileTagAncestors);
@@ -775,7 +807,7 @@ export function useFileItemPills({
         }
 
         return (
-            <div className="nn-file-tags" data-wrap={settings.showFileTagsOnMultipleRows ? 'true' : undefined}>
+            <div className="nn-file-tags">
                 {categorizedTags.map((tag, index) => {
                     const tagColors = tagColorData.get(tag);
                     const tagColor = tagColors?.color;
@@ -810,29 +842,27 @@ export function useFileItemPills({
                 })}
             </div>
         );
-    }, [
-        categorizedTags,
-        getTagDisplayName,
-        handleTagClick,
-        settings.showFileTagsOnMultipleRows,
-        shouldShowFileTags,
-        tagColorData,
-        tagPillIcons
-    ]);
+    }, [categorizedTags, getTagDisplayName, handleTagClick, shouldShowFileTags, tagColorData, tagPillIcons]);
 
     const propertyRowsNode = useMemo(() => {
         if (!shouldShowProperty) {
             return null;
         }
 
-        const wrapAttribute = settings.showFilePropertiesOnMultipleRows ? 'true' : undefined;
+        if (!settings.showPropertiesOnSeparateRows) {
+            return <div className="nn-file-property-row">{propertyPills.map(renderPropertyPill)}</div>;
+        }
 
         return (
-            <div className="nn-file-property-row" data-wrap={wrapAttribute}>
-                {propertyPills.map(renderPropertyPill)}
-            </div>
+            <>
+                {propertyRows.map((row, rowIndex) => (
+                    <div key={rowIndex} className="nn-file-property-row">
+                        {row.map((pill, index) => renderPropertyPill(pill, index))}
+                    </div>
+                ))}
+            </>
         );
-    }, [propertyPills, renderPropertyPill, settings.showFilePropertiesOnMultipleRows, shouldShowProperty]);
+    }, [propertyPills, propertyRows, renderPropertyPill, settings.showPropertiesOnSeparateRows, shouldShowProperty]);
 
     const wordCountRow = useMemo(() => {
         if (!shouldShowWordCountProperty || !wordCountPropertyPill) {

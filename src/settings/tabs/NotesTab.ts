@@ -598,16 +598,6 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    new Setting(fileTagsSubSettingsEl)
-        .setName(strings.settings.items.showFileTagsOnMultipleRows.name)
-        .setDesc(strings.settings.items.showFileTagsOnMultipleRows.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showFileTagsOnMultipleRows).onChange(async value => {
-                plugin.settings.showFileTagsOnMultipleRows = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
     const showFilePropertiesSetting = notePropertyGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showFileProperties.name).setDesc(strings.settings.items.showFileProperties.desc);
     });
@@ -655,11 +645,11 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     new Setting(filePropertiesSubSettingsEl)
-        .setName(strings.settings.items.showFilePropertiesOnMultipleRows.name)
-        .setDesc(strings.settings.items.showFilePropertiesOnMultipleRows.desc)
+        .setName(strings.settings.items.showPropertiesOnSeparateRows.name)
+        .setDesc(strings.settings.items.showPropertiesOnSeparateRows.desc)
         .addToggle(toggle =>
-            toggle.setValue(plugin.settings.showFilePropertiesOnMultipleRows).onChange(async value => {
-                plugin.settings.showFilePropertiesOnMultipleRows = value;
+            toggle.setValue(plugin.settings.showPropertiesOnSeparateRows).onChange(async value => {
+                plugin.settings.showPropertiesOnSeparateRows = value;
                 await plugin.saveSettingsAndUpdate();
             })
         );

@@ -52,9 +52,7 @@ function createListConfig(pinnedNotes: ListPaneConfig['pinnedNotes']): ListPaneC
         groupBy: DEFAULT_SETTINGS.noteGrouping,
         pinnedNotes,
         showFileTags: false,
-        showFileTagsOnMultipleRows: DEFAULT_SETTINGS.showFileTagsOnMultipleRows,
         showPinnedGroupHeader: true,
-        showSelectedNavigationPills: DEFAULT_SETTINGS.showSelectedNavigationPills,
         showTags: false
     };
 }

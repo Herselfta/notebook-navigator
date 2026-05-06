@@ -73,6 +73,7 @@
     -webkit-user-select: none;
     user-select: none;
     position: relative;
+    height: 100%;
 
     /* CSS Custom Properties for file items - themes can override these */
     /* Isolate layout and style calculations per item while allowing ::before to extend beyond bounds */
@@ -92,6 +93,8 @@
     border-radius: var(--nn-file-item-border-radius);
     background: transparent;
     position: relative; /* For absolute positioning of reveal overlay */
+    height: 100%;
+    box-sizing: border-box;
 }
 
 .nn-file.nn-has-custom-background::before {
@@ -141,6 +144,7 @@
     gap: var(--nn-file-row-gap);
     align-items: flex-start;
     position: relative;
+    height: 100%;
 }
 
 .nn-file-icon-slot {
@@ -212,9 +216,9 @@
     flex-direction: column;
     gap: 0;
     order: 1; /* Ensure it appears on the left */
-    min-height: var(--nn-file-thumbnail-min-size); /* Keep short rows aligned to the shared thumbnail floor */
-    justify-content: center; /* Center short text stacks within the shared row height */
-    /* No align-self - let it stretch naturally */
+    height: 100%;
+    min-height: 0;
+    justify-content: flex-start;
 }
 
 /* Compact mode file text content - same as above but without min-height */
@@ -408,9 +412,8 @@
     word-break: break-word;
 }
 
-/* Multi-line preview - shrink to content and cap at the configured rows */
+/* Multi-line preview - clamp to the configured number of lines */
 .nn-file-preview:not(.nn-file-second-line .nn-file-preview) {
-    flex: 0 0 auto;
     max-height: calc(var(--nn-file-multiline-text-line-height) * var(--preview-rows, 1));
 }
 
@@ -446,6 +449,9 @@
 }
 
 .nn-parent-folder-content[data-has-background='true'] {
+    box-sizing: border-box;
+    height: var(--nn-file-single-text-line-height);
+    line-height: calc(var(--nn-file-single-text-line-height) - 2px);
     border-radius: 4px;
     padding: 1px 4px;
 }
