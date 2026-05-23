@@ -93,6 +93,8 @@ interface TagTreeItemProps {
     color?: string;
     /** Custom background color for the tag - fetched by NavigationPane from MetadataService */
     backgroundColor?: string;
+    /** Classes applied when adjacent filled rows alter shared corners */
+    adjacentFilledClassName?: string;
     /** Custom icon for the tag - fetched by NavigationPane from MetadataService */
     icon?: string;
     /** Whether this tag is normally hidden but being shown */
@@ -126,6 +128,7 @@ export const TagTreeItem = React.memo(
             showFileCount,
             color,
             backgroundColor,
+            adjacentFilledClassName,
             icon,
             searchMatch,
             inclusionOperator,
@@ -136,10 +139,10 @@ export const TagTreeItem = React.memo(
         const settings = useSettingsState();
         const uxPreferences = useUXPreferences();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
-        const chevronRef = React.useRef<HTMLDivElement>(null);
-        const iconRef = React.useRef<HTMLSpanElement>(null);
+        const chevronRef = React.useRef<HTMLDivElement | null>(null);
+        const iconRef = React.useRef<HTMLSpanElement | null>(null);
         const iconVersion = useIconServiceVersion();
-        const itemRef = React.useRef<HTMLDivElement>(null);
+        const itemRef = React.useRef<HTMLDivElement | null>(null);
 
         // Compute note counts - use provided counts or calculate from tag node
         const resolvedCounts = React.useMemo<NoteCountInfo>(() => {
@@ -196,8 +199,9 @@ export const TagTreeItem = React.memo(
             if (isHidden) classes.push('nn-excluded');
             if (tagBackground) classes.push('nn-has-custom-background');
             if (searchMatch) classes.push('nn-has-search-match');
+            if (adjacentFilledClassName) classes.push(adjacentFilledClassName);
             return classes.join(' ');
-        }, [isSelected, isHidden, tagBackground, searchMatch]);
+        }, [adjacentFilledClassName, isSelected, isHidden, tagBackground, searchMatch]);
 
         const tagNameClassName = useMemo(() => {
             const classes = ['nn-navitem-name'];

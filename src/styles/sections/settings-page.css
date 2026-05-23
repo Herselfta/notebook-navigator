@@ -204,6 +204,20 @@
     text-align: center;
 }
 
+.nn-setting-info-container.nn-setting-info-list .setting-item-info,
+.nn-setting-info-container.nn-setting-info-list .setting-item-description {
+    text-align: left;
+}
+
+.nn-setting-info-list ol {
+    margin: 6px 0 0 1.5em;
+    padding: 0;
+}
+
+.nn-setting-info-list li + li {
+    margin-top: 4px;
+}
+
 .nn-sub-settings > .setting-item.nn-setting-property-keys-info:last-child {
     padding-bottom: 0;
 }
@@ -328,18 +342,31 @@
     margin-inline-start: auto;
 }
 
-.nn-toolbar-visibility-toggle {
+button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button {
     position: relative;
     padding: 0;
-    /* Override mobile toolbar button dimensions for settings */
-    width: 32px !important;
-    height: 32px !important;
-    min-width: 32px !important;
-    min-height: 32px !important;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
 }
 
-.nn-toolbar-visibility-toggle:not(.nn-mobile-toolbar-button-active) {
+button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button:not(.nn-mobile-toolbar-button-active) {
     opacity: 0.6;
+}
+
+button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button.nn-mobile-toolbar-button-active {
+    color: var(--nn-theme-mobile-toolbar-button-active-icon-color);
+    background-color: var(--nn-theme-mobile-toolbar-button-active-bg);
+}
+
+button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button.nn-mobile-toolbar-button-active .nn-toolbar-visibility-icon {
+    color: var(--nn-theme-mobile-toolbar-button-active-icon-color);
+}
+
+button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button.nn-mobile-toolbar-button-active svg:not(.nn-vault-icon-svg) {
+    stroke: var(--nn-theme-mobile-toolbar-button-active-icon-color);
+    stroke-width: 2;
 }
 
 .nn-toolbar-visibility-icon {
@@ -351,10 +378,15 @@
     color: var(--nn-theme-foreground);
 }
 
-.nn-toolbar-visibility-icon svg {
+.nn-toolbar-visibility-icon svg:not(.nn-vault-icon-svg) {
     width: 18px;
     height: 18px;
     stroke-width: 1.5;
+}
+
+.nn-toolbar-visibility-icon svg.nn-vault-icon-svg {
+    width: 18px;
+    height: 18px;
 }
 
 /* Mobile-specific toolbar visibility button styles */
@@ -383,28 +415,28 @@
 }
 
 /* YouTube-style play button used in settings */
-.nn-youtube-button {
-    background-color: #ff0000 !important;
-    border: none !important;
-    color: #ffffff !important;
+button.nn-youtube-button {
+    background-color: #ff0000;
+    border: none;
+    color: #ffffff;
     min-width: 54px;
 }
 
-.nn-youtube-button:hover {
-    background-color: #cc0000 !important;
+button.nn-youtube-button:hover {
+    background-color: #cc0000;
 }
 
-.nn-youtube-button svg {
-    color: #ffffff !important;
-    fill: #ffffff !important;
-    stroke: none !important;
+button.nn-youtube-button svg {
+    color: #ffffff;
+    fill: #ffffff;
+    stroke: none;
 }
 
-.is-mobile .nn-toolbar-visibility-toggle {
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
-    min-height: 44px !important;
+.is-mobile button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
 }
 
 .is-mobile .nn-toolbar-visibility-icon {
@@ -418,11 +450,11 @@
 }
 
 /* Android-specific adjustments for smaller buttons */
-.notebook-navigator-android .nn-toolbar-visibility-toggle {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
+.notebook-navigator-android button.nn-toolbar-visibility-toggle.nn-mobile-toolbar-button {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
 }
 
 .notebook-navigator-android .nn-toolbar-visibility-icon {

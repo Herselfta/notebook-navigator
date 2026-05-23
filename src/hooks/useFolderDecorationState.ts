@@ -16,8 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useMemo, useState } from 'react';
-import { type App } from 'obsidian';
+import { useMemo } from 'react';
 
 import { useMetadataService, useServices } from '../context/ServicesContext';
 import { useActiveProfile, useSettingsState } from '../context/SettingsContext';
@@ -27,48 +26,12 @@ import { buildFolderRainbowColorsFromSiblingPaths } from '../utils/navigationRai
 import { buildVisibleFolderTraversalState } from '../utils/treeFlattener';
 import { useNavigationRainbowState, type NavigationRainbowState } from './useNavigationRainbowState';
 import { type FolderDecorationModel } from '../utils/folderDecoration';
-
-function isDarkThemeActive(): boolean {
-    return activeDocument.body?.classList.contains('theme-dark') ?? false;
-}
+import { useThemeMode } from './useThemeMode';
 
 interface FolderDecorationState {
     folderNavigationSource: FolderNavigationSourceState;
     folderDecorationModel: FolderDecorationModel;
     navRainbowState: NavigationRainbowState;
-}
-
-function useIsDarkTheme(app: App): boolean {
-    const [isDarkTheme, setIsDarkTheme] = useState(() => isDarkThemeActive());
-
-    useEffect(() => {
-        const syncTheme = () => {
-            setIsDarkTheme(previousTheme => {
-                const nextTheme = isDarkThemeActive();
-                return previousTheme === nextTheme ? previousTheme : nextTheme;
-            });
-        };
-
-        const bodyObserver = activeDocument.body
-            ? new MutationObserver(() => {
-                  syncTheme();
-              })
-            : null;
-        bodyObserver?.observe(activeDocument.body, {
-            attributes: true,
-            attributeFilter: ['class']
-        });
-
-        const cssChangeRef = app.workspace.on('css-change', syncTheme);
-        syncTheme();
-
-        return () => {
-            bodyObserver?.disconnect();
-            app.workspace.offref(cssChangeRef);
-        };
-    }, [app]);
-
-    return isDarkTheme;
 }
 
 interface UseFolderDecorationResolverParams {
@@ -171,7 +134,7 @@ export function useFolderDecorationState(): FolderDecorationState {
         activeProfile,
         metadataService
     });
-    const isDarkTheme = useIsDarkTheme(app);
+    const isDarkTheme = useThemeMode(app) === 'dark';
     const navRainbowState = useNavigationRainbowState(settings, isDarkTheme);
     const folderDecorationModel = useFolderDecorationModel({
         settings,

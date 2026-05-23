@@ -95,13 +95,13 @@ export function useNavigationPaneShortcutActions({
         const release = () => setActiveShortcut(null);
 
         if (typeof requestAnimationFrame !== 'undefined') {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(release);
+            window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(release);
             });
             return;
         }
 
-        activeWindow.setTimeout(release, 0);
+        window.setTimeout(release, 0);
     }, [setActiveShortcut]);
 
     const handleShortcutFolderActivate = useCallback(

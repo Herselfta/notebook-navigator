@@ -51,7 +51,7 @@
     font-weight: 600;
     color: var(--nn-theme-foreground);
     background: var(--background-secondary);
-    margin: 0 0 4px 0;
+    margin: 0 0 4px;
     padding: 6px 10px;
     border-radius: 6px;
 }

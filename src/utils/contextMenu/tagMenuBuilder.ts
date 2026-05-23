@@ -22,7 +22,6 @@ import { strings } from '../../i18n';
 import { cleanupTagPatterns, createHiddenTagMatcher, matchesHiddenTagPattern } from '../tagPrefixMatcher';
 import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import { normalizeTagPath } from '../tagUtils';
-import { resetHiddenToggleIfNoSources } from '../exclusionUtils';
 import { setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { addStyleMenu } from './styleMenuBuilder';
@@ -53,12 +52,13 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
     // Add rename/delete options only for real tags (not virtual aggregations)
     const isVirtualTag = tagPath === UNTAGGED_TAG_ID || tagPath === TAGGED_TAG_ID;
 
-    const ensureTagSelected = () => {
+    const ensureTagSelected = (): boolean => {
         if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag === tagPath) {
-            return;
+            return false;
         }
 
         selectionDispatch({ type: 'SET_SELECTED_TAG', tag: tagPath });
+        return true;
     };
 
     const handleFileCreation = (file: TFile | null | undefined) => {
@@ -73,9 +73,20 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
     if (!isVirtualTag) {
         menu.addItem((item: MenuItem) => {
             setAsyncOnClick(item.setTitle(strings.contextMenu.folder.newNote).setIcon('lucide-pen-box'), async () => {
-                ensureTagSelected();
+                const selectionChanged = ensureTagSelected();
                 const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
-                const createdFile = await fileSystemOps.createNewFileForTag(tagPath, sourcePath, settings.createNewNotesInNewTab);
+                const normalizedTagPath = normalizeTagPath(tagPath);
+                const manualSortContext = normalizedTagPath
+                    ? await fileSystemOps.getManualSortNewFileContextForTarget('tag', normalizedTagPath, {
+                          waitForSelectionUpdate: selectionChanged
+                      })
+                    : null;
+                const createdFile = await fileSystemOps.createNewFileForTag(
+                    tagPath,
+                    sourcePath,
+                    settings.createNewNotesInNewTab,
+                    manualSortContext
+                );
                 handleFileCreation(createdFile);
             });
         });
@@ -349,11 +360,6 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
                         const cleanedHiddenTags = cleanupTagPatterns(hiddenTags, tagPath);
 
                         activeProfile.hiddenTags = cleanedHiddenTags;
-                        resetHiddenToggleIfNoSources({
-                            settings: plugin.settings,
-                            showHiddenItems: services.visibility.showHiddenItems,
-                            setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                        });
                         await plugin.saveSettingsAndUpdate();
                     });
                 });
@@ -365,11 +371,6 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
                             return !(normalizedPattern && !normalizedPattern.includes('*') && normalizedPattern === normalizedTagPath);
                         });
 
-                        resetHiddenToggleIfNoSources({
-                            settings: plugin.settings,
-                            showHiddenItems: services.visibility.showHiddenItems,
-                            setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                        });
                         await plugin.saveSettingsAndUpdate();
                     });
                 });
@@ -384,9 +385,12 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
             });
 
             menu.addItem((item: MenuItem) => {
-                setAsyncOnClick(item.setTitle(strings.modals.tagOperation.confirmDelete).setIcon('lucide-trash'), async () => {
-                    await services.tagOperations.promptDeleteTag(tagPath);
-                });
+                setAsyncOnClick(
+                    item.setTitle(strings.modals.tagOperation.confirmDelete).setIcon('lucide-trash').setWarning(true),
+                    async () => {
+                        await services.tagOperations.promptDeleteTag(tagPath);
+                    }
+                );
             });
         }
     }

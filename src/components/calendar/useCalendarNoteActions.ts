@@ -330,6 +330,7 @@ export function useCalendarNoteActions({
                 menu.addItem(item => {
                     item.setTitle(strings.contextMenu.file.deleteNote)
                         .setIcon('lucide-trash')
+                        .setWarning(true)
                         .onClick(() => {
                             runAsyncAction(() =>
                                 fileSystemOps.deleteFile(existingFile, settings.confirmBeforeDelete, () => {

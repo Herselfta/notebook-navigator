@@ -38,7 +38,6 @@ import type {
 } from '../types';
 import { isHomepageSource, isMultiSelectModifier, isPeriodicHomepageSource, isVaultTitleOption } from '../types';
 import type { SettingsTabContext } from './SettingsTabContext';
-import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { InputModal } from '../../modals/InputModal';
 import { EditVaultProfilesModal } from '../../modals/EditVaultProfilesModal';
 import {
@@ -111,7 +110,7 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                         const { getLatestReleaseNotes } = await import('../../releaseNotes');
                         const latestNotes = getLatestReleaseNotes();
                         new WhatsNewModal(context.app, latestNotes, () => {
-                            activeWindow.setTimeout(() => {
+                            window.setTimeout(() => {
                                 runAsyncAction(async () => {
                                     plugin.settings.lastShownVersion = pluginVersion;
                                     await plugin.saveSettingsAndUpdate();
@@ -442,11 +441,6 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                 }
                 const nextHiddenPatterns = parseCommaSeparatedList(value);
                 activeProfile.hiddenFileNames = Array.from(new Set(nextHiddenPatterns));
-                resetHiddenToggleIfNoSources({
-                    settings: plugin.settings,
-                    showHiddenItems: plugin.getUXPreferences().showHiddenItems,
-                    setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                });
             }
         );
     });
@@ -467,11 +461,6 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                 }
                 const nextHiddenFolders = parseCommaSeparatedList(value);
                 activeProfile.hiddenFolders = Array.from(new Set(nextHiddenFolders));
-                resetHiddenToggleIfNoSources({
-                    settings: plugin.settings,
-                    showHiddenItems: plugin.getUXPreferences().showHiddenItems,
-                    setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                });
             }
         );
     });
@@ -495,11 +484,6 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                     .filter((entry): entry is string => entry !== null);
 
                 activeProfile.hiddenTags = Array.from(new Set(normalizedHiddenTags));
-                resetHiddenToggleIfNoSources({
-                    settings: plugin.settings,
-                    showHiddenItems: plugin.getUXPreferences().showHiddenItems,
-                    setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                });
             }
         );
     });
@@ -524,11 +508,6 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                     .filter((entry): entry is string => entry !== null);
 
                 activeProfile.hiddenFileTags = Array.from(new Set(normalizedHiddenFileTags));
-                resetHiddenToggleIfNoSources({
-                    settings: plugin.settings,
-                    showHiddenItems: plugin.getUXPreferences().showHiddenItems,
-                    setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                });
             }
         );
     });
@@ -549,11 +528,6 @@ export function renderGeneralTab(context: SettingsTabContext): void {
                 }
                 const nextHiddenFiles = parseCommaSeparatedList(value);
                 activeProfile.hiddenFileProperties = Array.from(new Set(nextHiddenFiles));
-                resetHiddenToggleIfNoSources({
-                    settings: plugin.settings,
-                    showHiddenItems: plugin.getUXPreferences().showHiddenItems,
-                    setShowHiddenItems: value => plugin.setShowHiddenItems(value)
-                });
             }
         );
     });

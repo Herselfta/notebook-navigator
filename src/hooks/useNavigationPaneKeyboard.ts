@@ -79,6 +79,10 @@ function isVirtualPropertyCollection(item: CombinedNavigationItem): item is Virt
     );
 }
 
+function isShiftTab(event: KeyboardEvent): boolean {
+    return event.key === 'Tab' && event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey;
+}
+
 interface UseNavigationPaneKeyboardProps {
     /** Navigation items to navigate through */
     items: CombinedNavigationItem[];
@@ -268,6 +272,11 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
             const isRTL = helpers.isRTL();
             let targetIndex = -1;
             let shouldScrollToTop = false;
+
+            if (isShiftTab(e)) {
+                e.preventDefault();
+                return;
+            }
 
             const getFirstSelectableIndex = () => helpers.findNextIndex(-1);
             const findSelectableBefore = (startIndex: number) => {

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useEffect, useMemo, useRef, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useCallback, useEffect, useMemo, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { App, debounce, TAbstractFile, TFile, TFolder } from 'obsidian';
 import type { Debouncer } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
@@ -91,9 +91,9 @@ export function usePropertyTreeSync(params: {
     fileVisibility: FileVisibility;
     profileId: string;
     isStorageReady: boolean;
-    isStorageReadyRef: RefObject<boolean>;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
-    stoppedRef: RefObject<boolean>;
+    isStorageReadyRef: MutableRefObject<boolean>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
+    stoppedRef: MutableRefObject<boolean>;
     setFileData: Dispatch<SetStateAction<StorageFileData>>;
     getVisibleMarkdownFiles: () => TFile[];
     propertyTreeService: PropertyTreeService | null;

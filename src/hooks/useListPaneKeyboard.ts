@@ -46,7 +46,8 @@ import { useFileOpener } from './useFileOpener';
 import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortcuts';
 import { runAsyncAction } from '../utils/async';
 import { openFileInContext } from '../utils/openFileInContext';
-import { isEnterKey, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, isModifierArrowReorderShortcut, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import type { Align } from '../types/scroll';
 
 /**
  * Check if a list item is selectable (file, not header or spacer)
@@ -56,6 +57,8 @@ const isSelectableListItem = (item: ListPaneItem): boolean => {
 };
 
 interface UseListPaneKeyboardProps {
+    /** Whether list pane keyboard handling is active */
+    enabled?: boolean;
     /** List items to navigate through */
     items: ListPaneItem[];
     /** Virtualizer instance for scroll management */
@@ -70,12 +73,16 @@ interface UseListPaneKeyboardProps {
     orderedFileIndexMap: Map<string, number>;
     /** Handler for selecting a file from keyboard actions */
     onSelectFile: (file: TFile, options?: { markKeyboardNavigation?: boolean; suppressOpen?: boolean; debounceOpen?: boolean }) => void;
+    /** Scrolls a list index into view while accounting for list overlays */
+    scrollToIndexSafely: (index: number, align: Align) => void;
     /** Keep debounced open aligned when selection cannot move (e.g. ArrowDown at end of list) */
     onScheduleKeyboardOpen?: () => void;
     /** Schedule a debounced open for a specific file (used for Shift+Arrow multi-selection) */
     onScheduleKeyboardOpenForFile?: (file: TFile) => void;
     /** Commit selection by opening the currently selected file */
     onCommitKeyboardOpen?: () => void;
+    /** Reorder the selected property-sorted file block */
+    onReorderPropertySort?: (direction: 'up' | 'down') => boolean;
 }
 
 /**
@@ -83,6 +90,7 @@ interface UseListPaneKeyboardProps {
  * Handles file-specific keyboard interactions and multi-selection.
  */
 export function useListPaneKeyboard({
+    enabled = true,
     items,
     virtualizer,
     containerRef,
@@ -90,9 +98,11 @@ export function useListPaneKeyboard({
     orderedFiles,
     orderedFileIndexMap,
     onSelectFile,
+    scrollToIndexSafely,
     onScheduleKeyboardOpen,
     onScheduleKeyboardOpenForFile,
-    onCommitKeyboardOpen
+    onCommitKeyboardOpen,
+    onReorderPropertySort
 }: UseListPaneKeyboardProps) {
     const { app, commandQueue, isMobile, tagTreeService, propertyTreeService } = useServices();
     const openFileInWorkspace = useFileOpener();
@@ -167,10 +177,26 @@ export function useListPaneKeyboard({
                 openFileInWorkspace(targetFile);
             }
 
-            // Scroll to target position
-            virtualizer.scrollToIndex(targetIndex, { align: 'auto' });
+            if (direction === 'home') {
+                virtualizer.scrollToIndex(0, { align: 'start' });
+                return;
+            }
+
+            const targetListIndex = pathToIndex.get(targetFile.path);
+            if (targetListIndex !== undefined) {
+                scrollToIndexSafely(targetListIndex, 'auto');
+            }
         },
-        [orderedFiles, selectionState.selectedFiles, selectionDispatch, virtualizer, openFileInWorkspace, settings.enterToOpenFiles]
+        [
+            orderedFiles,
+            selectionState.selectedFiles,
+            selectionDispatch,
+            settings.enterToOpenFiles,
+            openFileInWorkspace,
+            virtualizer,
+            pathToIndex,
+            scrollToIndexSafely
+        ]
     );
 
     /**
@@ -178,6 +204,10 @@ export function useListPaneKeyboard({
      */
     const handleKeyDown = useCallback(
         (e: KeyboardEvent, helpers: KeyboardNavigationHelpers<ListPaneItem>) => {
+            if (!enabled) {
+                return;
+            }
+
             const currentIndex = getCurrentIndex();
             const shortcuts = settings.keyboardShortcuts;
             const isRTL = helpers.isRTL();
@@ -201,20 +231,52 @@ export function useListPaneKeyboard({
 
             // Returns the index of the first selectable item in the list
             const getFirstSelectableIndex = () => helpers.findNextIndex(-1);
-            // Finds the nearest selectable item before the given index
-            const findSelectableBefore = (startIndex: number) => {
-                if (items.length === 0) {
-                    return -1;
+            const getVisibleSelectablePageSize = () => {
+                const virtualItems = virtualizer.getVirtualItems();
+                const scrollElement = virtualizer.scrollElement;
+                if (virtualItems.length === 0 || !scrollElement) {
+                    return helpers.getPageSize();
                 }
 
-                for (let i = Math.min(startIndex, items.length - 1); i >= 0; i--) {
-                    const candidate = helpers.getItemAt(i);
-                    if (candidate && isSelectableListItem(candidate)) {
-                        return i;
+                const viewportStart = virtualizer.scrollOffset ?? scrollElement.scrollTop;
+                const viewportEnd = viewportStart + scrollElement.clientHeight;
+                let visibleSelectableCount = 0;
+
+                for (const virtualItem of virtualItems) {
+                    const item = helpers.getItemAt(virtualItem.index);
+                    if (!item || !isSelectableListItem(item)) {
+                        continue;
+                    }
+
+                    const itemStart = virtualItem.start;
+                    const itemEnd = itemStart + virtualItem.size;
+                    if (itemEnd > viewportStart && itemStart < viewportEnd) {
+                        visibleSelectableCount += 1;
                     }
                 }
 
-                return -1;
+                if (visibleSelectableCount === 0) {
+                    return helpers.getPageSize();
+                }
+
+                // Keep one selectable row visible beyond the target so paging preserves visual context.
+                return Math.max(1, visibleSelectableCount - 2);
+            };
+
+            const findSelectablePageTarget = (startIndex: number, direction: 'up' | 'down') => {
+                const pageSize = getVisibleSelectablePageSize();
+                let targetIndex = startIndex;
+
+                for (let remaining = pageSize; remaining > 0; remaining -= 1) {
+                    const nextIndex = direction === 'down' ? helpers.findNextIndex(targetIndex) : helpers.findPreviousIndex(targetIndex);
+                    if (nextIndex < 0 || nextIndex === targetIndex) {
+                        break;
+                    }
+
+                    targetIndex = nextIndex;
+                }
+
+                return targetIndex;
             };
 
             if (settings.enterToOpenFiles && isEnterKey(e)) {
@@ -252,6 +314,14 @@ export function useListPaneKeyboard({
                 openFileInWorkspace(file);
             };
 
+            if (isModifierArrowReorderShortcut(e, settings.multiSelectModifier)) {
+                const direction = e.key === 'ArrowDown' ? 'down' : 'up';
+                if (onReorderPropertySort?.(direction) === true) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+
             if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_EXTEND_SELECTION_DOWN)) {
                 e.preventDefault();
                 if (!isMobile && selectionState.selectedFile?.path) {
@@ -270,7 +340,7 @@ export function useListPaneKeyboard({
                             const finalFile = orderedFiles[finalFileIndex];
                             const itemIndex = pathToIndex.get(finalFile.path);
                             if (itemIndex !== undefined) {
-                                helpers.scrollToIndex(itemIndex);
+                                scrollToIndexSafely(itemIndex, 'auto');
                             }
                         }
                     }
@@ -296,7 +366,7 @@ export function useListPaneKeyboard({
                             const finalFile = orderedFiles[finalFileIndex];
                             const itemIndex = pathToIndex.get(finalFile.path);
                             if (itemIndex !== undefined) {
-                                helpers.scrollToIndex(itemIndex);
+                                scrollToIndexSafely(itemIndex, 'auto');
                             }
                         }
                     }
@@ -335,22 +405,7 @@ export function useListPaneKeyboard({
             } else if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_PAGE_DOWN)) {
                 e.preventDefault();
                 if (currentIndex !== -1) {
-                    const pageSize = helpers.getPageSize();
-                    const newIndex = Math.min(currentIndex + pageSize, items.length - 1);
-                    // Move down by "pageSize" rows, then snap to the next selectable file.
-                    let newTargetIndex = helpers.findNextIndex(newIndex - 1);
-                    if (newTargetIndex === currentIndex && currentIndex !== items.length - 1) {
-                        // If we couldn't find a new selectable item but we're not at the end, fall back
-                        // to the last selectable item in the list.
-                        for (let i = items.length - 1; i >= 0; i--) {
-                            const item = helpers.getItemAt(i);
-                            if (item && isSelectableListItem(item)) {
-                                newTargetIndex = i;
-                                break;
-                            }
-                        }
-                    }
-                    targetIndex = newTargetIndex;
+                    targetIndex = findSelectablePageTarget(currentIndex, 'down');
                 }
                 shouldDebounceOpen = e.key === 'PageDown';
             } else if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_PAGE_UP)) {
@@ -363,10 +418,7 @@ export function useListPaneKeyboard({
                         shouldScrollToTop = true;
                     }
                 } else {
-                    const pageSize = helpers.getPageSize();
-                    const newIndex = Math.max(0, currentIndex - pageSize);
-                    // Move up by "pageSize" rows, then snap to the nearest selectable file before that.
-                    const nearestSelectable = findSelectableBefore(newIndex);
+                    const nearestSelectable = findSelectablePageTarget(currentIndex, 'up');
 
                     if (nearestSelectable >= 0) {
                         targetIndex = nearestSelectable;
@@ -481,8 +533,9 @@ export function useListPaneKeyboard({
                     selectItemAtIndex(item, { debounceOpen: shouldDebounceOpen });
                     if (shouldScrollToTop) {
                         virtualizer.scrollToIndex(0, { align: 'start' });
+                    } else {
+                        scrollToIndexSafely(targetIndex, 'auto');
                     }
-                    helpers.scrollToIndex(targetIndex);
                 }
             } else if (shouldScrollToTop) {
                 virtualizer.scrollToIndex(0, { align: 'start' });
@@ -490,6 +543,7 @@ export function useListPaneKeyboard({
         },
         [
             getCurrentIndex,
+            enabled,
             settings,
             isMobile,
             selectionState,
@@ -513,12 +567,17 @@ export function useListPaneKeyboard({
             showHiddenItems,
             openFileInWorkspace,
             onScheduleKeyboardOpen,
-            onScheduleKeyboardOpenForFile
+            onScheduleKeyboardOpenForFile,
+            onReorderPropertySort,
+            scrollToIndexSafely
         ]
     );
 
     const handleKeyUp = useCallback(
         (e: KeyboardEvent) => {
+            if (!enabled) {
+                return;
+            }
             if (!onCommitKeyboardOpen) {
                 return;
             }
@@ -535,7 +594,7 @@ export function useListPaneKeyboard({
             // Commit the last pending debounced open so the final selection opens immediately.
             onCommitKeyboardOpen();
         },
-        [onCommitKeyboardOpen]
+        [enabled, onCommitKeyboardOpen]
     );
 
     // Use the base keyboard navigation hook

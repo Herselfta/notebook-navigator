@@ -74,6 +74,7 @@ interface VirtualFolderItemProps {
     level: number; // Nesting level for indentation
     color?: string;
     backgroundColor?: string;
+    adjacentFilledClassName?: string;
     indentGuideLevels?: number[]; // Levels of expanded ancestors whose connector lines should be rendered on this row
     isExpanded: boolean; // From ExpansionContext via NavigationPane
     hasChildren: boolean; // Computed by NavigationPane from tag tree
@@ -118,6 +119,7 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
     level,
     color,
     backgroundColor,
+    adjacentFilledClassName,
     indentGuideLevels,
     isExpanded,
     hasChildren,
@@ -137,9 +139,9 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
 }: VirtualFolderItemProps) {
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
-    const folderRef = useRef<HTMLDivElement>(null);
-    const chevronRef = useRef<HTMLDivElement>(null);
-    const iconRef = useRef<HTMLSpanElement>(null);
+    const folderRef = useRef<HTMLDivElement | null>(null);
+    const chevronRef = useRef<HTMLDivElement | null>(null);
+    const iconRef = useRef<HTMLSpanElement | null>(null);
     const iconVersion = useIconServiceVersion();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const applyColorToName = Boolean(color) && !settings.colorIconOnly;
@@ -207,8 +209,11 @@ export const VirtualFolderComponent = React.memo(function VirtualFolderComponent
         if (searchMatch) {
             classes.push('nn-has-search-match');
         }
+        if (adjacentFilledClassName) {
+            classes.push(adjacentFilledClassName);
+        }
         return classes.join(' ');
-    }, [backgroundColor, isSelected, searchMatch, virtualFolder.id]);
+    }, [adjacentFilledClassName, backgroundColor, isSelected, searchMatch, virtualFolder.id]);
 
     const contentClassName = useMemo(() => buildSearchMatchContentClass(['nn-navitem-content'], searchMatch), [searchMatch]);
     const virtualFolderNameClassName = useMemo(() => {

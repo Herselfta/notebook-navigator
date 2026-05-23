@@ -81,6 +81,76 @@ export interface ReleaseNote {
  */
 const RELEASE_NOTES: ReleaseNote[] = [
     {
+        version: '3.0.1',
+        date: '2026-05-26',
+        showOnUpdate: true,
+        improved: ['**Manual sort.** **Edit sort order...** now supports keyboard navigation.']
+    },
+    {
+        version: '3.0.0',
+        date: '2026-05-18',
+        showOnUpdate: true,
+        info: 'This update finally brings manual sort to the list pane! If you are a writer used to working with Ulysses or Scrivener, this should make your daily life much easier.',
+        youtubeUrl: 'https://youtu.be/OCx4v5gJkXE',
+        new: [
+            '**Manual sort.** ==New manual sorting mode in list pane.== You can now arrange notes in any order you want. The position is saved as a numeric index value in a frontmatter property, and works in single folders as well as with **Show notes from descendants** enabled.',
+            '**Manual sort.** You can reorder notes directly in the list pane. Select one or more notes and press Cmd/Ctrl + Arrow Up/Down. Or pick **Edit sort order...** from the sort menu to open a dedicated drag-and-drop view, which supports multi-select on desktop and touch on mobile.',
+            '**Manual sort.** New setting: List > Manual sort > ==New note placement== controls where new notes are added when manual sort is active: Top, Bottom, Below selected note, or Unsorted. Default is below selected note.',
+            '**List pane.** ==Custom group headers==. Set group mode to "Custom" then create or edit group headers by right clicking files in list pane.',
+            '**List pane.** ==Word count targets==. Custom group headers can show total word count and progress against a target word count, similar to writing targets in Scrivener.',
+            '**List pane.** ==Group headers can now be collapsed.== Click the chevron next to a group header to collapse or expand it.',
+            '**Recent files.** You can now drag items from recent files into shortcuts, folders, tags and properties.',
+            '**Calendar.** New setting Calendar > Calendar integration > ==Periodic notes locale== controls whether Notebook Navigator periodic note paths use the selected calendar locale or Obsidian locale.'
+        ],
+        improved: [
+            '**List pane.** ==Word count display== now supports title placement, property placement, target word counts, and target percentage display. Change it in List > Notes > Word count.'
+        ],
+        changed: [
+            '**Settings.** "Property to sort by" was renamed to ==Properties to sort by==. It now takes a comma-separated list of frontmatter properties, and each one shows up as its own option in the list pane sort menu.'
+        ],
+        fixed: [
+            '**Commands.** When **Notebook Navigator: Delete files** was called and the navigation pane was last focused, it could delete the selected folder. It now only deletes selected files.',
+            '**Shortcuts.** Folder and note shortcuts no longer break when synced between devices with different path case sensitivity, for example **appLab/SKILLS-WORKFLOWS** vs **applab/skills-workflows**.',
+            '**List pane.** Fixed extra spacing in feature image rows when dates are hidden and tags or properties are visible.',
+            '**List pane.** Removed tiny hairline gap above the sticky group header showing on some scaling modes.'
+        ]
+    },
+    {
+        version: '2.6.6',
+        date: '2026-05-12',
+        showOnUpdate: false,
+        changed: [
+            '**List pane.** ==Excalidraw drawing previews now use the PNG files exported by Excalidraw==. Enable **Auto-export PNG** in Excalidraw settings. The new **List > Drawing previews** settings group has the full setup instructions.'
+        ],
+        improved: [
+            '**Community Plugin compliance.** Lots of time spent in this release to meet Obsidian community plugin compliance. Check our current rating at https://community.' +
+                'obsidian.md/plugins/notebook-navigator.'
+        ]
+    },
+    {
+        version: '2.6.5',
+        date: '2026-05-11',
+        showOnUpdate: true,
+        bannerUrl: true,
+        new: [
+            '**List pane.** ==Pinned notes can now be collapsed per folder, tag, or property==. Click the Pinned header to hide or show them for the current selection.',
+            '**List pane.** New setting **Sticky group headers** in List > Organization. ==Group headers now stick to the top of list pane==. Default enabled.',
+            '**List pane.** New setting **Use folder icon** in List > Notes > Icon. ==Shows parent folder icons on notes without custom file icons==.',
+            '**List pane.** New setting **Use folder color** in List > Notes > Title. ==Shows parent folder colors on notes without custom file colors==.',
+            '**List pane.** New setting **Show full path** in List > Notes > Parent folder. ==Shows the full parent folder path in list pane== instead of only the folder name.',
+            '**Commands.** New command **Toggle pinned section** to collapse or expand the pinned notes section in the current context.'
+        ],
+        improved: [
+            '**Settings.** Reorganized the List tab into Appearance, Organization, Pinned notes, and Behavior groups.',
+            '**UI Polish**. Simplified list item rendering and feature images a bit, worked on the hover effect, and many other minor improvements.'
+        ],
+        changed: [
+            '**Settings.** Removed List > Pinned notes > **Show pinned icon**. No longer relevant when pinned items can be collapsed.',
+            '**Settings.** Removed List > Pinned notes > **Show pinned group header**. It added unnecessary internal complexity, most users want this enabled.'
+        ],
+        fixed: ['Fixed the drag-and-drop ghost image that disappeared in 2.6.3.']
+    },
+    {
         version: '2.6.4',
         date: '2026-05-06',
         showOnUpdate: true,
@@ -156,176 +226,6 @@ const RELEASE_NOTES: ReleaseNote[] = [
             'Core Daily Notes lookup and creation now use the current Moment locale instead of Calendar > Locale.',
             'Metadata cleanup now preserves metadata for hidden tags and nested tag separators.',
             'Settings: General > Show tooltips now also works for shortcuts and recent files.'
-        ]
-    },
-    {
-        version: '2.5.8',
-        date: '2026-04-19',
-        showOnUpdate: true,
-        improved: ['Calendar in the right sidebar now always shows a Today button in top right corner.'],
-        changed: [
-            'Calendar auto-reveal no longer changes the current month for quarterly and yearly notes.',
-            'Calendar > Locale now also controls daily note file name formatting to match other calendar plugins.'
-        ],
-        fixed: [
-            'The calendar in right sidebar will now keep its position after plugin reloads or calendar is moved to left sidebar and back.'
-        ]
-    },
-    {
-        version: '2.5.7',
-        date: '2026-04-09',
-        showOnUpdate: true,
-        new: ['Setting: General > Homepage now lets you open a daily, weekly, monthly, or quarterly note on startup.'],
-        improved: [
-            'Added informative text on hover for the unfinished task icon in list pane, showing the number of unfinished tasks. If note tooltips are enabled the unfinished note count is included in the note tooltip.',
-            'Calendar now shows the active-note outline for weekly, monthly, quarterly, and yearly notes.'
-        ],
-        changed: [
-            'Changed the format used for storing icon values in frontmatter to a deterministic format. For example, the Material icon crop_16_9 is now saved as **mi:crop_16_9** instead of **MiCrop169**. The previous format could not reliably round-trip icon names with numbers. Existing supported legacy values are still read automatically through legacy Iconize mappings.',
-            'The homepage setting was redesigned. Previously, you could only choose a specific file as the homepage. Now you can choose between ==None==, ==File==, ==Daily note==, ==Weekly note==, ==Monthly note==, and ==Quarterly note==. The separate mobile homepage option was removed — use local setting overrides to configure a different homepage per device. Existing settings are migrated automatically.'
-        ],
-        fixed: [
-            'Fixed icons with numbers in their name, such as **crop_16_9** and **badge-3d**, not displaying correctly after being saved to frontmatter.',
-            'List pane: fixed hairline gaps between adjacent notes with the same custom background color and incorrect border radius in compact mode.'
-        ]
-    },
-    {
-        version: '2.5.6',
-        date: '2026-04-03',
-        showOnUpdate: false,
-        new: [
-            'New setting: List > Appearance > ==Always show all tag and property pills==. When enabled, tag and property pills remain visible even when they match the current navigation selection.'
-        ],
-        fixed: [
-            'Fixed issue introduced in 2.5.5 where tag and property pills that matched the current navigation selection were hidden in the renderer but still counted by the virtualizer, causing incorrect item heights and scroll position drift in the list pane.'
-        ]
-    },
-    {
-        version: '2.5.5',
-        date: '2026-04-02',
-        new: [
-            'New setting: Advanced > ==Import and export settings==. You can now export and import settings as a JSON file.',
-            'New setting: General > Behavior > ==Ignore events from other windows==. When enabled, auto-reveal does not trigger when working with notes in a different window. Default enabled.',
-            'New setting: General > Mouse buttons > ==Mouse back/forward buttons==. Configures the action for mouse back and forward buttons on desktop: use system default, switch panes in single-pane mode, or navigate history.'
-        ],
-        improved: [
-            'Calendar context menu now includes options to open notes in a new tab, to the right, or in a new window.',
-            'Tag and property value pills that match the current navigation selection are hidden in the list pane.',
-            'Empty checkbox list items are no longer counted as tasks.'
-        ],
-        fixed: [
-            'Auto-reveal is now saved to the navigation history.',
-            'Startup file is now registered in navigation history.',
-            'Reveal file now scrolls the selected note into view every time in the list pane, including repeated reveals of the same note.',
-            'Reveal operations on hidden files no longer switch folder, tag, or property context while Show hidden items is off.'
-        ]
-    },
-    {
-        version: '2.5.4',
-        date: '2026-03-30',
-        showOnUpdate: true,
-        new: [
-            'New setting and menu option: ==Filter tags by selection==. Limits the tags section to tags that appear in notes within the selected folder or property.',
-            'New setting and menu option: ==Filter properties by selection==. Limits the properties section to properties that appear in notes within the selected folder or tag.',
-            '==Apply sort to descendants==, and ==Apply appearance to descendants== - two new menu options to apply the current sort or appearance setting to all subfolders, subtags, or property values.',
-            'New commands: ==Navigate back== and ==Navigate forward==. Moves through recent folder, tag, and property selections in the navigator.'
-        ],
-        improved: [
-            'Calendar now follows the active daily note and switches to the matching month automatically.',
-            'Calendar settings now warn when the weekly notes pattern uses ISO week tokens that override the locale first day of week.',
-            'Improved list pane scroll performance by reducing repeated work in visible note rows.',
-            'Quick actions are now hidden while scrolling the list pane.'
-        ],
-        fixed: ['Tag and property pills in the list pane now show rainbow colors.']
-    },
-    {
-        version: '2.5.3',
-        date: '2026-03-22',
-        showOnUpdate: false,
-        improved: [
-            'Calendar in the right pane now always shows 6 weeks.',
-            'Property pills in list pane now support custom URI schemes like "zotero://..." and "file://...".'
-        ],
-        fixed: [
-            'Boolean and number properties are now shown as property pills in the list pane.',
-            'Metadata cleanup now removes stale property-key selections.'
-        ]
-    },
-    {
-        version: '2.5.2',
-        date: '2026-03-20',
-        showOnUpdate: true,
-        new: [
-            'New setting: Calendar > ==Month name format==. Choose between "full" (January) or "short" (Jan).',
-            'New style setting: Calendar > ==Feature image overlay color==. Adds a color overlay to darken or tint feature images in calendar days and months. Set separate colors for light and dark mode.'
-        ],
-        improved: [
-            '**Icons in frontmatter** now support wikilink-wrapped SVG paths like **[[icons/folder.svg]]**.',
-            '**Yearly calendar months now longer show "(n)" suffix**, instead they show the same circles as daily notes (filled circle for notes, hollow circle for tasks).',
-            '**Single-line file titles and preview text in list pane now truncate with ellipsis** instead of dropping the last word before the ellipsis.'
-        ],
-        fixed: [
-            'The yearly calendar month outline now always follows the active month.',
-            'Unicode NFC and NFD text now match as equivalent in frontmatter property lookup, tag rules, and filename icon matching.'
-        ]
-    },
-    {
-        version: '2.5.1',
-        date: '2026-03-16',
-        showOnUpdate: true,
-        bannerUrl: true,
-        new: [
-            '==The monthly calendar view now shows feature images for each month==. By default it shows the image for the first note of the month, but you can change this by right-clicking a day and choose "Set highlight".',
-            'New setting: Navigation > Rainbow colors > ==Consistent brightness across hues==. If enabled (default), hue transitions use the same brightness levels.',
-            'New setting: Navigation > Rainbow colors > ==Separate light and dark mode colors==. Configure different colors for light and dark mode. Default disabled.',
-            'New setting: ==Calendar > Enable calendar==. Simple switch to disable all calendar functionality in Notebook Navigator.',
-            'New setting: List > Notes > ==Fall back to note content==. Enabled by default, disable if you only want text from properties to display in the preview.'
-        ],
-        changed: [
-            'After many many hours of work I decided that the feature "Scope pinned notes to their location" used to show files pinned in their own folder will only work for folders. The complexities involved with branching in tags and properties makes this too complex to be useful. I also renamed it to "Only pin notes in their folder" to make it extra clear what it does. This feature is useful for folder notes or if you have many pinned notes, to avoid them stacking up when you show notes from subfolders.'
-        ],
-        improved: [
-            'Property tree now shows the values for boolean `true` and `false`.',
-            'Property tree now treats frontmatter `null` values as unassigned instead of converting them to `true`.',
-            'Calendar now indicates the currently selected day with a border. You can customize this color in style settings or using the CSS variable --nn-theme-calendar-day-active-border-color.',
-            'Expand / Collapse all now collapses down to root items (Vault, Tags, Properties), and the setting Navigation > "Collapse items" now also supports properties.',
-            'Option+click chevrons now also works with tags and properties to expand or collaps all siblings in the tree. Previously it only worked for folders.'
-        ],
-        fixed: [
-            'Fixed an issue with "Featured image pixel size" where it would not save the resolution if the setting was set to non-synced.',
-            'Fixed so rainbow colors are shown in the list pane if List > Notes > "Show parent folder color" is enabled.',
-            'Fixed so the "new version available" popup only shows at most once per day, not on every startup.'
-        ]
-    },
-    {
-        version: '2.5.0',
-        date: '2026-03-09',
-        showOnUpdate: true,
-        bannerUrl: true,
-        new: [
-            'New feature: ==Rainbow colors==! You can now set individual rainbow colors for shortcuts, recent files, folders, tags or properties! Pick custom colors, choose between Hue (color wheel) and RGB (direct blend). There are lots of configuration settings, so just head over to **Settings > Navigation > Rainbow colors** to check it out!',
-            'You can now set ==background colors for files== in the list pane. Great to make individual files stand out! Background colors can be set in menus or frontmatter.',
-            'New setting: List > Notes > ==Unfinished task background==. This makes it super easy to find notes with unfinished tasks in the list pane.',
-            'New setting: List > Notes > ==Feature image display size==. You can now increase the max vertical size of feature images from 64px to 128px in list pane.',
-            'New setting: List > Notes > ==Feature image pixel size==. You can now set the max thumbnail width from 256 pixels (default) up to 512 pixels for higher-resolution thumbnails in calendar overlays and list pane.',
-            'New setting: List > Notes > ==Link property pills to notes==. When enabled (default), properties that are file links can be clicked to open that file.',
-            'New setting: List > Notes > ==Link property pills to URLs==. When enabled (default), properties that are URLs can be clicked to open the URL. Very handy if you keep web references in your notes.',
-            'New command: ==Toggle dual pane orientation== to quickly change orientation between horizontal and vertical dual panes.',
-            '==New API 2.0==: Added whenReady(), tag collection helpers, property node helpers, new tag and property context menu hooks and many other improvements.'
-        ],
-        improved: [
-            'The ==properties tree now supports custom appearance and sort order== in list pane.',
-            'The setting ==Only pin notes in their folder== (previously called "Limit pinned notes") only affects folder views.',
-            'You can now click directly on property keys in the "Property key visibility modal" to quickly toggle visibility in all three places: navigation pane, list pane, and file menus.',
-            'Shortcut rows no longer reserve trailing badge space when Shortcut badge is None.'
-        ],
-        changed: [
-            'Updated fontawesome icons 7.1 to 7.2 and simple-icons 15.20 to 16.11. ==Important, this is a breaking change!==. Simple-icons removed 44 icons such as canva, openai and slack. If you used these icons you need to reassign them to new icons.'
-        ],
-        fixed: [
-            'Fixed an issue where deleting the active note could trigger "file not found" errors in Linter when "Lint on Focused File Change" is enabled.',
-            'Fixed an issue where disabling "Show icons for shortcuts and recent items" also disabled the icon for the Properties root virtual folder.',
-            'Fixed an issue where the Properties folder was showing if there were no visible properties in Navigation pane and "Show properties folder" was disabled.'
         ]
     }
 ];

@@ -24,7 +24,7 @@ import { NavigationPaneHeader } from '../NavigationPaneHeader';
 import { VaultTitleArea } from '../VaultTitleArea';
 
 interface NavigationPaneLayoutProps {
-    navigationPaneRef: React.RefObject<HTMLDivElement | null>;
+    navigationPaneRef: React.MutableRefObject<HTMLDivElement | null>;
     navigationPaneStyle: CSSPropertiesWithVars;
     shouldRenderCalendarOverlay: boolean;
     isShortcutSorting: boolean;
@@ -41,7 +41,7 @@ interface NavigationPaneLayoutProps {
     pinNavigationBanner: boolean;
     navigationBannerContent: React.ReactNode;
     shouldRenderPinnedShortcuts: boolean;
-    pinnedShortcutsContainerRef: React.RefObject<HTMLDivElement | null>;
+    pinnedShortcutsContainerRef: React.MutableRefObject<HTMLDivElement | null>;
     pinnedShortcutsHasOverflow: boolean;
     pinnedShortcutsMaxHeight: number | null;
     allowEmptyShortcutDrop: boolean;
@@ -49,11 +49,12 @@ interface NavigationPaneLayoutProps {
     onShortcutRootDrop: (event: React.DragEvent<HTMLElement>) => void;
     pinnedShortcutsScrollRefCallback: (node: HTMLDivElement | null) => void;
     pinnedNavigationItems: CombinedNavigationItem[];
-    renderNavigationItem: (item: CombinedNavigationItem) => React.ReactNode;
+    renderNavigationItem: (item: CombinedNavigationItem, adjacentFilledClassName?: string) => React.ReactNode;
+    isNavigationItemFilled: (item: CombinedNavigationItem) => boolean;
     onPinnedShortcutsResizePointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
     scrollContainerRefCallback: (node: HTMLDivElement | null) => void;
     hasNavigationBannerConfigured: boolean;
-    navigationBannerRef: React.RefObject<HTMLDivElement | null>;
+    navigationBannerRef: React.MutableRefObject<HTMLDivElement | null>;
     rootReorderContent: React.ReactNode;
     isRootReorderMode: boolean;
     items: CombinedNavigationItem[];
@@ -62,6 +63,30 @@ interface NavigationPaneLayoutProps {
     shouldRenderBottomToolbarInsidePanel: boolean;
     shouldRenderBottomToolbarOutsidePanel: boolean;
     calendarOverlay: React.ReactNode;
+}
+
+function getAdjacentFilledClassName(
+    item: CombinedNavigationItem,
+    index: number,
+    items: readonly CombinedNavigationItem[],
+    isNavigationItemFilled: (item: CombinedNavigationItem) => boolean
+): string | undefined {
+    if (!isNavigationItemFilled(item)) {
+        return undefined;
+    }
+
+    const classes: string[] = [];
+    const previousItem = index > 0 ? items[index - 1] : undefined;
+    const nextItem = index < items.length - 1 ? items[index + 1] : undefined;
+
+    if (previousItem && isNavigationItemFilled(previousItem)) {
+        classes.push('nn-navitem-has-filled-previous');
+    }
+    if (nextItem && isNavigationItemFilled(nextItem)) {
+        classes.push('nn-navitem-has-filled-next');
+    }
+
+    return classes.length > 0 ? classes.join(' ') : undefined;
 }
 
 export function NavigationPaneLayout({
@@ -91,6 +116,7 @@ export function NavigationPaneLayout({
     pinnedShortcutsScrollRefCallback,
     pinnedNavigationItems,
     renderNavigationItem,
+    isNavigationItemFilled,
     onPinnedShortcutsResizePointerDown,
     scrollContainerRefCallback,
     hasNavigationBannerConfigured,
@@ -136,8 +162,13 @@ export function NavigationPaneLayout({
                     >
                         <div className="nn-shortcut-pinned-scroll" ref={pinnedShortcutsScrollRefCallback}>
                             <div className="nn-shortcut-pinned-inner">
-                                {pinnedNavigationItems.map(pinnedItem => (
-                                    <React.Fragment key={pinnedItem.key}>{renderNavigationItem(pinnedItem)}</React.Fragment>
+                                {pinnedNavigationItems.map((pinnedItem, index) => (
+                                    <React.Fragment key={pinnedItem.key}>
+                                        {renderNavigationItem(
+                                            pinnedItem,
+                                            getAdjacentFilledClassName(pinnedItem, index, pinnedNavigationItems, isNavigationItemFilled)
+                                        )}
+                                    </React.Fragment>
                                 ))}
                             </div>
                         </div>
@@ -193,7 +224,10 @@ export function NavigationPaneLayout({
                                                           transform: `translateY(${Math.max(0, virtualItem.start - navigationScrollMargin)}px)`
                                                       }}
                                                   >
-                                                      {renderNavigationItem(item)}
+                                                      {renderNavigationItem(
+                                                          item,
+                                                          getAdjacentFilledClassName(item, virtualItem.index, items, isNavigationItemFilled)
+                                                      )}
                                                   </div>
                                               );
                                           })}

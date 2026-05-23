@@ -39,26 +39,30 @@ import {
     type CalendarPlacement,
     type CalendarWeeksToShow,
     type HomepageSetting,
+    type ListSortOverrideValue,
     SYNC_MODE_SETTING_IDS,
     type SettingSyncMode,
-    type SortOption,
     type SyncModeSettingId,
     type TagSortOrder,
     type VaultProfile,
     isAlphaSortOrder,
     isCalendarMonthHeadingFormat,
     isCalendarLeftPlacement,
+    isCalendarPeriodicNotesLocaleSource,
     isCalendarPlacement,
     isCalendarWeekendDays,
     isFeatureImagePixelSizeSetting,
     isFeatureImageSizeSetting,
     isHomepageSource,
     isMouseBackForwardAction,
+    isManualSortNewNotePlacement,
     isPropertySortSecondaryOption,
     isRecentNotesHideMode,
     isSettingSyncMode,
     isSortOption,
     isTagSortOrder,
+    normalizeAppearanceGroupBy,
+    normalizeListSortOverride,
     resolveDeleteAttachmentsSetting,
     resolveMoveFileConflictsSetting
 } from '../../settings/types';
@@ -73,6 +77,7 @@ import {
 } from '../../utils/iconizeFormat';
 import { getDefaultDateFormat, getDefaultTimeFormat } from '../../i18n';
 import {
+    cloneCollapsedPinnedContextsRecord,
     clonePinnedNotesRecord,
     isBooleanRecordValue,
     isPlainObjectRecordValue,
@@ -86,6 +91,7 @@ import { normalizePropertyKeyNodeId, normalizePropertyNodeId } from '../../utils
 import { normalizeNavigationSeparatorKey } from '../../utils/navigationSeparators';
 import { normalizeUXIconMapRecord } from '../../utils/uxIcons';
 import { sanitizeKeyboardShortcuts } from '../../utils/keyboardShortcuts';
+import { isPropertySortOption, pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
 import { isRecord } from '../../utils/typeGuards';
 import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
 import {
@@ -136,6 +142,27 @@ const LEGACY_LOCAL_SYNC_MODE_SETTING_IDS = new Set<SyncModeSettingId>([
     'compactItemHeightScaleText',
     'uiScale'
 ]);
+
+function hasLegacyNoneGroupingInAppearanceMap(value: unknown): boolean {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    return Object.values(value).some(appearance => isRecord(appearance) && appearance.groupBy === 'none');
+}
+
+function containsLegacyNoneGroupingInStoredData(storedData: Record<string, unknown> | null): boolean {
+    if (!storedData) {
+        return false;
+    }
+
+    return (
+        storedData.noteGrouping === 'none' ||
+        hasLegacyNoneGroupingInAppearanceMap(storedData.folderAppearances) ||
+        hasLegacyNoneGroupingInAppearanceMap(storedData.tagAppearances) ||
+        hasLegacyNoneGroupingInAppearanceMap(storedData.propertyAppearances)
+    );
+}
 
 export class PluginSettingsController {
     private currentSettings: NotebookNavigatorSettings = { ...DEFAULT_SETTINGS };
@@ -228,6 +255,35 @@ export class PluginSettingsController {
                 Object.prototype.hasOwnProperty.call(storedData, 'mobileHomepage') ||
                 Object.prototype.hasOwnProperty.call(storedData, 'useMobileHomepage'))
         );
+        const hadLegacyFolderColorTitleSettingInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'useFolderColorForFileTitles')
+        );
+        const hadShowPinnedIconInStoredData = Boolean(storedData && Object.prototype.hasOwnProperty.call(storedData, 'showPinnedIcon'));
+        const hadShowPinnedGroupHeaderInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'showPinnedGroupHeader')
+        );
+        const storedInterfaceIcons = storedData?.['interfaceIcons'];
+        const hadPinnedSectionIconInStoredData = Boolean(
+            isRecord(storedInterfaceIcons) &&
+            (Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'list-pinned') ||
+                Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'pinned-section'))
+        );
+        const hadInvalidPropertySortKeyInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'propertySortKey') &&
+            typeof storedData['propertySortKey'] !== 'string'
+        );
+        const hadInvalidManualSortPropertyKeyInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'manualSortPropertyKey') &&
+            typeof storedData['manualSortPropertyKey'] !== 'string'
+        );
+        const hadUnavailableDefaultFolderSortInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'defaultFolderSort') &&
+            (!isSortOption(storedData['defaultFolderSort']) || isPropertySortOption(storedData['defaultFolderSort']))
+        );
+        const hadLegacyNoneGroupingInStoredData = containsLegacyNoneGroupingInStoredData(storedData);
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -251,6 +307,22 @@ export class PluginSettingsController {
         delete settingsRecord['lastAnnouncedRelease'];
         delete settingsRecord['optimizeNoteHeight'];
 
+        if (typeof this.currentSettings.propertySortKey !== 'string') {
+            this.currentSettings.propertySortKey = DEFAULT_SETTINGS.propertySortKey;
+        }
+
+        if (typeof this.currentSettings.manualSortPropertyKey !== 'string') {
+            this.currentSettings.manualSortPropertyKey = DEFAULT_SETTINGS.manualSortPropertyKey;
+        }
+
+        if (!isSortOption(this.currentSettings.defaultFolderSort) || isPropertySortOption(this.currentSettings.defaultFolderSort)) {
+            this.currentSettings.defaultFolderSort = DEFAULT_SETTINGS.defaultFolderSort;
+        }
+
+        if (typeof this.currentSettings.manualSortGroupHeaderProperty !== 'string') {
+            this.currentSettings.manualSortGroupHeaderProperty = DEFAULT_SETTINGS.manualSortGroupHeaderProperty;
+        }
+
         this.currentSettings.keyboardShortcuts = sanitizeKeyboardShortcuts(this.currentSettings.keyboardShortcuts);
         this.normalizeSyncModes({ storedData, isFirstLaunch });
         const syncModeRegistry = this.getSyncModeRegistry();
@@ -263,6 +335,7 @@ export class PluginSettingsController {
         });
 
         this.sanitizeSettingsRecords();
+        const prunedUnavailablePropertySortOverrides = pruneUnavailablePropertySortOverrides(this.currentSettings);
 
         const migratedMomentFormats = migrateMomentDateFormats({
             settings: this.currentSettings,
@@ -295,12 +368,20 @@ export class PluginSettingsController {
             this.currentSettings.propertySortSecondary = DEFAULT_SETTINGS.propertySortSecondary;
         }
 
+        if (!isManualSortNewNotePlacement(this.currentSettings.manualSortNewNotePlacement)) {
+            this.currentSettings.manualSortNewNotePlacement = DEFAULT_SETTINGS.manualSortNewNotePlacement;
+        }
+
         if (!isCalendarWeekendDays(this.currentSettings.calendarWeekendDays)) {
             this.currentSettings.calendarWeekendDays = DEFAULT_SETTINGS.calendarWeekendDays;
         }
 
         if (!isCalendarMonthHeadingFormat(this.currentSettings.calendarMonthHeadingFormat)) {
             this.currentSettings.calendarMonthHeadingFormat = DEFAULT_SETTINGS.calendarMonthHeadingFormat;
+        }
+
+        if (!isCalendarPeriodicNotesLocaleSource(this.currentSettings.calendarPeriodicNotesLocaleSource)) {
+            this.currentSettings.calendarPeriodicNotesLocaleSource = DEFAULT_SETTINGS.calendarPeriodicNotesLocaleSource;
         }
 
         if (!isFeatureImageSizeSetting(this.currentSettings.featureImageSize)) {
@@ -403,6 +484,15 @@ export class PluginSettingsController {
             hadLegacyLastAnnouncedReleaseInSettings ||
             hadLegacyPropertyFieldsInStoredData ||
             hadLegacyHomepageSettingsInStoredData ||
+            hadLegacyFolderColorTitleSettingInStoredData ||
+            hadShowPinnedIconInStoredData ||
+            hadShowPinnedGroupHeaderInStoredData ||
+            hadPinnedSectionIconInStoredData ||
+            hadInvalidPropertySortKeyInStoredData ||
+            hadInvalidManualSortPropertyKeyInStoredData ||
+            hadUnavailableDefaultFolderSortInStoredData ||
+            hadLegacyNoneGroupingInStoredData ||
+            prunedUnavailablePropertySortOverrides ||
             uiScaleMigrated ||
             migratedMomentFormats ||
             migratedShortcutNegationSyntax;
@@ -568,7 +658,10 @@ export class PluginSettingsController {
         delete rest.calendarCustomPromptForTitle;
         delete rest.saveMetadataToFrontmatter;
         delete rest.propertyFields;
+        delete rest.notePropertyType;
         delete rest.optimizeNoteHeight;
+        delete rest.showPinnedIcon;
+        delete rest.showPinnedGroupHeader;
 
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {
@@ -876,13 +969,33 @@ export class PluginSettingsController {
 
     private sanitizeSettingsRecords(): void {
         const sanitizeStringMap = (record?: Record<string, string>): Record<string, string> => sanitizeRecord(record, isStringRecordValue);
-        const sanitizeSortMap = (record?: Record<string, SortOption>): Record<string, SortOption> => sanitizeRecord(record, isSortOption);
+        const sanitizeSortMap = (record?: Record<string, ListSortOverrideValue>): Record<string, ListSortOverrideValue> => {
+            const sanitized = Object.create(null) as Record<string, ListSortOverrideValue>;
+            if (!record) {
+                return sanitized;
+            }
+
+            for (const key of Object.keys(record)) {
+                const normalized = normalizeListSortOverride((record as Record<string, unknown>)[key]);
+                if (normalized) {
+                    sanitized[key] = normalized;
+                }
+            }
+
+            return sanitized;
+        };
         const sanitizeAlphaSortOrderMap = (
             record?: Record<string, 'alpha-asc' | 'alpha-desc'>
         ): Record<string, 'alpha-asc' | 'alpha-desc'> => sanitizeRecord(record, isAlphaSortOrder);
         const isAppearanceValue = (value: unknown): value is FolderAppearance => isPlainObjectRecordValue(value);
-        const sanitizeAppearanceMap = (record?: Record<string, FolderAppearance>): Record<string, FolderAppearance> =>
-            sanitizeRecord(record, isAppearanceValue);
+        const sanitizeAppearanceMap = (record?: Record<string, FolderAppearance>): Record<string, FolderAppearance> => {
+            const sanitized = sanitizeRecord(record, isAppearanceValue);
+            Object.values(sanitized).forEach(appearance => {
+                delete (appearance as Record<string, unknown>)['notePropertyType'];
+                normalizeAppearanceGroupBy(appearance);
+            });
+            return sanitized;
+        };
         const sanitizeBooleanMap = (record?: Record<string, boolean>): Record<string, boolean> =>
             sanitizeRecord(record, isBooleanRecordValue);
         const sanitizeSettingsSyncMap = (record?: Record<string, SettingSyncMode>): Record<string, SettingSyncMode> =>
@@ -912,6 +1025,7 @@ export class PluginSettingsController {
         this.currentSettings.syncModes = sanitizeSettingsSyncMap(this.currentSettings.syncModes);
         this.currentSettings.calendarMonthHighlights = sanitizeStringMap(this.currentSettings.calendarMonthHighlights);
         this.currentSettings.pinnedNotes = clonePinnedNotesRecord(this.currentSettings.pinnedNotes);
+        this.currentSettings.collapsedPinnedContexts = cloneCollapsedPinnedContextsRecord(this.currentSettings.collapsedPinnedContexts);
     }
 
     private normalizeTaskSettings(): void {

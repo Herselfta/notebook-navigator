@@ -83,6 +83,7 @@ interface FolderItemProps {
     icon?: string;
     color?: string;
     backgroundColor?: string;
+    adjacentFilledClassName?: string;
     countInfo?: NoteCountInfo;
     excludedFolders: string[];
     vaultChangeVersion: number;
@@ -120,6 +121,7 @@ export const FolderItem = React.memo(function FolderItem({
     icon,
     color,
     backgroundColor,
+    adjacentFilledClassName,
     countInfo,
     excludedFolders,
     vaultChangeVersion,
@@ -132,10 +134,10 @@ export const FolderItem = React.memo(function FolderItem({
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
-    const folderRef = useRef<HTMLDivElement>(null);
+    const folderRef = useRef<HTMLDivElement | null>(null);
 
-    const chevronRef = React.useRef<HTMLDivElement>(null);
-    const iconRef = React.useRef<HTMLSpanElement>(null);
+    const chevronRef = React.useRef<HTMLDivElement | null>(null);
+    const iconRef = React.useRef<HTMLSpanElement | null>(null);
     const iconVersion = useIconServiceVersion();
 
     // Merge provided count info with default values to ensure all properties are present
@@ -174,9 +176,7 @@ export const FolderItem = React.memo(function FolderItem({
         if (!folderNoteLinksEnabled) return false;
         const folderNote = getFolderNote(folder, settings);
         return folderNote !== null;
-        // NOTE TO REVIEWER: Including **noteCounts.current** to detect folder content changes
-        // NOTE TO REVIEWER: Including **vaultChangeVersion** to react to new folder notes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- noteCounts.current and vaultChangeVersion refresh folder-note detection.
     }, [folder, settings, folderNoteLinksEnabled, noteCounts.current, vaultChangeVersion]);
 
     const isRootFolder = folder.path === '/';
@@ -218,8 +218,9 @@ export const FolderItem = React.memo(function FolderItem({
         if (isSelected) classes.push('nn-selected');
         if (isExcluded) classes.push('nn-excluded');
         if (customBackground) classes.push('nn-has-custom-background');
+        if (adjacentFilledClassName) classes.push(adjacentFilledClassName);
         return classes.join(' ');
-    }, [customBackground, isSelected, isExcluded]);
+    }, [adjacentFilledClassName, customBackground, isSelected, isExcluded]);
 
     const folderNameClassName = useMemo(() => {
         const classes = ['nn-navitem-name'];

@@ -20,7 +20,6 @@ import React from 'react';
 import {
     NavigationPaneItemType,
     NavigationSectionId,
-    ItemType,
     PROPERTIES_ROOT_VIRTUAL_FOLDER_ID,
     RECENT_NOTES_VIRTUAL_FOLDER_ID,
     SHORTCUTS_VIRTUAL_FOLDER_ID,
@@ -33,8 +32,9 @@ import { PropertyTreeItem } from '../PropertyTreeItem';
 import { TagTreeItem } from '../TagTreeItem';
 import { VirtualFolderComponent, type VirtualFolderTrailingAction } from '../VirtualFolderItem';
 import type { NavigationPaneRowProps } from './NavigationPaneItemRenderer.types';
+import { getNavigationItemSearchMatch, isNavigationItemSelected } from './navigationPaneItemState';
 
-export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps) {
+export function NavigationPaneTreeRow({ item, context, adjacentFilledClassName }: NavigationPaneRowProps) {
     const {
         settings,
         isMobile,
@@ -73,7 +73,7 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
                     level={item.level}
                     indentGuideLevels={indentGuideLevels}
                     isExpanded={expansionState.expandedFolders.has(item.data.path)}
-                    isSelected={selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder?.path === folderPath}
+                    isSelected={isNavigationItemSelected(item, selectionState)}
                     isExcluded={item.isExcluded}
                     onToggle={() => tree.handleFolderToggle(item.data.path)}
                     onClick={() => tree.handleFolderClick(item.data)}
@@ -94,6 +94,7 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
                     icon={item.icon}
                     color={item.color}
                     backgroundColor={getSolidBackground(item.backgroundColor)}
+                    adjacentFilledClassName={adjacentFilledClassName}
                     countInfo={countInfo}
                     excludedFolders={item.parsedExcludedFolders || []}
                     vaultChangeVersion={vaultChangeVersion}
@@ -117,16 +118,10 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
             const propertyCollectionId = item.propertyCollectionId ?? null;
             const isTagCollection = Boolean(tagCollectionId);
             const isPropertyCollection = Boolean(propertyCollectionId);
-            const isPropertyCollectionSelected =
-                isPropertyCollection &&
-                selectionState.selectionType === ItemType.PROPERTY &&
-                selectionState.selectedProperty === propertyCollectionId;
-            const isSelected =
-                (isTagCollection && selectionState.selectionType === ItemType.TAG && selectionState.selectedTag === tagCollectionId) ||
-                isPropertyCollectionSelected;
+            const isSelected = isNavigationItemSelected(item, selectionState);
             const collectionCountInfo = item.noteCount ?? (tagCollectionId ? tagCounts.get(tagCollectionId) : undefined);
             const showFileCount = item.showFileCount ?? false;
-            const collectionSearchMatch = searchHighlights.getTagCollectionSearchMatch(tagCollectionId);
+            const collectionSearchMatch = getNavigationItemSearchMatch(item, searchHighlights);
             const dropConfig =
                 virtualFolder.id === TAGS_ROOT_VIRTUAL_FOLDER_ID
                     ? {
@@ -167,6 +162,7 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
                     level={item.level}
                     color={item.color}
                     backgroundColor={getSolidBackground(item.backgroundColor)}
+                    adjacentFilledClassName={adjacentFilledClassName}
                     indentGuideLevels={indentGuideLevels}
                     isExpanded={isExpanded}
                     hasChildren={hasChildren}
@@ -224,7 +220,7 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
         case NavigationPaneItemType.UNTAGGED: {
             const tagNode = item.data;
             const indentGuideLevels = indentGuideLevelsByKey.get(item.key);
-            const searchMatch = searchHighlights.getTagSearchMatch(tagNode.path);
+            const searchMatch = getNavigationItemSearchMatch(item, searchHighlights);
             const inclusionOperator = searchMatch === 'include' ? searchHighlights.getTagInclusionOperator(tagNode.path) : undefined;
 
             return (
@@ -233,12 +229,13 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
                     level={item.level ?? 0}
                     indentGuideLevels={indentGuideLevels}
                     isExpanded={expansionState.expandedTags.has(tagNode.path)}
-                    isSelected={selectionState.selectionType === ItemType.TAG && selectionState.selectedTag === tagNode.path}
+                    isSelected={isNavigationItemSelected(item, selectionState)}
                     isHidden={'isHidden' in item ? item.isHidden : false}
                     onToggle={() => tree.handleTagToggle(tagNode.path)}
                     onClick={event => tree.handleTagClick(tagNode.path, event)}
                     color={item.color}
                     backgroundColor={getSolidBackground(item.backgroundColor)}
+                    adjacentFilledClassName={adjacentFilledClassName}
                     icon={item.icon}
                     searchMatch={searchMatch}
                     inclusionOperator={inclusionOperator}
@@ -265,8 +262,7 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
         case NavigationPaneItemType.PROPERTY_VALUE: {
             const propertyNode = item.data;
             const indentGuideLevels = indentGuideLevelsByKey.get(item.key);
-            const selectedPropertyNodeId = selectionState.selectionType === ItemType.PROPERTY ? selectionState.selectedProperty : null;
-            const searchMatch = searchHighlights.getPropertySearchMatch(propertyNode.id);
+            const searchMatch = getNavigationItemSearchMatch(item, searchHighlights);
             const inclusionOperator =
                 searchMatch === 'include' ? searchHighlights.getPropertyInclusionOperator(propertyNode.id) : undefined;
 
@@ -276,7 +272,7 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
                     level={item.level ?? 0}
                     indentGuideLevels={indentGuideLevels}
                     isExpanded={expansionState.expandedProperties.has(propertyNode.id)}
-                    isSelected={selectedPropertyNodeId === propertyNode.id}
+                    isSelected={isNavigationItemSelected(item, selectionState)}
                     onToggle={() => tree.handlePropertyToggle(propertyNode.id)}
                     onClick={event => tree.handlePropertyClick(propertyNode, event)}
                     onToggleAllSiblings={() => {
@@ -293,6 +289,7 @@ export function NavigationPaneTreeRow({ item, context }: NavigationPaneRowProps)
                     }}
                     color={item.color}
                     backgroundColor={getSolidBackground(item.backgroundColor)}
+                    adjacentFilledClassName={adjacentFilledClassName}
                     icon={item.icon}
                     searchMatch={searchMatch}
                     inclusionOperator={inclusionOperator}

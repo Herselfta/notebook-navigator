@@ -17,7 +17,7 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { App, TFile } from 'obsidian';
+import { App, TFile, TFolder } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings, VaultProfile } from '../../src/settings/types';
 import type { VisibilityPreferences } from '../../src/types';
@@ -25,7 +25,7 @@ import type { ITagTreeProvider } from '../../src/interfaces/ITagTreeProvider';
 import type { TagTreeNode } from '../../src/types/storage';
 import type { PropertyItem } from '../../src/storage/IndexedDBStorage';
 import { FILE_VISIBILITY } from '../../src/utils/fileTypeUtils';
-import { getFilesForProperty, getFilesForTag } from '../../src/utils/fileFinder';
+import { getFilesForFolder, getFilesForProperty, getFilesForTag } from '../../src/utils/fileFinder';
 import { buildPropertyKeyNodeId } from '../../src/utils/propertyTree';
 import { setActivePropertyFields } from '../../src/utils/vaultProfiles';
 import { createTestTFile } from './createTestTFile';
@@ -72,6 +72,7 @@ function createAppWithFiles(files: TFile[]): App {
     const allFiles = (): TFile[] => Array.from(filesByPath.values());
 
     Reflect.set(app.vault, 'getFileByPath', (path: string) => filesByPath.get(path) ?? null);
+    Reflect.set(app.vault, 'getAbstractFileByPath', (path: string) => filesByPath.get(path) ?? null);
     Reflect.set(app.vault, 'getFiles', () => allFiles());
     Reflect.set(app.vault, 'getMarkdownFiles', () => allFiles().filter(file => file.extension === 'md'));
 
@@ -118,9 +119,40 @@ function setFileProperties(file: TFile, properties: PropertyItem[]): void {
     });
 }
 
+function createFolder(path: string, children: TFile[]): TFolder {
+    const folder = new TFolder() as TFolder & { children: TFile[] };
+    folder.path = path;
+    folder.name = path.split('/').pop() ?? path;
+    folder.children = children;
+    children.forEach(child => {
+        Reflect.set(child, 'parent', folder);
+    });
+    return folder;
+}
+
 function toSortedPaths(files: TFile[]): string[] {
     return files.map(file => file.path).sort();
 }
+
+describe('fileFinder getFilesForFolder', () => {
+    it('honors the Excalidraw rendered preview image hiding setting', () => {
+        const drawing = createTestTFile('Drawings/Sketch.excalidraw.md');
+        const companionImage = createTestTFile('Drawings/Sketch.excalidraw.png');
+        const normalImage = createTestTFile('Drawings/Cover.png');
+        const folder = createFolder('Drawings', [drawing, companionImage, normalImage]);
+        const app = createAppWithFiles([drawing, companionImage, normalImage]);
+        const visibility: VisibilityPreferences = { includeDescendantNotes: false, showHiddenItems: false };
+
+        expect(toSortedPaths(getFilesForFolder(folder, createSettings(), visibility, app))).toEqual([
+            'Drawings/Cover.png',
+            'Drawings/Sketch.excalidraw.md'
+        ]);
+
+        expect(toSortedPaths(getFilesForFolder(folder, { ...createSettings(), hideDrawingPreviewImages: false }, visibility, app))).toEqual(
+            ['Drawings/Cover.png', 'Drawings/Sketch.excalidraw.md', 'Drawings/Sketch.excalidraw.png']
+        );
+    });
+});
 
 describe('fileFinder getFilesForTag', () => {
     beforeEach(() => {

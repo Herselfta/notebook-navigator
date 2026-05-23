@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useEffect, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { App, EventRef, TAbstractFile, TFile, debounce } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API, type NotebookNavigatorAPI } from '../../api/NotebookNavigatorAPI';
@@ -28,9 +28,10 @@ import { calculateFileDiff } from '../../storage/diffCalculator';
 import { type FileData as DBFileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance, markFilesForRegeneration, recordFileChanges, removeFilesFromCache } from '../../storage/fileOperations';
 import { runAsyncAction } from '../../utils/async';
-import { isMarkdownPath, isPdfFile } from '../../utils/fileTypeUtils';
+import { isMarkdownPath } from '../../utils/fileTypeUtils';
 import { isPropertyFeatureEnabled } from '../../utils/propertyTree';
-import { filterPdfFilesRequiringThumbnails } from '../storageQueueFilters';
+import { emitDrawingCompanionImageChange, findDrawingFileForCompanionImage } from '../../utils/drawingFeatureImages';
+import { filterFilesRequiringFileThumbnails, shouldQueueFileThumbnailProvider } from '../storageQueueFilters';
 import { getCacheRebuildProgressTypes, getContentWorkTotal, getMetadataDependentTypes } from './storageContentTypes';
 
 /**
@@ -54,20 +55,20 @@ export function useStorageVaultSync(params: {
     app: App;
     api: NotebookNavigatorAPI | null;
     settings: NotebookNavigatorSettings;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
-    stoppedRef: RefObject<boolean>;
-    isFirstLoadRef: RefObject<boolean>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
+    stoppedRef: MutableRefObject<boolean>;
+    isFirstLoadRef: MutableRefObject<boolean>;
     isIndexedDBReady: boolean;
-    hasBuiltInitialCacheRef: RefObject<boolean>;
+    hasBuiltInitialCacheRef: MutableRefObject<boolean>;
     setIsStorageReady: Dispatch<SetStateAction<boolean>>;
-    isStorageReadyRef: RefObject<boolean>;
-    contentRegistryRef: RefObject<ContentProviderRegistry | null>;
-    pendingSyncTimeoutIdRef: RefObject<number | null>;
-    pendingRenameDataRef: RefObject<Map<string, DBFileData>>;
-    buildFileCacheFnRef: RefObject<((isInitialLoad?: boolean) => Promise<void>) | null>;
-    rebuildFileCacheRef: RefObject<ReturnType<typeof debounce> | null>;
-    activeVaultEventRefsRef: RefObject<EventRef[] | null>;
-    activeMetadataEventRefRef: RefObject<EventRef | null>;
+    isStorageReadyRef: MutableRefObject<boolean>;
+    contentRegistryRef: MutableRefObject<ContentProviderRegistry | null>;
+    pendingSyncTimeoutIdRef: MutableRefObject<number | null>;
+    pendingRenameDataRef: MutableRefObject<Map<string, DBFileData>>;
+    buildFileCacheFnRef: MutableRefObject<((isInitialLoad?: boolean) => Promise<void>) | null>;
+    rebuildFileCacheRef: MutableRefObject<ReturnType<typeof debounce> | null>;
+    activeVaultEventRefsRef: MutableRefObject<EventRef[] | null>;
+    activeMetadataEventRefRef: MutableRefObject<EventRef | null>;
     rebuildTagTree: () => Map<string, TagTreeNode>;
     scheduleTagTreeRebuild: (options?: { flush?: boolean }) => void;
     cancelTagTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
@@ -152,15 +153,15 @@ export function useStorageVaultSync(params: {
 
                     if (contentRegistryRef.current && contentEnabled) {
                         const markdownFiles: TFile[] = [];
-                        const pdfFiles: TFile[] = [];
+                        const fileThumbnailFiles: TFile[] = [];
 
                         for (const file of allFiles) {
                             if (file.extension === 'md') {
                                 markdownFiles.push(file);
                                 continue;
                             }
-                            if (isPdfFile(file)) {
-                                pdfFiles.push(file);
+                            if (shouldQueueFileThumbnailProvider(file)) {
+                                fileThumbnailFiles.push(file);
                             }
                         }
 
@@ -168,8 +169,8 @@ export function useStorageVaultSync(params: {
                             queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, settings);
                         }
 
-                        if (settings.showFeatureImage && pdfFiles.length > 0) {
-                            const filesNeedingThumbnails = filterPdfFilesRequiringThumbnails(pdfFiles, settings);
+                        if (settings.showFeatureImage && fileThumbnailFiles.length > 0) {
+                            const filesNeedingThumbnails = filterFilesRequiringFileThumbnails(fileThumbnailFiles, settings);
                             if (filesNeedingThumbnails.length > 0) {
                                 contentRegistryRef.current.queueFilesForAllProviders(filesNeedingThumbnails, settings, {
                                     include: ['fileThumbnails']
@@ -275,8 +276,32 @@ export function useStorageVaultSync(params: {
             runAsyncAction(() => buildFileCache(true));
         }
 
+        const queueFileContentRefresh = (file: TFile) => {
+            if (stoppedRef.current || !contentRegistryRef.current) {
+                return;
+            }
+
+            try {
+                const liveSettings = latestSettingsRef.current;
+                const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
+                const { markdownFiles } = queueIndexableFilesForContentGeneration([file], liveSettings);
+                if (metadataDependentTypes.length > 0) {
+                    queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, liveSettings);
+                }
+            } catch (error: unknown) {
+                console.error('Failed to queue content refresh for file:', file.path, error);
+            }
+        };
+
+        const notifyDrawingCompanionChange = (imagePath: string) => {
+            emitDrawingCompanionImageChange(app, imagePath);
+        };
+
         const handleRename = (file: TAbstractFile, oldPath: string) => {
             if (file instanceof TFile) {
+                notifyDrawingCompanionChange(oldPath);
+                notifyDrawingCompanionChange(file.path);
+
                 try {
                     const db = getDBInstance();
                     const existing = db.getFile(oldPath);
@@ -339,6 +364,7 @@ export function useStorageVaultSync(params: {
                                 }
 
                                 await Promise.all(operations);
+                                queueFileContentRefresh(file);
                             } finally {
                                 rebuildFileCache?.();
                             }
@@ -352,28 +378,21 @@ export function useStorageVaultSync(params: {
             rebuildFileCache?.();
         };
 
-        const queueFileContentRefresh = (file: TFile) => {
-            if (stoppedRef.current || !contentRegistryRef.current) {
-                return;
-            }
-
-            try {
-                const liveSettings = latestSettingsRef.current;
-                const metadataDependentTypes = getMetadataDependentTypes(liveSettings);
-                const { markdownFiles } = queueIndexableFilesForContentGeneration([file], liveSettings);
-                if (metadataDependentTypes.length > 0) {
-                    queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, liveSettings);
-                }
-            } catch (error: unknown) {
-                console.error('Failed to queue content refresh for file:', file.path, error);
-            }
-        };
-
         const handleModify = (file: TAbstractFile) => {
             if (stoppedRef.current) {
                 return;
             }
-            if (!(file instanceof TFile) || (file.extension !== 'md' && !isPdfFile(file))) {
+            if (!(file instanceof TFile)) {
+                return;
+            }
+
+            const drawingFile = findDrawingFileForCompanionImage(app, file.path);
+            if (drawingFile) {
+                notifyDrawingCompanionChange(file.path);
+                return;
+            }
+
+            if (file.extension !== 'md' && !shouldQueueFileThumbnailProvider(file)) {
                 return;
             }
 
@@ -392,9 +411,16 @@ export function useStorageVaultSync(params: {
             });
         };
 
+        const handleCreateOrDelete = (file: TAbstractFile) => {
+            rebuildFileCache?.();
+            if (file instanceof TFile) {
+                notifyDrawingCompanionChange(file.path);
+            }
+        };
+
         const vaultEvents = [
-            app.vault.on('create', rebuildFileCache),
-            app.vault.on('delete', rebuildFileCache),
+            app.vault.on('create', handleCreateOrDelete),
+            app.vault.on('delete', handleCreateOrDelete),
             app.vault.on('rename', handleRename),
             app.vault.on('modify', handleModify)
         ];

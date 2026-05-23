@@ -19,14 +19,10 @@
     line-height: 1.5;
 }
 
-/* Remove duplicate borders when statistics are displayed */
-.nn-stats-section {
-    border: none !important;
-    padding: 0 !important;
-}
-
-/* Ensure proper spacing from previous sections */
+/* Remove default setting item chrome when statistics are displayed */
 .nn-stats-section.setting-item {
+    border: none;
+    padding: 0;
     margin-top: 0;
 }
 

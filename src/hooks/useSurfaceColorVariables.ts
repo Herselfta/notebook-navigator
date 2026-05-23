@@ -125,7 +125,7 @@ function observeContainerAttributes(
 ): { observer: MutationObserver | null; rafId: number | null } {
     if (!container) {
         // Container not yet available - schedule listener for next frame
-        const rafId = requestAnimationFrame(() => listener());
+        const rafId = window.requestAnimationFrame(() => listener());
         return { observer: null, rafId };
     }
 
@@ -251,7 +251,7 @@ export function useSurfaceColorVariables(
         };
 
         // Run initial update (both immediate and on next frame for timing)
-        const rafId = requestAnimationFrame(updateSurfaceColors);
+        const rafId = window.requestAnimationFrame(updateSurfaceColors);
         updateSurfaceColors();
 
         // ========================================================================
@@ -272,7 +272,7 @@ export function useSurfaceColorVariables(
             const container = rootContainerRef.current;
             if (!container) {
                 // Container not ready yet - retry on next frame
-                containerObserverRaf = requestAnimationFrame(ensureContainerObserver);
+                containerObserverRaf = window.requestAnimationFrame(ensureContainerObserver);
                 return;
             }
             // Container is ready - set up observer

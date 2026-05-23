@@ -45,9 +45,13 @@ export type UXIconId =
     | 'list-descendants'
     | 'list-sort-ascending'
     | 'list-sort-descending'
+    | 'list-sort-modified'
+    | 'list-sort-created'
+    | 'list-sort-title'
+    | 'list-sort-filename'
+    | 'list-sort-property'
     | 'list-appearance'
     | 'list-new-note'
-    | 'list-pinned'
     | 'file-unfinished-task'
     | 'file-word-count';
 
@@ -85,9 +89,13 @@ export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
     { id: 'list-descendants', category: 'listPane', defaultIconId: 'layers' },
     { id: 'list-sort-ascending', category: 'listPane', defaultIconId: 'sort-asc' },
     { id: 'list-sort-descending', category: 'listPane', defaultIconId: 'sort-desc' },
+    { id: 'list-sort-modified', category: 'listPane', defaultIconId: 'calendar-clock' },
+    { id: 'list-sort-created', category: 'listPane', defaultIconId: 'calendar-plus' },
+    { id: 'list-sort-title', category: 'listPane', defaultIconId: 'type' },
+    { id: 'list-sort-filename', category: 'listPane', defaultIconId: 'file-text' },
+    { id: 'list-sort-property', category: 'listPane', defaultIconId: 'align-left' },
     { id: 'list-appearance', category: 'listPane', defaultIconId: 'palette' },
     { id: 'list-new-note', category: 'listPane', defaultIconId: 'pen-box' },
-    { id: 'list-pinned', category: 'listPane', defaultIconId: 'pin' },
     { id: 'file-unfinished-task', category: 'fileItems', defaultIconId: 'circle-alert' },
     { id: 'file-word-count', category: 'fileItems', defaultIconId: 'sigma' }
 ];
@@ -118,8 +126,6 @@ function normalizeUXIconKey(key: string): UXIconId | null {
             return 'nav-folder-closed';
         case 'tag':
             return 'nav-tag';
-        case 'pinned-section':
-            return 'list-pinned';
         case 'recent-files':
             return 'nav-recent-files';
         case 'list-sort':
@@ -181,10 +187,12 @@ export function resolveIconForMenu(iconId: string | null | undefined): string | 
 export function resolveUXIconForMenu(
     uxIconMap: Record<string, string> | undefined,
     iconId: UXIconId,
-    fallbackLucideMenuIconId: string
+    fallbackLucideMenuIconId?: string
 ): string {
     const resolved = resolveUXIcon(uxIconMap, iconId);
-    return resolveIconForMenu(resolved) ?? fallbackLucideMenuIconId;
+    return (
+        resolveIconForMenu(resolved) ?? fallbackLucideMenuIconId ?? resolveIconForMenu(UX_ICON_DEFAULT_CANONICAL[iconId]) ?? 'lucide-circle'
+    );
 }
 
 export function normalizeUXIconMapRecord(uxIconMap: Record<string, string> | undefined): Record<string, string> {

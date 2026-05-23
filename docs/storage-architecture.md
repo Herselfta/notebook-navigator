@@ -88,7 +88,7 @@ graph TB
 - `featureImageKey`:
   - `null`: not processed yet
   - `''`: processed and no reference selected
-  - `f:<path>@<mtime>`, `e:<url>`, `y:<videoId>`, `x:<path>@<mtime>`: processed and reference selected
+  - `f:<path>@<mtime>`, `e:<url>`, `y:<videoId>`, `d:<provider>:<path>`: processed and reference selected
 - `metadata.created` / `metadata.modified`:
   - `0`: field not configured
   - `-1`: parsing failed

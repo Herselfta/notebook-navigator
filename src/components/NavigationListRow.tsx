@@ -21,6 +21,7 @@ import type { CSSProperties } from 'react';
 import type { DraggableSyntheticListeners } from '@dnd-kit/core';
 import { useSettingsState } from '../context/SettingsContext';
 import { getIconService, useIconServiceVersion } from '../services/icons';
+import type { ItemType } from '../types';
 import type { ListReorderHandlers } from '../types/listReorder';
 import { ObsidianIcon } from './ObsidianIcon';
 import { Platform, setIcon, setTooltip } from 'obsidian';
@@ -40,6 +41,14 @@ export interface DragHandleConfig {
         onClick?: (event: React.MouseEvent<HTMLSpanElement>) => void;
         onContextMenu?: (event: React.MouseEvent<HTMLSpanElement>) => void;
     };
+}
+
+export interface NativeDragData {
+    path: string;
+    type: ItemType;
+    icon?: string;
+    iconColor?: string;
+    allowMultiFileDrag?: boolean;
 }
 
 /**
@@ -81,6 +90,7 @@ interface NavigationListRowProps {
     dragListeners?: DraggableSyntheticListeners;
     dragStyle?: CSSProperties;
     isSorting?: boolean;
+    nativeDragData?: NativeDragData;
 }
 
 /**
@@ -122,12 +132,13 @@ export function NavigationListRow({
     dragAttributes,
     dragListeners,
     dragStyle,
-    isSorting
+    isSorting,
+    nativeDragData
 }: NavigationListRowProps) {
     const settings = useSettingsState();
     const rowRef = useRef<HTMLDivElement | null>(null);
-    const chevronRef = useRef<HTMLSpanElement>(null);
-    const iconRef = useRef<HTMLSpanElement>(null);
+    const chevronRef = useRef<HTMLSpanElement | null>(null);
+    const iconRef = useRef<HTMLSpanElement | null>(null);
     const iconVersion = useIconServiceVersion();
 
     // Determine whether to apply color to the label text instead of the icon
@@ -303,6 +314,7 @@ export function NavigationListRow({
     );
 
     const handleActive = isDragSource || isSorting;
+    const isNativeDraggable = Boolean(nativeDragData?.path);
 
     return (
         <div
@@ -315,8 +327,15 @@ export function NavigationListRow({
             data-nav-item-disabled={isDisabled ? 'true' : undefined}
             data-nav-item-excluded={isExcluded ? 'true' : undefined}
             data-nav-item-level={level}
+            data-drag-path={nativeDragData?.path}
+            data-drag-type={nativeDragData?.type}
+            data-draggable={isNativeDraggable ? 'true' : undefined}
+            data-drag-icon={nativeDragData?.icon}
+            data-drag-icon-color={nativeDragData?.iconColor}
+            data-drag-allow-multi-file={nativeDragData?.allowMultiFileDrag === false ? 'false' : undefined}
             data-level={level}
             aria-level={level + 1}
+            draggable={isNativeDraggable || undefined}
             onClick={onClick}
             onMouseDown={onMouseDown}
             onContextMenu={onContextMenu}

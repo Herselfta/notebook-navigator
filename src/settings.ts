@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, ButtonComponent, PluginSettingTab, Setting, requireApiVersion } from 'obsidian';
+import { App, ButtonComponent, PluginSettingTab, Setting } from 'obsidian';
 import NotebookNavigatorPlugin from './main';
 import { strings } from './i18n';
 import { TIMEOUTS } from './types/obsidian-extended';
@@ -305,10 +305,7 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
             scheduleDebouncedUpdate: (name, updater) => this.scheduleDebouncedSettingUpdate(name, updater)
         });
 
-        // Settings sidebar icon (Obsidian 1.11.0+)
-        if (requireApiVersion('1.11.0')) {
-            this.icon = NOTEBOOK_NAVIGATOR_ICON_ID;
-        }
+        this.icon = NOTEBOOK_NAVIGATOR_ICON_ID;
     }
 
     public selectTab(tabId: SettingsTabId, options?: { focus?: boolean }): void {
@@ -748,6 +745,8 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
 export type {
     NotebookNavigatorSettings,
     SortOption,
+    ListSortOverride,
+    ListSortOverrideValue,
     AlphaSortOrder,
     ItemScope,
     MultiSelectModifier,
@@ -756,7 +755,6 @@ export type {
     FeatureImageSizeSetting,
     ListPaneTitleOption,
     PropertySortSecondaryOption,
-    AlphabeticalDateMode,
-    NotePropertyType
+    AlphabeticalDateMode
 } from './settings/types';
 export { DEFAULT_SETTINGS } from './settings/defaultSettings';

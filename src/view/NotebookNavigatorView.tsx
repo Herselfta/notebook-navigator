@@ -18,7 +18,7 @@
 
 import React from 'react';
 import { Root, createRoot } from 'react-dom/client';
-import { ItemView, WorkspaceLeaf, TFile, Platform, TFolder, requireApiVersion } from 'obsidian';
+import { ItemView, WorkspaceLeaf, TFile, Platform, TFolder } from 'obsidian';
 import { NotebookNavigatorContainer } from '../components/NotebookNavigatorContainer';
 import type { NotebookNavigatorHandle } from '../components/NotebookNavigatorComponent';
 import type { RevealFileOptions, NavigateToFolderOptions } from '../hooks/useNavigatorReveal';
@@ -59,18 +59,12 @@ export function setupNotebookNavigatorViewContainer(
 
         if (Platform.isAndroidApp) {
             container.classList.add('notebook-navigator-android');
-            if (requireApiVersion('1.11.0')) {
-                container.classList.add('notebook-navigator-obsidian-1-11-plus-android');
-            }
             applyAndroidFontCompensation(container);
         } else if (Platform.isIosApp) {
             container.classList.add('notebook-navigator-ios');
 
-            if (requireApiVersion('1.11.0')) {
-                container.classList.add('notebook-navigator-obsidian-1-11-plus-ios');
-                if (options?.useFloatingToolbars ?? true) {
-                    container.classList.add(IOS_FLOATING_TOOLBARS_CLASS);
-                }
+            if (options?.useFloatingToolbars ?? true) {
+                container.classList.add(IOS_FLOATING_TOOLBARS_CLASS);
             }
         }
     }
@@ -84,9 +78,7 @@ export function teardownNotebookNavigatorViewContainer(container: HTMLElement): 
     container.classList.remove('notebook-navigator');
     container.classList.remove('notebook-navigator-mobile');
     container.classList.remove('notebook-navigator-android');
-    container.classList.remove('notebook-navigator-obsidian-1-11-plus-android');
     container.classList.remove('notebook-navigator-ios');
-    container.classList.remove('notebook-navigator-obsidian-1-11-plus-ios');
     container.classList.remove(IOS_FLOATING_TOOLBARS_CLASS);
     container.empty();
 }
@@ -141,7 +133,7 @@ export class NotebookNavigatorView extends ItemView {
             return;
         }
 
-        const shouldUseFloatingToolbars = Platform.isIosApp && requireApiVersion('1.11.0') && this.plugin.settings.useFloatingToolbars;
+        const shouldUseFloatingToolbars = Platform.isIosApp && this.plugin.settings.useFloatingToolbars;
         container.classList.toggle(IOS_FLOATING_TOOLBARS_CLASS, shouldUseFloatingToolbars);
     }
 
@@ -392,10 +384,10 @@ export class NotebookNavigatorView extends ItemView {
     }
 
     /**
-     * Refreshes the UI by triggering a settings version update
+     * Deletes selected files.
      */
-    deleteActiveFile() {
-        this.componentHandle?.deleteActiveFile();
+    deleteSelectedFiles() {
+        this.componentHandle?.deleteSelectedFiles();
     }
 
     /**

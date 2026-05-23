@@ -169,12 +169,11 @@ or calendar placement changes run after layout/settings updates.
 4. `NotebookNavigatorView.onOpen()` adds platform classes and (on Android) applies font scaling compensation before React renders:
    - Always adds `notebook-navigator`.
    - Adds `notebook-navigator-mobile` and platform classes on mobile (`notebook-navigator-android`, `notebook-navigator-ios`).
-   - Adds `notebook-navigator-obsidian-1-11-plus-*` when `requireApiVersion('1.11.0')` passes.
 5. Pane chrome uses headers on all platforms and toolbars on mobile:
    - `NavigationPaneHeader` and `ListPaneHeader` render in pane chrome above the scrollers.
    - Android mobile renders `NavigationToolbar` / `ListToolbar` at the top.
-   - On iOS with Obsidian 1.11+ and floating toolbars enabled, the toolbars render inside the pane; otherwise they
-     render in the bottom toolbar container.
+   - On iOS with floating toolbars enabled, the toolbars render inside the pane; otherwise they render in the bottom
+     toolbar container.
 
 #### Calendar right sidebar view (`NotebookNavigatorCalendarView.tsx`)
 
@@ -242,7 +241,7 @@ tag extraction and markdown pipeline processing:
 #### Initial load (`isInitialLoad=true`)
 
 1. Gather indexable files with `getIndexableFiles()` from `useStorageFileQueries`
-   (`getFilteredMarkdownAndPdfFiles(..., { showHiddenItems: true })`).
+   (`getFilteredIndexableFiles(..., { showHiddenItems: true })`).
 2. Calculate diffs through `calculateFileDiff()`.
    - Cold boot: all files appear as new (database cache is empty)
    - Warm boot: compare against cached data to find new/modified files
@@ -263,7 +262,7 @@ tag extraction and markdown pipeline processing:
      - Includes `metadata` when frontmatter metadata is enabled or hidden-file frontmatter rules are active.
    - `queueMetadataContentWhenReady(markdownFiles, metadataDependentTypes, settings)` filters to files needing work, waits for
      Obsidian's metadata cache (`resolved` and `changed`), then queues providers in `ContentProviderRegistry`.
-   - When `showFeatureImage` is enabled, queue the `fileThumbnails` provider for PDFs (filtered by `filterPdfFilesRequiringThumbnails`).
+   - When `showFeatureImage` is enabled, queue the `fileThumbnails` provider for supported non-markdown feature-image files (filtered by `filterFilesRequiringFileThumbnails`).
 
 #### Ongoing sync (`isInitialLoad=false`)
 
@@ -284,7 +283,7 @@ The metadata cache gating is managed by `queueMetadataContentWhenReady()` (using
 graph TD
     Start["From Phase 3:<br/>Database & Providers ready"] --> A["processExistingCache (initial)"]
 
-    A --> B["getIndexableFiles<br/>(markdown + PDFs)"]
+    A --> B["getIndexableFiles<br/>(markdown + supported non-markdown feature images)"]
     B --> C[calculateFileDiff]
 
     C --> D["removeFilesFromCache (toRemove)"]
@@ -300,8 +299,8 @@ graph TD
     I --> J["Queue markdownPipeline/tags/metadata providers"]
 
     G --> K{Show feature images?}
-    K -->|Yes| L[Queue fileThumbnails for PDFs]
-    K -->|No| M[Skip PDF thumbnails]
+    K -->|Yes| L[Queue fileThumbnails for supported non-markdown feature images]
+    K -->|No| M[Skip non-markdown feature images]
 
     J --> N[Enter Phase 5]
     L --> N
@@ -352,8 +351,8 @@ Content is generated asynchronously in the background by the ContentProviderRegi
      - `showFilePreview` is enabled and `previewStatus === 'unprocessed'`
      - `showFeatureImage` is enabled and (`featureImageKey === null` or `featureImageStatus === 'unprocessed'`)
      - Property pills are configured and `properties === null`
-   - FeatureImageContentProvider (PDFs): `fileThumbnailsMtime !== file.stat.mtime`, `featureImageStatus === 'unprocessed'`,
-     `featureImageKey === null`, or `featureImageKey` mismatches the expected PDF key
+   - FeatureImageContentProvider (non-markdown feature-image files): `fileThumbnailsMtime !== file.stat.mtime`, `featureImageStatus === 'unprocessed'`,
+     `featureImageKey === null`, or `featureImageKey` mismatches the expected provider key
    - MetadataContentProvider (markdown): `metadata === null`, `metadataMtime !== file.stat.mtime`, or hidden-state tracking requires an update
 
 2. **Queue Management**: Files are queued based on enabled settings
@@ -365,7 +364,7 @@ Content is generated asynchronously in the background by the ContentProviderRegi
 3. **Processing**: Each provider processes files independently
    - TagContentProvider: Extracts tags from Obsidian's metadata cache (`getAllTags(metadata)`)
    - MarkdownPipelineContentProvider: Uses metadata cache for frontmatter/offsets, reads markdown content when needed, runs preview/word count/task/property/feature image processors
-   - FeatureImageContentProvider: Generates thumbnails for non-markdown files (PDF cover thumbnails)
+   - FeatureImageContentProvider: Generates or marks feature images for supported non-markdown files (PDF cover thumbnails and raw drawing rows)
    - MetadataContentProvider: Extracts configured frontmatter fields and hidden state from Obsidian's metadata cache
 
 4. **Database Updates**: Results stored in IndexedDB
@@ -441,7 +440,7 @@ The plugin uses debouncers in a few specific places where Obsidian emits bursty 
    - notebook-navigator
    - notebook-navigator-mobile (if applicable)
    - notebook-navigator-android / notebook-navigator-ios (if applicable)
-   - notebook-navigator-obsidian-1-11-plus-android / notebook-navigator-obsidian-1-11-plus-ios (if applicable)
+   - notebook-navigator-ios-floating-toolbars (if applicable)
 2. `NotebookNavigatorView.onClose()` unmounts the React root:
    - Call root.unmount()
    - Set root to null

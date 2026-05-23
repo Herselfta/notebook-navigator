@@ -52,7 +52,7 @@ import {
 } from '../types';
 import { getSelectedPath, getFilesForSelection } from '../utils/selectionUtils';
 import { normalizeNavigationPath } from '../utils/navigationIndex';
-import { deleteSelectedFiles, deleteSelectedFolder } from '../utils/deleteOperations';
+import { deleteSelectedFiles } from '../utils/deleteOperations';
 import { localStorage } from '../utils/localStorage';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
 import { getNavigationPaneSizing } from '../utils/paneSizing';
@@ -139,7 +139,7 @@ export interface NotebookNavigatorHandle {
     revealFileInNearestFolder: (file: TFile, options?: RevealFileOptions) => void;
     focusVisiblePane: () => void;
     focusNavigationPane: () => void;
-    deleteActiveFile: () => void;
+    deleteSelectedFiles: () => void;
     createNoteInSelectedFolder: (openInNewTab?: boolean) => Promise<void>;
     createNoteFromTemplateInSelectedFolder: () => Promise<void>;
     moveSelectedFiles: () => Promise<void>;
@@ -247,15 +247,15 @@ export const NotebookNavigatorComponent = React.memo(
         // This ref is passed to both NavigationPane and ListPane to ensure
         // keyboard events are captured at the navigator level, not globally.
         // This prevents interference with other Obsidian views (e.g., canvas editor).
-        const containerRef = useRef<HTMLDivElement>(null);
+        const containerRef = useRef<HTMLDivElement | null>(null);
 
         const [isNavigatorFocused, setIsNavigatorFocused] = useState(false);
         // Tracks search tokens for highlighting matching tags/properties in navigation pane
         const [searchNavFilters, setSearchNavFilters] = useState<SearchNavFilterState>(EMPTY_SEARCH_NAV_FILTER_STATE);
         const [isPaneTransitioning, setIsPaneTransitioning] = useState(false);
         const [suppressPaneTransitions, setSuppressPaneTransitions] = useState(false);
-        const navigationPaneRef = useRef<NavigationPaneHandle>(null);
-        const listPaneRef = useRef<ListPaneHandle>(null);
+        const navigationPaneRef = useRef<NavigationPaneHandle | null>(null);
+        const listPaneRef = useRef<ListPaneHandle | null>(null);
         const lastDualPaneRef = useRef(uiState.dualPane);
         const auxClickStateRef = useRef<AuxClickState>({
             mouseBackForwardAction: settings.mouseBackForwardAction,
@@ -816,13 +816,13 @@ export const NotebookNavigatorComponent = React.memo(
             };
 
             if (typeof requestAnimationFrame !== 'undefined') {
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(scheduleScroll);
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(scheduleScroll);
                 });
                 return;
             }
 
-            activeWindow.setTimeout(scheduleScroll, 0);
+            window.setTimeout(scheduleScroll, 0);
         }, [ensureSelectedFileVisible, ensureSelectedNavigationItemVisible]);
 
         const prevSinglePaneCalendarWeekCountRef = useRef<number | null>(null);
@@ -912,50 +912,32 @@ export const NotebookNavigatorComponent = React.memo(
                     }
                     return navHandle.openShortcutByNumber(shortcutNumber);
                 },
-                // Delete focused file based on current pane (files or navigation)
-                deleteActiveFile: () => {
+                deleteSelectedFiles: () => {
                     runAsyncAction(async () => {
-                        // Delete files from list pane
-                        if (uiState.focusedPane === 'files' && (selectionState.selectedFile || selectionState.selectedFiles.size > 0)) {
-                            await deleteSelectedFiles({
-                                app,
-                                fileSystemOps,
-                                settings,
-                                visibility: {
-                                    includeDescendantNotes: uxRef.current.includeDescendantNotes,
-                                    showHiddenItems: uxRef.current.showHiddenItems
-                                },
-                                selectionState,
-                                selectionDispatch,
-                                tagTreeService,
-                                propertyTreeService
-                            });
+                        if (!selectionState.selectedFile && selectionState.selectedFiles.size === 0) {
                             return;
                         }
 
-                        // Delete folder from navigation pane
-                        if (
-                            uiState.focusedPane === 'navigation' &&
-                            selectionState.selectionType === ItemType.FOLDER &&
-                            selectionState.selectedFolder
-                        ) {
-                            await deleteSelectedFolder({
-                                app,
-                                fileSystemOps,
-                                settings,
-                                visibility: {
-                                    includeDescendantNotes: uxRef.current.includeDescendantNotes,
-                                    showHiddenItems: uxRef.current.showHiddenItems
-                                },
-                                selectionState,
-                                selectionDispatch
-                            });
-                        }
+                        await deleteSelectedFiles({
+                            app,
+                            fileSystemOps,
+                            settings,
+                            visibility: {
+                                includeDescendantNotes: uxRef.current.includeDescendantNotes,
+                                showHiddenItems: uxRef.current.showHiddenItems
+                            },
+                            selectionState,
+                            selectionDispatch,
+                            tagTreeService,
+                            propertyTreeService
+                        });
                     });
                 },
                 createNoteInSelectedFolder: async (openInNewTab = false) => {
+                    const manualSortContext = listPaneRef.current?.getManualSortNewFileContext() ?? null;
+
                     if (selectionState.selectedFolder) {
-                        await fileSystemOps.createNewFile(selectionState.selectedFolder, openInNewTab);
+                        await fileSystemOps.createNewFile(selectionState.selectedFolder, openInNewTab, manualSortContext);
                         return;
                     }
 
@@ -966,7 +948,7 @@ export const NotebookNavigatorComponent = React.memo(
                         selectionState.selectedTag !== UNTAGGED_TAG_ID
                     ) {
                         const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
-                        await fileSystemOps.createNewFileForTag(selectionState.selectedTag, sourcePath, openInNewTab);
+                        await fileSystemOps.createNewFileForTag(selectionState.selectedTag, sourcePath, openInNewTab, manualSortContext);
                         return;
                     }
 
@@ -976,7 +958,12 @@ export const NotebookNavigatorComponent = React.memo(
                         selectionState.selectedProperty !== PROPERTIES_ROOT_VIRTUAL_FOLDER_ID
                     ) {
                         const sourcePath = selectionState.selectedFile?.path ?? app.workspace.getActiveFile()?.path ?? '';
-                        await fileSystemOps.createNewFileForProperty(selectionState.selectedProperty, sourcePath, openInNewTab);
+                        await fileSystemOps.createNewFileForProperty(
+                            selectionState.selectedProperty,
+                            sourcePath,
+                            openInNewTab,
+                            manualSortContext
+                        );
                         return;
                     }
 
@@ -1231,7 +1218,7 @@ export const NotebookNavigatorComponent = React.memo(
                 triggerCollapse: () => {
                     handleExpandCollapseAll();
                     // Request scroll to selected item after collapse/expand
-                    requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
                         ensureSelectedNavigationItemVisible();
                     });
                 }
@@ -1248,7 +1235,6 @@ export const NotebookNavigatorComponent = React.memo(
             navigateSelectionHistory,
             uiState.singlePane,
             uiState.currentSinglePaneView,
-            uiState.focusedPane,
             app,
             settings,
             plugin,

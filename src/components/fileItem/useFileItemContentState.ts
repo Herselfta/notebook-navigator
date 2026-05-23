@@ -23,6 +23,7 @@ import { getCachedFileTags } from '../../utils/tagUtils';
 import { isImageFile } from '../../utils/fileTypeUtils';
 import { arePropertyItemsEqual, clonePropertyItems } from '../../utils/propertyUtils';
 import { areStringArraysEqual } from '../../utils/arrayUtils';
+import { getVersionedResourcePath } from '../../utils/resourcePath';
 
 const FEATURE_IMAGE_REGEN_THROTTLE_MS = 10000;
 
@@ -47,6 +48,8 @@ export interface UseFileItemContentStateParams {
     file: TFile;
     showPreview: boolean;
     showImage: boolean;
+    skipFeatureImage?: boolean;
+    fileStatMtime?: number;
     getDB: () => FileItemContentDb;
     regenerateFeatureImageForFile: (file: TFile) => Promise<void>;
 }
@@ -54,6 +57,7 @@ export interface UseFileItemContentStateParams {
 export interface FileItemContentState {
     previewText: string;
     tags: string[];
+    featureImageKey: string | null;
     featureImageStatus: FeatureImageStatus;
     featureImageUrl: string | null;
     properties: PropertyItem[] | null;
@@ -80,27 +84,32 @@ export function loadFileItemCacheSnapshot({
     file,
     showPreview,
     showImage,
+    skipFeatureImage,
+    fileStatMtime = file.stat.mtime,
     db
 }: {
     app: App;
     file: TFile;
     showPreview: boolean;
     showImage: boolean;
+    skipFeatureImage?: boolean;
+    fileStatMtime?: number;
     db: FileItemContentDb;
 }): FileItemCacheSnapshot {
     const preview = showPreview && file.extension === 'md' ? db.getCachedPreviewText(file.path) : '';
     const record = db.getFile(file.path);
     const tags = [...getCachedFileTags({ app, file, db, fileData: record })];
-    const featureImageKey = record?.featureImageKey ?? null;
+    const isDirectImageFile = showImage && !skipFeatureImage && isImageFile(file);
+    const featureImageKey = record?.featureImageKey ?? (isDirectImageFile ? `direct-image:${file.path}@${fileStatMtime}` : null);
     const featureImageStatus: FeatureImageStatus = record?.featureImageStatus ?? 'unprocessed';
     const properties = clonePropertyItems(record?.properties ?? null);
     const wordCount = record?.wordCount ?? null;
     const taskUnfinished = record?.taskUnfinished ?? null;
 
     let featureImageUrl: string | null = null;
-    if (showImage && isImageFile(file)) {
+    if (isDirectImageFile) {
         try {
-            featureImageUrl = app.vault.getResourcePath(file);
+            featureImageUrl = getVersionedResourcePath(app, file, fileStatMtime);
         } catch {
             featureImageUrl = null;
         }
@@ -123,6 +132,8 @@ export function useFileItemContentState({
     file,
     showPreview,
     showImage,
+    skipFeatureImage = false,
+    fileStatMtime = file.stat.mtime,
     getDB,
     regenerateFeatureImageForFile
 }: UseFileItemContentStateParams): FileItemContentState {
@@ -132,9 +143,11 @@ export function useFileItemContentState({
             file,
             showPreview,
             showImage,
+            skipFeatureImage,
+            fileStatMtime,
             db: getDB()
         });
-    }, [app, file, getDB, showImage, showPreview]);
+    }, [app, file, fileStatMtime, getDB, showImage, showPreview, skipFeatureImage]);
 
     const initialDataRef = useRef<FileItemCacheSnapshot | null>(null);
     const initialData = initialDataRef.current ?? loadSnapshot();
@@ -248,7 +261,7 @@ export function useFileItemContentState({
             featureImageObjectUrlRef.current = null;
         }
 
-        if (!showImage) {
+        if (!showImage || skipFeatureImage) {
             setFeatureImageUrl(null);
             return () => {
                 isActive = false;
@@ -257,7 +270,7 @@ export function useFileItemContentState({
 
         if (isImageFile(file)) {
             try {
-                setFeatureImageUrl(app.vault.getResourcePath(file));
+                setFeatureImageUrl(getVersionedResourcePath(app, file, fileStatMtime));
             } catch {
                 setFeatureImageUrl(null);
             }
@@ -301,11 +314,12 @@ export function useFileItemContentState({
         return () => {
             isActive = false;
         };
-    }, [app, featureImageKey, featureImageStatus, file, getDB, regenerateFeatureImageForFile, showImage]);
+    }, [app, featureImageKey, featureImageStatus, file, fileStatMtime, getDB, regenerateFeatureImageForFile, showImage, skipFeatureImage]);
 
     return {
         previewText,
         tags,
+        featureImageKey,
         featureImageStatus,
         featureImageUrl,
         properties,

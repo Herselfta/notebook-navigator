@@ -34,8 +34,8 @@ The cache includes:
 
 ## Data model
 
-Notebook Navigator indexes markdown notes and PDFs through `getIndexableFiles()` in
-`src/context/storage/useStorageFileQueries.ts`, backed by `getFilteredMarkdownAndPdfFiles(..., { showHiddenItems: true })`
+Notebook Navigator indexes markdown notes, PDFs, and raw drawing files through `getIndexableFiles()` in
+`src/context/storage/useStorageFileQueries.ts`, backed by `getFilteredIndexableFiles(..., { showHiddenItems: true })`
 in `src/utils/fileFilters.ts`.
 
 Each indexed file path has a `FileData` record (`src/storage/IndexedDBStorage.ts`) containing:
@@ -56,7 +56,7 @@ Each indexed file path has a `FileData` record (`src/storage/IndexedDBStorage.ts
 Defaults are set by `createDefaultFileData()` (`src/storage/IndexedDBStorage.ts`):
 
 - Markdown: `tags=null`, `metadata=null`, `wordCount=null`, `taskTotal=null`, `taskUnfinished=null`, `properties=null`, `previewStatus='unprocessed'`
-- PDF: `tags=[]`, `metadata={}`, `wordCount=0`, `taskTotal=0`, `taskUnfinished=0`, `properties=null`, `previewStatus='none'`
+- Non-markdown: `tags=[]`, `metadata={}`, `wordCount=0`, `taskTotal=0`, `taskUnfinished=0`, `properties=null`, `previewStatus='none'`
 
 Preview text and feature images are stored separately and tracked through status fields:
 
@@ -74,7 +74,7 @@ Preview text and feature images are stored separately and tracked through status
   - `f:<path>@<mtime>`: local vault file reference (image embeds, PDF cover thumbnails)
   - `e:<url>`: external https URL reference (normalized, hash stripped)
   - `y:<videoId>`: YouTube thumbnail reference
-  - `x:<path>@<mtime>`: Excalidraw thumbnail reference
+  - `d:<provider>:<path>`: drawing file with provider-owned preview rendering
 
 The dedicated stores are cleared alongside the main file store during a full rebuild:
 
@@ -102,7 +102,7 @@ The dedicated stores are cleared alongside the main file store during a full reb
   - `MarkdownPipelineContentProvider` (`markdownPipeline`): preview, word count, task counters, property pills, markdown feature images
   - `TagContentProvider` (`tags`): tag extraction from Obsidian metadata cache
   - `MetadataContentProvider` (`metadata`): frontmatter metadata + hidden state
-  - `FeatureImageContentProvider` (`fileThumbnails`): non-markdown feature images (PDF covers)
+  - `FeatureImageContentProvider` (`fileThumbnails`): non-markdown feature images (PDF covers and raw drawing rows)
 
 ```mermaid
 graph TD
@@ -207,7 +207,7 @@ sequenceDiagram
     Storage->>Storage: isStorageReady=true
 
     Storage->>Obsidian: queueMetadataContentWhenReady(markdown files, markdownPipeline/tags/metadata)
-    Storage->>Registry: queue fileThumbnails (PDF)
+    Storage->>Registry: queue fileThumbnails (supported non-markdown feature images)
 
     Note over Registry,Providers: Background content generation
     Registry->>Providers: startProcessing(settings)
@@ -226,12 +226,12 @@ sequenceDiagram
   - In-memory mirrors and LRU caches
 - `buildFileCache(true)` (initial-load path in `useStorageVaultSync`) seeds the database by diffing against an empty cache:
   - New markdown records start with `tags=null`, `metadata=null`, `wordCount=null`, `taskTotal=null`, `taskUnfinished=null`, `properties=null`, and `previewStatus='unprocessed'`.
-  - New PDF records start with `tags=[]`, `metadata={}`, `wordCount=0`, `taskTotal=0`, `taskUnfinished=0`, `properties=null`, and `previewStatus='none'`.
-  - Feature image fields start as `featureImageStatus='unprocessed'` and `featureImageKey=null` for both markdown and PDF records.
+  - New non-markdown records start with `tags=[]`, `metadata={}`, `wordCount=0`, `taskTotal=0`, `taskUnfinished=0`, `properties=null`, and `previewStatus='none'`.
+  - Feature image fields start as `featureImageStatus='unprocessed'` and `featureImageKey=null` for markdown and supported non-markdown records.
 - `queueMetadataContentWhenReady(...)` gates markdown providers on `app.metadataCache.getFileCache(file)`:
   - Filters to files that still need content based on status fields and processed mtimes.
   - Tracks pending work per file path and flushes it when Obsidian emits `metadataCache` `resolved`/`changed` events.
-- PDF feature image generation is queued directly through the registry (`fileThumbnails`) when `showFeatureImage` is enabled.
+- Non-markdown feature image generation is queued directly through the registry (`fileThumbnails`) when `showFeatureImage` is enabled.
 
 ## Markdown pipeline stages
 

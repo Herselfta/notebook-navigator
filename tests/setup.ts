@@ -31,12 +31,20 @@ const fallbackDocument = {
     removeEventListener: () => {}
 } as unknown as Document;
 
-Object.defineProperty(globalThis, 'activeWindow', {
+// eslint-disable-next-line obsidianmd/no-global-this -- Vitest exposes the test runtime through globalThis.
+const testWindow = globalThis as Window & typeof globalThis & { document?: Document };
+
+Object.defineProperty(testWindow, 'activeWindow', {
     configurable: true,
-    get: () => globalThis
+    get: () => testWindow
 });
 
-Object.defineProperty(globalThis, 'activeDocument', {
+Object.defineProperty(testWindow, 'window', {
     configurable: true,
-    get: () => (globalThis as { document?: Document }).document ?? fallbackDocument
+    get: () => testWindow
+});
+
+Object.defineProperty(testWindow, 'activeDocument', {
+    configurable: true,
+    get: () => testWindow.document ?? fallbackDocument
 });

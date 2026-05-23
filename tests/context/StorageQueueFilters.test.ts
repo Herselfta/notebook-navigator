@@ -17,12 +17,13 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { TFile } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { ContentProviderType } from '../../src/interfaces/IContentProvider';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 import type { FileData } from '../../src/storage/IndexedDBStorage';
-import { filterFilesRequiringMetadataSources, filterPdfFilesRequiringThumbnails } from '../../src/context/storageQueueFilters';
+import { filterFilesRequiringFileThumbnails, filterFilesRequiringMetadataSources } from '../../src/context/storageQueueFilters';
+import { getDrawingDirectFeatureImageKey } from '../../src/utils/drawingFeatureImages';
 
 class FakeDB {
     private readonly files = new Map<string, FileData>();
@@ -150,6 +151,103 @@ describe('Storage queue filters', () => {
         expect(result).toEqual([file]);
     });
 
+    it('includes markdown drawing files when the direct drawing marker is stale', () => {
+        const file = new TFile();
+        file.path = 'drawings/sketch.md';
+        file.extension = 'md';
+        file.stat.mtime = 456;
+        const app = new App();
+        app.metadataCache.getFileCache = () => ({ frontmatter: { 'tldraw-file': true } });
+
+        db.setFile(
+            file.path,
+            createFileData({
+                mtime: file.stat.mtime,
+                markdownPipelineMtime: file.stat.mtime,
+                wordCount: 0,
+                taskTotal: 0,
+                taskUnfinished: 0,
+                previewStatus: 'none',
+                featureImageStatus: 'none',
+                featureImageKey: ''
+            })
+        );
+
+        settings = { ...settings, showFeatureImage: true };
+
+        const types: ContentProviderType[] = ['markdownPipeline'];
+        const result = filterFilesRequiringMetadataSources([file], types, settings, { app });
+
+        expect(result).toEqual([file]);
+    });
+
+    it('excludes markdown drawing files when the direct drawing marker is current', () => {
+        const file = new TFile();
+        file.path = 'drawings/sketch.md';
+        file.extension = 'md';
+        file.stat.mtime = 456;
+        const app = new App();
+        app.metadataCache.getFileCache = () => ({ frontmatter: { 'tldraw-file': true } });
+
+        db.setFile(
+            file.path,
+            createFileData({
+                mtime: file.stat.mtime,
+                markdownPipelineMtime: file.stat.mtime,
+                wordCount: 0,
+                taskTotal: 0,
+                taskUnfinished: 0,
+                previewStatus: 'none',
+                featureImageStatus: 'none',
+                featureImageKey: getDrawingDirectFeatureImageKey(file, 'tldraw'),
+                properties: []
+            })
+        );
+
+        settings = { ...settings, showFilePreview: false, showFeatureImage: true };
+
+        const types: ContentProviderType[] = ['markdownPipeline'];
+        const result = filterFilesRequiringMetadataSources([file], types, settings, { app });
+
+        expect(result).toEqual([]);
+    });
+
+    it('excludes markdown drawing files when the empty feature-image marker is current and feature images are excluded', () => {
+        const file = new TFile();
+        file.path = 'drawings/sketch.md';
+        file.extension = 'md';
+        file.stat.mtime = 456;
+        const app = new App();
+        app.metadataCache.getFileCache = () => ({ frontmatter: { 'tldraw-file': true, private: true } });
+
+        db.setFile(
+            file.path,
+            createFileData({
+                mtime: file.stat.mtime,
+                markdownPipelineMtime: file.stat.mtime,
+                wordCount: 0,
+                taskTotal: 0,
+                taskUnfinished: 0,
+                previewStatus: 'none',
+                featureImageStatus: 'none',
+                featureImageKey: '',
+                properties: []
+            })
+        );
+
+        settings = {
+            ...settings,
+            showFilePreview: false,
+            showFeatureImage: true,
+            featureImageExcludeProperties: ['private']
+        };
+
+        const types: ContentProviderType[] = ['markdownPipeline'];
+        const result = filterFilesRequiringMetadataSources([file], types, settings, { app });
+
+        expect(result).toEqual([]);
+    });
+
     it('includes markdown files when task counters are pending', () => {
         const file = new TFile();
         file.path = 'notes/note.md';
@@ -229,7 +327,7 @@ describe('Storage queue filters', () => {
 
         settings = { ...settings, showFeatureImage: true };
 
-        const result = filterPdfFilesRequiringThumbnails([file], settings);
+        const result = filterFilesRequiringFileThumbnails([file], settings);
 
         expect(result).toEqual([file]);
     });
@@ -252,7 +350,53 @@ describe('Storage queue filters', () => {
 
         settings = { ...settings, showFeatureImage: true };
 
-        const result = filterPdfFilesRequiringThumbnails([file], settings);
+        const result = filterFilesRequiringFileThumbnails([file], settings);
+
+        expect(result).toEqual([]);
+    });
+
+    it('includes raw Tldraw files when the direct drawing marker is missing', () => {
+        const file = new TFile();
+        file.path = 'drawings/sketch.tldr';
+        file.extension = 'tldr';
+        file.stat.mtime = 222;
+
+        db.setFile(
+            file.path,
+            createFileData({
+                mtime: file.stat.mtime,
+                fileThumbnailsMtime: file.stat.mtime,
+                featureImageKey: '',
+                featureImageStatus: 'none'
+            })
+        );
+
+        settings = { ...settings, showFeatureImage: true };
+
+        const result = filterFilesRequiringFileThumbnails([file], settings);
+
+        expect(result).toEqual([file]);
+    });
+
+    it('excludes raw Tldraw files when the direct drawing marker is up-to-date', () => {
+        const file = new TFile();
+        file.path = 'drawings/sketch.tldr';
+        file.extension = 'tldr';
+        file.stat.mtime = 333;
+
+        db.setFile(
+            file.path,
+            createFileData({
+                mtime: file.stat.mtime,
+                fileThumbnailsMtime: file.stat.mtime,
+                featureImageKey: getDrawingDirectFeatureImageKey(file, 'tldraw'),
+                featureImageStatus: 'none'
+            })
+        );
+
+        settings = { ...settings, showFeatureImage: true };
+
+        const result = filterFilesRequiringFileThumbnails([file], settings);
 
         expect(result).toEqual([]);
     });

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, type Dispatch, type RefObject, type SetStateAction } from 'react';
+import { useCallback, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { debounce, type TFile } from 'obsidian';
 import type { FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
@@ -48,23 +48,23 @@ interface PropertyTreeServiceLike {
  * then restores the previous value on completion.
  */
 export function useStorageCacheRebuild(params: {
-    contentRegistryRef: RefObject<ContentProviderRegistry | null>;
-    pendingSyncTimeoutIdRef: RefObject<number | null>;
-    rebuildFileCacheRef: RefObject<ReturnType<typeof debounce> | null>;
+    contentRegistryRef: MutableRefObject<ContentProviderRegistry | null>;
+    pendingSyncTimeoutIdRef: MutableRefObject<number | null>;
+    rebuildFileCacheRef: MutableRefObject<ReturnType<typeof debounce> | null>;
     cancelTagTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
     cancelPropertyTreeRebuildDebouncer: (options?: { reset?: boolean }) => void;
     disposeMetadataWaitDisposers: () => void;
     // Map: file path -> pending metadata-dependent wait mask (see `useMetadataCacheQueue`).
-    pendingMetadataWaitPathsRef: RefObject<Map<string, number>>;
+    pendingMetadataWaitPathsRef: MutableRefObject<Map<string, number>>;
     setFileData: Dispatch<SetStateAction<StorageFileData>>;
     tagTreeService: TagTreeServiceLike | null;
     propertyTreeService: PropertyTreeServiceLike | null;
     setIsStorageReady: Dispatch<SetStateAction<boolean>>;
-    isStorageReadyRef: RefObject<boolean>;
-    hasBuiltInitialCacheRef: RefObject<boolean>;
-    buildFileCacheFnRef: RefObject<((isInitialLoad?: boolean) => Promise<void>) | null>;
-    latestSettingsRef: RefObject<NotebookNavigatorSettings>;
-    stoppedRef: RefObject<boolean>;
+    isStorageReadyRef: MutableRefObject<boolean>;
+    hasBuiltInitialCacheRef: MutableRefObject<boolean>;
+    buildFileCacheFnRef: MutableRefObject<((isInitialLoad?: boolean) => Promise<void>) | null>;
+    latestSettingsRef: MutableRefObject<NotebookNavigatorSettings>;
+    stoppedRef: MutableRefObject<boolean>;
     clearCacheRebuildNotice: () => void;
     startCacheRebuildNotice: (total: number, enabledTypes: FileContentType[]) => void;
     getIndexableFiles: () => TFile[];

@@ -18,7 +18,7 @@
 
 import type { FileVisibility } from '../utils/fileTypeUtils';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
-import type { BackgroundMode, DualPaneOrientation, PinnedNotes } from '../types';
+import type { BackgroundMode, CollapsedPinnedContexts, DualPaneOrientation, PinnedNotes } from '../types';
 import type { FolderNoteCreationPreference } from '../types/folderNote';
 import type { KeyboardShortcutConfig } from '../utils/keyboardShortcuts';
 import type { ShortcutEntry } from '../types/shortcuts';
@@ -147,6 +147,48 @@ export function isSortOption(value: unknown): value is SortOption {
     return typeof value === 'string' && SORT_OPTIONS.includes(value as SortOption);
 }
 
+export interface ListSortOverride {
+    option: SortOption;
+    propertyKey?: string;
+}
+
+export type ListSortOverrideValue = SortOption | ListSortOverride;
+
+function isPropertySortOptionValue(value: SortOption): boolean {
+    return value === 'property-asc' || value === 'property-desc';
+}
+
+export function normalizeListSortOverride(value: unknown): ListSortOverrideValue | undefined {
+    if (isSortOption(value)) {
+        return value;
+    }
+
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+        return undefined;
+    }
+
+    const record = value as Record<string, unknown>;
+    if (!isSortOption(record.option)) {
+        return undefined;
+    }
+
+    const option = record.option;
+    if (!isPropertySortOptionValue(option)) {
+        return option;
+    }
+
+    if (typeof record.propertyKey !== 'string') {
+        return option;
+    }
+
+    const propertyKey = record.propertyKey.trim();
+    if (propertyKey.length === 0) {
+        return option;
+    }
+
+    return { option, propertyKey };
+}
+
 /** Available secondary sort options used when sorting by frontmatter property values. */
 export type PropertySortSecondaryOption = 'title' | 'filename' | 'created' | 'modified';
 
@@ -154,6 +196,14 @@ export const PROPERTY_SORT_SECONDARY_OPTIONS: PropertySortSecondaryOption[] = ['
 
 export function isPropertySortSecondaryOption(value: unknown): value is PropertySortSecondaryOption {
     return value === 'title' || value === 'filename' || value === 'created' || value === 'modified';
+}
+
+export type ManualSortNewNotePlacement = 'top' | 'bottom' | 'below-selected-note' | 'unsorted';
+
+export const MANUAL_SORT_NEW_NOTE_PLACEMENT_OPTIONS: ManualSortNewNotePlacement[] = ['top', 'bottom', 'below-selected-note', 'unsorted'];
+
+export function isManualSortNewNotePlacement(value: unknown): value is ManualSortNewNotePlacement {
+    return value === 'top' || value === 'bottom' || value === 'below-selected-note' || value === 'unsorted';
 }
 
 /** Alphabetical ordering options used by navigation trees. */
@@ -295,6 +345,13 @@ export function isCalendarMonthHeadingFormat(value: unknown): value is CalendarM
 /** Source used for calendar notes in the navigation pane */
 export type CalendarIntegrationMode = 'daily-notes' | 'notebook-navigator';
 
+/** Locale source used when Notebook Navigator formats periodic note paths */
+export type CalendarPeriodicNotesLocaleSource = 'calendar' | 'obsidian';
+
+export function isCalendarPeriodicNotesLocaleSource(value: unknown): value is CalendarPeriodicNotesLocaleSource {
+    return value === 'calendar' || value === 'obsidian';
+}
+
 /** Default display modes for list items */
 export type ListDisplayMode = 'standard' | 'compact';
 
@@ -303,21 +360,44 @@ export function isListDisplayMode(value: unknown): value is ListDisplayMode {
 }
 
 /** Grouping options for list pane notes */
-export type ListNoteGroupingOption = 'none' | 'date' | 'folder';
+export type ListNoteGroupingOption = 'custom' | 'date' | 'folder';
 
 export function isListNoteGroupingOption(value: unknown): value is ListNoteGroupingOption {
-    return value === 'none' || value === 'date' || value === 'folder';
+    return value === 'custom' || value === 'date' || value === 'folder';
+}
+
+export function normalizeListNoteGroupingOption(value: unknown): ListNoteGroupingOption | null {
+    if (value === 'none') {
+        return 'custom';
+    }
+
+    return isListNoteGroupingOption(value) ? value : null;
+}
+
+export interface AppearanceGroupingValue {
+    groupBy?: ListNoteGroupingOption;
+}
+
+export function normalizeAppearanceGroupBy<T extends AppearanceGroupingValue>(appearance: T): void {
+    const appearanceRecord = appearance as unknown as Record<string, unknown>;
+    const groupBy = normalizeListNoteGroupingOption(appearanceRecord.groupBy);
+    if (groupBy) {
+        appearance.groupBy = groupBy;
+        return;
+    }
+
+    delete appearance.groupBy;
 }
 
 /** Date source to display when alphabetical sorting is active */
 export type AlphabeticalDateMode = 'created' | 'modified';
 
-/** Available note property types displayed in file items */
-export type NotePropertyType = 'none' | 'wordCount';
+/** Placement options for note word counts */
+export type WordCountPlacement = 'title' | 'property';
 
-/** Type guard for validating note property type values */
-export function isNotePropertyType(value: string): value is NotePropertyType {
-    return value === 'none' || value === 'wordCount';
+/** Type guard for validating word count placement values */
+export function isWordCountPlacement(value: unknown): value is WordCountPlacement {
+    return value === 'title' || value === 'property';
 }
 
 /** Buttons available in the navigation toolbar */
@@ -495,13 +575,16 @@ export interface NotebookNavigatorSettings {
     defaultFolderSort: SortOption;
     propertySortKey: string;
     propertySortSecondary: PropertySortSecondaryOption;
+    manualSortPropertyKey: string;
+    manualSortGroupHeaderProperty: string;
+    manualSortNewNotePlacement: ManualSortNewNotePlacement;
+    confirmBeforeManualSort: boolean;
     revealFileOnListChanges: boolean;
     listPaneTitle: ListPaneTitleOption;
     noteGrouping: ListNoteGroupingOption;
     showSelectedNavigationPills: boolean;
+    stickyGroupHeaders: boolean;
     filterPinnedByFolder: boolean;
-    showPinnedGroupHeader: boolean;
-    showPinnedIcon: boolean;
     compactItemHeight: number;
     compactItemHeightScaleText: boolean;
     showQuickActions: boolean;
@@ -510,6 +593,7 @@ export interface NotebookNavigatorSettings {
     quickActionAddToShortcuts: boolean;
     quickActionPinNote: boolean;
     quickActionOpenInNewTab: boolean;
+    hideDrawingPreviewImages: boolean;
 
     // Frontmatter tab
     useFrontmatterMetadata: boolean;
@@ -526,11 +610,13 @@ export interface NotebookNavigatorSettings {
     showFileBackgroundUnfinishedTask: boolean;
     unfinishedTaskBackgroundColor: string;
     showFileIcons: boolean;
+    useFolderIconForFiles: boolean;
     showFilenameMatchIcons: boolean;
     fileNameIconMap: Record<string, string>;
     showCategoryIcons: boolean;
     fileTypeIconMap: Record<string, string>;
     fileNameRows: number;
+    useFolderColorForTitles: boolean;
     showFilePreview: boolean;
     skipHeadingsInPreview: boolean;
     skipCodeBlocksInPreview: boolean;
@@ -558,10 +644,14 @@ export interface NotebookNavigatorSettings {
     showPropertiesOnSeparateRows: boolean;
     enablePropertyInternalLinks: boolean;
     enablePropertyExternalLinks: boolean;
-    notePropertyType: NotePropertyType;
+    showWordCount: boolean;
+    wordCountPlacement: WordCountPlacement;
+    wordCountTargetProperty: string;
+    showWordCountPercentage: boolean;
     showFileDate: boolean;
     alphabeticalDateMode: AlphabeticalDateMode;
     showParentFolder: boolean;
+    showParentFolderFullPath: boolean;
     parentFolderClickRevealsFile: boolean;
     showParentFolderColor: boolean;
     showParentFolderIcon: boolean;
@@ -584,6 +674,7 @@ export interface NotebookNavigatorSettings {
 
     // Calendar tab - Calendar integration
     calendarIntegrationMode: CalendarIntegrationMode;
+    calendarPeriodicNotesLocaleSource: CalendarPeriodicNotesLocaleSource;
     calendarCustomFilePattern: string;
     calendarCustomWeekPattern: string;
     calendarCustomMonthPattern: string;
@@ -602,25 +693,26 @@ export interface NotebookNavigatorSettings {
     // Runtime state and cached data
     customVaultName: string;
     pinnedNotes: PinnedNotes;
+    collapsedPinnedContexts: CollapsedPinnedContexts;
     fileIcons: Record<string, string>;
     fileColors: Record<string, string>;
     fileBackgroundColors: Record<string, string>;
     folderIcons: Record<string, string>;
     folderColors: Record<string, string>;
     folderBackgroundColors: Record<string, string>;
-    folderSortOverrides: Record<string, SortOption>;
+    folderSortOverrides: Record<string, ListSortOverrideValue>;
     folderTreeSortOverrides: Record<string, AlphaSortOrder>;
     folderAppearances: Record<string, FolderAppearance>;
     tagIcons: Record<string, string>;
     tagColors: Record<string, string>;
     tagBackgroundColors: Record<string, string>;
-    tagSortOverrides: Record<string, SortOption>;
+    tagSortOverrides: Record<string, ListSortOverrideValue>;
     tagTreeSortOverrides: Record<string, AlphaSortOrder>;
     tagAppearances: Record<string, TagAppearance>;
     propertyIcons: Record<string, string>;
     propertyColors: Record<string, string>;
     propertyBackgroundColors: Record<string, string>;
-    propertySortOverrides: Record<string, SortOption>;
+    propertySortOverrides: Record<string, ListSortOverrideValue>;
     propertyTreeSortOverrides: Record<string, AlphaSortOrder>;
     propertyAppearances: Record<string, FolderAppearance>;
     virtualFolderColors: Record<string, string>;

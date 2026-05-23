@@ -29,6 +29,7 @@ export const STRINGS_RU = {
         remove: 'Убрать', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Восстановить по умолчанию', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Отправить', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Сохранить', // Button text for saving settings and dialogs (English: Save)
         configure: 'Настроить', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Светлый режим', // Label for light theme mode (English: Light mode)
         darkMode: 'Тёмный режим', // Label for dark theme mode (English: Dark mode)
@@ -50,7 +51,15 @@ export const STRINGS_RU = {
         pinnedSection: 'Закреплённые', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Заметки', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Файлы', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (скрыто)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (скрыто)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Свернуть группу',
+        expandGroup: 'Развернуть группу',
+        manualSortTitle: 'Ручная сортировка: {property}',
+        manualSortHint: 'Перетащите для изменения порядка. Порядок сохраняется как числовые значения индекса в свойстве «{property}».',
+        manualSortNonMarkdownHint: 'Файлы, отличные от Markdown, показаны внизу и их порядок изменить нельзя.',
+        unsortedSection: 'Без сортировки',
+        manualSortDone: 'Готово',
+        manualSortMultipleWriteFailure: '{count} файлов не удалось обработать; первый: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +141,9 @@ export const STRINGS_RU = {
         changeChildSortOrder: 'Изменить сортировку',
         changeSortAndGroup: 'Изменить сортировку и группировку',
         defaultSort: 'По умолчанию', // Label for default sorting mode (English: Default)
+        manualSort: 'Ручная сортировка',
+        editSortOrder: 'Изменить порядок сортировки...',
+        removeSortProperty: 'Удалить свойство сортировки',
         descendants: 'потомков',
         subfolders: 'подпапок',
         subtags: 'подтегов',
@@ -301,6 +313,14 @@ export const STRINGS_RU = {
             moveFileToFolder: 'Переместить файл в...',
             moveMultipleNotesToFolder: 'Переместить {count} заметок в...',
             moveMultipleFilesToFolder: 'Переместить {count} файлов в...',
+            setManualSortGroupHeader: 'Задать заголовок группы',
+            changeManualSortGroupHeader: 'Изменить заголовок группы',
+            manualSortGroupHeader: {
+                title: 'Заголовок группы',
+                copyStyle: 'Копировать стиль заголовка',
+                pasteStyle: 'Вставить стиль заголовка',
+                remove: 'Удалить заголовок группы'
+            },
             addTag: 'Добавить тег',
             addPropertyKey: 'Задать свойство',
             removeTag: 'Удалить тег',
@@ -390,6 +410,33 @@ export const STRINGS_RU = {
             applyAppearanceTitle: (target: string) => `Применить оформление для ${target}?`,
             affectedCountMessage: (count: number) => `Существующих переопределений, которые изменятся: ${count}.`
         },
+        manualSortConfirm: {
+            propertySortTitle: 'Использовать ручную сортировку?',
+            propertySortMessage: (property: string, count: number) =>
+                `Переключает текущий вид на ручную сортировку с использованием «${property}». При изменении порядка числовые значения индекса записываются в это свойство в ${count} ${count === 1 ? 'заметке' : 'заметках'} по мере необходимости.`,
+            propertySortConfirmButton: 'Использовать ручную сортировку',
+            removePropertyTitle: 'Удалить свойство сортировки?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Это удалит «${property}» из ${count} ${count === 1 ? 'заметки' : 'заметок'} в текущем списке. Порядок ручной сортировки будет сброшен для этих заметок.`,
+            removePropertyConfirmButton: 'Удалить свойство',
+            compactTitle: 'Сжать значения индекса?',
+            compactMessage: (count: number) =>
+                `Эта перестановка требует больше числового пространства. ${count} ${count === 1 ? 'заметка получит' : 'заметок получат'} новые значения индекса.`,
+            compactConfirmButton: 'Сжать значения индекса'
+        },
+        manualSortGroupHeader: {
+            title: 'Задать заголовок группы',
+            titleLabel: 'Заголовок',
+            placeholder: 'Заголовок группы',
+            icon: 'Значок',
+            color: 'Цвет',
+            wordCount: 'Показывать количество слов',
+            wordCountTarget: 'Целевое количество слов',
+            wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Когда это поле пустое, цель группы использует целевое свойство, заданное в Настройки > Заметки > Количество слов. Переопределите его, задав целевое значение для этой группы.',
+            description: 'Настройте заголовок группы для этой заметки. Оставьте заголовок пустым, чтобы удалить его.'
+        },
         navRainbowSection: {
             title: (section: string) => `Цвета радуги: ${section}`
         },
@@ -428,6 +475,11 @@ export const STRINGS_RU = {
                 'list-descendants': 'Заметки из подпапок',
                 'list-sort-ascending': 'Порядок сортировки: по возрастанию',
                 'list-sort-descending': 'Порядок сортировки: по убыванию',
+                'list-sort-modified': 'Сортировать по дате изменения',
+                'list-sort-created': 'Сортировать по дате создания',
+                'list-sort-title': 'Сортировать по заголовку',
+                'list-sort-filename': 'Сортировать по имени файла',
+                'list-sort-property': 'Сортировать по свойству',
                 'list-appearance': 'Изменить вид',
                 'list-new-note': 'Новая заметка',
                 'nav-folder-open': 'Папка открыта',
@@ -437,7 +489,6 @@ export const STRINGS_RU = {
                 'nav-properties': 'Свойства',
                 'nav-property': 'Свойство',
                 'nav-property-value': 'Значение',
-                'list-pinned': 'Закреплённые элементы',
                 'file-unfinished-task': 'Незавершённые задачи',
                 'file-word-count': 'Количество слов'
             }
@@ -699,6 +750,8 @@ export const STRINGS_RU = {
             propertiesRequireMarkdown: 'Свойства поддерживаются только в заметках Markdown',
             propertySetOnNote: 'Свойство обновлено в 1 заметке',
             propertySetOnNotes: 'Свойство обновлено в {count} заметках',
+            manualSortPropertyRemovedFromNote: 'Свойство сортировки удалено из 1 заметки',
+            manualSortPropertyRemovedFromNotes: 'Свойство сортировки удалено из {count} заметок',
             iconPackDownloaded: '{provider} загружен',
             iconPackUpdated: '{provider} обновлён ({version})',
             iconPackRemoved: '{provider} удалён',
@@ -787,6 +840,7 @@ export const STRINGS_RU = {
         toggleTagsBySelection: 'Переключить теги по выбору',
         togglePropertiesBySelection: 'Переключить свойства по выбору',
         toggleCompactMode: 'Переключить компактный режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Переключить закреплённый раздел',
         collapseExpand: 'Свернуть / развернуть все элементы', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Добавить тег к выбранным файлам', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Задать свойство для выбранных файлов', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -859,7 +913,12 @@ export const STRINGS_RU = {
             },
             list: {
                 display: 'Внешний вид',
-                pinnedNotes: 'Закреплённые заметки'
+                organization: 'Организация',
+                groupHeaders: 'Заголовки групп',
+                propertySort: 'Сортировка по свойству',
+                manualSort: 'Ручная сортировка',
+                pinnedNotes: 'Закреплённые заметки',
+                drawingPreviews: 'Предпросмотр рисунков'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -871,7 +930,8 @@ export const STRINGS_RU = {
                 tags: 'Теги',
                 properties: 'Свойства',
                 date: 'Дата',
-                parentFolder: 'Родительская папка'
+                parentFolder: 'Родительская папка',
+                wordCount: 'Количество слов'
             }
         },
         syncMode: {
@@ -891,8 +951,8 @@ export const STRINGS_RU = {
                 }
             },
             sortNotesBy: {
-                name: 'Сортировка заметок',
-                desc: 'Выберите способ сортировки заметок в списке.',
+                name: 'Сортировка по умолчанию',
+                desc: 'Выберите порядок сортировки заметок по умолчанию.',
                 options: {
                     'modified-desc': 'По дате изменения (новые сверху)',
                     'modified-asc': 'По дате изменения (старые сверху)',
@@ -901,19 +961,24 @@ export const STRINGS_RU = {
                     'title-asc': 'По названию (А сверху)',
                     'title-desc': 'По названию (Я сверху)',
                     'filename-asc': 'Имя файла (А сверху)',
-                    'filename-desc': 'Имя файла (Я сверху)',
-                    'property-asc': 'Свойство (А сверху)',
-                    'property-desc': 'Свойство (Я сверху)'
+                    'filename-desc': 'Имя файла (Я сверху)'
                 },
-                propertyOverride: {
-                    asc: 'Свойство ‘{property}’ (А сверху)',
-                    desc: 'Свойство ‘{property}’ (Я сверху)'
+                directions: {
+                    asc: 'По возрастанию',
+                    desc: 'По убыванию'
+                },
+                fields: {
+                    modified: 'Дата изменения',
+                    created: 'Дата создания',
+                    title: 'Название',
+                    filename: 'Имя файла',
+                    property: 'Свойство'
                 }
             },
             propertySortKey: {
-                name: 'Свойство сортировки',
-                desc: 'Используется с сортировкой по свойству. Заметки с этим свойством frontmatter отображаются первыми и сортируются по значению свойства. Массивы объединяются в одно значение.',
-                placeholder: 'order'
+                name: 'Свойства для сортировки',
+                desc: 'Разделённые запятыми свойства frontmatter, отображаемые как варианты сортировки по свойству. Массивы объединяются в одну строку. Эти свойства не изменяются.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Вторичная сортировка',
@@ -924,6 +989,46 @@ export const STRINGS_RU = {
                     created: 'Дата создания',
                     modified: 'Дата редактирования'
                 }
+            },
+            propertySortInstructions: {
+                intro: 'Каждое свойство, перечисленное выше, отображается как вариант сортировки в меню сортировки на панели списка. Выбор одного из них сортирует заметки по значению свойства frontmatter.'
+            },
+            manualSortPropertyKey: {
+                name: 'Свойство ручной сортировки',
+                desc: 'Свойство frontmatter, используемое для хранения числовых значений индекса для ручной сортировки.'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Свойство заголовка группы',
+                desc: 'Свойство frontmatter, используемое для хранения произвольных заголовков групп.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Произвольные заголовки групп отображаются над заметками на панели списка.',
+                items: [
+                    'В меню сортировки на панели списка установите группировку **Произвольная**.',
+                    'Щёлкните правой кнопкой мыши по заметке и выберите **Задать заголовок группы**, чтобы добавить заголовок над ней.'
+                ]
+            },
+            manualSortNewNotePlacement: {
+                name: 'Размещение новых заметок',
+                desc: 'Выберите, где размещаются новые заметки, когда текущий список использует ручную сортировку.',
+                options: {
+                    top: 'Сверху',
+                    bottom: 'Снизу',
+                    'below-selected-note': 'Под выбранной заметкой',
+                    unsorted: 'Без сортировки'
+                }
+            },
+            confirmBeforeManualSort: {
+                name: 'Подтверждать перед ручной сортировкой',
+                desc: 'Показывать предупреждение перед первой записью свойства ручной сортировки в заметки. Когда отключено, заметки получают свойство без предупреждения.'
+            },
+            manualSortInstructions: {
+                intro: 'Ручная сортировка записывает числовое значение индекса в свойство frontmatter каждой заметки. Заметки без индекса отображаются в разделе «Без сортировки».',
+                items: [
+                    'Включите ручную сортировку, выбрав **Ручная сортировка** в меню сортировки. После этого есть два способа изменить порядок заметок.',
+                    'Выберите **Изменить порядок сортировки...** в меню сортировки, чтобы открыть представление для изменения порядка. Перетаскивайте заметки мышью или касанием на мобильных устройствах. На компьютере **Cmd/Ctrl** или **Shift** клик выбирает несколько заметок, после чего перетаскивание любой из них перемещает всю группу.',
+                    'В панели списка выберите одну заметку или несколько, затем нажмите **Cmd/Ctrl + Arrow Up/Down**, чтобы переместить выделение вверх или вниз.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Прокрутка к выбранному файлу при изменениях списка',
@@ -942,25 +1047,21 @@ export const STRINGS_RU = {
                 desc: 'Отображать количество заметок в формате "текущие ▾ потомки" в папках и тегах.'
             },
             groupNotes: {
-                name: 'Группировка заметок',
-                desc: 'Показывать заголовки между заметками, сгруппированными по дате или папке. При просмотре тегов используются группы по дате, если включена группировка по папкам.',
+                name: 'Группировка по умолчанию',
+                desc: 'Произвольная отображает заголовки, заданные в frontmatter. По дате группирует заметки по дате. По папке группирует заметки по папке. В представлениях тегов и свойств используются группы по дате, когда выбрана группировка по папке.',
                 options: {
-                    none: 'Не группировать',
-                    date: 'Группировать по дате',
-                    folder: 'Группировать по папке'
+                    custom: 'Произвольная',
+                    date: 'По дате',
+                    folder: 'По папке'
                 }
             },
             showSelectedNavigationPills: {
                 name: 'Всегда показывать все метки тегов и свойств',
                 desc: 'При отключении метки, совпадающие с текущим выбором навигации, скрываются (например, метка тега «рецепты» скрывается при просмотре тега «рецепты»). Включите, чтобы все метки оставались видимыми.'
             },
-            showPinnedGroupHeader: {
-                name: 'Показывать заголовок закреплённых',
-                desc: 'Отображать заголовок раздела закреплённых над закреплёнными заметками.'
-            },
-            showPinnedIcon: {
-                name: 'Показывать иконку закреплённых',
-                desc: 'Показывать иконку рядом с заголовком раздела закреплённых.'
+            stickyGroupHeaders: {
+                name: 'Закреплённые заголовки групп',
+                desc: 'Сохранять видимым заголовок текущей даты, папки или раздела закреплённых при прокрутке.'
             },
             defaultListMode: {
                 name: 'Режим списка по умолчанию',
@@ -972,7 +1073,11 @@ export const STRINGS_RU = {
             },
             showFileIcons: {
                 name: 'Показывать иконки файлов',
-                desc: 'Отображать иконки файлов с выравниванием по левому краю. Отключение убирает и иконки, и отступы. Приоритет: значок незавершённых задач > пользовательский значок > значок имени файла > значок типа файла > значок по умолчанию.'
+                desc: 'Отображать иконки файлов с выравниванием по левому краю. Отключение убирает и иконки, и отступы. Приоритет: значок незавершённых задач > пользовательский значок > значок папки > значок имени файла > значок типа файла > значок по умолчанию.'
+            },
+            useFolderIcon: {
+                name: 'Использовать значок папки',
+                desc: 'Отображать значок родительской папки, когда не задан пользовательский значок файла. Цвет папки используется, когда не задан пользовательский цвет файла.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Значок незавершённых задач',
@@ -1019,6 +1124,10 @@ export const STRINGS_RU = {
                 name: 'Показывать родительскую папку',
                 desc: 'Отображать название родительской папки для заметок в подпапках или тегах.'
             },
+            showParentFolderFullPath: {
+                name: 'Показывать полный путь',
+                desc: 'Отображать полный путь к родительской папке вместо только названия папки.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Клик по родительской папке открывает папку',
                 desc: 'Клик по метке родительской папки открывает папку в панели списка.'
@@ -1062,7 +1171,7 @@ export const STRINGS_RU = {
             },
             useFloatingToolbars: {
                 name: 'Использовать плавающие панели инструментов на iOS/iPadOS',
-                desc: 'Применяется к Obsidian 1.11 и более поздним версиям.'
+                desc: 'Применяется только на iOS и iPadOS.'
             },
             startView: {
                 name: 'Начальный вид по умолчанию',
@@ -1193,8 +1302,8 @@ export const STRINGS_RU = {
             calendarLocale: {
                 name: 'Язык',
                 desc: 'Управляет форматированием дат календаря, нумерацией недель и первым днём недели.',
-                incompatibleWeekPatternWarning:
-                    'Шаблон еженедельных заметок использует токены ISO-недели ("W" или "G"). Календарь будет отображать недели, начинающиеся с понедельника, вместо первого дня недели этой локали.',
+                weekPathMismatchWarning:
+                    'Видимый календарь и пути еженедельных заметок используют разные начала недели или разную нумерацию недель.',
                 options: {
                     systemDefault: 'По умолчанию'
                 }
@@ -1265,6 +1374,14 @@ export const STRINGS_RU = {
                     dailyNotes: 'Папка и формат даты настраиваются в плагине Daily Notes.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Язык периодических заметок',
+                desc: 'Управляет локализованными названиями месяцев, названиями дней недели, номерами недель и началом недели в путях периодических заметок Notebook Navigator.',
+                options: {
+                    calendar: 'Календарь',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Корневая папка',
@@ -1290,8 +1407,10 @@ export const STRINGS_RU = {
             calendarCustomWeekPattern: {
                 name: 'Еженедельные заметки',
                 parsingError: 'Шаблон должен форматироваться и разбираться обратно как полная неделя (год недели, номер недели).',
-                localeMismatchWarning:
-                    'Этот шаблон использует токены ISO-недели ("W" или "G"). Календарь будет отображать недели, начинающиеся с понедельника. Используйте "w" или "g", если еженедельные заметки должны соответствовать выбранной локали.'
+                weekPathMismatchWarning:
+                    'Пути еженедельных заметок используют язык периодических заметок. Используйте совпадающие языки или используйте "GGGG" с "WW" для недель, начинающихся с понедельника.',
+                mixedWeekTokensWarning:
+                    'Этот шаблон смешивает токены недели, начинающейся с понедельника ("W" или "G"), с токенами недели на основе локали ("w" или "g"). Используйте один набор последовательно: "GGGG" с "WW" для недель, начинающихся с понедельника, или "gggg" с "ww", если еженедельные заметки должны соответствовать выбранной локали.'
             },
             calendarCustomMonthPattern: {
                 name: 'Ежемесячные заметки',
@@ -1524,14 +1643,25 @@ export const STRINGS_RU = {
                 name: 'Показывать свойства в компактном режиме',
                 desc: 'Отображать свойства при активном компактном режиме.'
             },
-            notePropertyType: {
-                name: 'Свойство заметки',
-                desc: 'Выберите свойство заметки для отображения в элементах файлов.',
+            showWordCount: {
+                name: 'Показывать количество слов',
+                desc: 'Показывать количество слов в заметках в элементах файлов.'
+            },
+            wordCountPlacement: {
+                name: 'Размещение',
+                desc: 'Выберите, где показывать количество слов.',
                 options: {
-                    frontmatter: 'Свойство frontmatter',
-                    wordCount: 'Количество слов',
-                    none: 'Нет'
+                    title: 'В заголовке',
+                    property: 'Как свойство'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Целевое свойство',
+                desc: 'Ключ свойства frontmatter с целевым количеством слов. Оставьте пустым, чтобы скрыть цели.'
+            },
+            showWordCountPercentage: {
+                name: 'Показывать процент цели',
+                desc: 'Показывать только процент выполнения, когда доступно целевое количество слов.'
             },
             propertyFields: {
                 name: 'Ключи свойств (профиль хранилища)',
@@ -1618,6 +1748,10 @@ export const STRINGS_RU = {
                     '3': '3 строки'
                 }
             },
+            useFolderColor: {
+                name: 'Использовать цвет папки',
+                desc: 'Окрашивать заголовки заметок и значки файлов цветом родительской папки, когда не задан пользовательский цвет файла. Приоритет: пользовательский цвет файла > цвет папки > цвет по умолчанию.'
+            },
             showFeatureImage: {
                 name: 'Показывать изображение',
                 desc: 'Отображает миниатюру первого изображения в заметке.'
@@ -1658,6 +1792,19 @@ export const STRINGS_RU = {
             downloadExternalFeatureImages: {
                 name: 'Загружать внешние изображения',
                 desc: 'Загружать удалённые изображения и миниатюры YouTube для обложек.'
+            },
+            hideDrawingPreviewImages: {
+                name: 'Скрыть экспортированные изображения предпросмотра',
+                desc: 'Скрывает экспортированные PNG-файлы предпросмотра рисунков. Включите «Показать скрытые элементы», чтобы отобразить их.'
+            },
+            drawingIntegrationInfo: {
+                intro: 'Notebook Navigator показывает PNG-файлы, экспортированные Excalidraw, как предпросмотры рисунков.',
+                items: [
+                    'В **настройках Excalidraw** откройте **Embedding Excalidraw into your Notes and Exporting**, затем **Export Settings**, затем **Auto-export Settings**.',
+                    'Включите **Auto-export PNG**. По желанию включите **Export both dark- and light-themed image**.',
+                    'Notebook Navigator ищет **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png** или **Drawing.excalidraw.light.png**.',
+                    'Пока включён параметр **Скрыть экспортированные изображения предпросмотра**, PNG-файлы отображаются только при включённом **Показать скрытые элементы**.'
+                ]
             },
             showRootFolder: {
                 name: 'Показывать корневую папку',

@@ -17,12 +17,14 @@
  */
 import { describe, expect, it, vi } from 'vitest';
 import { App, TFile, parseYaml, type CachedMetadata, type FrontMatterCache } from 'obsidian';
+import { FeatureImageContentProvider } from '../../src/services/content/FeatureImageContentProvider';
 import { MarkdownPipelineContentProvider } from '../../src/services/content/MarkdownPipelineContentProvider';
 import { findFeatureImageReference, type FeatureImageReference } from '../../src/services/content/featureImageReferenceResolver';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings/types';
 import type { FileData } from '../../src/storage/IndexedDBStorage';
 import { deriveFileMetadata } from '../utils/pathMetadata';
+import { getDrawingDirectFeatureImageKey } from '../../src/utils/drawingFeatureImages';
 
 class TestFeatureImageContentProvider extends MarkdownPipelineContentProvider {
     async runProcessFile(file: TFile, settings: NotebookNavigatorSettings) {
@@ -38,13 +40,32 @@ class TestFeatureImageContentProvider extends MarkdownPipelineContentProvider {
     buildKey(reference: FeatureImageReference): string {
         return this.getFeatureImageKey(reference);
     }
+
+    shouldProcess(fileData: FileData | null, file: TFile, settings: NotebookNavigatorSettings): boolean {
+        return this.needsProcessing(fileData, file, settings);
+    }
+}
+
+class TestNonMarkdownFeatureImageContentProvider extends FeatureImageContentProvider {
+    async runProcessFile(file: TFile, settings: NotebookNavigatorSettings) {
+        const result = await this.processFile({ file, path: file.path }, null, settings);
+        return result.update;
+    }
+
+    async runProcessFileWithData(file: TFile, fileData: FileData | null, settings: NotebookNavigatorSettings) {
+        const result = await this.processFile({ file, path: file.path }, fileData, settings);
+        return result.update;
+    }
+
+    shouldProcess(fileData: FileData | null, file: TFile, settings: NotebookNavigatorSettings): boolean {
+        return this.needsProcessing(fileData, file, settings);
+    }
 }
 
 function createSettings(overrides?: Partial<NotebookNavigatorSettings>): NotebookNavigatorSettings {
     return {
         ...DEFAULT_SETTINGS,
         showFilePreview: false,
-        notePropertyType: 'none',
         featureImageProperties: ['thumbnail'],
         downloadExternalFeatureImages: true,
         ...overrides
@@ -744,105 +765,206 @@ describe('FeatureImageContentProvider scanning', () => {
         expect(result?.featureImage?.size).toBe(0);
     });
 
-    it('generates Excalidraw feature images via ExcalidrawAutomate', async () => {
+    it('marks Excalidraw feature images as direct companion-image rows', async () => {
         const context = createApp();
-        const { app } = context;
+        const { app, resolvedFiles } = context;
         const provider = new TestFeatureImageContentProvider(app);
         const settings = createSettings();
         const excalidrawFile = createFile('drawings/sketch.excalidraw.md');
         excalidrawFile.stat.mtime = 123;
         setMarkdownContent(context, excalidrawFile, '');
 
-        const destroy = vi.fn<() => void>();
-        const createPng = vi.fn<
-            (
-                view: undefined,
-                scale: number,
-                exportSettings: object,
-                embeddedFilesLoader: object,
-                theme: undefined,
-                padding: number
-            ) => Promise<Blob | null>
-        >(async () => new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' }));
+        const companionImage = createFile('drawings/sketch.excalidraw.png');
+        companionImage.stat.mtime = 456;
+        companionImage.stat.size = 24;
+        resolvedFiles.set(companionImage.path, companionImage);
+        const readBinary = vi.fn(async () => new ArrayBuffer(0));
+        app.vault.adapter.readBinary = readBinary;
 
-        Reflect.set(globalThis, 'ExcalidrawAutomate', {
-            getAPI: () => ({
-                getSceneFromFile: async () => ({ elements: [{ x: 0, y: 0, width: 100, height: 80 }] }),
-                copyViewElementsToEAforEditing: async () => {},
-                getEmbeddedFilesLoader: () => ({}),
-                getExportSettings: () => ({}),
-                createPNG: createPng,
-                destroy
-            })
-        });
+        const result = await provider.runProcessFile(excalidrawFile, settings);
 
-        try {
-            const result = await provider.runProcessFile(excalidrawFile, settings);
-
-            expect(result?.featureImageKey).toBe(`x:${excalidrawFile.path}@${excalidrawFile.stat.mtime}`);
-            expect(result?.featureImage).toBeInstanceOf(Blob);
-            expect(result?.featureImage?.size).toBeGreaterThan(0);
-            expect(result?.featureImage?.type).toBe('image/png');
-            expect(createPng).toHaveBeenCalledWith(undefined, expect.any(Number), expect.any(Object), expect.any(Object), undefined, 0);
-            expect(createPng.mock.calls[0]?.[1]).toBeLessThanOrEqual(1);
-            expect(createPng.mock.calls[0]?.[1]).toBeGreaterThan(0);
-            expect(destroy).toHaveBeenCalledTimes(1);
-        } finally {
-            Reflect.deleteProperty(globalThis, 'ExcalidrawAutomate');
-        }
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(excalidrawFile, 'excalidraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+        expect(readBinary).not.toHaveBeenCalled();
     });
 
-    it('generates Excalidraw feature images when excalidraw-plugin frontmatter is set', async () => {
+    it('marks frontmatter Excalidraw feature images as direct companion-image rows', async () => {
         const context = createApp();
         const { app } = context;
         const provider = new TestFeatureImageContentProvider(app);
         const settings = createSettings();
         const excalidrawFile = createFile('drawings/sketch.md');
-        excalidrawFile.stat.mtime = 321;
-
         const content = `---\nexcalidraw-plugin: parsed\n---\n`;
         setMarkdownContent(context, excalidrawFile, content);
 
-        const destroy = vi.fn<() => void>();
-        const createPng = vi.fn<
-            (
-                view: undefined,
-                scale: number,
-                exportSettings: object,
-                embeddedFilesLoader: object,
-                theme: undefined,
-                padding: number
-            ) => Promise<Blob | null>
-        >(async () => new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' }));
+        const result = await provider.runProcessFile(excalidrawFile, settings);
 
-        Reflect.set(globalThis, 'ExcalidrawAutomate', {
-            getAPI: () => ({
-                getSceneFromFile: async () => ({ elements: [{ x: 0, y: 0, width: 100, height: 80 }] }),
-                copyViewElementsToEAforEditing: async () => {},
-                getEmbeddedFilesLoader: () => ({}),
-                getExportSettings: () => ({}),
-                createPNG: createPng,
-                destroy
-            })
-        });
-
-        try {
-            const result = await provider.runProcessFile(excalidrawFile, settings);
-
-            expect(result?.featureImageKey).toBe(`x:${excalidrawFile.path}@${excalidrawFile.stat.mtime}`);
-            expect(result?.featureImage).toBeInstanceOf(Blob);
-            expect(result?.featureImage?.size).toBeGreaterThan(0);
-            expect(result?.featureImage?.type).toBe('image/png');
-            expect(createPng).toHaveBeenCalledWith(undefined, expect.any(Number), expect.any(Object), expect.any(Object), undefined, 0);
-            expect(createPng.mock.calls[0]?.[1]).toBeLessThanOrEqual(1);
-            expect(createPng.mock.calls[0]?.[1]).toBeGreaterThan(0);
-            expect(destroy).toHaveBeenCalledTimes(1);
-        } finally {
-            Reflect.deleteProperty(globalThis, 'ExcalidrawAutomate');
-        }
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(excalidrawFile, 'excalidraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
     });
 
-    it('skips Excalidraw regeneration when featureImageKey matches', async () => {
+    it('marks frontmatter Tldraw feature images as direct drawing rows', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.md');
+        const content = `---\ntldraw-file: true\n---\n`;
+        setMarkdownContent(context, tldrawFile, content);
+
+        const result = await provider.runProcessFile(tldrawFile, settings);
+
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('replaces generic markdown feature markers for frontmatter Tldraw files', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.md');
+        setMarkdownContent(context, tldrawFile, `---\ntldraw-file: true\n---\n`);
+        const fileData: FileData = {
+            mtime: tldrawFile.stat.mtime,
+            markdownPipelineMtime: tldrawFile.stat.mtime,
+            tagsMtime: tldrawFile.stat.mtime,
+            metadataMtime: tldrawFile.stat.mtime,
+            fileThumbnailsMtime: tldrawFile.stat.mtime,
+            tags: null,
+            wordCount: 0,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: '',
+            metadata: null
+        };
+
+        expect(provider.shouldProcess(fileData, tldrawFile, settings)).toBe(true);
+
+        const result = await provider.runProcessFileWithData(tldrawFile, fileData, settings);
+
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('skips excluded frontmatter Tldraw regeneration when the empty marker is current', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestFeatureImageContentProvider(app);
+        const settings = createSettings({ featureImageExcludeProperties: ['private'] });
+        const tldrawFile = createFile('drawings/sketch.md');
+        setMarkdownContent(context, tldrawFile, `---\ntldraw-file: true\nprivate: true\n---\n`);
+        const fileData: FileData = {
+            mtime: tldrawFile.stat.mtime,
+            markdownPipelineMtime: tldrawFile.stat.mtime,
+            tagsMtime: tldrawFile.stat.mtime,
+            metadataMtime: tldrawFile.stat.mtime,
+            fileThumbnailsMtime: tldrawFile.stat.mtime,
+            tags: null,
+            wordCount: 0,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: '',
+            metadata: null
+        };
+
+        expect(provider.shouldProcess(fileData, tldrawFile, settings)).toBe(false);
+
+        const result = await provider.runProcessFileWithData(tldrawFile, fileData, settings);
+
+        expect(result).toBeNull();
+    });
+
+    it('marks raw Tldraw feature images as direct drawing rows', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestNonMarkdownFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.tldr');
+
+        const result = await provider.runProcessFile(tldrawFile, settings);
+
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('replaces generic non-markdown feature markers for raw Tldraw files', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestNonMarkdownFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.tldr');
+        const fileData: FileData = {
+            mtime: tldrawFile.stat.mtime,
+            markdownPipelineMtime: tldrawFile.stat.mtime,
+            tagsMtime: tldrawFile.stat.mtime,
+            metadataMtime: tldrawFile.stat.mtime,
+            fileThumbnailsMtime: tldrawFile.stat.mtime,
+            tags: null,
+            wordCount: null,
+            taskTotal: null,
+            taskUnfinished: null,
+            properties: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: '',
+            metadata: null
+        };
+
+        expect(provider.shouldProcess(fileData, tldrawFile, settings)).toBe(true);
+
+        const result = await provider.runProcessFileWithData(tldrawFile, fileData, settings);
+
+        expect(result?.featureImageKey).toBe(getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'));
+        expect(result?.featureImage).toBeInstanceOf(Blob);
+        expect(result?.featureImage?.size).toBe(0);
+    });
+
+    it('skips raw Tldraw regeneration when the direct drawing marker matches', async () => {
+        const context = createApp();
+        const { app } = context;
+        const provider = new TestNonMarkdownFeatureImageContentProvider(app);
+        const settings = createSettings();
+        const tldrawFile = createFile('drawings/sketch.tldr');
+        const fileData: FileData = {
+            mtime: tldrawFile.stat.mtime,
+            markdownPipelineMtime: tldrawFile.stat.mtime,
+            tagsMtime: tldrawFile.stat.mtime,
+            metadataMtime: tldrawFile.stat.mtime,
+            fileThumbnailsMtime: tldrawFile.stat.mtime,
+            tags: null,
+            wordCount: null,
+            taskTotal: null,
+            taskUnfinished: null,
+            properties: null,
+            previewStatus: 'none',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: getDrawingDirectFeatureImageKey(tldrawFile, 'tldraw'),
+            metadata: null
+        };
+
+        expect(provider.shouldProcess(fileData, tldrawFile, settings)).toBe(false);
+
+        const result = await provider.runProcessFileWithData(tldrawFile, fileData, settings);
+        expect(result).toBeNull();
+    });
+
+    it('skips Excalidraw regeneration when the direct companion marker matches', async () => {
         const context = createApp();
         const { app } = context;
         const provider = new TestFeatureImageContentProvider(app);
@@ -851,168 +973,25 @@ describe('FeatureImageContentProvider scanning', () => {
         excalidrawFile.stat.mtime = 456;
         setMarkdownContent(context, excalidrawFile, '');
 
-        const createPng = vi.fn(async () => new Blob([new Uint8Array([1])], { type: 'image/png' }));
+        const fileData: FileData = {
+            mtime: excalidrawFile.stat.mtime,
+            markdownPipelineMtime: excalidrawFile.stat.mtime,
+            tagsMtime: excalidrawFile.stat.mtime,
+            metadataMtime: excalidrawFile.stat.mtime,
+            fileThumbnailsMtime: excalidrawFile.stat.mtime,
+            tags: null,
+            wordCount: 0,
+            taskTotal: 0,
+            taskUnfinished: 0,
+            properties: null,
+            previewStatus: 'unprocessed',
+            featureImage: null,
+            featureImageStatus: 'none',
+            featureImageKey: getDrawingDirectFeatureImageKey(excalidrawFile, 'excalidraw'),
+            metadata: null
+        };
 
-        Reflect.set(globalThis, 'ExcalidrawAutomate', {
-            getAPI: () => ({
-                getSceneFromFile: async () => ({ elements: [{ x: 0, y: 0, width: 100, height: 80 }] }),
-                copyViewElementsToEAforEditing: async () => {},
-                getEmbeddedFilesLoader: () => ({}),
-                getExportSettings: () => ({}),
-                createPNG: createPng,
-                destroy: () => {}
-            })
-        });
-
-        try {
-            const fileData: FileData = {
-                mtime: excalidrawFile.stat.mtime,
-                markdownPipelineMtime: excalidrawFile.stat.mtime,
-                tagsMtime: excalidrawFile.stat.mtime,
-                metadataMtime: excalidrawFile.stat.mtime,
-                fileThumbnailsMtime: excalidrawFile.stat.mtime,
-                tags: null,
-                wordCount: 0,
-                taskTotal: 0,
-                taskUnfinished: 0,
-                properties: null,
-                previewStatus: 'unprocessed',
-                featureImage: null,
-                featureImageStatus: 'has',
-                featureImageKey: `x:${excalidrawFile.path}@${excalidrawFile.stat.mtime}`,
-                metadata: null
-            };
-
-            const result = await provider.runProcessFileWithData(excalidrawFile, fileData, settings);
-            expect(result).toBeNull();
-            expect(createPng).not.toHaveBeenCalled();
-        } finally {
-            Reflect.deleteProperty(globalThis, 'ExcalidrawAutomate');
-        }
-    });
-
-    it('destroys ExcalidrawAutomate API when getSceneFromFile throws', async () => {
-        const context = createApp();
-        const { app } = context;
-        const provider = new TestFeatureImageContentProvider(app);
-        const settings = createSettings();
-        const excalidrawFile = createFile('drawings/broken.excalidraw.md');
-        excalidrawFile.stat.mtime = 777;
-        setMarkdownContent(context, excalidrawFile, '');
-
-        const destroy = vi.fn<() => void>();
-
-        Reflect.set(globalThis, 'ExcalidrawAutomate', {
-            getAPI: () => ({
-                getSceneFromFile: async () => {
-                    throw new Error('boom');
-                },
-                copyViewElementsToEAforEditing: async () => {},
-                getEmbeddedFilesLoader: () => ({}),
-                getExportSettings: () => ({}),
-                createPNG: async () => null,
-                destroy
-            })
-        });
-
-        try {
-            const result = await provider.runProcessFile(excalidrawFile, settings);
-
-            expect(result?.featureImageKey).toBe(`x:${excalidrawFile.path}@${excalidrawFile.stat.mtime}`);
-            expect(result?.featureImage).toBeInstanceOf(Blob);
-            expect(result?.featureImage?.size).toBe(0);
-            expect(destroy).toHaveBeenCalledTimes(1);
-        } finally {
-            Reflect.deleteProperty(globalThis, 'ExcalidrawAutomate');
-        }
-    });
-
-    it('falls back to copyViewElementsToEAforEditing without embedded files', async () => {
-        const context = createApp();
-        const { app } = context;
-        const excalidrawFile = createFile('drawings/embedded.excalidraw.md');
-        excalidrawFile.stat.mtime = 888;
-        setMarkdownContent(context, excalidrawFile, '');
-
-        Reflect.set(app as object, 'workspace', {
-            iterateAllLeaves: (cb: (leaf: object) => void) => {
-                cb({ view: { file: { path: excalidrawFile.path } } });
-            }
-        });
-
-        const provider = new TestFeatureImageContentProvider(app);
-        const settings = createSettings();
-
-        const destroy = vi.fn<() => void>();
-        const copyViewElementsToEAforEditing = vi.fn<(_elements: object[], includeFiles: boolean) => Promise<void>>(
-            async (_elements, includeFiles) => {
-                if (includeFiles) {
-                    throw new Error('includeFiles unsupported');
-                }
-            }
-        );
-        const setView = vi.fn<(_view: object) => void>();
-
-        Reflect.set(globalThis, 'ExcalidrawAutomate', {
-            getAPI: () => ({
-                setView,
-                getSceneFromFile: async () => ({ elements: [{ x: 0, y: 0, width: 100, height: 80 }] }),
-                copyViewElementsToEAforEditing,
-                getEmbeddedFilesLoader: () => ({}),
-                getExportSettings: () => ({}),
-                createPNG: async () => new Blob([new Uint8Array([9])], { type: 'image/png' }),
-                destroy
-            })
-        });
-
-        try {
-            const result = await provider.runProcessFile(excalidrawFile, settings);
-
-            expect(result?.featureImageKey).toBe(`x:${excalidrawFile.path}@${excalidrawFile.stat.mtime}`);
-            expect(result?.featureImage?.size).toBeGreaterThan(0);
-            expect(copyViewElementsToEAforEditing).toHaveBeenCalledTimes(2);
-            expect(copyViewElementsToEAforEditing).toHaveBeenNthCalledWith(1, expect.any(Array), true);
-            expect(copyViewElementsToEAforEditing).toHaveBeenNthCalledWith(2, expect.any(Array), false);
-            expect(setView).toHaveBeenCalledTimes(1);
-            expect(destroy).toHaveBeenCalledTimes(1);
-        } finally {
-            Reflect.deleteProperty(globalThis, 'ExcalidrawAutomate');
-        }
-    });
-
-    it('destroys ExcalidrawAutomate API when createPNG throws', async () => {
-        const context = createApp();
-        const { app } = context;
-        const provider = new TestFeatureImageContentProvider(app);
-        const settings = createSettings();
-        const excalidrawFile = createFile('drawings/throw.excalidraw.md');
-        excalidrawFile.stat.mtime = 999;
-        setMarkdownContent(context, excalidrawFile, '');
-
-        const destroy = vi.fn<() => void>();
-
-        Reflect.set(globalThis, 'ExcalidrawAutomate', {
-            getAPI: () => ({
-                getSceneFromFile: async () => ({ elements: [{ x: 0, y: 0, width: 100, height: 80 }] }),
-                copyViewElementsToEAforEditing: async () => {},
-                getEmbeddedFilesLoader: () => ({}),
-                getExportSettings: () => ({}),
-                createPNG: async () => {
-                    throw new Error('png failed');
-                },
-                destroy
-            })
-        });
-
-        try {
-            const result = await provider.runProcessFile(excalidrawFile, settings);
-
-            expect(result?.featureImageKey).toBe(`x:${excalidrawFile.path}@${excalidrawFile.stat.mtime}`);
-            expect(result?.featureImage).toBeInstanceOf(Blob);
-            expect(result?.featureImage?.size).toBe(0);
-            expect(destroy).toHaveBeenCalledTimes(1);
-        } finally {
-            Reflect.deleteProperty(globalThis, 'ExcalidrawAutomate');
-        }
+        const result = await provider.runProcessFileWithData(excalidrawFile, fileData, settings);
+        expect(result).toBeNull();
     });
 });

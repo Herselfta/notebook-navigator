@@ -40,7 +40,6 @@ function createSettings(overrides: Partial<NotebookNavigatorSettings> & { proper
     const settings = structuredClone(DEFAULT_SETTINGS);
     settings.showFilePreview = false;
     settings.showFeatureImage = false;
-    settings.notePropertyType = 'none';
     Object.assign(settings, restOverrides);
 
     if (typeof rawPropertyFields === 'string') {
@@ -78,14 +77,15 @@ describe('MarkdownPipelineContentProvider clearContent', () => {
         expect(batchClearAllFileContentMock).toHaveBeenCalledWith('preview');
     });
 
-    it('keeps previews when preview is disabled', async () => {
+    it('clears previews when preview is disabled', async () => {
         const provider = new MarkdownPipelineContentProvider(new App());
         const oldSettings = createSettings({ showFilePreview: true });
         const newSettings = createSettings({ showFilePreview: false });
 
         await provider.clearContent({ oldSettings, newSettings });
 
-        expect(batchClearAllFileContentMock).not.toHaveBeenCalled();
+        expect(batchClearAllFileContentMock).toHaveBeenCalledTimes(1);
+        expect(batchClearAllFileContentMock).toHaveBeenCalledWith('preview');
     });
 
     it('clears persisted properties when property fields change while remaining enabled', async () => {

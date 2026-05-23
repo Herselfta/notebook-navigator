@@ -27,11 +27,3 @@
 .nn-metadata-export-button {
     flex-shrink: 0;
 }
-
-/* Make delete menu items red (items with trash icon) */
-.menu-item:has(.menu-item-icon svg.lucide-trash) {
-    color: var(--text-error);
-}
-.menu-item:has(.menu-item-icon svg.lucide-trash) .menu-item-icon {
-    color: var(--text-error);
-}

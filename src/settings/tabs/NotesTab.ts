@@ -25,7 +25,7 @@ import { createSettingGroupFactory } from '../settingGroups';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import { setElementVisible, wireToggleSettingWithSubSettings } from '../subSettings';
 import { DEFAULT_SETTINGS } from '../defaultSettings';
-import { isFeatureImagePixelSizeSetting, isFeatureImageSizeSetting } from '../types';
+import { isFeatureImagePixelSizeSetting, isFeatureImageSizeSetting, isWordCountPlacement } from '../types';
 import {
     normalizeFileNameIconMapKey,
     normalizeFileTypeIconMapKey,
@@ -63,6 +63,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
     const notePropertyGroup = createGroup(strings.settings.groups.notes.properties);
     const dateGroup = createGroup(strings.settings.groups.notes.date);
     const parentFolderGroup = createGroup(strings.settings.groups.notes.parentFolder);
+    const wordCountGroup = createGroup(strings.settings.groups.notes.wordCount);
 
     const setGroupVisible = (groupRootEl: HTMLElement, visible: boolean) => {
         setElementVisible(groupRootEl, visible);
@@ -245,6 +246,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
     };
 
     new Setting(fileIconSubSettingsEl)
+        .setName(strings.settings.items.useFolderIcon.name)
+        .setDesc(strings.settings.items.useFolderIcon.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.useFolderIconForFiles).onChange(async value => {
+                plugin.settings.useFolderIconForFiles = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(fileIconSubSettingsEl)
         .setName(strings.settings.items.showFilenameMatchIcons.name)
         .setDesc(strings.settings.items.showFilenameMatchIcons.desc)
         .addToggle(toggle =>
@@ -346,6 +357,18 @@ export function renderNotesTab(context: SettingsTabContext): void {
                         plugin.settings.fileNameRows = parseInt(value, 10);
                         await plugin.saveSettingsAndUpdate();
                     })
+            );
+    });
+
+    titleGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.useFolderColor.name)
+            .setDesc(strings.settings.items.useFolderColor.desc)
+            .addToggle(toggle =>
+                toggle.setValue(plugin.settings.useFolderColorForTitles).onChange(async value => {
+                    plugin.settings.useFolderColorForTitles = value;
+                    await plugin.saveSettingsAndUpdate();
+                })
             );
     });
 
@@ -674,20 +697,6 @@ export function renderNotesTab(context: SettingsTabContext): void {
             })
         );
 
-    notePropertyGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.notePropertyType.name).setDesc(strings.settings.items.notePropertyType.desc);
-        setting.addDropdown(dropdown =>
-            dropdown
-                .addOption('none', strings.settings.items.notePropertyType.options.none)
-                .addOption('wordCount', strings.settings.items.notePropertyType.options.wordCount)
-                .setValue(plugin.settings.notePropertyType)
-                .onChange(async value => {
-                    plugin.settings.notePropertyType = value === 'wordCount' ? 'wordCount' : 'none';
-                    await plugin.saveSettingsAndUpdate();
-                })
-        );
-    });
-
     const showFileDateSetting = dateGroup.addSetting(setting => {
         setting.setName(strings.settings.items.showFileDate.name).setDesc(strings.settings.items.showFileDate.desc);
     });
@@ -730,6 +739,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
     );
 
     new Setting(parentFolderSettingsEl)
+        .setName(strings.settings.items.showParentFolderFullPath.name)
+        .setDesc(strings.settings.items.showParentFolderFullPath.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showParentFolderFullPath).onChange(async value => {
+                plugin.settings.showParentFolderFullPath = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(parentFolderSettingsEl)
         .setName(strings.settings.items.parentFolderClickRevealsFile.name)
         .setDesc(strings.settings.items.parentFolderClickRevealsFile.desc)
         .addToggle(toggle =>
@@ -755,6 +774,59 @@ export function renderNotesTab(context: SettingsTabContext): void {
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.showParentFolderIcon).onChange(async value => {
                 plugin.settings.showParentFolderIcon = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    const showWordCountSetting = wordCountGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showWordCount.name).setDesc(strings.settings.items.showWordCount.desc);
+    });
+
+    const wordCountSettingsEl = wireToggleSettingWithSubSettings(
+        showWordCountSetting,
+        () => plugin.settings.showWordCount,
+        async value => {
+            plugin.settings.showWordCount = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    new Setting(wordCountSettingsEl)
+        .setName(strings.settings.items.wordCountPlacement.name)
+        .setDesc(strings.settings.items.wordCountPlacement.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('title', strings.settings.items.wordCountPlacement.options.title)
+                .addOption('property', strings.settings.items.wordCountPlacement.options.property)
+                .setValue(plugin.settings.wordCountPlacement)
+                .onChange(async value => {
+                    if (!isWordCountPlacement(value)) {
+                        return;
+                    }
+
+                    plugin.settings.wordCountPlacement = value;
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
+
+    const wordCountTargetPropertySetting = context.createDebouncedTextSetting(
+        wordCountSettingsEl,
+        strings.settings.items.wordCountTargetProperty.name,
+        strings.settings.items.wordCountTargetProperty.desc,
+        DEFAULT_SETTINGS.wordCountTargetProperty,
+        () => plugin.settings.wordCountTargetProperty,
+        value => {
+            plugin.settings.wordCountTargetProperty = value.trim();
+        }
+    );
+    wordCountTargetPropertySetting.controlEl.addClass('nn-setting-wide-input');
+
+    new Setting(wordCountSettingsEl)
+        .setName(strings.settings.items.showWordCountPercentage.name)
+        .setDesc(strings.settings.items.showWordCountPercentage.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showWordCountPercentage).onChange(async value => {
+                plugin.settings.showWordCountPercentage = value;
                 await plugin.saveSettingsAndUpdate();
             })
         );

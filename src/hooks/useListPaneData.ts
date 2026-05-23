@@ -33,7 +33,7 @@ import { TFile, TFolder } from 'obsidian';
 import { useServices } from '../context/ServicesContext';
 import { useFileCache } from '../context/StorageContext';
 import { useLocalDayKey } from './useLocalDayKey';
-import { ItemType } from '../types';
+import { ItemType, ListPaneItemType } from '../types';
 import type { VisibilityPreferences } from '../types';
 import type { ListPaneItem } from '../types/virtualization';
 import { createFrontmatterPropertyExclusionMatcher } from '../utils/fileFilters';
@@ -46,6 +46,8 @@ import type { ActiveProfileState } from '../context/SettingsContext';
 import type { SearchProvider } from '../types/search';
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
+import { getListSortOverrideForSelection, isManualSortPropertyKey, resolveListSort } from '../utils/sortUtils';
+import { applyManualSortMarkdownOrder, getManualSortGroupHeaderPropertyKey } from '../utils/manualSort';
 import { getPropertyFieldsFromPropertyKeys } from '../utils/vaultProfiles';
 import { buildHiddenFileState, filterListPaneFiles, useOmnisearchListResult, useSearchableNames } from './listPaneData/searchPipeline';
 import {
@@ -77,6 +79,10 @@ interface UseListPaneDataParams {
     activeProfile: ActiveProfileState;
     /** Effective grouping for the current list selection */
     groupBy: ListNoteGroupingOption;
+    /** Whether the pinned section is expanded in the current context */
+    pinnedGroupExpanded: boolean;
+    /** Collapsed list group keys for the current vault */
+    collapsedListGroups: ReadonlySet<string>;
     /** Active search provider to use for filtering */
     searchProvider: SearchProvider;
     /** Optional search query to filter files */
@@ -85,6 +91,8 @@ interface UseListPaneDataParams {
     searchTokens?: FilterSearchTokens;
     /** Visibility preferences that control descendant notes and hidden items */
     visibility: VisibilityPreferences;
+    /** Optional markdown path order applied before list items are built */
+    propertySortOrderOverride?: readonly string[] | null;
 }
 
 /**
@@ -103,6 +111,8 @@ interface UseListPaneDataResult {
     fileIndexMap: Map<string, number>;
     /** Raw array of files before grouping */
     files: TFile[];
+    /** Hidden-state lookup for files shown through the hidden-items override */
+    hiddenFileState: ReadonlyMap<string, boolean>;
     /** Search metadata keyed by file path (populated when using Omnisearch) */
     searchMeta: Map<string, SearchResultMeta>;
     /** Local day key in YYYY-MM-DD format */
@@ -124,10 +134,13 @@ export function useListPaneData({
     settings,
     activeProfile,
     groupBy,
+    pinnedGroupExpanded,
+    collapsedListGroups,
     searchProvider,
     searchQuery,
     searchTokens,
-    visibility
+    visibility,
+    propertySortOrderOverride
 }: UseListPaneDataParams): UseListPaneDataResult {
     const { app, tagTreeService, propertyTreeService, commandQueue, omnisearchService } = useServices();
     const { getFileTimestamps, getDB, getFileDisplayName } = useFileCache();
@@ -164,20 +177,13 @@ export function useListPaneData({
         [hiddenFileProperties]
     );
     const selectedFolderPath = selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
-    const selectedSortOverride =
-        selectionType === ItemType.TAG && selectedTag
-            ? settings.tagSortOverrides?.[selectedTag]
-            : selectionType === ItemType.PROPERTY && selectedProperty
-              ? settings.propertySortOverrides?.[selectedProperty]
-              : selectedFolderPath
-                ? settings.folderSortOverrides?.[selectedFolderPath]
-                : undefined;
+    const selectedSortOverride = getListSortOverrideForSelection(settings, selectionType, selectedFolder, selectedTag, selectedProperty);
     const selectedFolderGroupSortOrder = settings.folderTreeSortOverrides?.[selectedFolderPath ?? '/'] ?? settings.folderSortOrder;
     const listConfig = useMemo<ListPaneConfig>(
         () => ({
             pinnedNotes: settings.pinnedNotes,
             filterPinnedByFolder: settings.filterPinnedByFolder,
-            showPinnedGroupHeader: settings.showPinnedGroupHeader ?? true,
+            pinnedGroupExpanded,
             showTags: settings.showTags,
             showFileTags: settings.showFileTags,
             groupBy,
@@ -187,17 +193,15 @@ export function useListPaneData({
             settings.filterPinnedByFolder,
             selectedFolderGroupSortOrder,
             groupBy,
+            pinnedGroupExpanded,
             settings.pinnedNotes,
             settings.showFileTags,
-            settings.showPinnedGroupHeader,
             settings.showTags
         ]
     );
 
-    const sortOption = useMemo(
-        () => selectedSortOverride ?? settings.defaultFolderSort,
-        [settings.defaultFolderSort, selectedSortOverride]
-    );
+    const sortSpec = useMemo(() => resolveListSort(settings, selectedSortOverride), [settings, selectedSortOverride]);
+    const sortOption = sortSpec.option;
     const activePropertyFields = useMemo(() => getPropertyFieldsFromPropertyKeys(activeProfile.propertyKeys), [activeProfile.propertyKeys]);
 
     const baseFiles = useMemo(() => {
@@ -214,9 +218,7 @@ export function useListPaneData({
             tagTreeService,
             propertyTreeService
         );
-        // NOTE: Excluding getFilesForNavigationSelection - static import
-        // updateKey triggers re-computation on storage updates
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- updateKey refreshes storage data while getFilesForNavigationSelection is static.
     }, [
         selectionType,
         selectedFolder,
@@ -231,6 +233,7 @@ export function useListPaneData({
         activeProfile.fileVisibility,
         settings.enableFolderNotes,
         settings.hideFolderNoteInList,
+        settings.hideDrawingPreviewImages,
         settings.folderNoteName,
         settings.folderNoteNamePattern,
         settings.useFrontmatterMetadata,
@@ -242,6 +245,7 @@ export function useListPaneData({
         settings.pinnedNotes,
         settings.defaultFolderSort,
         settings.propertySortKey,
+        settings.manualSortPropertyKey,
         settings.propertySortSecondary,
         activePropertyFields,
         settings.showProperties,
@@ -265,7 +269,7 @@ export function useListPaneData({
     const searchableNames = useSearchableNames({ app, baseFiles, getFileDisplayName });
     const filterSettings = useMemo(() => ({ alphabeticalDateMode: settings.alphabeticalDateMode }), [settings.alphabeticalDateMode]);
 
-    const files = useMemo(() => {
+    const filteredFiles = useMemo(() => {
         return filterListPaneFiles({
             app,
             baseFiles,
@@ -293,6 +297,14 @@ export function useListPaneData({
         useOmnisearch
     ]);
 
+    const files = useMemo(() => {
+        if (!propertySortOrderOverride || propertySortOrderOverride.length === 0) {
+            return filteredFiles;
+        }
+
+        return applyManualSortMarkdownOrder(filteredFiles, propertySortOrderOverride);
+    }, [filteredFiles, propertySortOrderOverride]);
+
     const hiddenFileState = useMemo(() => {
         return buildHiddenFileState({
             app,
@@ -302,9 +314,20 @@ export function useListPaneData({
             hiddenFilePropertyMatcher,
             hiddenFileTags,
             hiddenFolders,
+            hideDrawingPreviewImages: settings.hideDrawingPreviewImages,
             showHiddenItems
         });
-    }, [files, getDB, hiddenFolders, hiddenFilePropertyMatcher, hiddenFileNames, hiddenFileTags, showHiddenItems, app]);
+    }, [
+        files,
+        getDB,
+        hiddenFolders,
+        hiddenFilePropertyMatcher,
+        hiddenFileNames,
+        hiddenFileTags,
+        settings.hideDrawingPreviewImages,
+        showHiddenItems,
+        app
+    ]);
 
     const searchMetaMap = useMemo(() => {
         if (useOmnisearch && omnisearchResult) {
@@ -312,6 +335,12 @@ export function useListPaneData({
         }
         return EMPTY_SEARCH_META;
     }, [useOmnisearch, omnisearchResult]);
+    const isManualSortActive = useMemo(
+        () => isManualSortPropertyKey({ manualSortPropertyKey: settings.manualSortPropertyKey }, sortSpec.propertyKey),
+        [settings.manualSortPropertyKey, sortSpec.propertyKey]
+    );
+    const manualSortGroupHeaderPropertyKey = getManualSortGroupHeaderPropertyKey(settings);
+    const shouldRefreshOnCustomGroupHeaderMetadataChange = groupBy === 'custom' && manualSortGroupHeaderPropertyKey !== null;
 
     const listItems = useMemo(() => {
         return buildListItems({
@@ -324,11 +353,18 @@ export function useListPaneData({
             hiddenFileState,
             hiddenTags,
             listConfig,
+            collapsedListGroups,
             searchMetaMap,
             selectedFolder,
+            selectedTag,
+            selectedProperty,
             selectionType,
             showHiddenItems,
-            sortOption
+            sortOption,
+            propertySortKey: sortSpec.propertyKey,
+            isManualSortActive,
+            manualSortGroupHeaderPropertyKey,
+            wordCountTargetProperty: settings.wordCountTargetProperty
         });
     }, [
         app,
@@ -340,11 +376,18 @@ export function useListPaneData({
         hiddenFileState,
         hiddenTags,
         listConfig,
+        collapsedListGroups,
         selectedFolder,
+        selectedTag,
+        selectedProperty,
         selectionType,
         searchMetaMap,
         showHiddenItems,
-        sortOption
+        sortOption,
+        sortSpec.propertyKey,
+        isManualSortActive,
+        manualSortGroupHeaderPropertyKey,
+        settings.wordCountTargetProperty
     ]);
 
     const filePathToIndex = useMemo(() => {
@@ -361,16 +404,39 @@ export function useListPaneData({
     }>(() => {
         return buildOrderedFiles(listItems);
     }, [listItems]);
+    const customGroupHeaderState = useMemo(() => {
+        const filePaths = new Set<string>();
+        let hasWordCountGroupHeaders = false;
+
+        listItems.forEach(item => {
+            if (item.type !== ListPaneItemType.HEADER || item.headerKind !== 'manual-sort-custom') {
+                return;
+            }
+
+            if (item.manualSortHeaderFilePath) {
+                filePaths.add(item.manualSortHeaderFilePath);
+            }
+
+            if (item.manualSortHeaderShowsWordCount === true) {
+                hasWordCountGroupHeaders = true;
+            }
+        });
+
+        return { filePaths, hasWordCountGroupHeaders };
+    }, [listItems]);
 
     useListPaneRefresh({
         app,
         basePathSet,
         commandQueue,
+        customGroupHeaderFilePaths: customGroupHeaderState.filePaths,
         getDB,
+        hasManualSortWordCountGroupHeaders: customGroupHeaderState.hasWordCountGroupHeaders,
         hasTaskSearchFilters,
         hiddenFilePropertyMatcher,
         hiddenFileTags,
         includeDescendantNotes,
+        manualSortGroupHeaderPropertyKey,
         onRefresh: () => setUpdateKey(current => current + 1),
         propertyTreeService,
         selectedFolder,
@@ -378,8 +444,11 @@ export function useListPaneData({
         selectedTag,
         selectionType,
         settings,
+        shouldRefreshOnCustomGroupHeaderMetadataChange,
         showHiddenItems,
-        sortOption
+        sortOption,
+        propertySortKey: sortSpec.propertyKey,
+        propertySortSecondary: sortSpec.propertySortSecondary
     });
 
     return {
@@ -389,6 +458,7 @@ export function useListPaneData({
         filePathToIndex,
         fileIndexMap,
         files,
+        hiddenFileState,
         searchMeta: searchMetaMap,
         localDayKey: dayKey
     };

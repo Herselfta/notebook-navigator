@@ -159,7 +159,7 @@ export function useNavigationPaneScroll({
     const showHiddenItems = uxPreferences.showHiddenItems;
 
     // Reference to the scroll container DOM element
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
     const [scrollContainerEl, setScrollContainerEl] = useState<HTMLDivElement | null>(null);
     const [containerVisible, setContainerVisible] = useState<boolean>(false);
 
@@ -391,10 +391,10 @@ export function useNavigationPaneScroll({
                 attempts += 1;
                 ensureIndexNotCovered(index);
                 if (attempts < 3) {
-                    requestAnimationFrame(adjust);
+                    window.requestAnimationFrame(adjust);
                 }
             };
-            requestAnimationFrame(adjust);
+            window.requestAnimationFrame(adjust);
         },
         [ensureIndexNotCovered, rowVirtualizer]
     );
@@ -635,7 +635,7 @@ export function useNavigationPaneScroll({
             if (intent === 'visibilityToggle') {
                 const usedIndex = index;
                 const usedPath = path;
-                requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
                     const newIndex = resolveIndex(usedPath, itemType);
                     if (newIndex !== undefined && newIndex !== usedIndex) {
                         pendingScrollRef.current = {
@@ -734,7 +734,7 @@ export function useNavigationPaneScroll({
                 const index = resolveIndex(selectedPath, selectedItemType ?? ItemType.FOLDER);
                 if (index !== undefined && index >= 0) {
                     // Use requestAnimationFrame to ensure measurements are complete
-                    requestAnimationFrame(() => {
+                    window.requestAnimationFrame(() => {
                         scrollToIndexSafely(index, 'auto');
                     });
                 }
@@ -786,7 +786,7 @@ export function useNavigationPaneScroll({
             return;
         }
 
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             scrollToIndexSafely(index, 'auto');
         });
     }, [

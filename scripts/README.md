@@ -48,8 +48,9 @@ node scripts/release.js patch --dry-run    # Preview release PR preparation
 - Validates git repository state (clean, on main branch, synced with remote)
 - Runs build verification before release
 - Creates a release branch and pull request with the version bump
-- Publishes a merged release by creating and pushing a git tag
+- With GitHub CLI, waits for the release pull request to merge, then publishes by creating and pushing a git tag
 - Pushes the tag to trigger the GitHub Actions release workflow
+- Verifies the remote tag, GitHub release assets, release workflow result, and artifact attestations after publishing
 
 **Version Types:**
 
@@ -62,7 +63,8 @@ node scripts/release.js patch --dry-run    # Preview release PR preparation
 - Never manually modify version numbers in files
 - Always commit all changes before running
 - Must be on main branch and synced with remote
-- Merge the release pull request before running `node scripts/release.js`
+- If the script creates a pull request with GitHub CLI, leave it running while you merge the pull request
+- If you stop the script after merging the release pull request, run `node scripts/release.js` again to publish
 
 ## gitdump.sh
 

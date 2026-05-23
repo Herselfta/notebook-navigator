@@ -42,7 +42,13 @@ import { getFolderNote, getFolderNoteDetectionSettings, isFolderNote, isSupporte
 import { createFrontmatterPropertyExclusionMatcher, isFolderInExcludedFolder, shouldExcludeFileWithMatcher } from '../../utils/fileFilters';
 import { getEffectiveFrontmatterExclusions } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../../utils/async';
-import { getMomentApi, resolveCalendarLocales, resolveDailyNoteLocale, type MomentInstance } from '../../utils/moment';
+import {
+    getMomentApi,
+    resolveCalendarLocales,
+    resolveCalendarPeriodicNotesLocale,
+    resolveDailyNoteLocale,
+    type MomentInstance
+} from '../../utils/moment';
 import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
 import { getActiveHiddenFolders, getActiveVaultProfile } from '../../utils/vaultProfiles';
 import { showNotice } from '../../utils/noticeUtils';
@@ -61,6 +67,7 @@ import { isNoteShortcut, type ShortcutEntry } from '../../types/shortcuts';
 import { getTemplaterCreateNewNoteFromTemplate } from '../../utils/templaterIntegration';
 import { getLeafSplitLocation } from '../../utils/workspaceSplit';
 import { openFileInContext } from '../../utils/openFileInContext';
+import { resolveNoteShortcutTarget } from '../../utils/shortcutPathResolver';
 import {
     canRestorePropertySelectionNodeId,
     isPropertySelectionNodeIdConfigured,
@@ -69,7 +76,7 @@ import {
     parseStoredPropertySelectionNodeId,
     type PropertySelectionNodeId
 } from '../../utils/propertyTree';
-import { getAdjacentFile, getFilesForNavigationSelection } from '../../utils/selectionUtils';
+import { getAdjacentFile, getFilesForNavigationSelection, getPinnedSectionCollapseKey } from '../../utils/selectionUtils';
 
 /**
  * Reveals the navigator view and focuses whichever pane is currently visible
@@ -391,6 +398,10 @@ function resolveOpenAllFilesContext(plugin: NotebookNavigatorPlugin): CommandNav
     };
 }
 
+function getPinnedCollapseKeyForCommand(plugin: NotebookNavigatorPlugin) {
+    return getPinnedSectionCollapseKey(resolveOpenAllFilesContext(plugin));
+}
+
 function getOpenAllFilesConfirmTitle(fileCount: number): string {
     const label = fileCount === 1 ? strings.tooltips.file : strings.tooltips.files;
     return `${strings.commands.open} ${fileCount.toString()} ${label}?`;
@@ -512,6 +523,11 @@ async function openCalendarNoteForToday(plugin: NotebookNavigatorPlugin, kind: C
 
     const currentLanguage = getCurrentLanguage();
     const { calendarRulesLocale } = resolveCalendarLocales(plugin.settings.calendarLocale, momentApi, currentLanguage);
+    const periodicNotesLocale = resolveCalendarPeriodicNotesLocale(
+        plugin.settings.calendarPeriodicNotesLocaleSource,
+        calendarRulesLocale,
+        momentApi
+    );
     const date: MomentInstance = momentApi().startOf('day');
 
     if (kind === 'day' && plugin.settings.calendarIntegrationMode === 'daily-notes') {
@@ -563,7 +579,7 @@ async function openCalendarNoteForToday(plugin: NotebookNavigatorPlugin, kind: C
         return;
     }
 
-    const dateForPath = resolveCalendarCustomNotePathDate(kind, date, momentPattern, calendarRulesLocale, calendarRulesLocale);
+    const dateForPath = resolveCalendarCustomNotePathDate(kind, date, momentPattern, periodicNotesLocale, periodicNotesLocale);
 
     const settings = { calendarCustomRootFolder: getActiveVaultProfile(plugin.settings).periodicNotesFolder };
     const expected = buildCustomCalendarFilePathForPattern(dateForPath, settings, config.calendarCustomFilePattern, config.fallbackPattern);
@@ -781,6 +797,19 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
             runAsyncAction(async () => {
                 plugin.settings.defaultListMode = plugin.settings.defaultListMode === 'compact' ? 'standard' : 'compact';
                 await plugin.saveSettingsAndUpdate();
+            });
+        }
+    });
+
+    // Command to toggle the pinned section in the list pane
+    plugin.addCommand({
+        id: 'toggle-pinned-section',
+        name: strings.commands.togglePinnedSection,
+        callback: () => {
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                await view?.whenReady();
+                await plugin.togglePinnedGroupCollapsed(getPinnedCollapseKeyForCommand(plugin));
             });
         }
     });
@@ -1226,22 +1255,17 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
-    // Command to delete the currently active file
+    // Command to delete selected files
     plugin.addCommand({
         id: 'delete-files',
         name: strings.commands.deleteFile,
         callback: () => {
             // Wrap delete operation with error handling
             runAsyncAction(async () => {
-                await plugin.activateView();
-
-                const navigatorLeaves = plugin.getNavigatorLeaves();
-                navigatorLeaves.forEach(leaf => {
-                    const view = leaf.view;
-                    if (view instanceof NotebookNavigatorView) {
-                        view.deleteActiveFile();
-                    }
-                });
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
+                    view.deleteSelectedFiles();
+                }
             });
         }
     });
@@ -1427,8 +1451,8 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
 
         const { app } = plugin;
-        const target = app.vault.getAbstractFileByPath(shortcut.path);
-        if (!(target instanceof TFile)) {
+        const target = resolveNoteShortcutTarget(app, shortcut.path);
+        if (!target) {
             return false;
         }
 

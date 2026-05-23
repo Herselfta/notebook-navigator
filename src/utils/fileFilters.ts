@@ -32,6 +32,7 @@ import { createHiddenTagVisibility } from './tagPrefixMatcher';
 import { type CachedFileTagsDB, getCachedFileTags } from './tagUtils';
 import { casefold, casefoldPreservingWhitespace, sortAndDedupeByComparator } from './recordUtils';
 import { normalizePropertyTreeValuePath } from './propertyUtils';
+import { isNonMarkdownDrawingFeatureImageFile, shouldHideDrawingCompanionImageFile } from './drawingFeatureImages';
 
 interface FileFilterOptions {
     showHiddenItems?: boolean;
@@ -673,6 +674,7 @@ interface ExclusionFilterState {
     excludedPropertyMatcher: FrontmatterPropertyExclusionMatcher;
     excludedFolderPatterns: string[];
     includeHiddenItems: boolean;
+    hideDrawingPreviewImages: boolean;
     fileNameMatcher: HiddenFileNameMatcher | null;
     hiddenFileTagVisibility: ReturnType<typeof createHiddenTagVisibility> | null;
     db: CachedFileTagsDB | null;
@@ -692,6 +694,7 @@ function createExclusionFilterState(settings: NotebookNavigatorSettings, options
         excludedPropertyMatcher,
         excludedFolderPatterns: getActiveHiddenFolders(settings),
         includeHiddenItems,
+        hideDrawingPreviewImages: settings.hideDrawingPreviewImages,
         fileNameMatcher,
         hiddenFileTagVisibility,
         db
@@ -699,7 +702,19 @@ function createExclusionFilterState(settings: NotebookNavigatorSettings, options
 }
 
 function passesExclusionFilters(file: TFile, state: ExclusionFilterState, app: App): boolean {
-    const { excludedPropertyMatcher, excludedFolderPatterns, includeHiddenItems, fileNameMatcher, hiddenFileTagVisibility, db } = state;
+    const {
+        excludedPropertyMatcher,
+        excludedFolderPatterns,
+        includeHiddenItems,
+        hideDrawingPreviewImages,
+        fileNameMatcher,
+        hiddenFileTagVisibility,
+        db
+    } = state;
+
+    if (!includeHiddenItems && shouldHideDrawingCompanionImageFile(app, file, { hideDrawingPreviewImages })) {
+        return false;
+    }
 
     // Frontmatter based exclusion (markdown only)
     if (!includeHiddenItems && file.extension === 'md' && excludedPropertyMatcher.hasCriteria) {
@@ -741,9 +756,9 @@ export function getFilteredMarkdownFiles(app: App, settings: NotebookNavigatorSe
 }
 
 /**
- * Gets filtered indexable files from the vault (markdown + PDF).
+ * Gets filtered files that should be present in the storage cache.
  */
-export function getFilteredMarkdownAndPdfFiles(app: App, settings: NotebookNavigatorSettings, options?: FileFilterOptions): TFile[] {
+export function getFilteredIndexableFiles(app: App, settings: NotebookNavigatorSettings, options?: FileFilterOptions): TFile[] {
     if (!app || !settings) return [];
 
     const fileVisibility = getActiveFileVisibility(settings);
@@ -758,11 +773,12 @@ export function getFilteredMarkdownAndPdfFiles(app: App, settings: NotebookNavig
             continue;
         }
 
-        if (!isPdfFile(file)) {
+        const isNonMarkdownDrawingFile = isNonMarkdownDrawingFeatureImageFile(file);
+        if (!isPdfFile(file) && !isNonMarkdownDrawingFile) {
             continue;
         }
 
-        if (!shouldDisplayFile(file, fileVisibility, app)) {
+        if (!isNonMarkdownDrawingFile && !shouldDisplayFile(file, fileVisibility, app)) {
             continue;
         }
 

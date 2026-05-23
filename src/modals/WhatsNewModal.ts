@@ -289,7 +289,7 @@ export class WhatsNewModal extends Modal {
         // Focus the thanks button after the modal is fully opened
         if (this.thanksButton) {
             // Use requestAnimationFrame to ensure DOM is ready
-            requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
                 this.thanksButton?.focus();
             });
         }

@@ -17,7 +17,7 @@
  */
 
 import { App } from 'obsidian';
-import type { AlphaSortOrder, NotebookNavigatorSettings, SortOption } from '../../settings';
+import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../../settings';
 import type { ISettingsProvider } from '../../interfaces/ISettingsProvider';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../../types';
 import type { CleanupValidators } from '../MetadataService';
@@ -28,7 +28,7 @@ import {
     normalizePropertyKeyNodeId,
     normalizePropertyNodeId
 } from '../../utils/propertyTree';
-import { casefold } from '../../utils/recordUtils';
+import { casefold, cleanupCollapsedPinnedContextKeys } from '../../utils/recordUtils';
 import { getActivePropertyFields } from '../../utils/vaultProfiles';
 import { BaseMetadataService } from './BaseMetadataService';
 
@@ -160,13 +160,13 @@ export class PropertyMetadataService extends BaseMetadataService {
         return this.getEntityIcon(ItemType.PROPERTY, normalized);
     }
 
-    async setPropertySortOverride(nodeId: string, sortOption: SortOption): Promise<void> {
+    async setPropertySortOverride(nodeId: string, sortOverride: ListSortOverrideValue): Promise<void> {
         const normalized = nodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID ? nodeId : normalizePropertyNodeId(nodeId);
         if (!normalized) {
             return Promise.resolve();
         }
 
-        return this.setEntitySortOverride(ItemType.PROPERTY, normalized, sortOption);
+        return this.setEntitySortOverride(ItemType.PROPERTY, normalized, sortOverride);
     }
 
     async removePropertySortOverride(nodeId: string): Promise<void> {
@@ -178,7 +178,7 @@ export class PropertyMetadataService extends BaseMetadataService {
         return this.removeEntitySortOverride(ItemType.PROPERTY, normalized);
     }
 
-    getPropertySortOverride(nodeId: string): SortOption | undefined {
+    getPropertySortOverride(nodeId: string): ListSortOverrideValue | undefined {
         const normalized = nodeId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID ? nodeId : normalizePropertyNodeId(nodeId);
         if (!normalized) {
             return undefined;
@@ -291,6 +291,11 @@ export class PropertyMetadataService extends BaseMetadataService {
     ): Promise<boolean> {
         const validator = this.createPropertyNodeValidator(targetSettings, validators);
         const existingPropertyKeys = this.collectExistingPropertyKeys(validators);
+        const collapsedPinnedContextChanges = cleanupCollapsedPinnedContextKeys(
+            targetSettings.collapsedPinnedContexts,
+            ItemType.PROPERTY,
+            validator
+        );
         const results = await Promise.all([
             this.cleanupMetadata(targetSettings, 'propertyColors', validator),
             this.cleanupMetadata(targetSettings, 'propertyBackgroundColors', validator),
@@ -301,6 +306,6 @@ export class PropertyMetadataService extends BaseMetadataService {
         ]);
         const propertyKeyChanges = this.pruneConfiguredPropertyKeys(targetSettings, existingPropertyKeys);
 
-        return propertyKeyChanges || results.some(changed => changed);
+        return collapsedPinnedContextChanges || propertyKeyChanges || results.some(changed => changed);
     }
 }

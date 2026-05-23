@@ -83,7 +83,7 @@ export abstract class BaseContentProvider implements IContentProvider {
     private processingSession = 0;
     private activeBatchPromise: Promise<void> | null = null;
 
-    private retryTimer: ReturnType<typeof activeWindow.setTimeout> | null = null;
+    private retryTimer: ReturnType<typeof window.setTimeout> | null = null;
     private retryTimerWindow: Window | null = null;
     private retryState = new Map<string, { attempts: number; nextRetryAt: number }>();
 
@@ -96,7 +96,7 @@ export abstract class BaseContentProvider implements IContentProvider {
      * Yields to the task queue to keep long provider runs responsive without frame-rate throttling.
      */
     protected async yieldToEventLoop(): Promise<void> {
-        await new Promise<void>(resolve => activeWindow.setTimeout(resolve, 0));
+        await new Promise<void>(resolve => window.setTimeout(resolve, 0));
     }
 
     protected readFileContent(file: TFile): Promise<string> {
@@ -327,7 +327,7 @@ export abstract class BaseContentProvider implements IContentProvider {
                 }
             } else if (this.retryTimer !== null || this.hasScheduledRetryWork()) {
                 // Retry work advances on timers; poll until retries are flushed or cleared.
-                await new Promise<void>(resolve => activeWindow.setTimeout(resolve, BaseContentProvider.WAIT_FOR_IDLE_RETRY_POLL_MS));
+                await new Promise<void>(resolve => window.setTimeout(resolve, BaseContentProvider.WAIT_FOR_IDLE_RETRY_POLL_MS));
             } else {
                 await this.yieldToEventLoop();
             }

@@ -410,6 +410,7 @@ export function showNavigationSectionContextMenu({
             menu.addItem(item => {
                 item.setTitle(strings.shortcuts.removeAll)
                     .setIcon('lucide-trash-2')
+                    .setWarning(true)
                     .onClick(() => {
                         const confirmModal = new ConfirmModal(
                             app,

@@ -272,7 +272,7 @@ export class FileDeletionService {
                         deletedSourcePaths.add(sourcePath);
 
                         if (index < files.length - 1) {
-                            await new Promise<void>(resolve => activeWindow.setTimeout(resolve, 0));
+                            await new Promise<void>(resolve => window.setTimeout(resolve, 0));
                         }
                     } catch (error) {
                         errors.push({ file, error });

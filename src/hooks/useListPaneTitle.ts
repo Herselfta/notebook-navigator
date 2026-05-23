@@ -35,6 +35,7 @@ import { getVirtualTagCollection, VIRTUAL_TAG_COLLECTION_IDS } from '../utils/vi
 import { getActiveHiddenFolders } from '../utils/vaultProfiles';
 import { resolveUXIcon } from '../utils/uxIcons';
 import { buildPropertyKeyNodeId, parsePropertyNodeId, type PropertySelectionNodeId } from '../utils/propertyTree';
+import { resolveFolderDisplayPathSegments } from '../utils/folderDisplayName';
 
 const FOLDER_NOTE_EXTENSIONS = Object.values(FOLDER_NOTE_TYPE_EXTENSIONS);
 
@@ -293,22 +294,6 @@ export function useListPaneTitle(): UseListPaneTitleResult {
         void metadataVersion;
         if (selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder) {
             const folder = selectionState.selectedFolder;
-            const folderDisplayNameByPath = new Map<string, string>();
-            const getFolderDisplayName = (folderPath: string, fallbackLabel: string): string => {
-                if (folderDisplayNameByPath.has(folderPath)) {
-                    return folderDisplayNameByPath.get(folderPath) ?? fallbackLabel;
-                }
-
-                const metadataDisplayName = metadataService.getFolderDisplayData(folderPath, {
-                    includeDisplayName: true,
-                    includeColor: false,
-                    includeBackgroundColor: false,
-                    includeIcon: false
-                }).displayName;
-                const resolvedDisplayName = metadataDisplayName && metadataDisplayName.length > 0 ? metadataDisplayName : fallbackLabel;
-                folderDisplayNameByPath.set(folderPath, resolvedDisplayName);
-                return resolvedDisplayName;
-            };
 
             if (folder.path === '/') {
                 const vaultName = settings.customVaultName || app.vault.getName();
@@ -325,32 +310,27 @@ export function useListPaneTitle(): UseListPaneTitleResult {
                 };
             }
 
-            const segments = folder.path.split('/').filter(Boolean);
-            const breadcrumb: BreadcrumbSegment[] = [];
-            let currentPath = '';
-            segments.forEach((segment, index) => {
-                currentPath = currentPath ? `${currentPath}/${segment}` : segment;
-                const isLast = index === segments.length - 1;
-                const label = getFolderDisplayName(currentPath, segment);
+            const folderDisplayPathSegments = resolveFolderDisplayPathSegments({ metadataService, folderPath: folder.path });
+            const breadcrumb: BreadcrumbSegment[] = folderDisplayPathSegments.map((segment, index) => {
+                const isLast = index === folderDisplayPathSegments.length - 1;
                 if (isLast) {
-                    breadcrumb.push({
-                        label,
+                    return {
+                        label: segment.label,
                         targetType: 'none',
                         isLast: true
-                    });
-                    return;
+                    };
                 }
 
-                breadcrumb.push({
-                    label,
+                return {
+                    label: segment.label,
                     targetType: 'folder',
-                    targetPath: currentPath,
+                    targetPath: segment.path,
                     isLast: false
-                });
+                };
             });
 
             return {
-                desktopTitle: getFolderDisplayName(folder.path, folder.name),
+                desktopTitle: folderDisplayPathSegments[folderDisplayPathSegments.length - 1]?.label ?? folder.name,
                 breadcrumbSegments: breadcrumb
             };
         }

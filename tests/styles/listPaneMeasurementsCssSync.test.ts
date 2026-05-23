@@ -61,6 +61,7 @@ describe('List pane measurements stay in sync with CSS', () => {
         const paddingVertical = extractPxVariableValue(coreVars, 'nn-file-padding-vertical');
         const paddingTotal = paddingVertical * 2;
         expect(desktop.basePadding).toBe(paddingTotal);
+        expect(desktop.basePadding / 2).toBe(paddingVertical);
 
         expect(desktop.titleLineHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-title-line-height'));
         expect(desktop.singleTextLineHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-single-text-line-height'));
@@ -70,10 +71,10 @@ describe('List pane measurements stay in sync with CSS', () => {
         const tagRowGap = extractPxVariableValue(coreVars, 'nn-file-tag-row-gap-base');
         expect(desktop.tagRowHeight).toBe(tagRowHeight + tagRowGap);
 
-        expect(desktop.featureImageHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
+        expect(desktop.featureImageMinHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
 
-        expect(desktop.firstHeader).toBe(extractPxVariableValue(coreVars, 'nn-date-header-height'));
-        expect(desktop.subsequentHeader).toBe(extractPxVariableValue(coreVars, 'nn-date-header-height-subsequent'));
+        expect(desktop.groupHeaderHeight).toBe(extractPxVariableValue(coreVars, 'nn-list-group-header-height'));
+        expect(desktop.groupHeaderSpacerBefore).toBe(extractPxVariableValue(coreVars, 'nn-list-group-header-spacer-before'));
 
         expect(desktop.fileIconSize).toBe(extractPxVariableValue(coreVars, 'nn-file-icon-size'));
     });
@@ -87,6 +88,7 @@ describe('List pane measurements stay in sync with CSS', () => {
         const paddingMobileIncrement = extractCalcAddPx(mobileVars, 'nn-file-padding-vertical-mobile', 'nn-file-padding-vertical');
         const paddingTotal = (paddingVertical + paddingMobileIncrement) * 2;
         expect(mobile.basePadding).toBe(paddingTotal);
+        expect(mobile.basePadding / 2).toBe(paddingVertical + paddingMobileIncrement);
 
         expect(mobile.titleLineHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-title-line-height-mobile'));
         expect(mobile.singleTextLineHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-single-text-line-height-mobile'));
@@ -96,18 +98,11 @@ describe('List pane measurements stay in sync with CSS', () => {
         const tagRowGap = extractPxVariableValue(coreVars, 'nn-file-tag-row-gap-base');
         expect(mobile.tagRowHeight).toBe(tagRowHeight + tagRowGap);
 
-        expect(mobile.featureImageHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
+        expect(mobile.featureImageMinHeight).toBe(extractPxVariableValue(coreVars, 'nn-file-thumbnail-min-size'));
 
-        const headerIncrement = extractCalcAddPx(mobileVars, 'nn-date-header-height-mobile', 'nn-date-header-height');
-        const subsequentHeaderIncrement = extractCalcAddPx(
-            mobileVars,
-            'nn-date-header-height-subsequent-mobile',
-            'nn-date-header-height-subsequent'
-        );
-        expect(mobile.firstHeader).toBe(extractPxVariableValue(coreVars, 'nn-date-header-height') + headerIncrement);
-        expect(mobile.subsequentHeader).toBe(
-            extractPxVariableValue(coreVars, 'nn-date-header-height-subsequent') + subsequentHeaderIncrement
-        );
+        const headerIncrement = extractCalcAddPx(mobileVars, 'nn-list-group-header-height-mobile', 'nn-list-group-header-height');
+        expect(mobile.groupHeaderHeight).toBe(extractPxVariableValue(coreVars, 'nn-list-group-header-height') + headerIncrement);
+        expect(mobile.groupHeaderSpacerBefore).toBe(extractPxVariableValue(coreVars, 'nn-list-group-header-spacer-before'));
 
         const iconSize = extractPxVariableValue(coreVars, 'nn-file-icon-size');
         const iconSizeIncrement = extractCalcAddPx(mobileVars, 'nn-file-icon-size-mobile', 'nn-file-icon-size');
@@ -120,10 +115,7 @@ describe('List pane measurements stay in sync with CSS', () => {
     test('android text zoom keeps title and preview clamps in sync', () => {
         const androidCss = readTextFile('src/styles/sections/android-textzoom.css');
         const titleRule = extractRuleBlock(androidCss, '.notebook-navigator-android .nn-file-name');
-        const previewRule = extractRuleBlock(
-            androidCss,
-            '.notebook-navigator-android .nn-file-preview:not(.nn-file-second-line .nn-file-preview)'
-        );
+        const previewRule = extractRuleBlock(androidCss, '.notebook-navigator-android .nn-file-preview');
 
         expect(titleRule).toMatch(
             /max-height:\s*calc\(var\(--nn-file-title-line-height\)\s*\*\s*var\(--filename-rows, 1\)\s*\*\s*var\(--nn-android-font-scale, 1\)\)/
@@ -135,6 +127,21 @@ describe('List pane measurements stay in sync with CSS', () => {
         );
         expect(previewRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
         expect(previewRule).not.toMatch(/(^|\n)\s*height:\s*/m);
+    });
+
+    test('thumbnail sizing uses the same content box height as file text', () => {
+        const listThumbnailsCss = readTextFile('src/styles/sections/list-file-thumbnails.css');
+        const thumbnailRule = extractRuleBlock(listThumbnailsCss, '.nn-virtual-file-item .nn-file-thumbnail');
+        const extensionBadgeRule = extractRuleBlock(listThumbnailsCss, '.nn-virtual-file-item .nn-file-thumbnail--extension-badge');
+
+        expect(thumbnailRule).toMatch(
+            /calc\(var\(--item-height\)\s*-\s*var\(--nn-file-padding-total-mobile,\s*var\(--nn-file-padding-total\)\)\)/
+        );
+        expect(thumbnailRule).not.toMatch(/--nn-file-padding-vertical-mobile/);
+
+        expect(extensionBadgeRule).toMatch(/width:\s*var\(--nn-file-thumbnail-min-size\)/);
+        expect(extensionBadgeRule).toMatch(/height:\s*var\(--nn-file-thumbnail-min-size\)/);
+        expect(extensionBadgeRule).not.toMatch(/--image-size/);
     });
 
     test('pill height uses the fixed row height as border-box height', () => {
@@ -157,8 +164,7 @@ describe('List pane measurements stay in sync with CSS', () => {
         const fileInnerContentRule = extractRuleBlock(listFilesCss, '.nn-file-inner-content');
         const fileTextContentRule = extractRuleBlock(listFilesCss, '.nn-file-text-content');
         const fileNameRule = extractRuleBlock(listFilesCss, '.nn-file-name');
-        const multiLinePreviewRule = extractRuleBlock(listFilesCss, '.nn-file-preview:not(.nn-file-second-line .nn-file-preview)');
-        const secondLinePreviewRule = extractRuleBlock(listFilesCss, '.nn-file-second-line .nn-file-preview');
+        const previewRule = extractRuleBlock(listFilesCss, '.nn-file-preview');
 
         expect(virtualFileItemRule).toMatch(/(^|\n)\s*height:\s*var\(--item-height\)\s*;/m);
         expect(fileRule).toMatch(/(^|\n)\s*height:\s*100%\s*;/m);
@@ -170,13 +176,12 @@ describe('List pane measurements stay in sync with CSS', () => {
         expect(fileNameRule).toMatch(
             /(^|\n)\s*max-height:\s*calc\(var\(--nn-file-title-line-height\)\s*\*\s*var\(--filename-rows, 1\)\)\s*;/m
         );
-        expect(multiLinePreviewRule).toMatch(
+        expect(previewRule).toMatch(
             /(^|\n)\s*max-height:\s*calc\(var\(--nn-file-multiline-text-line-height\)\s*\*\s*var\(--preview-rows, 1\)\)\s*;/m
         );
-        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*flex:\s*1\s*;/m);
-        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
-        expect(multiLinePreviewRule).not.toMatch(/(^|\n)\s*height:\s*/m);
-        expect(secondLinePreviewRule).toMatch(/(^|\n)\s*flex:\s*1\s*;/m);
+        expect(previewRule).not.toMatch(/(^|\n)\s*flex:\s*1\s*;/m);
+        expect(previewRule).not.toMatch(/(^|\n)\s*min-height:\s*/m);
+        expect(previewRule).not.toMatch(/(^|\n)\s*height:\s*/m);
     });
 
     test('parent folder background stays inside the fixed metadata line height', () => {

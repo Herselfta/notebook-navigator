@@ -24,7 +24,6 @@ import { executeCommand, getInternalPlugin, isFolderAncestor, isPluginInstalled 
 import { getFolderNote, createFolderNote } from '../../utils/folderNotes';
 import { cleanupExclusionPatterns, isFolderInExcludedFolder } from '../../utils/fileFilters';
 import { ItemType } from '../../types';
-import { resetHiddenToggleIfNoSources } from '../../utils/exclusionUtils';
 import { runAsyncAction } from '../async';
 import { addCopyPathSubmenu, setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
@@ -56,16 +55,17 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
             fallbackName: folder.name
         });
 
-    const ensureFolderSelected = () => {
+    const ensureFolderSelected = (): boolean => {
         if (
             selectionState.selectionType === ItemType.FOLDER &&
             selectionState.selectedFolder &&
             selectionState.selectedFolder.path === folder.path
         ) {
-            return;
+            return false;
         }
 
         selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder });
+        return true;
     };
 
     // Selects newly created file and switches focus to files pane
@@ -82,8 +82,11 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
 
     menu.addItem((item: MenuItem) => {
         setAsyncOnClick(item.setTitle(strings.contextMenu.folder.newNote).setIcon('lucide-pen-box'), async () => {
-            ensureFolderSelected();
-            const createdFile = await fileSystemOps.createNewFile(folder, params.settings.createNewNotesInNewTab);
+            const selectionChanged = ensureFolderSelected();
+            const manualSortContext = await fileSystemOps.getManualSortNewFileContextForTarget('folder', folder.path, {
+                waitForSelectionUpdate: selectionChanged
+            });
+            const createdFile = await fileSystemOps.createNewFile(folder, params.settings.createNewNotesInNewTab, manualSortContext);
             handleFileCreation(createdFile);
         });
     });
@@ -176,9 +179,12 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
 
             // Delete folder note option
             menu.addItem((item: MenuItem) => {
-                setAsyncOnClick(item.setTitle(strings.contextMenu.folder.deleteFolderNote).setIcon('lucide-trash'), async () => {
-                    await fileSystemOps.deleteFile(folderNote, settings.confirmBeforeDelete);
-                });
+                setAsyncOnClick(
+                    item.setTitle(strings.contextMenu.folder.deleteFolderNote).setIcon('lucide-trash').setWarning(true),
+                    async () => {
+                        await fileSystemOps.deleteFile(folderNote, settings.confirmBeforeDelete);
+                    }
+                );
             });
         } else if (canCreateFolderNote) {
             // Create folder note option
@@ -444,7 +450,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
     // Hide/Unhide folder (not available for root folder)
     if (folder.path !== '/') {
-        const { showHiddenItems } = services.visibility;
         // Get the active vault profile to access its hidden folder patterns
         const activeProfile = getActiveVaultProfile(services.plugin.settings);
         const excludedPatterns = activeProfile.hiddenFolders;
@@ -460,11 +465,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                 setAsyncOnClick(item.setTitle(strings.contextMenu.folder.unhideFolder).setIcon('lucide-eye'), async () => {
                     const currentExcluded = activeProfile.hiddenFolders;
                     activeProfile.hiddenFolders = currentExcluded.filter(pattern => pattern !== matchingHiddenPattern);
-                    resetHiddenToggleIfNoSources({
-                        settings: services.plugin.settings,
-                        showHiddenItems,
-                        setShowHiddenItems: value => services.plugin.setShowHiddenItems(value)
-                    });
                     await services.plugin.saveSettingsAndUpdate();
 
                     showNotice(strings.fileSystem.notices.showFolder.replace('{name}', folderDisplayName), { variant: 'success' });
@@ -482,11 +482,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                     const cleanedPatterns = cleanupExclusionPatterns(currentExcluded, folderPath);
 
                     activeProfile.hiddenFolders = cleanedPatterns;
-                    resetHiddenToggleIfNoSources({
-                        settings: services.plugin.settings,
-                        showHiddenItems,
-                        setShowHiddenItems: value => services.plugin.setShowHiddenItems(value)
-                    });
                     await services.plugin.saveSettingsAndUpdate();
 
                     showNotice(strings.fileSystem.notices.hideFolder.replace('{name}', folderDisplayName), { variant: 'success' });
@@ -588,7 +583,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     // Delete folder (not available for vault root)
     if (folder.path !== '/') {
         menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.deleteFolder).setIcon('lucide-trash'), async () => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.deleteFolder).setIcon('lucide-trash').setWarning(true), async () => {
                 const parentFolder = folder.parent;
 
                 await fileSystemOps.deleteFolder(folder, settings.confirmBeforeDelete, () => {

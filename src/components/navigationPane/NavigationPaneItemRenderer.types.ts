@@ -73,4 +73,5 @@ export interface NavigationPaneRowContext {
 export interface NavigationPaneRowProps {
     item: CombinedNavigationItem;
     context: NavigationPaneRowContext;
+    adjacentFilledClassName?: string;
 }

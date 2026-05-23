@@ -29,6 +29,7 @@ export const STRINGS_EN = {
         remove: 'Remove', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Restore default', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Submit', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Save', // Button text for saving settings and dialogs (English: Save)
         configure: 'Configure', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Light mode',
         darkMode: 'Dark mode',
@@ -50,7 +51,15 @@ export const STRINGS_EN = {
         pinnedSection: 'Pinned', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Notes', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Files', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (hidden)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (hidden)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Collapse group',
+        expandGroup: 'Expand group',
+        manualSortTitle: 'Manual sort: {property}',
+        manualSortHint: 'Drag to reorder. The order is saved as numeric index values in the property "{property}".',
+        manualSortNonMarkdownHint: 'Non-markdown files are shown at the bottom and cannot be reordered.',
+        unsortedSection: 'Unsorted',
+        manualSortDone: 'Done',
+        manualSortMultipleWriteFailure: '{count} files failed; first: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +141,9 @@ export const STRINGS_EN = {
         changeChildSortOrder: 'Change sort order',
         changeSortAndGroup: 'Change sort and group',
         defaultSort: 'Default', // Label for default sorting mode (English: Default)
+        manualSort: 'Manual sort',
+        editSortOrder: 'Edit sort order...',
+        removeSortProperty: 'Remove sort property',
         descendants: 'descendants',
         subfolders: 'subfolders',
         subtags: 'subtags',
@@ -300,6 +312,14 @@ export const STRINGS_EN = {
             moveFileToFolder: 'Move file to...',
             moveMultipleNotesToFolder: 'Move {count} notes to...',
             moveMultipleFilesToFolder: 'Move {count} files to...',
+            setManualSortGroupHeader: 'Set group header',
+            changeManualSortGroupHeader: 'Change group header',
+            manualSortGroupHeader: {
+                title: 'Group header',
+                copyStyle: 'Copy header style',
+                pasteStyle: 'Paste header style',
+                remove: 'Remove group header'
+            },
             addTag: 'Add tag',
             addPropertyKey: 'Set property',
             removeTag: 'Remove tag',
@@ -389,6 +409,33 @@ export const STRINGS_EN = {
             applyAppearanceTitle: (target: string) => `Apply appearance to ${target}?`,
             affectedCountMessage: (count: number) => `Existing overrides that will change: ${count}.`
         },
+        manualSortConfirm: {
+            propertySortTitle: 'Use manual sort?',
+            propertySortMessage: (property: string, count: number) =>
+                `This switches the current view to manual sort using "${property}". Editing the order writes numeric index values to that property in ${count} ${count === 1 ? 'note' : 'notes'} as needed.`,
+            propertySortConfirmButton: 'Use manual sort',
+            removePropertyTitle: 'Remove sort property?',
+            removePropertyMessage: (property: string, count: number) =>
+                `This removes "${property}" from ${count} ${count === 1 ? 'note' : 'notes'} in the current list. Manual sort order will be cleared for those notes.`,
+            removePropertyConfirmButton: 'Remove property',
+            compactTitle: 'Compact index values?',
+            compactMessage: (count: number) =>
+                `This reorder needs more numeric space. ${count} ${count === 1 ? 'note' : 'notes'} will receive new index values.`,
+            compactConfirmButton: 'Compact index values'
+        },
+        manualSortGroupHeader: {
+            title: 'Set group header',
+            titleLabel: 'Title',
+            placeholder: 'Group header',
+            icon: 'Icon',
+            color: 'Color',
+            wordCount: 'Show word count',
+            wordCountTarget: 'Target word count',
+            wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'When this field is empty, the group goal uses the target property set in Settings > Notes > Word count. Override it by setting a target value for this group.',
+            description: 'Customize the group header for this note. Leave the title empty to remove the header.'
+        },
         navRainbowSection: {
             title: (section: string) => `Rainbow colors: ${section}`
         },
@@ -427,6 +474,11 @@ export const STRINGS_EN = {
                 'list-descendants': 'Notes from subfolders',
                 'list-sort-ascending': 'Sort order: ascending',
                 'list-sort-descending': 'Sort order: descending',
+                'list-sort-modified': 'Sort by edited date',
+                'list-sort-created': 'Sort by created date',
+                'list-sort-title': 'Sort by title',
+                'list-sort-filename': 'Sort by file name',
+                'list-sort-property': 'Sort by property',
                 'list-appearance': 'Change appearance',
                 'list-new-note': 'New note',
                 'nav-folder-open': 'Folder open',
@@ -436,7 +488,6 @@ export const STRINGS_EN = {
                 'nav-properties': 'Properties',
                 'nav-property': 'Property',
                 'nav-property-value': 'Value',
-                'list-pinned': 'Pinned items',
                 'file-unfinished-task': 'Unfinished tasks',
                 'file-word-count': 'Word count'
             }
@@ -698,6 +749,8 @@ export const STRINGS_EN = {
             propertiesRequireMarkdown: 'Properties are only supported on Markdown notes',
             propertySetOnNote: 'Updated property on 1 note',
             propertySetOnNotes: 'Updated property on {count} notes',
+            manualSortPropertyRemovedFromNote: 'Removed sort property from 1 note',
+            manualSortPropertyRemovedFromNotes: 'Removed sort property from {count} notes',
             iconPackDownloaded: '{provider} downloaded',
             iconPackUpdated: '{provider} updated ({version})',
             iconPackRemoved: '{provider} removed',
@@ -786,6 +839,7 @@ export const STRINGS_EN = {
         toggleTagsBySelection: 'Toggle tags by selection',
         togglePropertiesBySelection: 'Toggle properties by selection',
         toggleCompactMode: 'Toggle compact mode', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Toggle pinned section',
         collapseExpand: 'Collapse / expand all items', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Add tag to selected files', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Set property on selected files', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -858,7 +912,12 @@ export const STRINGS_EN = {
             },
             list: {
                 display: 'Appearance',
-                pinnedNotes: 'Pinned notes'
+                organization: 'Organization',
+                groupHeaders: 'Group headers',
+                propertySort: 'Property sort',
+                manualSort: 'Manual sort',
+                pinnedNotes: 'Pinned notes',
+                drawingPreviews: 'Drawing previews'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -870,7 +929,8 @@ export const STRINGS_EN = {
                 tags: 'Tags',
                 properties: 'Properties',
                 date: 'Date',
-                parentFolder: 'Parent folder'
+                parentFolder: 'Parent folder',
+                wordCount: 'Word count'
             }
         },
         syncMode: {
@@ -890,8 +950,8 @@ export const STRINGS_EN = {
                 }
             },
             sortNotesBy: {
-                name: 'Sort notes by',
-                desc: 'Choose how notes are sorted in the note list.',
+                name: 'Default sort order',
+                desc: 'Choose the default sort order for notes.',
                 options: {
                     'modified-desc': 'Date edited (newest on top)',
                     'modified-asc': 'Date edited (oldest on top)',
@@ -900,19 +960,24 @@ export const STRINGS_EN = {
                     'title-asc': 'Title (A on top)',
                     'title-desc': 'Title (Z on top)',
                     'filename-asc': 'File name (A on top)',
-                    'filename-desc': 'File name (Z on top)',
-                    'property-asc': 'Property (A on top)',
-                    'property-desc': 'Property (Z on top)'
+                    'filename-desc': 'File name (Z on top)'
                 },
-                propertyOverride: {
-                    asc: 'Property ‘{property}’ (A on top)',
-                    desc: 'Property ‘{property}’ (Z on top)'
+                directions: {
+                    asc: 'Ascending',
+                    desc: 'Descending'
+                },
+                fields: {
+                    modified: 'Date edited',
+                    created: 'Date created',
+                    title: 'Title',
+                    filename: 'File name',
+                    property: 'Property'
                 }
             },
             propertySortKey: {
-                name: 'Property to sort by',
-                desc: 'Used with Property sort. Notes with this frontmatter property are listed first and sorted by the property value. Arrays are joined into one value.',
-                placeholder: 'order'
+                name: 'Properties to sort by',
+                desc: 'Comma-separated frontmatter properties shown as property sort options. Array values are joined into a single string. These properties are not changed.',
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Secondary sort',
@@ -923,6 +988,46 @@ export const STRINGS_EN = {
                     created: 'Date created',
                     modified: 'Date edited'
                 }
+            },
+            propertySortInstructions: {
+                intro: 'Each property listed above appears as a sort option in the sort menu in the list pane. Selecting one sorts notes by its frontmatter value.'
+            },
+            manualSortPropertyKey: {
+                name: 'Manual sort property',
+                desc: 'Frontmatter property used to store numeric index values for manual sort.'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Group header property',
+                desc: 'Frontmatter property used to store custom group headers.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Custom group headers display above notes in the list pane.',
+                items: [
+                    'From the sort menu in the list pane, set grouping to **Custom**.',
+                    'Right-click a note and choose **Set group header** to add a header above it.'
+                ]
+            },
+            manualSortNewNotePlacement: {
+                name: 'New note placement',
+                desc: 'Choose where new notes are placed when the current list uses manual sort.',
+                options: {
+                    top: 'Top',
+                    bottom: 'Bottom',
+                    'below-selected-note': 'Below selected note',
+                    unsorted: 'Unsorted'
+                }
+            },
+            confirmBeforeManualSort: {
+                name: 'Confirm before manual sort',
+                desc: 'Show a warning before writing the manual sort property to notes the first time. When disabled, notes receive the property without warning.'
+            },
+            manualSortInstructions: {
+                intro: 'Manual sort writes a numeric index value to a frontmatter property on each note. Notes without an index appear under Unsorted.',
+                items: [
+                    'Enable manual sort by choosing **Manual sort** from the sort menu. After that, there are two ways to rearrange notes.',
+                    'Pick **Edit sort order...** from the sort menu to open a reorder view. Drag notes with the mouse, or with touch on mobile. On desktop, **Cmd/Ctrl** or **Shift** click selects multiple notes, then dragging any of them moves the whole group.',
+                    'In the list pane, select one note or multi-select several, then press **Cmd/Ctrl + Arrow Up/Down** to move the selection up or down.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Scroll to selected file on list changes',
@@ -941,25 +1046,21 @@ export const STRINGS_EN = {
                 desc: 'Display note counts as "current ▾ descendants" format in folders and tags.'
             },
             groupNotes: {
-                name: 'Group notes',
-                desc: 'Display headers between notes grouped by date or folder. Tag views use date groups when folder grouping is enabled.',
+                name: 'Default grouping',
+                desc: 'Custom shows headers defined in frontmatter. Date groups notes by date. Folder groups notes by folder. Tag and property views use date groups when folder is selected.',
                 options: {
-                    none: "Don't group",
-                    date: 'Group by date',
-                    folder: 'Group by folder'
+                    custom: 'Custom',
+                    date: 'Date',
+                    folder: 'Folder'
                 }
             },
             showSelectedNavigationPills: {
                 name: 'Always show all tag and property pills',
                 desc: 'When disabled, pills matching the current navigation selection are hidden (e.g. the "recipes" tag pill is hidden when browsing the "recipes" tag). Enable to keep all pills visible.'
             },
-            showPinnedGroupHeader: {
-                name: 'Show pinned group header',
-                desc: 'Display the pinned section header above pinned notes.'
-            },
-            showPinnedIcon: {
-                name: 'Show pinned icon',
-                desc: 'Show the icon next to the pinned section header.'
+            stickyGroupHeaders: {
+                name: 'Sticky group headers',
+                desc: 'Keep the current date, folder, or pinned section header visible while scrolling.'
             },
             defaultListMode: {
                 name: 'Default list mode',
@@ -971,7 +1072,11 @@ export const STRINGS_EN = {
             },
             showFileIcons: {
                 name: 'Show file icons',
-                desc: 'Display file icons with left-aligned spacing. Disabling removes both icons and indentation. Priority: unfinished tasks icon > custom icon > file name icon > file type icon > default icon.'
+                desc: 'Display file icons with left-aligned spacing. Disabling removes both icons and indentation. Priority: unfinished tasks icon > custom icon > folder icon > file name icon > file type icon > default icon.'
+            },
+            useFolderIcon: {
+                name: 'Use folder icon',
+                desc: 'Display the parent folder icon when no custom file icon is set. Folder color is used when no custom file color is set.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Unfinished task icon',
@@ -1018,6 +1123,10 @@ export const STRINGS_EN = {
                 name: 'Show parent folder',
                 desc: 'Display the parent folder name for notes in subfolders or tags.'
             },
+            showParentFolderFullPath: {
+                name: 'Show full path',
+                desc: 'Display the full parent folder path instead of only the folder name.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Click parent folder to go to folder',
                 desc: 'Clicking the parent folder label opens the folder in list pane.'
@@ -1061,7 +1170,7 @@ export const STRINGS_EN = {
             },
             useFloatingToolbars: {
                 name: 'Use floating toolbars on iOS/iPadOS',
-                desc: 'Applies to Obsidian 1.11 and later.'
+                desc: 'Applies only on iOS and iPadOS.'
             },
             startView: {
                 name: 'Default startup view',
@@ -1192,8 +1301,7 @@ export const STRINGS_EN = {
             calendarLocale: {
                 name: 'Locale',
                 desc: 'Controls calendar date formatting, week numbering, and first day of the week.',
-                incompatibleWeekPatternWarning:
-                    'Weekly notes pattern uses ISO week tokens ("W" or "G"). The calendar will display weeks starting on Monday instead of this locale\'s first day of week.',
+                weekPathMismatchWarning: 'The visible calendar and weekly note paths use different week starts or week numbering.',
                 options: {
                     systemDefault: 'Default'
                 }
@@ -1264,6 +1372,14 @@ export const STRINGS_EN = {
                     dailyNotes: 'Folder and date format are configured in the Daily Notes core plugin.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Periodic notes locale',
+                desc: 'Controls localized month names, weekday names, week numbers, and week starts in Notebook Navigator periodic note paths.',
+                options: {
+                    calendar: 'Calendar',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Root folder (vault profile)',
@@ -1289,8 +1405,10 @@ export const STRINGS_EN = {
             calendarCustomWeekPattern: {
                 name: 'Weekly notes',
                 parsingError: 'Pattern must format and parse back to a full week (week year, week number).',
-                localeMismatchWarning:
-                    'This pattern uses ISO week tokens ("W" or "G"). The calendar will display weeks starting on Monday. Use "w" or "g" if weekly notes should follow the selected locale.'
+                weekPathMismatchWarning:
+                    'Weekly note paths use the periodic notes locale. Use matching locales, or use "GGGG" with "WW" for Monday-based weeks.',
+                mixedWeekTokensWarning:
+                    'This pattern mixes Monday-based week tokens ("W" or "G") with locale-based week tokens ("w" or "g"). Use one set consistently: "GGGG" with "WW" for Monday-based weeks, or "gggg" with "ww" if weekly notes should follow the selected locale.'
             },
             calendarCustomMonthPattern: {
                 name: 'Monthly notes',
@@ -1542,14 +1660,25 @@ export const STRINGS_EN = {
                 name: 'Link property pills to URLs',
                 desc: 'Click a property pill to open the linked URL.'
             },
-            notePropertyType: {
-                name: 'Note property',
-                desc: 'Select the note property to display in file items.',
+            showWordCount: {
+                name: 'Show word count',
+                desc: 'Display note word counts in file items.'
+            },
+            wordCountPlacement: {
+                name: 'Placement',
+                desc: 'Choose where word counts appear.',
                 options: {
-                    frontmatter: 'Frontmatter property',
-                    wordCount: 'Word count',
-                    none: 'None'
+                    title: 'In title',
+                    property: 'As property'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Target property',
+                desc: 'Frontmatter property key containing the target word count. Leave empty to hide targets.'
+            },
+            showWordCountPercentage: {
+                name: 'Show target percentage',
+                desc: 'Display only the progress percentage when a target word count is available.'
             },
             dateFormat: {
                 name: 'Date format',
@@ -1616,6 +1745,10 @@ export const STRINGS_EN = {
                     '3': '3 rows'
                 }
             },
+            useFolderColor: {
+                name: 'Use folder color',
+                desc: 'Color note titles and file icons with their parent folder color when no custom file color is set. Priority: custom file color > folder color > default color.'
+            },
             showFeatureImage: {
                 name: 'Show feature image',
                 desc: 'Display a thumbnail of the first image found in the note.'
@@ -1655,6 +1788,19 @@ export const STRINGS_EN = {
             downloadExternalFeatureImages: {
                 name: 'Download external images',
                 desc: 'Download remote images and YouTube thumbnails for feature images.'
+            },
+            hideDrawingPreviewImages: {
+                name: 'Hide exported preview images',
+                desc: 'Hide exported drawing preview PNG files. Turn on Show hidden items to display them.'
+            },
+            drawingIntegrationInfo: {
+                intro: 'Notebook Navigator shows PNG files exported by Excalidraw as drawing previews.',
+                items: [
+                    'In **Excalidraw settings**, open **Embedding Excalidraw into your Notes and Exporting**, then **Export Settings**, then **Auto-export Settings**.',
+                    'Enable **Auto-export PNG**. Optionally enable **Export both dark- and light-themed image**.',
+                    'Notebook Navigator looks for **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png**, or **Drawing.excalidraw.light.png**.',
+                    'While **Hide exported preview images** is on, the PNG files appear only when **Show hidden items** is also on.'
+                ]
             },
             showRootFolder: {
                 name: 'Show root folder',

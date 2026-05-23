@@ -18,7 +18,7 @@
 
 import React from 'react';
 import { Root, createRoot } from 'react-dom/client';
-import { ItemView, Platform, requireApiVersion, WorkspaceLeaf } from 'obsidian';
+import { ItemView, Platform, WorkspaceLeaf } from 'obsidian';
 import { SettingsProvider } from '../context/SettingsContext';
 import { ServicesProvider } from '../context/ServicesContext';
 import { CalendarRightSidebar } from '../components/CalendarRightSidebar';
@@ -53,7 +53,7 @@ export class NotebookNavigatorCalendarView extends ItemView {
             return;
         }
 
-        const shouldUseFloatingToolbars = Platform.isIosApp && requireApiVersion('1.11.0') && this.plugin.settings.useFloatingToolbars;
+        const shouldUseFloatingToolbars = Platform.isIosApp && this.plugin.settings.useFloatingToolbars;
         container.classList.toggle(IOS_FLOATING_TOOLBARS_CLASS, shouldUseFloatingToolbars);
     }
 

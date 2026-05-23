@@ -224,29 +224,6 @@ export const LIMITS = {
              * - Keeps the worker around briefly to speed up bursts, but releases memory when idle.
              */
             workerIdleTimeoutMs: 60_000
-        },
-        excalidraw: {
-            /**
-             * Limits for Excalidraw thumbnails (ExcalidrawAutomate).
-             *
-             * Rationale:
-             * - The Excalidraw API uses global state; rendering in parallel can create conflicts. We serialize renders.
-             */
-            maxParallelRenders: 1,
-            /**
-             * Clamp output dimensions to avoid generating huge images from large canvases.
-             */
-            maxExportDimensionPx: 1024,
-            exportScale: {
-                /**
-                 * Default scale for Excalidraw export; trades sharpness for speed and memory.
-                 */
-                default: 0.25,
-                /**
-                 * Minimum scale used when clamping to `maxExportDimensionPx` would otherwise reduce scale too much.
-                 */
-                min: 0.05
-            }
         }
     },
     storage: {

@@ -27,11 +27,11 @@ import { getYoutubeThumbnailUrl } from '../../utils/youtubeUtils';
 import { BaseContentProvider, type ContentProviderProcessResult } from './BaseContentProvider';
 import type { ContentReadCache } from './ContentReadCache';
 import { isValidHttpsUrl, type FeatureImageReference } from './featureImageReferenceResolver';
-import { renderExcalidrawThumbnail } from './excalidraw/excalidrawThumbnail';
 import { renderPdfCoverThumbnail } from './pdf/pdfCoverThumbnail';
 import { detectImageMimeTypeFromBuffer, getImageDimensionsPairFromBuffer, normalizeImageMimeType } from './thumbnail/imageDimensions';
 import { createOnceLogger, createRenderBudgetLimiter, createRenderLimiter } from './thumbnail/thumbnailRuntimeUtils';
 import { LIMITS } from '../../constants/limits';
+import { getDrawingDirectFeatureImageKey, getDrawingFeatureImageSource } from '../../utils/drawingFeatureImages';
 
 type FeatureImageThumbnailDimensions = {
     width: number;
@@ -217,6 +217,18 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             );
         }
 
+        const drawingSource = getDrawingFeatureImageSource(this.app, file);
+        if (drawingSource) {
+            const expectedKey = getDrawingDirectFeatureImageKey(file, drawingSource.providerId);
+            return (
+                fileModified ||
+                !fileData ||
+                fileData.featureImageStatus === 'unprocessed' ||
+                fileData.featureImageKey === null ||
+                fileData.featureImageKey !== expectedKey
+            );
+        }
+
         // The featureImageKey is the durable "processed" marker even when no blob is stored.
         return fileModified || !fileData || fileData.featureImageKey === null;
     }
@@ -259,6 +271,17 @@ export class FeatureImageContentProvider extends BaseContentProvider {
             return { update: { path: job.path, featureImage: thumbnail, featureImageKey }, processed: true };
         }
 
+        const drawingSource = getDrawingFeatureImageSource(this.app, job.file);
+        if (drawingSource) {
+            const featureImageKey = getDrawingDirectFeatureImageKey(job.file, drawingSource.providerId);
+            const isUpToDate = fileData?.featureImageKey === featureImageKey && fileData.featureImageStatus === 'none';
+            if (isUpToDate) {
+                return { update: null, processed: true };
+            }
+
+            return { update: { path: job.path, featureImage: this.createEmptyBlob(), featureImageKey }, processed: true };
+        }
+
         const nextKey = '';
         const nextImage = this.createEmptyBlob();
         // Empty blobs are used as a processed marker; storage drops them and keeps the key.
@@ -271,34 +294,6 @@ export class FeatureImageContentProvider extends BaseContentProvider {
 
     protected createEmptyBlob(): Blob {
         return new Blob([]);
-    }
-
-    // Creates a cache key for Excalidraw files based on path and modification time
-    protected getExcalidrawFeatureImageKey(file: TFile): string {
-        return `x:${file.path}@${file.stat.mtime}`;
-    }
-
-    // Renders an Excalidraw file to a resized thumbnail blob
-    protected async createExcalidrawThumbnail(file: TFile): Promise<Blob | null> {
-        const pngBlob = await renderExcalidrawThumbnail(this.app, file, { padding: 0 });
-        if (!pngBlob) {
-            return null;
-        }
-
-        try {
-            const mimeType = pngBlob.type || 'image/png';
-            const buffer = await pngBlob.arrayBuffer();
-            const thumbnail = await this.createThumbnailBlobFromBuffer(
-                buffer,
-                mimeType,
-                file.path,
-                'local',
-                this.getThumbnailDimensions(this.currentBatchSettings?.featureImagePixelSize)
-            );
-            return thumbnail ?? pngBlob;
-        } catch {
-            return pngBlob;
-        }
     }
 
     protected getFeatureImageKey(reference: FeatureImageReference): string {
@@ -407,9 +402,9 @@ export class FeatureImageContentProvider extends BaseContentProvider {
         const releaseLimiter = await this.thumbnailRuntime.externalRequestLimiter.acquire();
         let limiterReleased = false;
         const timerWindow = activeWindow;
-        let hardReleaseId: ReturnType<typeof activeWindow.setTimeout> | null = null;
+        let hardReleaseId: ReturnType<typeof window.setTimeout> | null = null;
         let timeoutDebtAdded = false;
-        let timeoutDebtTimerId: ReturnType<typeof activeWindow.setTimeout> | null = null;
+        let timeoutDebtTimerId: ReturnType<typeof window.setTimeout> | null = null;
 
         const safeReleaseLimiter = () => {
             if (limiterReleased) {
@@ -452,7 +447,7 @@ export class FeatureImageContentProvider extends BaseContentProvider {
 
         hardReleaseId = timerWindow.setTimeout(() => safeReleaseLimiter(), EXTERNAL_REQUEST_MAX_LIFETIME_MS);
 
-        let timeoutId: ReturnType<typeof activeWindow.setTimeout> | null = null;
+        let timeoutId: ReturnType<typeof window.setTimeout> | null = null;
         const timeoutPromise = new Promise<null>(resolve => {
             timeoutId = timerWindow.setTimeout(() => {
                 // When a request times out, optionally free the limiter slot so other requests can proceed.

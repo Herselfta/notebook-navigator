@@ -25,6 +25,7 @@ import type { CleanupValidators } from '../../src/services/MetadataService';
 import { createDefaultFileData } from '../../src/storage/indexeddb/fileData';
 import type { FileData } from '../../src/storage/IndexedDBStorage';
 import { createVaultProfile } from '../../src/utils/vaultProfiles';
+import { TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../src/types';
 
 class TestSettingsProvider implements ISettingsProvider {
     constructor(public settings: NotebookNavigatorSettings) {}
@@ -320,5 +321,24 @@ describe('TagMetadataService.cleanupWithValidators', () => {
 
         expect(changed).toBe(true);
         expect(settings.tagColors).toEqual({});
+    });
+
+    it('keeps collapsed state for virtual tag contexts during cleanup', async () => {
+        const settings = createSettings();
+        settings.collapsedPinnedContexts = {
+            [`tag:${TAGGED_TAG_ID}`]: true,
+            [`tag:${UNTAGGED_TAG_ID}`]: true,
+            'tag:stale': true
+        };
+        const provider = new TestSettingsProvider(settings);
+        const service = new TagMetadataService(app, provider, () => null);
+
+        const changed = await service.cleanupWithValidators(createValidators([createMarkdownFile('Note.md', [])]), settings);
+
+        expect(changed).toBe(true);
+        expect(settings.collapsedPinnedContexts).toEqual({
+            [`tag:${TAGGED_TAG_ID}`]: true,
+            [`tag:${UNTAGGED_TAG_ID}`]: true
+        });
     });
 });

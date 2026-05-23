@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useCallback, useEffect, useRef, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import type { TFile } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
@@ -30,9 +30,9 @@ import {
     getActiveHiddenFileNames,
     getActiveHiddenFileTags,
     getActiveHiddenFileProperties,
-    getActiveHiddenFolders,
-    getActivePropertyFields
+    getActiveHiddenFolders
 } from '../../utils/vaultProfiles';
+import { getPropertyFrontmatterFieldSignature } from '../../utils/propertyUtils';
 import { clearCacheRebuildNoticeState, getCacheRebuildNoticeState, setCacheRebuildNoticeState } from './cacheRebuildNoticeStorage';
 import { getCacheRebuildProgressTypes, getMetadataDependentTypes, haveStringArraysChanged } from './storageContentTypes';
 
@@ -50,8 +50,8 @@ import { getCacheRebuildProgressTypes, getMetadataDependentTypes, haveStringArra
  */
 export function useStorageSettingsSync(params: {
     settings: NotebookNavigatorSettings;
-    stoppedRef: RefObject<boolean>;
-    contentRegistryRef: RefObject<ContentProviderRegistry | null>;
+    stoppedRef: MutableRefObject<boolean>;
+    contentRegistryRef: MutableRefObject<ContentProviderRegistry | null>;
     hiddenFolders: string[];
     hiddenFileProperties: string[];
     hiddenFileNames: string[];
@@ -59,7 +59,7 @@ export function useStorageSettingsSync(params: {
     scheduleTagTreeRebuild: (options?: { flush?: boolean }) => void;
     schedulePropertyTreeRebuild: (options?: { flush?: boolean }) => void;
     getIndexableFiles: () => TFile[];
-    pendingRenameDataRef: RefObject<Map<string, DBFileData>>;
+    pendingRenameDataRef: MutableRefObject<Map<string, DBFileData>>;
     queueMetadataContentWhenReady: (
         files: TFile[],
         includeTypes?: ContentProviderType[],
@@ -260,7 +260,8 @@ export function useStorageSettingsSync(params: {
         const relevantSettings = registry?.getAllRelevantSettings() ?? [];
         const hasRelevantSettingsChange =
             !registry || relevantSettings.some(settingKey => previousSettings[settingKey] !== settings[settingKey]);
-        const propertyFieldsChanged = getActivePropertyFields(previousSettings) !== getActivePropertyFields(settings);
+        const propertyFieldsChanged =
+            getPropertyFrontmatterFieldSignature(previousSettings) !== getPropertyFrontmatterFieldSignature(settings);
 
         if (hasRelevantSettingsChange || propertyFieldsChanged) {
             scheduleSettingsChanges(previousSettings, settings);

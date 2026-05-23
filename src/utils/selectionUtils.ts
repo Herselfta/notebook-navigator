@@ -18,7 +18,13 @@
 
 import { TFile, App } from 'obsidian';
 import { SelectionDispatch, SelectionState } from '../context/SelectionContext';
-import { ItemType, type NavigationItemType, type NavigatorContext, type VisibilityPreferences } from '../types';
+import {
+    ItemType,
+    type NavigationItemType,
+    type NavigatorContext,
+    type PinnedSectionCollapseKey,
+    type VisibilityPreferences
+} from '../types';
 import { NotebookNavigatorSettings } from '../settings';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import type { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
@@ -99,6 +105,18 @@ export function getNavigatorPinContext(selectionType: NavigationSelectionScope['
     }
 
     return ItemType.FOLDER;
+}
+
+export function getPinnedSectionCollapseKey(selectionScope: NavigationSelectionScope): PinnedSectionCollapseKey {
+    if (selectionScope.selectionType === ItemType.TAG && selectionScope.selectedTag) {
+        return `tag:${selectionScope.selectedTag}`;
+    }
+
+    if (selectionScope.selectionType === ItemType.PROPERTY && selectionScope.selectedProperty) {
+        return `property:${selectionScope.selectedProperty}`;
+    }
+
+    return `folder:${selectionScope.selectedFolder?.path ?? '/'}`;
 }
 
 export function getFilesForNavigationSelection(

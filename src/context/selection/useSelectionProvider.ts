@@ -17,7 +17,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import type { RefObject } from 'react';
+import type { MutableRefObject } from 'react';
 import { App, TFile, TFolder } from 'obsidian';
 import { getFilesForFolder, getFilesForProperty, getFilesForTag } from '../../utils/fileFinder';
 import { localStorage } from '../../utils/localStorage';
@@ -80,7 +80,7 @@ interface UseSelectionReconciliationArgs {
     } | null;
     propertyTreeService: IPropertyTreeProvider | null;
     state: SelectionState;
-    stateRef: RefObject<SelectionState>;
+    stateRef: MutableRefObject<SelectionState>;
     tagOperations: {
         addTagRenameListener(listener: (payload: TagRenameEventPayload) => void): () => void;
         addTagDeleteListener(listener: (payload: TagDeleteEventPayload) => void): () => void;
@@ -227,7 +227,7 @@ export function loadInitialSelectionState({ app, settings }: LoadInitialSelectio
     };
 }
 
-export function useSelectionStateRef(state: SelectionState): RefObject<SelectionState> {
+export function useSelectionStateRef(state: SelectionState): MutableRefObject<SelectionState> {
     const stateRef = useRef(state);
 
     useEffect(() => {

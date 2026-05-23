@@ -24,7 +24,7 @@ interface CalendarHoverTooltipProps {
     isMobile: boolean;
     hoverTooltip: CalendarHoverTooltipState | null;
     hoverTooltipStyle: React.CSSProperties | null;
-    hoverTooltipRef: React.RefObject<HTMLDivElement | null>;
+    hoverTooltipRef: React.MutableRefObject<HTMLDivElement | null>;
     hoverTooltipPreviewText: string;
     shouldShowHoverTooltipPreview: boolean;
     hoverTooltipDateText: string;

@@ -44,6 +44,7 @@ interface PropertyTreeItemProps {
     showFileCount: boolean;
     color?: string;
     backgroundColor?: string;
+    adjacentFilledClassName?: string;
     icon?: string;
     searchMatch?: 'include' | 'exclude';
     inclusionOperator?: InclusionOperator;
@@ -65,6 +66,7 @@ export const PropertyTreeItem = React.memo(
             showFileCount,
             color,
             backgroundColor,
+            adjacentFilledClassName,
             icon,
             searchMatch,
             inclusionOperator,
@@ -75,10 +77,10 @@ export const PropertyTreeItem = React.memo(
         const settings = useSettingsState();
         const uxPreferences = useUXPreferences();
         const includeDescendantNotes = uxPreferences.includeDescendantNotes;
-        const chevronRef = useRef<HTMLDivElement>(null);
-        const iconRef = useRef<HTMLSpanElement>(null);
+        const chevronRef = useRef<HTMLDivElement | null>(null);
+        const iconRef = useRef<HTMLSpanElement | null>(null);
         const iconVersion = useIconServiceVersion();
-        const itemRef = useRef<HTMLDivElement>(null);
+        const itemRef = useRef<HTMLDivElement | null>(null);
 
         const resolvedCounts = useMemo<NoteCountInfo>(() => {
             if (countInfo) {
@@ -127,8 +129,11 @@ export const PropertyTreeItem = React.memo(
             if (searchMatch) {
                 classes.push('nn-has-search-match');
             }
+            if (adjacentFilledClassName) {
+                classes.push(adjacentFilledClassName);
+            }
             return classes.join(' ');
-        }, [backgroundColor, isSelected, searchMatch]);
+        }, [adjacentFilledClassName, backgroundColor, isSelected, searchMatch]);
 
         const propertyNameClassName = useMemo(() => {
             const classes = ['nn-navitem-name'];

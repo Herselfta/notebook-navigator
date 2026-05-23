@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { Setting, SettingGroup, requireApiVersion } from 'obsidian';
+import { Setting, SettingGroup } from 'obsidian';
 
 interface SettingGroupController {
     rootEl: HTMLElement;
@@ -24,45 +24,26 @@ interface SettingGroupController {
 }
 
 export function createSettingGroupFactory(containerEl: HTMLElement): (heading?: string | DocumentFragment) => SettingGroupController {
-    const useSettingGroups = typeof SettingGroup === 'function' && requireApiVersion('1.11.0');
-
     return (heading?: string | DocumentFragment): SettingGroupController => {
-        if (!useSettingGroups && heading) {
-            const headingText = typeof heading === 'string' ? heading : (heading.textContent ?? '');
-            new Setting(containerEl).setName(headingText).setHeading();
-        }
-
         const wrapperEl = containerEl.createDiv();
-
-        if (useSettingGroups) {
-            wrapperEl.addClass('setting-group');
-            const group = new SettingGroup(wrapperEl);
-            if (heading) {
-                group.setHeading(heading);
-            }
-
-            return {
-                rootEl: wrapperEl,
-                addSetting: createSetting => {
-                    let createdSetting: Setting | null = null;
-                    group.addSetting(setting => {
-                        createdSetting = setting;
-                        createSetting(setting);
-                    });
-                    if (!createdSetting) {
-                        throw new Error('SettingGroup.addSetting did not provide a Setting');
-                    }
-                    return createdSetting;
-                }
-            };
+        wrapperEl.addClass('setting-group');
+        const group = new SettingGroup(wrapperEl);
+        if (heading) {
+            group.setHeading(heading);
         }
 
         return {
             rootEl: wrapperEl,
             addSetting: createSetting => {
-                const setting = new Setting(wrapperEl);
-                createSetting(setting);
-                return setting;
+                let createdSetting: Setting | null = null;
+                group.addSetting(setting => {
+                    createdSetting = setting;
+                    createSetting(setting);
+                });
+                if (!createdSetting) {
+                    throw new Error('SettingGroup.addSetting did not provide a Setting');
+                }
+                return createdSetting;
             }
         };
     };

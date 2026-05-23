@@ -94,7 +94,7 @@ export class WelcomeModal extends Modal {
 
     open(): void {
         super.open();
-        requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
             this.openVideoButton?.focus();
         });
     }

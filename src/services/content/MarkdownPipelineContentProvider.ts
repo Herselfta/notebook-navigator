@@ -22,11 +22,13 @@ import { type ContentProviderType } from '../../interfaces/IContentProvider';
 import { NotebookNavigatorSettings } from '../../settings';
 import { type PropertyItem, type PropertyValueKind, FileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance } from '../../storage/fileOperations';
-import { getCachedCommaSeparatedList } from '../../utils/commaSeparatedListUtils';
 import { areStringArraysEqual } from '../../utils/arrayUtils';
-import { arePropertyItemsEqual, hasPropertyFrontmatterFields } from '../../utils/propertyUtils';
-import { getActivePropertyFields } from '../../utils/vaultProfiles';
-import { hasExcalidrawFrontmatterFlagValue } from '../../utils/fileNameUtils';
+import {
+    arePropertyItemsEqual,
+    getPropertyFrontmatterFields,
+    getPropertyFrontmatterFieldSignature,
+    hasPropertyFrontmatterFields
+} from '../../utils/propertyUtils';
 import {
     type FenceMarkerChar,
     isFenceClose,
@@ -38,6 +40,11 @@ import {
 import { PreviewTextUtils } from '../../utils/previewTextUtils';
 import { createCaseInsensitiveKeyMatcher, findMatchingRecordKey } from '../../utils/recordUtils';
 import { countWordsForNoteProperty } from '../../utils/wordCountUtils';
+import {
+    getDrawingDirectFeatureImageKey,
+    getDrawingSourceProviderIdWithFrontmatter,
+    type DrawingFeatureImageProviderId
+} from '../../utils/drawingFeatureImages';
 import type { ContentProviderProcessResult } from './BaseContentProvider';
 import { findFeatureImageReference, type FeatureImageReference } from './featureImageReferenceResolver';
 import { FeatureImageContentProvider } from './FeatureImageContentProvider';
@@ -49,7 +56,8 @@ type MarkdownPipelineContext = {
     content: string;
     frontmatter: FrontMatterCache | null;
     bodyStartIndex: number;
-    isExcalidraw: boolean;
+    isDrawing: boolean;
+    drawingProviderId: DrawingFeatureImageProviderId | null;
     fileModified: boolean;
     propertiesEnabled: boolean;
     propertyNameFields: readonly string[];
@@ -96,7 +104,7 @@ function resolveMarkdownBodyStartIndex(metadata: CachedMetadata, content: string
 }
 
 function extractYamlFrontmatter(content: string): string | null {
-    // Parse only the leading YAML block so Excalidraw frontmatter can be recovered from fresh file content.
+    // Parse only the leading YAML block so drawing frontmatter can be recovered from fresh file content.
     const firstLineEnd = content.indexOf('\n');
     const firstLine = firstLineEnd === -1 ? content : content.slice(0, firstLineEnd);
     const normalizedFirstLine = firstLine.charCodeAt(0) === 0xfeff ? firstLine.slice(1) : firstLine;
@@ -127,17 +135,17 @@ function extractYamlFrontmatter(content: string): string | null {
     return null;
 }
 
-function frontmatterMarksExcalidraw(content: string): boolean {
+function detectDrawingProviderFromContent(file: TFile, content: string): DrawingFeatureImageProviderId | null {
     const yamlText = extractYamlFrontmatter(content);
     if (!yamlText) {
-        return false;
+        return null;
     }
 
     try {
         const parsed: unknown = parseYaml(yamlText);
-        return hasExcalidrawFrontmatterFlagValue(parsed);
+        return getDrawingSourceProviderIdWithFrontmatter(file, parsed);
     } catch {
-        return false;
+        return null;
     }
 }
 
@@ -341,7 +349,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
                 return (
                     context.settings.showFilePreview &&
                     (!context.fileData || context.fileModified || context.fileData.previewStatus === 'unprocessed') &&
-                    (context.hasContent || context.isExcalidraw)
+                    (context.hasContent || context.isDrawing)
                 );
             },
             run: async context => await this.processPreview(context)
@@ -350,7 +358,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             id: 'wordCount',
             needsProcessing: context => {
                 if (!context.fileData || context.fileModified || context.fileData.wordCount === null) {
-                    return context.isExcalidraw || context.hasContent;
+                    return context.isDrawing || context.hasContent;
                 }
 
                 return false;
@@ -366,7 +374,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
                     context.fileData.taskTotal === null ||
                     context.fileData.taskUnfinished === null
                 ) {
-                    return context.isExcalidraw || context.hasContent;
+                    return context.isDrawing || context.hasContent;
                 }
 
                 return false;
@@ -390,7 +398,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
                     return false;
                 }
 
-                if (!context.isExcalidraw && !context.featureImageReference && !context.hasContent && !context.featureImageExcluded) {
+                if (!context.isDrawing && !context.featureImageReference && !context.hasContent && !context.featureImageExcluded) {
                     return false;
                 }
 
@@ -398,7 +406,10 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
                     !context.fileData ||
                     context.fileModified ||
                     context.fileData.featureImageKey === null ||
-                    context.fileData.featureImageStatus === 'unprocessed'
+                    context.fileData.featureImageStatus === 'unprocessed' ||
+                    (!context.featureImageExcluded &&
+                        context.drawingProviderId !== null &&
+                        context.fileData.featureImageKey !== getDrawingDirectFeatureImageKey(context.file, context.drawingProviderId))
                 );
             },
             run: async context => await this.processFeatureImage(context)
@@ -461,10 +472,11 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             oldSettings.previewPropertiesFallback !== newSettings.previewPropertiesFallback;
         const shouldClearPreview =
             previewExtractionSettingsChanged ||
-            // Enabling preview requires regenerated text because files may have changed while preview extraction was disabled.
-            (!oldSettings.showFilePreview && newSettings.showFilePreview);
+            // Toggling preview clears stale text while the disabled state hides the intermediate empty rows.
+            oldSettings.showFilePreview !== newSettings.showFilePreview;
 
-        const shouldClearProperties = getActivePropertyFields(oldSettings) !== getActivePropertyFields(newSettings);
+        const shouldClearProperties =
+            getPropertyFrontmatterFieldSignature(oldSettings) !== getPropertyFrontmatterFieldSignature(newSettings);
 
         const featureImagePropertiesChanged = !areStringArraysEqual(oldSettings.featureImageProperties, newSettings.featureImageProperties);
         const featureImageExcludePropertiesChanged = !areStringArraysEqual(
@@ -524,8 +536,17 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         }
 
         const needsPreview = settings.showFilePreview && fileData.previewStatus === 'unprocessed';
-        const needsFeatureImage =
+        let needsFeatureImage =
             settings.showFeatureImage && (fileData.featureImageKey === null || fileData.featureImageStatus === 'unprocessed');
+        if (settings.showFeatureImage && !needsFeatureImage) {
+            const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+            const featureImageExcluded = createCaseInsensitiveKeyMatcher(settings.featureImageExcludeProperties).matches(frontmatter);
+            if (!featureImageExcluded) {
+                const drawingProviderId = getDrawingSourceProviderIdWithFrontmatter(file, frontmatter);
+                const expectedDrawingFeatureImageKey = drawingProviderId ? getDrawingDirectFeatureImageKey(file, drawingProviderId) : null;
+                needsFeatureImage = expectedDrawingFeatureImageKey !== null && fileData.featureImageKey !== expectedDrawingFeatureImageKey;
+            }
+        }
         const needsProperties = propertiesEnabled && fileData.properties === null;
         const needsWordCount = fileData.wordCount === null;
         const needsTasks = fileData.taskTotal === null || fileData.taskUnfinished === null;
@@ -542,7 +563,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             return { update: null, processed: true };
         }
 
-        const propertyNameFields = getCachedCommaSeparatedList(getActivePropertyFields(settings));
+        const propertyNameFields = getPropertyFrontmatterFields(settings);
         const propertiesEnabled = propertyNameFields.length > 0;
         const previewPropertiesEnabled = settings.showFilePreview && settings.previewProperties.length > 0;
         const featureImagePropertiesEnabled = settings.showFeatureImage && settings.featureImageProperties.length > 0;
@@ -555,16 +576,17 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         }
 
         const frontmatter = cachedMetadata.frontmatter ?? null;
-        let isExcalidraw = PreviewTextUtils.isExcalidrawFile(job.file.name, frontmatter ?? undefined);
+        let drawingProviderId = getDrawingSourceProviderIdWithFrontmatter(job.file, frontmatter);
+        let isDrawing = drawingProviderId !== null;
         const fileModified = fileData !== null && fileData.markdownPipelineMtime !== job.file.stat.mtime;
         const needsPreview =
-            settings.showFilePreview && (!fileData || fileModified || fileData.previewStatus === 'unprocessed') && !isExcalidraw;
+            settings.showFilePreview && (!fileData || fileModified || fileData.previewStatus === 'unprocessed') && !isDrawing;
         const needsPreviewPropertyFrontmatter = previewPropertiesEnabled && needsPreview;
         const needsPropertyFrontmatter = propertiesEnabled && (fileData === null || fileModified || fileData.properties === null);
         const needsFeatureImage =
             settings.showFeatureImage &&
             (!fileData || fileModified || fileData.featureImageKey === null || fileData.featureImageStatus === 'unprocessed') &&
-            !isExcalidraw;
+            !isDrawing;
         const needsFeatureImageFrontmatter = needsFeatureImage && (featureImagePropertiesEnabled || featureImageExcludePropertiesEnabled);
         // Delay processing recent files while metadata cache catches up with frontmatter-backed preview/property/image inputs.
         if (frontmatter === null && (needsPropertyFrontmatter || needsPreviewPropertyFrontmatter || needsFeatureImageFrontmatter)) {
@@ -578,9 +600,9 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         const featureImageExcludeMatcher = createCaseInsensitiveKeyMatcher(settings.featureImageExcludeProperties);
         const featureImageExcluded = settings.showFeatureImage && frontmatter !== null && featureImageExcludeMatcher.matches(frontmatter);
         const needsWordCount = !fileData || fileModified || fileData.wordCount === null;
-        const needsWordCountContent = needsWordCount && !isExcalidraw;
+        const needsWordCountContent = needsWordCount && !isDrawing;
         const needsTasks = !fileData || fileModified || fileData.taskTotal === null || fileData.taskUnfinished === null;
-        const needsTasksContent = needsTasks && !isExcalidraw;
+        const needsTasksContent = needsTasks && !isDrawing;
 
         const frontmatterFeatureImageReference =
             needsFeatureImage && frontmatter && !featureImageExcluded
@@ -614,10 +636,10 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         if (needsContent) {
             const maxMarkdownReadBytes = Platform.isMobile ? LIMITS.markdown.maxReadBytes.mobile : LIMITS.markdown.maxReadBytes.desktop;
             if (job.file.stat.size > maxMarkdownReadBytes) {
-                // Large files stay on the metadata-only path, so recent frontmatter-only Excalidraw notes need the same retry window.
-                const needsExcalidrawFrontmatterForFeatureImage =
-                    frontmatter === null && !isExcalidraw && needsFeatureImage && job.file.name.toLowerCase().endsWith('.md');
-                if (needsExcalidrawFrontmatterForFeatureImage) {
+                // Large files stay on the metadata-only path, so recent frontmatter-only drawing notes need the same retry window.
+                const needsDrawingFrontmatterForFeatureImage =
+                    frontmatter === null && !isDrawing && needsFeatureImage && job.file.name.toLowerCase().endsWith('.md');
+                if (needsDrawingFrontmatterForFeatureImage) {
                     const attempts = this.emptyFrontmatterRetryCounts.get(job.path) ?? 0;
                     const isRecent = Date.now() - job.file.stat.mtime <= LIMITS.contentProvider.metadataCache.recentFileWindowMs;
                     if (isRecent && attempts < LIMITS.contentProvider.metadataCache.emptyValueRetryLimit) {
@@ -666,7 +688,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
                         content: '',
                         frontmatter,
                         bodyStartIndex: 0,
-                        isExcalidraw,
+                        drawingProviderId,
                         featureImageReference: frontmatterFeatureImageReference,
                         featureImageExcluded
                     });
@@ -759,7 +781,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
                     content: '',
                     frontmatter,
                     bodyStartIndex: 0,
-                    isExcalidraw,
+                    drawingProviderId,
                     featureImageReference: frontmatterFeatureImageReference,
                     featureImageExcluded
                 });
@@ -777,7 +799,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
                     content: '',
                     frontmatter,
                     bodyStartIndex: 0,
-                    isExcalidraw,
+                    drawingProviderId,
                     featureImageReference: null,
                     featureImageExcluded
                 });
@@ -805,9 +827,10 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             return { update: null, processed: shouldFallback };
         }
 
-        if (!isExcalidraw && frontmatter === null && frontmatterMarksExcalidraw(content)) {
-            // Metadata cache can lag behind file reads right after save; recover frontmatter-only Excalidraw detection from content.
-            isExcalidraw = true;
+        if (!isDrawing && frontmatter === null) {
+            // Metadata cache can lag behind file reads right after save; recover frontmatter-only drawing detection from content.
+            drawingProviderId = detectDrawingProviderFromContent(job.file, content);
+            isDrawing = drawingProviderId !== null;
         }
 
         const context: MarkdownPipelineContext = {
@@ -817,7 +840,8 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             content,
             frontmatter,
             bodyStartIndex,
-            isExcalidraw,
+            isDrawing,
+            drawingProviderId,
             fileModified,
             propertiesEnabled,
             propertyNameFields,
@@ -876,7 +900,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
 
     private async processPreview(context: MarkdownPipelineContext): Promise<MarkdownPipelineUpdate | null> {
         try {
-            const previewText = context.isExcalidraw
+            const previewText = context.isDrawing
                 ? ''
                 : PreviewTextUtils.extractPreviewText(context.content, context.settings, context.frontmatter ?? undefined);
 
@@ -908,7 +932,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
 
     private async processWordCount(context: MarkdownPipelineContext): Promise<MarkdownPipelineUpdate | null> {
         try {
-            const count = context.isExcalidraw ? 0 : countWordsForNoteProperty(context.content, context.bodyStartIndex);
+            const count = context.isDrawing ? 0 : countWordsForNoteProperty(context.content, context.bodyStartIndex);
             if (!context.fileData || context.fileData.wordCount === null || context.fileData.wordCount !== count) {
                 return { wordCount: count };
             }
@@ -924,7 +948,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
 
     private async processTasks(context: MarkdownPipelineContext): Promise<MarkdownPipelineUpdate | null> {
         try {
-            const counts = context.isExcalidraw
+            const counts = context.isDrawing
                 ? { taskTotal: 0, taskUnfinished: 0 }
                 : countMarkdownTasks(context.content, context.bodyStartIndex);
 
@@ -981,7 +1005,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             content: context.content,
             frontmatter: context.frontmatter,
             bodyStartIndex: context.bodyStartIndex,
-            isExcalidraw: context.isExcalidraw,
+            drawingProviderId: context.drawingProviderId,
             featureImageReference: context.featureImageReference,
             featureImageExcluded: context.featureImageExcluded
         });
@@ -1003,7 +1027,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         content: string;
         frontmatter: FrontMatterCache | null;
         bodyStartIndex: number;
-        isExcalidraw: boolean;
+        drawingProviderId: DrawingFeatureImageProviderId | null;
         featureImageReference: FeatureImageReference | null;
         featureImageExcluded: boolean;
     }): Promise<{ featureImageKey: string; featureImage: Blob } | null> {
@@ -1020,16 +1044,16 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
             };
         }
 
-        if (params.isExcalidraw) {
-            const featureImageKey = this.getExcalidrawFeatureImageKey(params.file);
-            if (params.fileData && params.fileData.featureImageKey === featureImageKey) {
+        if (params.drawingProviderId) {
+            const featureImageKey = getDrawingDirectFeatureImageKey(params.file, params.drawingProviderId);
+            const isUpToDate = params.fileData?.featureImageKey === featureImageKey && params.fileData.featureImageStatus === 'none';
+            if (isUpToDate) {
                 return null;
             }
 
-            const thumbnail = await this.createExcalidrawThumbnail(params.file);
             return {
                 featureImageKey,
-                featureImage: thumbnail ?? this.createEmptyBlob()
+                featureImage: this.createEmptyBlob()
             };
         }
 

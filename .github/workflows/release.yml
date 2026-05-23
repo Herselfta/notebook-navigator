@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      hashes: ${{ steps.hash.outputs.hashes }}
+      id-token: write
+      attestations: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
@@ -28,6 +28,14 @@ jobs:
           npm ci
           npm run build
 
+      - name: Attest release assets
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4
+        with:
+          subject-path: |
+            main.js
+            manifest.json
+            styles.css
+
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,19 +49,3 @@ jobs:
             --title="$tag" \
             --notes-file release-notes.md \
             main.js manifest.json styles.css
-
-      - name: Generate artifact hashes
-        id: hash
-        run: |
-          echo "hashes=$(sha256sum main.js manifest.json styles.css | base64 -w0)" >> "$GITHUB_OUTPUT"
-
-  provenance:
-    needs: [build]
-    permissions:
-      actions: read
-      id-token: write
-      contents: write
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
-    with:
-      base64-subjects: ${{ needs.build.outputs.hashes }}
-      upload-assets: true

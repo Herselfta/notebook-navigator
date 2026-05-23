@@ -85,6 +85,7 @@ export const ItemType = {
  */
 export const ListPaneItemType = {
     HEADER: 'header',
+    HEADER_SPACER: 'header-spacer',
     FILE: 'file',
     TOP_SPACER: 'top-spacer',
     BOTTOM_SPACER: 'bottom-spacer'
@@ -105,6 +106,16 @@ export const PINNED_SECTION_HEADER_KEY = 'header-pinned';
  * Represents different browsing contexts in the navigator
  */
 export type NavigatorContext = 'folder' | 'tag' | 'property';
+
+/**
+ * Key for a pinned section collapse state in a specific navigation item.
+ */
+export type PinnedSectionCollapseKey = `${NavigatorContext}:${string}`;
+
+/**
+ * Set-like record of navigation items where the pinned section is collapsed.
+ */
+export type CollapsedPinnedContexts = Partial<Record<PinnedSectionCollapseKey, boolean>>;
 
 /**
  * Type alias for pinned notes storage structure
@@ -211,9 +222,9 @@ export const LISTPANE_MEASUREMENTS = {
 /**
  * Platform measurements used for mobile layout math.
  *
- * Keep in sync with CSS in `src/styles/sections/platform-ios-obsidian-1-11.css`.
+ * Keep in sync with CSS in `src/styles/sections/platform-ios.css`.
  */
-export const IOS_OBSIDIAN_1_11_PLUS_GLASS_TOOLBAR_HEIGHT_PX = 58;
+export const IOS_FLOATING_TOOLBAR_HEIGHT_PX = 58;
 
 /**
  * Pane transition duration limits for single-pane view animations (milliseconds)
@@ -289,6 +300,7 @@ export interface LocalStorageKeys {
     compactItemHeightScaleTextKey: string;
     featureImageSizeKey: string;
     featureImagePixelSizeKey: string;
+    collapsedListGroupsKey: string;
 }
 
 /**
@@ -345,7 +357,8 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     compactItemHeightKey: 'notebook-navigator-compact-item-height',
     compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text',
     featureImageSizeKey: 'notebook-navigator-feature-image-size',
-    featureImagePixelSizeKey: 'notebook-navigator-feature-image-pixel-size'
+    featureImagePixelSizeKey: 'notebook-navigator-feature-image-pixel-size',
+    collapsedListGroupsKey: 'notebook-navigator-collapsed-list-groups'
 };
 
 export interface UXPreferences {
@@ -451,6 +464,7 @@ export interface DragDropAttributes {
     'data-drag-type'?: ItemType;
     'data-drag-path'?: string;
     'data-drag-handle'?: 'true';
+    'data-drag-allow-multi-file'?: 'false';
 
     // Drop zone attributes
     'data-drop-zone'?: typeof ItemType.FOLDER;

@@ -19,7 +19,7 @@
 import React from 'react';
 import { CSS } from '@dnd-kit/utilities';
 import { useSortable } from '@dnd-kit/sortable';
-import { NavigationPaneItemType } from '../../types';
+import { ItemType, NavigationPaneItemType } from '../../types';
 import type { ShortcutContextMenuTarget } from '../../hooks/navigationPane/navigationPaneShortcutTypes';
 import { isFolderShortcut, isNoteShortcut, isPropertyShortcut, isTagShortcut } from '../../types/shortcuts';
 import { runAsyncAction } from '../../utils/async';
@@ -56,7 +56,7 @@ function SortableShortcutItem({ sortableId, canReorder, ...rest }: SortableShort
     );
 }
 
-export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowProps) {
+export function NavigationPaneShortcutRow({ item, context, adjacentFilledClassName }: NavigationPaneRowProps) {
     const { app, settings, showHiddenItems, getFileDisplayName, getSolidBackground, shortcuts } = context;
     const shouldShowTooltip = !context.isMobile && settings.showTooltips;
 
@@ -112,6 +112,7 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                       : (item.icon ?? 'lucide-folder'),
                 color: isMissing ? undefined : item.color,
                 backgroundColor: shortcutBackground,
+                adjacentFilledClassName,
                 label: folderLabel,
                 description: undefined,
                 level: item.level,
@@ -200,6 +201,7 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                       : (item.icon ?? 'lucide-file-text'),
                 color: isMissing ? undefined : item.color,
                 backgroundColor: shortcutBackground,
+                adjacentFilledClassName,
                 label,
                 description: undefined,
                 level: item.level,
@@ -251,6 +253,7 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                 icon: 'lucide-search',
                 color: item.color,
                 backgroundColor: getSolidBackground(item.backgroundColor),
+                adjacentFilledClassName,
                 label: searchShortcut.name,
                 level: item.level,
                 type: 'search' as const,
@@ -299,6 +302,7 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                       : (item.icon ?? 'lucide-tags'),
                 color: isMissing ? undefined : item.color,
                 backgroundColor: shortcutBackground,
+                adjacentFilledClassName,
                 label: tagLabel,
                 description: undefined,
                 level: item.level,
@@ -352,6 +356,7 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                 icon: isMissing ? 'lucide-alert-triangle' : (item.icon ?? resolveUXIcon(settings.interfaceIcons, 'nav-property')),
                 color: isMissing ? undefined : item.color,
                 backgroundColor: isMissing ? undefined : getSolidBackground(item.backgroundColor),
+                adjacentFilledClassName,
                 label: propertyLabel,
                 description: undefined,
                 level: item.level,
@@ -410,6 +415,7 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                     icon={item.icon ?? 'lucide-file-text'}
                     color={item.color}
                     backgroundColor={getSolidBackground(item.backgroundColor)}
+                    adjacentFilledClassName={adjacentFilledClassName}
                     label={label}
                     tooltip={tooltip}
                     level={item.level}
@@ -417,6 +423,17 @@ export function NavigationPaneShortcutRow({ item, context }: NavigationPaneRowPr
                     onClick={() => shortcuts.handleRecentNoteActivate(note)}
                     onMouseDown={event => shortcuts.handleShortcutNoteMouseDown(event, note)}
                     onContextMenu={event => shortcuts.handleRecentFileContextMenu(event, note)}
+                    nativeDragData={
+                        context.isMobile
+                            ? undefined
+                            : {
+                                  path: note.path,
+                                  type: ItemType.FILE,
+                                  icon: item.icon ?? 'lucide-file-text',
+                                  iconColor: item.color,
+                                  allowMultiFileDrag: false
+                              }
+                    }
                 />
             );
         }

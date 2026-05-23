@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { TFile } from 'obsidian';
+import { App, TFile } from 'obsidian';
 import type { ContentProviderType } from '../interfaces/IContentProvider';
 import type { NotebookNavigatorSettings } from '../settings/types';
 import { getDBInstance } from '../storage/fileOperations';
@@ -24,6 +24,12 @@ import { isPdfFile } from '../utils/fileTypeUtils';
 import { hasPropertyFrontmatterFields } from '../utils/propertyUtils';
 import { getActiveHiddenFileProperties } from '../utils/vaultProfiles';
 import { getLocalFeatureImageKey } from '../services/content/FeatureImageContentProvider';
+import { createCaseInsensitiveKeyMatcher } from '../utils/recordUtils';
+import {
+    getDrawingDirectFeatureImageKey,
+    getDrawingSourceProviderIdWithFrontmatter,
+    getNonMarkdownDrawingFeatureImageProviderId
+} from '../utils/drawingFeatureImages';
 
 type MetadataSourceFilterOptions = {
     /**
@@ -31,6 +37,7 @@ type MetadataSourceFilterOptions = {
      * This avoids false negatives when the provider's hidden-state logic can change without a stat.mtime update.
      */
     conservativeMetadata?: boolean;
+    app?: App;
 };
 
 /**
@@ -56,6 +63,8 @@ export function filterFilesRequiringMetadataSources(
     const needsMarkdownPipeline = types.includes('markdownPipeline');
     const needsTags = types.includes('tags');
     const needsMetadata = types.includes('metadata');
+    const app = options?.app;
+    const featureImageExcludeMatcher = createCaseInsensitiveKeyMatcher(settings.featureImageExcludeProperties);
 
     return files.filter(file => {
         const record = records.get(file.path);
@@ -71,8 +80,20 @@ export function filterFilesRequiringMetadataSources(
 
         if (needsMarkdownPipeline && file.extension === 'md') {
             const needsPreview = settings.showFilePreview && record.previewStatus === 'unprocessed';
-            const needsFeatureImage =
+            let needsFeatureImage =
                 settings.showFeatureImage && (record.featureImageKey === null || record.featureImageStatus === 'unprocessed');
+            if (settings.showFeatureImage && !needsFeatureImage && app) {
+                const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter;
+                const featureImageExcluded = featureImageExcludeMatcher.matches(frontmatter);
+                if (!featureImageExcluded) {
+                    const drawingProviderId = getDrawingSourceProviderIdWithFrontmatter(file, frontmatter);
+                    const expectedDrawingFeatureImageKey = drawingProviderId
+                        ? getDrawingDirectFeatureImageKey(file, drawingProviderId)
+                        : null;
+                    needsFeatureImage =
+                        expectedDrawingFeatureImageKey !== null && record.featureImageKey !== expectedDrawingFeatureImageKey;
+                }
+            }
             const needsProperties = propertiesEnabled && record.properties === null;
             const needsWordCount = record.wordCount === null;
             const needsTasks = record.taskTotal === null || record.taskUnfinished === null;
@@ -103,40 +124,60 @@ export function filterFilesRequiringMetadataSources(
     });
 }
 
+function getFileThumbnailFeatureImageKey(file: TFile): string | null {
+    if (isPdfFile(file)) {
+        return getLocalFeatureImageKey(file);
+    }
+
+    const drawingProviderId = getNonMarkdownDrawingFeatureImageProviderId(file);
+    if (!drawingProviderId) {
+        return null;
+    }
+
+    return getDrawingDirectFeatureImageKey(file, drawingProviderId);
+}
+
+export function shouldQueueFileThumbnailProvider(file: TFile): boolean {
+    return getFileThumbnailFeatureImageKey(file) !== null;
+}
+
 /**
- * Returns PDF files that need the file thumbnails provider to run.
+ * Returns non-markdown files that need the file thumbnails provider to run.
  *
  * This resumes forced regeneration across restarts when `fileThumbnailsMtime` was reset without changing FileData.mtime.
  */
-export function filterPdfFilesRequiringThumbnails(files: TFile[], settings: NotebookNavigatorSettings): TFile[] {
+export function filterFilesRequiringFileThumbnails(files: TFile[], settings: NotebookNavigatorSettings): TFile[] {
     if (!settings.showFeatureImage || files.length === 0) {
         return [];
     }
 
-    const pdfFiles = files.filter(file => isPdfFile(file));
-    if (pdfFiles.length === 0) {
+    const candidates = files
+        .map(file => ({ file, expectedKey: getFileThumbnailFeatureImageKey(file) }))
+        .filter((candidate): candidate is { file: TFile; expectedKey: string } => candidate.expectedKey !== null);
+    if (candidates.length === 0) {
         return [];
     }
 
     const db = getDBInstance();
-    const records = db.getFiles(pdfFiles.map(file => file.path));
+    const records = db.getFiles(candidates.map(({ file }) => file.path));
 
-    return pdfFiles.filter(file => {
-        const record = records.get(file.path);
-        if (!record) {
-            return true;
-        }
+    return candidates
+        .filter(({ file, expectedKey }) => {
+            const record = records.get(file.path);
+            if (!record) {
+                return true;
+            }
 
-        const fileMtime = file.stat.mtime;
-        if (record.fileThumbnailsMtime !== fileMtime) {
-            return true;
-        }
+            const fileMtime = file.stat.mtime;
+            if (record.fileThumbnailsMtime !== fileMtime) {
+                return true;
+            }
 
-        if (record.featureImageStatus === 'unprocessed') {
-            return true;
-        }
+            if (record.featureImageStatus === 'unprocessed') {
+                return true;
+            }
 
-        const expectedKey = getLocalFeatureImageKey(file);
-        return record.featureImageKey === null || record.featureImageKey !== expectedKey;
-    });
+            return record.featureImageKey === null || record.featureImageKey !== expectedKey;
+        })
+        .map(({ file }) => file);
 }

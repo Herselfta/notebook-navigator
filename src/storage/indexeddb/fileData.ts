@@ -200,7 +200,7 @@ export interface FileData {
      * - `f:<path>@<mtime>`: local vault file reference (image embeds, PDF cover thumbnails)
      * - `e:<url>`: external https URL reference (normalized, without hash)
      * - `y:<videoId>`: YouTube thumbnail reference
-     * - `x:<path>@<mtime>`: Excalidraw file preview reference
+     * - `d:<provider>:<path>`: drawing file with provider-owned preview rendering
      */
     featureImageKey: string | null;
     metadata: {

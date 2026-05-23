@@ -61,7 +61,7 @@ export function SearchInput({
     isShortcutDisabled,
     searchProvider
 }: SearchInputProps) {
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
     const tagSuggestRef = useRef<SearchTagInputSuggest | null>(null);
     const dateSuggestRef = useRef<SearchDateInputSuggest | null>(null);
     const { isMobile, omnisearchService, app, tagTreeService, plugin } = useServices();
@@ -109,7 +109,7 @@ export function SearchInput({
             plugin.setSearchProvider(isOmnisearchActive ? 'internal' : 'omnisearch');
 
             if (options?.restoreFocus) {
-                requestAnimationFrame(() => restoreSearchInputFocus(selection));
+                window.requestAnimationFrame(() => restoreSearchInputFocus(selection));
             }
         },
         [isOmnisearchAvailable, isOmnisearchActive, plugin, restoreSearchInputFocus]
@@ -129,7 +129,7 @@ export function SearchInput({
     const applyTagSuggestion = useCallback(
         (value: string, cursor: number) => {
             onSearchQueryChange(value);
-            requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
                 const input = inputRef.current;
                 if (!input) {
                     return;
@@ -204,7 +204,7 @@ export function SearchInput({
      * Used after closing search or switching focus away from search input.
      */
     const focusListPane = () => {
-        activeWindow.setTimeout(() => {
+        window.setTimeout(() => {
             const scope = containerRef?.current ?? activeDocument;
             const listPaneScroller = scope.querySelector('.nn-list-pane-scroller');
             if (listPaneScroller instanceof HTMLElement) {

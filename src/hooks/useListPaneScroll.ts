@@ -49,33 +49,42 @@ import { TFile, TFolder } from 'obsidian';
 import { useVirtualizer, Virtualizer } from '@tanstack/react-virtual';
 import { useServices } from '../context/ServicesContext';
 import { useFileCache } from '../context/StorageContext';
-import { ItemType, ListPaneItemType, OVERSCAN } from '../types';
+import { ListPaneItemType, OVERSCAN } from '../types';
 import { Align, ListScrollIntent, getListAlign, rankListPending } from '../types/scroll';
 import type { ListPaneItem } from '../types/virtualization';
 import type { NotebookNavigatorSettings } from '../settings';
-import type { ListDisplayMode, ListNoteGroupingOption, NotePropertyType, SortOption } from '../settings/types';
+import type { ListDisplayMode, ListNoteGroupingOption, SortOption } from '../settings/types';
 import type { FileContentChange } from '../storage/IndexedDBStorage';
 import type { SelectionDispatch, SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
 import {
+    calculateNormalListFileRowHeightEstimate,
     getFileItemLayoutState,
     getSelectedPropertyValuePillToHide,
     getSelectedTagPillToHide,
     hasVisibleTagPills,
+    getListPaneHeaderHeight,
     getListPaneMeasurements,
     getPropertyRowCount,
     isListPaneCompactMode,
+    shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
 } from '../utils/listPaneMeasurements';
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getCachedFileTags } from '../utils/tagUtils';
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
+import { getDrawingFeatureImageSource, resolveDrawingFeatureImageFileForProvider } from '../utils/drawingFeatureImages';
+import { useThemeMode } from './useThemeMode';
+import type { ThemeMode } from '../utils/themeMode';
+import { getListSortOverrideForSelection, resolveListSort } from '../utils/sortUtils';
 
 /**
  * Parameters for the useListPaneScroll hook
  */
 interface UseListPaneScrollParams {
+    /** Whether scroll orchestration and the virtualizer are active */
+    enabled?: boolean;
     /** List items to be rendered in the virtual list */
     listItems: ListPaneItem[];
     /** Map from file paths to their index in listItems */
@@ -95,7 +104,6 @@ interface UseListPaneScrollParams {
         mode: ListDisplayMode;
         titleRows: number;
         previewRows: number;
-        notePropertyType: NotePropertyType;
         showDate: boolean;
         showPreview: boolean;
         showImage: boolean;
@@ -115,6 +123,8 @@ interface UseListPaneScrollParams {
     topSpacerHeight: number;
     /** Whether descendant notes should be shown */
     includeDescendantNotes: boolean;
+    /** Signature that changes when any list group collapse state changes */
+    groupCollapseStateSignature: string;
     /** Visible frontmatter property keys for file list rows (normalized keys) */
     visiblePropertyKeys: ReadonlySet<string>;
     /** Stable key signature for visible frontmatter property keys */
@@ -142,6 +152,8 @@ type ListLayoutSignatureSettings = Pick<
     | 'showFileProperties'
     | 'showFilePropertiesInCompactMode'
     | 'showPropertiesOnSeparateRows'
+    | 'showWordCount'
+    | 'wordCountPlacement'
     | 'showFileTags'
     | 'showFileTagsInCompactMode'
     | 'showParentFolder'
@@ -161,6 +173,8 @@ interface UseListPaneScrollResult {
     scrollContainerRefCallback: (element: HTMLDivElement | null) => void;
     /** Handler to scroll to top (mobile header tap) */
     handleScrollToTop: () => void;
+    /** Scrolls a list index into view while accounting for overlay chrome */
+    scrollToIndexSafely: (index: number, align: Align) => void;
 }
 
 // Path-index maps can be recreated with the same contents. Keep indexVersion tied to effective mapping changes.
@@ -183,6 +197,7 @@ interface ListLayoutSignatureParams {
     topSpacerHeight: number;
     folderSettings: ListPaneAppearanceLayoutSettings;
     settings: ListLayoutSignatureSettings;
+    themeMode: ThemeMode;
     selectionType: SelectionState['selectionType'];
     selectedTagToHide: string | null;
     selectedPropertyValueNodeIdToHide: string | null;
@@ -197,8 +212,9 @@ interface ScrollPreservationSignatureParams {
     listLayoutSignature: string;
     groupBy: ListPaneAppearanceLayoutSettings['groupBy'];
     noteGrouping: NotebookNavigatorSettings['noteGrouping'];
+    stickyGroupHeaders: NotebookNavigatorSettings['stickyGroupHeaders'];
     effectiveSort: SortOption;
-    propertySortKey: NotebookNavigatorSettings['propertySortKey'];
+    propertySortKey: string;
     propertySortSecondary: NotebookNavigatorSettings['propertySortSecondary'];
 }
 
@@ -224,6 +240,7 @@ function getListLayoutSignature({
     topSpacerHeight,
     folderSettings,
     settings,
+    themeMode,
     selectionType,
     selectedTagToHide,
     selectedPropertyValueNodeIdToHide,
@@ -236,11 +253,13 @@ function getListLayoutSignature({
         spacers: {
             topSpacerHeight
         },
+        environment: {
+            themeMode
+        },
         appearance: {
             mode: folderSettings.mode,
             titleRows: folderSettings.titleRows,
             previewRows: folderSettings.previewRows,
-            notePropertyType: folderSettings.notePropertyType,
             groupBy: folderSettings.groupBy,
             showDate: folderSettings.showDate,
             showPreview: folderSettings.showPreview,
@@ -250,6 +269,8 @@ function getListLayoutSignature({
             showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
+            showWordCount: settings.showWordCount,
+            wordCountPlacement: settings.wordCountPlacement,
             showSelectedNavigationPills: settings.showSelectedNavigationPills,
             visiblePropertyKeySignature,
             showParentFolder: settings.showParentFolder,
@@ -275,6 +296,7 @@ function getScrollPreservationSignature({
     listLayoutSignature,
     groupBy,
     noteGrouping,
+    stickyGroupHeaders,
     effectiveSort,
     propertySortKey,
     propertySortSecondary
@@ -284,6 +306,7 @@ function getScrollPreservationSignature({
         listLayoutSignature,
         groupBy,
         noteGrouping,
+        stickyGroupHeaders,
         effectiveSort,
         propertySortKey: propertySortKey ?? null,
         propertySortSecondary
@@ -301,6 +324,26 @@ export function isListRowHeightAffectingContentChange(change: FileContentChange)
     );
 }
 
+function getStickyHeaderHeightBeforeIndex(
+    listItems: ListPaneItem[],
+    index: number,
+    measurements: ReturnType<typeof getListPaneMeasurements>
+): number {
+    const item = listItems[index];
+    if (item?.type !== ListPaneItemType.FILE || !(item.data instanceof TFile)) {
+        return 0;
+    }
+
+    for (let listIndex = index - 1; listIndex >= 0; listIndex -= 1) {
+        const candidate = listItems[listIndex];
+        if (candidate?.type === ListPaneItemType.HEADER) {
+            return getListPaneHeaderHeight(candidate, measurements);
+        }
+    }
+
+    return 0;
+}
+
 /**
  * Hook that manages scrolling behavior for the ListPane component.
  * Handles virtualization, scroll position, and various scroll scenarios.
@@ -309,6 +352,7 @@ export function isListRowHeightAffectingContentChange(change: FileContentChange)
  * @returns Virtualizer instance and scroll management utilities
  */
 export function useListPaneScroll({
+    enabled = true,
     listItems,
     filePathToIndex,
     selectedFile,
@@ -324,6 +368,7 @@ export function useListPaneScroll({
     suppressSearchTopScrollRef,
     topSpacerHeight,
     includeDescendantNotes,
+    groupCollapseStateSignature,
     visiblePropertyKeys,
     visiblePropertyKeySignature,
     hiddenTagVisibility,
@@ -334,6 +379,7 @@ export function useListPaneScroll({
     const { app, isMobile } = useServices();
     const listMeasurements = getListPaneMeasurements(isMobile);
     const { hasPreview, getDB, isStorageReady } = useFileCache();
+    const themeMode = useThemeMode(app);
     // The list pane only renders after StorageContext marks storage ready.
     const db = getDB();
 
@@ -357,6 +403,7 @@ export function useListPaneScroll({
     const prevListKeyRef = useRef<string>(''); // Previous folder/tag context to detect navigation
     const prevScrollPreservationConfigRef = useRef<PreviousScrollPreservationConfig | null>(null);
     const prevSearchQueryRef = useRef<string | undefined>(undefined); // Track search query changes
+    const prevGroupCollapseStateSignatureRef = useRef<string>(groupCollapseStateSignature);
 
     // ========== Scroll Orchestration ==========
     // Scroll reasons determine priority and alignment behavior
@@ -419,15 +466,19 @@ export function useListPaneScroll({
     const effectiveScrollMargin = Number.isFinite(scrollMargin) && scrollMargin > 0 ? scrollMargin : 0;
     const effectiveScrollPaddingEnd = Number.isFinite(scrollPaddingEnd) && scrollPaddingEnd > 0 ? scrollPaddingEnd : 0;
     const rowVirtualizer = useVirtualizer({
-        count: listItems.length,
+        count: enabled ? listItems.length : 0,
         getItemKey: getListItemKey,
         getScrollElement: () => {
+            if (!enabled) {
+                return null;
+            }
             const element = scrollContainerRef.current;
             if (!element) {
                 // No element available yet
             }
             return element;
         },
+        enabled,
         // Align virtualizer scroll math with the start of the file rows (excluding overlay chrome).
         scrollMargin: effectiveScrollMargin,
         // Ensure scrollToIndex aligns items below the overlay chrome instead of under it.
@@ -437,13 +488,10 @@ export function useListPaneScroll({
             const heights = listMeasurements;
 
             if (item.type === ListPaneItemType.HEADER) {
-                // Date group headers have fixed heights from CSS
-                // Index 1 because TOP_SPACER is at index 0
-                const isFirstHeader = index === 1;
-                if (isFirstHeader) {
-                    return heights.firstHeader;
-                }
-                return heights.subsequentHeader;
+                return getListPaneHeaderHeight(item, heights);
+            }
+            if (item.type === ListPaneItemType.HEADER_SPACER) {
+                return heights.groupHeaderSpacerBefore;
             }
 
             if (item.type === ListPaneItemType.TOP_SPACER) {
@@ -471,16 +519,34 @@ export function useListPaneScroll({
             const hasPreviewContent = hasPreviewText || hasOmnisearchExcerpt;
 
             // Keep height estimation aligned with FileItem feature image rendering.
-            // getFile reads from the in-memory cache; no IndexedDB reads occur during sizing.
+            // Vault path lookups read from Obsidian's in-memory file tree; no IndexedDB reads occur during sizing.
             const featureImageStatus = fileRecord?.featureImageStatus ?? null;
+            const drawingFeatureImageSource = file ? getDrawingFeatureImageSource(app, file) : null;
+            const showDrawingFeatureImage = folderSettings.showImage && (drawingFeatureImageSource?.showsFeatureImageBox ?? false);
+            const showDrawingMissingFeatureImage =
+                showDrawingFeatureImage && file && !drawingFeatureImageSource?.supportsCompanionImages
+                    ? true
+                    : showDrawingFeatureImage && file && drawingFeatureImageSource
+                      ? resolveDrawingFeatureImageFileForProvider(app, file, drawingFeatureImageSource.providerId, themeMode) === null
+                      : false;
             const showFeatureImageArea = shouldShowFeatureImageArea({
                 showImage: folderSettings.showImage,
                 file,
-                featureImageStatus
+                featureImageStatus,
+                showDrawingFeatureImage
+            });
+            const showExtensionBadgeThumbnail = shouldShowExtensionBadgeThumbnail({
+                showFeatureImageArea,
+                file,
+                showDrawingMissingFeatureImage
             });
 
             // Visibility estimate for the single-row tags area.
-            const shouldShowFileTags = settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode);
+            const shouldShowFileTags =
+                !showDrawingMissingFeatureImage &&
+                settings.showTags &&
+                settings.showFileTags &&
+                (!isCompactMode || settings.showFileTagsInCompactMode);
             const hasTagRow = (() => {
                 if (!shouldShowFileTags || item.type !== ListPaneItemType.FILE || !item.hasTags) {
                     return false;
@@ -506,85 +572,60 @@ export function useListPaneScroll({
             });
 
             // Keep visibility filtering aligned with FileItem rendering.
-            const propertyRowCount = getPropertyRowCount({
-                notePropertyType: folderSettings.notePropertyType,
-                showFileProperties: settings.showFileProperties,
-                showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
-                showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
-                isCompactMode,
-                file,
-                wordCount: fileRecord?.wordCount ?? undefined,
-                properties: fileRecord?.properties ?? undefined,
-                visiblePropertyKeys,
-                hiddenPropertyValueNodeId: selectedPropertyValueNodeIdToHide
-            });
+            const propertyRowCount = showDrawingMissingFeatureImage
+                ? 0
+                : getPropertyRowCount({
+                      showWordCountProperty: settings.showWordCount && settings.wordCountPlacement === 'property',
+                      showFileProperties: settings.showFileProperties,
+                      showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
+                      showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
+                      isCompactMode,
+                      file,
+                      wordCount: fileRecord?.wordCount ?? undefined,
+                      properties: fileRecord?.properties ?? undefined,
+                      visiblePropertyKeys,
+                      hiddenPropertyValueNodeId: selectedPropertyValueNodeIdToHide
+                  });
 
             const hasVisiblePillRows = hasTagRow || propertyRowCount > 0;
             const layoutState = getFileItemLayoutState({
                 showDate: folderSettings.showDate,
                 showPreview: folderSettings.showPreview,
                 showImage: folderSettings.showImage,
-                previewRows: folderSettings.previewRows,
                 isPinned: Boolean(item.isPinned),
                 hasPreviewContent,
                 showFeatureImageArea,
+                showExtensionBadgeThumbnail,
                 hasVisiblePillRows
             });
 
-            // Start with base padding.
-            let textContentHeight = 0;
             const titleRows = folderSettings.titleRows || 1;
+            const visiblePillRowCount = (hasTagRow ? 1 : 0) + propertyRowCount;
+            const pinnedPreviewRows = item.isPinned ? 1 : folderSettings.previewRows;
             if (layoutState.isCompactMode) {
-                textContentHeight = heights.titleLineHeight * titleRows;
-            } else {
-                textContentHeight += heights.titleLineHeight * titleRows;
-
-                if (layoutState.shouldUseSingleLineForDateAndPreview) {
-                    if (layoutState.shouldShowSingleLineSecondLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-
-                    if (showParentFolderLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-                } else {
-                    if (layoutState.shouldShowMultilinePreview) {
-                        textContentHeight += heights.multilineTextLineHeight * folderSettings.previewRows;
-                    }
-
-                    if (layoutState.shouldShowDateForItem || showParentFolderLine) {
-                        textContentHeight += heights.singleTextLineHeight;
-                    }
-                }
+                const textContentHeight = heights.titleLineHeight * titleRows + heights.tagRowHeight * visiblePillRowCount;
+                const padding = isMobile ? compactListMetrics.mobilePaddingTotal : compactListMetrics.desktopPaddingTotal;
+                return padding + textContentHeight;
             }
 
-            // Add space for tags if file has tags and they are visible in this mode.
-            if (hasTagRow) {
-                textContentHeight += heights.tagRowHeight;
-            }
-
-            if (propertyRowCount > 0) {
-                // `tagRowHeight` mirrors the combined CSS row height + margin-top gap for pill rows.
-                textContentHeight += heights.tagRowHeight * propertyRowCount;
-            }
-
-            // Keep the estimated text area at least as tall as the shared thumbnail floor in normal mode.
-            if (!isCompactMode && textContentHeight < heights.featureImageHeight) {
-                textContentHeight = heights.featureImageHeight;
-            }
-
-            // Use reduced padding for compact mode (with mobile-specific padding)
-            const padding = isCompactMode
-                ? isMobile
-                    ? compactListMetrics.mobilePaddingTotal
-                    : compactListMetrics.desktopPaddingTotal
-                : heights.basePadding;
-            return padding + textContentHeight;
+            return calculateNormalListFileRowHeightEstimate({
+                heights,
+                titleRows,
+                previewRows: pinnedPreviewRows,
+                layoutState,
+                showFeatureImageArea,
+                showExtensionBadgeThumbnail,
+                showParentFolderLine,
+                visiblePillRowCount
+            });
         },
         overscan: OVERSCAN,
         scrollPaddingEnd: effectiveScrollPaddingEnd,
         useScrollendEvent: true,
         onChange: instance => {
+            if (!enabled) {
+                return;
+            }
             const nextIsScrolling = instance.isScrolling;
             if (lastReportedVirtualizerScrollingRef.current === nextIsScrolling) {
                 return;
@@ -612,6 +653,11 @@ export function useListPaneScroll({
      * is hidden because they will fail internally and emit retry errors.
      */
     useEffect(() => {
+        if (!enabled) {
+            setContainerVisible(false);
+            return;
+        }
+
         const element = scrollContainerEl;
         if (!element) {
             setContainerVisible(false);
@@ -647,10 +693,10 @@ export function useListPaneScroll({
         observer.observe(element);
 
         return () => observer.disconnect();
-    }, [scrollContainerEl]);
+    }, [enabled, scrollContainerEl]);
 
     // Container is ready when both the list pane and the physical container are visible
-    const isScrollContainerReady = isVisible && containerVisible;
+    const isScrollContainerReady = enabled && isVisible && containerVisible;
 
     // Tracks inputs that affect estimated row heights.
     const hiddenTagVisibilitySignature = useMemo(() => getHiddenTagVisibilitySignature(hiddenTagVisibility), [hiddenTagVisibility]);
@@ -661,6 +707,8 @@ export function useListPaneScroll({
             showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
+            showWordCount: settings.showWordCount,
+            wordCountPlacement: settings.wordCountPlacement,
             showFileTags: settings.showFileTags,
             showFileTagsInCompactMode: settings.showFileTagsInCompactMode,
             showParentFolder: settings.showParentFolder,
@@ -673,6 +721,8 @@ export function useListPaneScroll({
             settings.showFileProperties,
             settings.showFilePropertiesInCompactMode,
             settings.showPropertiesOnSeparateRows,
+            settings.showWordCount,
+            settings.wordCountPlacement,
             settings.showFileTags,
             settings.showFileTagsInCompactMode,
             settings.showParentFolder,
@@ -686,6 +736,7 @@ export function useListPaneScroll({
                 topSpacerHeight,
                 folderSettings,
                 settings: listLayoutSettings,
+                themeMode,
                 selectionType: selectionState.selectionType,
                 selectedTagToHide,
                 selectedPropertyValueNodeIdToHide,
@@ -698,6 +749,7 @@ export function useListPaneScroll({
             topSpacerHeight,
             folderSettings,
             listLayoutSettings,
+            themeMode,
             selectionState.selectionType,
             selectedTagToHide,
             selectedPropertyValueNodeIdToHide,
@@ -712,10 +764,57 @@ export function useListPaneScroll({
      * Scroll to top handler for mobile header tap.
      */
     const handleScrollToTop = useCallback(() => {
-        if (isMobile && scrollContainerRef.current) {
+        if (enabled && isMobile && scrollContainerRef.current) {
             scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
-    }, [isMobile]);
+    }, [enabled, isMobile]);
+
+    const ensureIndexNotCovered = useCallback(
+        (index: number) => {
+            const scrollElement = scrollContainerRef.current;
+            if (!scrollElement) {
+                return;
+            }
+
+            const row = scrollElement.querySelector(`[data-index="${index}"]`);
+            if (!(row instanceof HTMLElement)) {
+                return;
+            }
+
+            const containerRect = scrollElement.getBoundingClientRect();
+            const rowRect = row.getBoundingClientRect();
+            const topInset = settings.stickyGroupHeaders ? getStickyHeaderHeightBeforeIndex(listItems, index, listMeasurements) : 0;
+            const safeTop = containerRect.top + topInset;
+            const safeBottom = containerRect.bottom - effectiveScrollPaddingEnd;
+
+            if (topInset > 0 && rowRect.top < safeTop) {
+                scrollElement.scrollTop -= Math.round(safeTop - rowRect.top);
+                return;
+            }
+
+            if (effectiveScrollPaddingEnd > 0 && rowRect.bottom > safeBottom) {
+                scrollElement.scrollTop += Math.round(rowRect.bottom - safeBottom);
+            }
+        },
+        [effectiveScrollPaddingEnd, listItems, listMeasurements, settings.stickyGroupHeaders]
+    );
+
+    const scrollToIndexSafely = useCallback(
+        (index: number, align: Align) => {
+            rowVirtualizer.scrollToIndex(index, { align });
+
+            let attempts = 0;
+            const adjust = () => {
+                attempts += 1;
+                ensureIndexNotCovered(index);
+                if (attempts < 3) {
+                    window.requestAnimationFrame(adjust);
+                }
+            };
+            window.requestAnimationFrame(adjust);
+        },
+        [ensureIndexNotCovered, rowVirtualizer]
+    );
 
     // Get scroll index for a file, adjusting to show top group header when navigating folders
     // This ensures the top group header (pinned or date) is visible when changing folders/tags
@@ -728,17 +827,27 @@ export function useListPaneScroll({
                 return -1;
             }
 
-            // Check if there's a header immediately before this file
-            const hasHeaderBefore = fileIndex > 0 && listItems[fileIndex - 1]?.type === ListPaneItemType.HEADER;
-            if (!hasHeaderBefore) {
+            let headerIndexBefore = -1;
+            for (let listIndex = fileIndex - 1; listIndex >= 0; listIndex -= 1) {
+                const item = listItems[listIndex];
+                if (item?.type === ListPaneItemType.HEADER_SPACER) {
+                    continue;
+                }
+                if (item?.type === ListPaneItemType.HEADER) {
+                    headerIndexBefore = listIndex;
+                }
+                break;
+            }
+
+            if (headerIndexBefore === -1) {
                 return fileIndex;
             }
 
             // Special case: scroll to header for the very first file to show context
-            // Index 0 is TOP_SPACER, Index 1 is first header (if exists), Index 2 is first file
-            const isFirstFile = fileIndex <= 2;
+            // Index 0 is TOP_SPACER, Index 1 is first header.
+            const isFirstFile = headerIndexBefore === 1;
             if (isFirstFile) {
-                return fileIndex - 1; // Show the header above
+                return headerIndexBefore;
             }
 
             // For all other files with headers, scroll directly to the file
@@ -861,13 +970,13 @@ export function useListPaneScroll({
                     if (pending.reason === 'reveal' && selectionState.revealSource === 'startup') {
                         alignment = 'center';
                     }
-                    rowVirtualizer.scrollToIndex(index, { align: alignment });
+                    scrollToIndexSafely(index, alignment);
 
                     if (isStructuralChange) {
                         // Stabilization mechanism: Handle rapid consecutive rebuilds
                         const usedIndex = index;
                         const usedPath = pending.filePath;
-                        requestAnimationFrame(() => {
+                        window.requestAnimationFrame(() => {
                             const newIndex = usedPath ? getSelectionIndex(usedPath) : -1;
                             if (usedPath && newIndex >= 0 && newIndex !== usedIndex && revealFileOnListChanges) {
                                 setPending({
@@ -904,6 +1013,7 @@ export function useListPaneScroll({
         getSelectionIndex,
         isMobile,
         setPending,
+        scrollToIndexSafely,
         revealFileOnListChanges,
         selectionState.revealSource,
         selectedFile?.path
@@ -914,7 +1024,7 @@ export function useListPaneScroll({
      * Handles preview text, feature images, tags, properties, and word count changes.
      */
     useEffect(() => {
-        if (!rowVirtualizer) return;
+        if (!enabled || !rowVirtualizer) return;
 
         const db = getDB();
         const unsubscribe = db.onContentChange(changes => {
@@ -930,7 +1040,7 @@ export function useListPaneScroll({
         return () => {
             unsubscribe();
         };
-    }, [filePathToIndex, getDB, rowVirtualizer]);
+    }, [enabled, filePathToIndex, getDB, rowVirtualizer]);
 
     /**
      * Listen for mobile drawer visibility events.
@@ -938,7 +1048,7 @@ export function useListPaneScroll({
      * SCROLL_MOBILE_VISIBILITY: Sets pending scroll with 'visibility-change' reason
      */
     useEffect(() => {
-        if (!isMobile) return;
+        if (!enabled || !isMobile) return;
 
         const handleVisible = () => {
             // If we have a selected file, set a pending scroll
@@ -955,27 +1065,27 @@ export function useListPaneScroll({
 
         window.addEventListener('notebook-navigator-visible', handleVisible);
         return () => window.removeEventListener('notebook-navigator-visible', handleVisible);
-    }, [isMobile, selectedFile, rowVirtualizer, filePathToIndex, setPending]);
+    }, [enabled, isMobile, selectedFile, rowVirtualizer, filePathToIndex, setPending]);
 
     /**
      * Refresh all item size estimates when height-affecting settings change.
      * Includes date display, preview settings, feature images, etc.
      */
     useEffect(() => {
-        if (!rowVirtualizer) return;
+        if (!enabled || !rowVirtualizer) return;
 
         rowVirtualizer.measure();
-    }, [listLayoutSignature, rowVirtualizer]);
+    }, [enabled, listLayoutSignature, rowVirtualizer]);
 
     /**
      * Refresh size estimates when storage becomes ready after cold boot.
      * Ensures estimated heights are correct once preview data is available.
      */
     useEffect(() => {
-        if (isStorageReady && rowVirtualizer) {
+        if (enabled && isStorageReady && rowVirtualizer) {
             rowVirtualizer.measure();
         }
-    }, [isStorageReady, rowVirtualizer]);
+    }, [enabled, isStorageReady, rowVirtualizer]);
 
     /**
      * Handle scrolling when list configuration changes (descendants toggle, appearance, grouping, or sort).
@@ -983,18 +1093,15 @@ export function useListPaneScroll({
      * Effect includes all dependencies but only scrolls when config actually changes.
      */
     // Calculate effective sort order based on current selection and custom overrides.
-    const selectedFolderPath = selectionState.selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
-    const selectedSortOverride =
-        selectionState.selectionType === ItemType.TAG && selectedTag
-            ? settings.tagSortOverrides?.[selectedTag]
-            : selectionState.selectionType === ItemType.PROPERTY && selectedProperty
-              ? settings.propertySortOverrides?.[selectedProperty]
-              : selectedFolderPath
-                ? settings.folderSortOverrides?.[selectedFolderPath]
-                : undefined;
-    const effectiveSort = useMemo(() => {
-        return selectedSortOverride ?? settings.defaultFolderSort;
-    }, [settings.defaultFolderSort, selectedSortOverride]);
+    const selectedSortOverride = getListSortOverrideForSelection(
+        settings,
+        selectionState.selectionType,
+        selectedFolder,
+        selectedTag,
+        selectedProperty
+    );
+    const effectiveSortSpec = useMemo(() => resolveListSort(settings, selectedSortOverride), [settings, selectedSortOverride]);
+    const effectiveSort = effectiveSortSpec.option;
     const scrollPreservationSignature = useMemo(
         () =>
             getScrollPreservationSignature({
@@ -1002,18 +1109,20 @@ export function useListPaneScroll({
                 listLayoutSignature,
                 groupBy: folderSettings.groupBy,
                 noteGrouping: settings.noteGrouping,
+                stickyGroupHeaders: settings.stickyGroupHeaders,
                 effectiveSort,
-                propertySortKey: settings.propertySortKey,
-                propertySortSecondary: settings.propertySortSecondary
+                propertySortKey: effectiveSortSpec.propertyKey,
+                propertySortSecondary: effectiveSortSpec.propertySortSecondary
             }),
         [
             includeDescendantNotes,
             listLayoutSignature,
             folderSettings.groupBy,
             settings.noteGrouping,
+            settings.stickyGroupHeaders,
             effectiveSort,
-            settings.propertySortKey,
-            settings.propertySortSecondary
+            effectiveSortSpec.propertyKey,
+            effectiveSortSpec.propertySortSecondary
         ]
     );
     useEffect(() => {
@@ -1081,6 +1190,8 @@ export function useListPaneScroll({
         const propertySelectionKey = selectedProperty ?? '';
         const contextKey = `${selectedFolder?.path || ''}_${selectedTag || ''}_${propertySelectionKey}`;
         const prev = contextIndexVersionRef.current;
+        const groupCollapseStateChanged = prevGroupCollapseStateSignatureRef.current !== groupCollapseStateSignature;
+        prevGroupCollapseStateSignatureRef.current = groupCollapseStateSignature;
 
         // Initialize on first run or when context changes
         if (!prev || prev.key !== contextKey) {
@@ -1091,6 +1202,9 @@ export function useListPaneScroll({
         // Same context: if index version advanced, maintain position on selected file
         if (indexVersionRef.current > prev.version) {
             contextIndexVersionRef.current = { key: contextKey, version: indexVersionRef.current };
+            if (groupCollapseStateChanged) {
+                return;
+            }
 
             // Only queue a file scroll if the selected file exists in the current index
             const inList = !!(selectedFile && filePathToIndex.has(selectedFile.path));
@@ -1109,6 +1223,7 @@ export function useListPaneScroll({
         selectedFolder?.path,
         selectedTag,
         selectedProperty,
+        groupCollapseStateSignature,
         filePathToIndex,
         filePathToIndex.size,
         selectedFile,
@@ -1123,7 +1238,7 @@ export function useListPaneScroll({
      * SCROLL_FOLDER_NAVIGATION: Sets pending scroll with 'folder-navigation' reason
      */
     useEffect(() => {
-        if (!rowVirtualizer) {
+        if (!enabled || !rowVirtualizer) {
             return;
         }
 
@@ -1227,6 +1342,7 @@ export function useListPaneScroll({
         }
     }, [
         isScrollContainerReady,
+        enabled,
         rowVirtualizer,
         selectedFolder?.path,
         selectedTag,
@@ -1329,6 +1445,7 @@ export function useListPaneScroll({
         rowVirtualizer,
         scrollContainerRef,
         scrollContainerRefCallback,
-        handleScrollToTop
+        handleScrollToTop,
+        scrollToIndexSafely
     };
 }

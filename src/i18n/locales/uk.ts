@@ -29,6 +29,7 @@ export const STRINGS_UK = {
         remove: 'Вилучити', // Button text for remove operations in dialogs (English: Remove)
         restoreDefault: 'Відновити за замовчуванням', // Button text for restoring values to defaults (English: Restore default)
         submit: 'Надіслати', // Button text for submitting forms and dialogs (English: Submit)
+        save: 'Зберегти', // Button text for saving settings and dialogs (English: Save)
         configure: 'Налаштувати', // Generic button label used when opening a configuration dialog (English: Configure)
         lightMode: 'Світлий режим', // Label for light theme mode (English: Light mode)
         darkMode: 'Темний режим', // Label for dark theme mode (English: Dark mode)
@@ -50,7 +51,16 @@ export const STRINGS_UK = {
         pinnedSection: 'Закріплені', // Header for the pinned notes section at the top of file list (English: Pinned)
         notesSection: 'Нотатки', // Header shown between pinned and regular items when showing documents only (English: Notes)
         filesSection: 'Файли', // Header shown between pinned and regular items when showing supported or all files (English: Files)
-        hiddenItemAriaLabel: '{name} (приховано)' // Accessibility label applied to list items that are normally hidden
+        hiddenItemAriaLabel: '{name} (приховано)', // Accessibility label applied to list items that are normally hidden
+        collapseGroup: 'Згорнути групу',
+        expandGroup: 'Розгорнути групу',
+        manualSortTitle: 'Ручне сортування: {property}',
+        manualSortHint:
+            'Перетягуйте для зміни порядку. Порядок зберігається у вигляді числових значень індексу у властивості «{property}».',
+        manualSortNonMarkdownHint: 'Файли, відмінні від Markdown, показуються внизу, і їхній порядок не можна змінити.',
+        unsortedSection: 'Без сортування',
+        manualSortDone: 'Готово',
+        manualSortMultipleWriteFailure: '{count} файлів не вдалося обробити; перший: {path}: {message}'
     },
 
     // Tag list
@@ -132,6 +142,9 @@ export const STRINGS_UK = {
         changeChildSortOrder: 'Змінити порядок сортування',
         changeSortAndGroup: 'Змінити сортування та групування',
         defaultSort: 'За замовчуванням', // Label for default sorting mode (English: Default)
+        manualSort: 'Ручне сортування',
+        editSortOrder: 'Редагувати порядок сортування...',
+        removeSortProperty: 'Вилучити властивість сортування',
         descendants: 'нащадків',
         subfolders: 'підпапок',
         subtags: 'підтегів',
@@ -301,6 +314,14 @@ export const STRINGS_UK = {
             moveFileToFolder: 'Перемістити файл до...',
             moveMultipleNotesToFolder: 'Перемістити {count} нотаток до...',
             moveMultipleFilesToFolder: 'Перемістити {count} файлів до...',
+            setManualSortGroupHeader: 'Встановити заголовок групи',
+            changeManualSortGroupHeader: 'Змінити заголовок групи',
+            manualSortGroupHeader: {
+                title: 'Заголовок групи',
+                copyStyle: 'Копіювати стиль заголовка',
+                pasteStyle: 'Вставити стиль заголовка',
+                remove: 'Вилучити заголовок групи'
+            },
             addTag: 'Додати тег',
             addPropertyKey: 'Встановити властивість',
             removeTag: 'Вилучити тег',
@@ -390,6 +411,33 @@ export const STRINGS_UK = {
             applyAppearanceTitle: (target: string) => `Застосувати оформлення для ${target}?`,
             affectedCountMessage: (count: number) => `Наявних перевизначень, які зміняться: ${count}.`
         },
+        manualSortConfirm: {
+            propertySortTitle: 'Використати ручне сортування?',
+            propertySortMessage: (property: string, count: number) =>
+                `Перемикає поточний вигляд на ручне сортування з використанням «${property}». Редагування порядку записує числові значення індексу в цю властивість у ${count} ${count === 1 ? 'нотатці' : 'нотатках'} за потреби.`,
+            propertySortConfirmButton: 'Використати ручне сортування',
+            removePropertyTitle: 'Вилучити властивість сортування?',
+            removePropertyMessage: (property: string, count: number) =>
+                `Це вилучить «${property}» з ${count} ${count === 1 ? 'нотатки' : count < 5 ? 'нотаток' : 'нотаток'} у поточному списку. Порядок ручного сортування буде очищено для цих нотаток.`,
+            removePropertyConfirmButton: 'Вилучити властивість',
+            compactTitle: 'Стиснути значення індексу?',
+            compactMessage: (count: number) =>
+                `Це перевпорядкування потребує більше числового простору. ${count} ${count === 1 ? 'нотатка отримає' : 'нотаток отримають'} нові значення індексу.`,
+            compactConfirmButton: 'Стиснути значення індексу'
+        },
+        manualSortGroupHeader: {
+            title: 'Встановити заголовок групи',
+            titleLabel: 'Заголовок',
+            placeholder: 'Заголовок групи',
+            icon: 'Значок',
+            color: 'Колір',
+            wordCount: 'Показувати кількість слів',
+            wordCountTarget: 'Цільова кількість слів',
+            wordCountTargetPlaceholder: '10,000',
+            wordCountTargetDescription:
+                'Коли це поле порожнє, ціль групи використовує цільову властивість, задану в Налаштування > Нотатки > Кількість слів. Перевизначте її, задавши цільове значення для цієї групи.',
+            description: 'Налаштуйте заголовок групи для цієї нотатки. Залиште заголовок порожнім, щоб видалити його.'
+        },
         navRainbowSection: {
             title: (section: string) => `Кольори веселки: ${section}`
         },
@@ -428,6 +476,11 @@ export const STRINGS_UK = {
                 'list-descendants': 'Нотатки з підпапок',
                 'list-sort-ascending': 'Порядок сортування: за зростанням',
                 'list-sort-descending': 'Порядок сортування: за спаданням',
+                'list-sort-modified': 'Сортувати за датою зміни',
+                'list-sort-created': 'Сортувати за датою створення',
+                'list-sort-title': 'Сортувати за заголовком',
+                'list-sort-filename': 'Сортувати за іменем файлу',
+                'list-sort-property': 'Сортувати за властивістю',
                 'list-appearance': 'Змінити вигляд',
                 'list-new-note': 'Нова нотатка',
                 'nav-folder-open': 'Папка відкрита',
@@ -437,7 +490,6 @@ export const STRINGS_UK = {
                 'nav-properties': 'Властивості',
                 'nav-property': 'Властивість',
                 'nav-property-value': 'Значення',
-                'list-pinned': 'Закріплені елементи',
                 'file-unfinished-task': 'Незавершені завдання',
                 'file-word-count': 'Кількість слів'
             }
@@ -699,6 +751,8 @@ export const STRINGS_UK = {
             propertiesRequireMarkdown: 'Властивості підтримуються лише в нотатках Markdown',
             propertySetOnNote: 'Властивість оновлено в 1 нотатці',
             propertySetOnNotes: 'Властивість оновлено в {count} нотатках',
+            manualSortPropertyRemovedFromNote: 'Вилучено властивість сортування з 1 нотатки',
+            manualSortPropertyRemovedFromNotes: 'Вилучено властивість сортування з {count} нотаток',
             iconPackDownloaded: '{provider} завантажено',
             iconPackUpdated: '{provider} оновлено ({version})',
             iconPackRemoved: '{provider} вилучено',
@@ -787,6 +841,7 @@ export const STRINGS_UK = {
         toggleTagsBySelection: 'Перемкнути теги за вибором',
         togglePropertiesBySelection: 'Перемкнути властивості за вибором',
         toggleCompactMode: 'Перемкнути компактний режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
+        togglePinnedSection: 'Перемкнути закріплений розділ',
         collapseExpand: 'Згорнути / розгорнути всі елементи', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
         addTag: 'Додати тег до вибраних файлів', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Встановити властивість для вибраних файлів', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -859,7 +914,12 @@ export const STRINGS_UK = {
             },
             list: {
                 display: 'Вигляд',
-                pinnedNotes: 'Закріплені нотатки'
+                organization: 'Організація',
+                groupHeaders: 'Заголовки груп',
+                propertySort: 'Сортування за властивістю',
+                manualSort: 'Ручне сортування',
+                pinnedNotes: 'Закріплені нотатки',
+                drawingPreviews: 'Перегляд малюнків'
             },
             notes: {
                 frontmatter: 'Frontmatter',
@@ -871,7 +931,8 @@ export const STRINGS_UK = {
                 tags: 'Теги',
                 properties: 'Властивості',
                 date: 'Дата',
-                parentFolder: 'Батьківська папка'
+                parentFolder: 'Батьківська папка',
+                wordCount: 'Кількість слів'
             }
         },
         syncMode: {
@@ -891,8 +952,8 @@ export const STRINGS_UK = {
                 }
             },
             sortNotesBy: {
-                name: 'Сортувати нотатки за',
-                desc: 'Виберіть спосіб сортування нотаток у списку.',
+                name: 'Порядок сортування за замовчуванням',
+                desc: 'Виберіть порядок сортування нотаток за замовчуванням.',
                 options: {
                     'modified-desc': 'Дата редагування (найновіші зверху)',
                     'modified-asc': 'Дата редагування (найстаріші зверху)',
@@ -901,19 +962,24 @@ export const STRINGS_UK = {
                     'title-asc': 'Заголовок (А зверху)',
                     'title-desc': 'Заголовок (Я зверху)',
                     'filename-asc': "Ім'я файлу (А зверху)",
-                    'filename-desc': "Ім'я файлу (Я зверху)",
-                    'property-asc': 'Властивість (А зверху)',
-                    'property-desc': 'Властивість (Я зверху)'
+                    'filename-desc': "Ім'я файлу (Я зверху)"
                 },
-                propertyOverride: {
-                    asc: 'Властивість ‘{property}’ (А зверху)',
-                    desc: 'Властивість ‘{property}’ (Я зверху)'
+                directions: {
+                    asc: 'За зростанням',
+                    desc: 'За спаданням'
+                },
+                fields: {
+                    modified: 'Дата редагування',
+                    created: 'Дата створення',
+                    title: 'Заголовок',
+                    filename: "Ім'я файлу",
+                    property: 'Властивість'
                 }
             },
             propertySortKey: {
-                name: 'Властивість сортування',
-                desc: "Використовується з сортуванням за властивістю. Нотатки з цією властивістю frontmatter відображаються першими і сортуються за значенням властивості. Масиви об'єднуються в одне значення.",
-                placeholder: 'order'
+                name: 'Властивості для сортування',
+                desc: "Розділені комами властивості frontmatter, що відображаються як опції сортування за властивістю. Значення масивів об'єднуються в один рядок. Ці властивості не змінюються.",
+                placeholder: 'published, author'
             },
             propertySortSecondary: {
                 name: 'Вторинне сортування',
@@ -924,6 +990,46 @@ export const STRINGS_UK = {
                     created: 'Дата створення',
                     modified: 'Дата редагування'
                 }
+            },
+            propertySortInstructions: {
+                intro: 'Кожна властивість, перелічена вище, відображається як опція сортування в меню сортування на панелі списку. Вибір однієї з них сортує нотатки за її значенням у frontmatter.'
+            },
+            manualSortPropertyKey: {
+                name: 'Властивість ручного сортування',
+                desc: 'Властивість frontmatter, що використовується для зберігання числових значень індексу для ручного сортування.'
+            },
+            manualSortGroupHeaderProperty: {
+                name: 'Властивість заголовка групи',
+                desc: 'Властивість frontmatter, що використовується для зберігання користувацьких заголовків груп.'
+            },
+            groupHeadersInstructions: {
+                intro: 'Користувацькі заголовки груп відображаються над нотатками на панелі списку.',
+                items: [
+                    'У меню сортування на панелі списку встановіть групування на **Користувацьке**.',
+                    'Клацніть правою кнопкою миші на нотатці та виберіть **Встановити заголовок групи**, щоб додати заголовок над нею.'
+                ]
+            },
+            manualSortNewNotePlacement: {
+                name: 'Розміщення нової нотатки',
+                desc: 'Виберіть, де розміщуються нові нотатки, коли поточний список використовує ручне сортування.',
+                options: {
+                    top: 'Зверху',
+                    bottom: 'Знизу',
+                    'below-selected-note': 'Під вибраною нотаткою',
+                    unsorted: 'Без сортування'
+                }
+            },
+            confirmBeforeManualSort: {
+                name: 'Підтверджувати перед ручним сортуванням',
+                desc: 'Показувати попередження перед першим записом властивості ручного сортування до нотаток. Коли вимкнено, нотатки отримують властивість без попередження.'
+            },
+            manualSortInstructions: {
+                intro: 'Ручне сортування записує числове значення індексу у властивість frontmatter кожної нотатки. Нотатки без індексу відображаються в розділі «Без сортування».',
+                items: [
+                    'Увімкніть ручне сортування, вибравши **Ручне сортування** в меню сортування. Після цього є два способи переставити нотатки.',
+                    "Виберіть **Редагувати порядок сортування...** в меню сортування, щоб відкрити перегляд для зміни порядку. Перетягуйте нотатки мишею або дотиком на мобільному пристрої. На комп'ютері клік з **Cmd/Ctrl** або **Shift** вибирає кілька нотаток, після чого перетягування будь-якої з них переміщує всю групу.",
+                    'У панелі списку виберіть одну нотатку або кілька з мульти-вибором, потім натисніть **Cmd/Ctrl + Arrow Up/Down**, щоб перемістити вибране вгору або вниз.'
+                ]
             },
             revealFileOnListChanges: {
                 name: 'Прокручувати до вибраного файлу при змінах списку',
@@ -942,25 +1048,21 @@ export const STRINGS_UK = {
                 desc: 'Відображати кількість нотаток у форматі "поточні ▾ нащадки" в папках і тегах.'
             },
             groupNotes: {
-                name: 'Групувати нотатки',
-                desc: 'Відображати заголовки між нотатками, згрупованими за датою або папкою. Перегляди тегів використовують групи за датою, коли увімкнено групування за папками.',
+                name: 'Групування за замовчуванням',
+                desc: 'Користувацьке показує заголовки, визначені у frontmatter. Дата групує нотатки за датою. Папка групує нотатки за папкою. Перегляди тегів і властивостей використовують групи за датою, коли вибрано папку.',
                 options: {
-                    none: 'Не групувати',
-                    date: 'Групувати за датою',
-                    folder: 'Групувати за папкою'
+                    custom: 'Користувацьке',
+                    date: 'Дата',
+                    folder: 'Папка'
                 }
             },
             showSelectedNavigationPills: {
                 name: 'Завжди показувати всі мітки тегів та властивостей',
                 desc: 'Коли вимкнено, мітки, що відповідають поточному вибору навігації, приховуються (наприклад, мітка тегу «рецепти» приховується під час перегляду тегу «рецепти»). Увімкніть, щоб усі мітки залишалися видимими.'
             },
-            showPinnedGroupHeader: {
-                name: 'Показувати заголовок закріплених',
-                desc: 'Відображати заголовок розділу закріплених над закріпленими нотатками.'
-            },
-            showPinnedIcon: {
-                name: 'Показувати іконку закріплених',
-                desc: 'Показувати іконку поряд із заголовком розділу закріплених.'
+            stickyGroupHeaders: {
+                name: 'Закріплені заголовки груп',
+                desc: 'Тримати заголовок поточної дати, теки або закріпленого розділу видимим під час прокручування.'
             },
             defaultListMode: {
                 name: 'Режим списку за замовчуванням',
@@ -972,7 +1074,11 @@ export const STRINGS_UK = {
             },
             showFileIcons: {
                 name: 'Показувати іконки файлів',
-                desc: 'Відображати іконки файлів з вирівнюванням ліворуч. Вимкнення видаляє як іконки, так і відступ. Пріоритет: значок незавершених завдань > користувацький значок > значок назви файлу > значок типу файлу > значок за замовчуванням.'
+                desc: 'Відображати іконки файлів з вирівнюванням ліворуч. Вимкнення видаляє як іконки, так і відступ. Пріоритет: значок незавершених завдань > користувацький значок > значок папки > значок назви файлу > значок типу файлу > значок за замовчуванням.'
+            },
+            useFolderIcon: {
+                name: 'Використовувати значок папки',
+                desc: 'Відображати значок батьківської папки, коли не задано користувацький значок файлу. Колір папки використовується, коли не задано користувацький колір файлу.'
             },
             showFileIconUnfinishedTask: {
                 name: 'Значок незавершених завдань',
@@ -1019,6 +1125,10 @@ export const STRINGS_UK = {
                 name: 'Показувати батьківську папку',
                 desc: 'Відображати назву батьківської папки для нотаток у підпапках або тегах.'
             },
+            showParentFolderFullPath: {
+                name: 'Показувати повний шлях',
+                desc: 'Відображати повний шлях батьківської папки замість лише назви папки.'
+            },
             parentFolderClickRevealsFile: {
                 name: 'Натискання на батьківську папку відкриває папку',
                 desc: 'Натискання на мітку батьківської папки відкриває папку в панелі списку.'
@@ -1062,7 +1172,7 @@ export const STRINGS_UK = {
             },
             useFloatingToolbars: {
                 name: 'Використовувати плаваючі панелі інструментів на iOS/iPadOS',
-                desc: 'Застосовується до Obsidian 1.11 і новіших версій.'
+                desc: 'Застосовується лише на iOS та iPadOS.'
             },
             startView: {
                 name: 'Вигляд при запуску за замовчуванням',
@@ -1193,8 +1303,8 @@ export const STRINGS_UK = {
             calendarLocale: {
                 name: 'Мова',
                 desc: 'Керує форматуванням дат у календарі, нумерацією тижнів та першим днем тижня.',
-                incompatibleWeekPatternWarning:
-                    'Шаблон щотижневих нотаток використовує токени ISO-тижня ("W" або "G"). Календар відображатиме тижні, що починаються з понеділка, замість першого дня тижня цієї мови.',
+                weekPathMismatchWarning:
+                    'Видимий календар і шляхи щотижневих нотаток використовують різні початки тижня або різну нумерацію тижнів.',
                 options: {
                     systemDefault: 'За замовчуванням'
                 }
@@ -1265,6 +1375,14 @@ export const STRINGS_UK = {
                     dailyNotes: 'Папка та формат дати налаштовуються в плагіні Daily Notes.'
                 }
             },
+            calendarPeriodicNotesLocale: {
+                name: 'Мова періодичних нотаток',
+                desc: 'Керує локалізованими назвами місяців, назвами днів тижня, номерами тижнів і початками тижнів у шляхах періодичних нотаток Notebook Navigator.',
+                options: {
+                    calendar: 'Календар',
+                    obsidian: 'Obsidian'
+                }
+            },
 
             calendarCustomRootFolder: {
                 name: 'Коренева папка',
@@ -1290,8 +1408,10 @@ export const STRINGS_UK = {
             calendarCustomWeekPattern: {
                 name: 'Щотижневі нотатки',
                 parsingError: 'Шаблон має форматуватися і знову розбиратися як повний тиждень (рік тижня, номер тижня).',
-                localeMismatchWarning:
-                    'Цей шаблон використовує токени ISO-тижня ("W" або "G"). Календар відображатиме тижні, що починаються з понеділка. Використовуйте "w" або "g", якщо щотижневі нотатки мають відповідати обраній мові.'
+                weekPathMismatchWarning:
+                    'Шляхи щотижневих нотаток використовують мову періодичних нотаток. Використовуйте відповідні мови або використовуйте "GGGG" з "WW" для тижнів, що починаються з понеділка.',
+                mixedWeekTokensWarning:
+                    'Цей шаблон змішує токени тижня, що починається з понеділка ("W" або "G"), з токенами тижня на основі мови ("w" або "g"). Використовуйте один набір послідовно: "GGGG" з "WW" для тижнів, що починаються з понеділка, або "gggg" з "ww", якщо щотижневі нотатки мають відповідати обраній мові.'
             },
             calendarCustomMonthPattern: {
                 name: 'Щомісячні нотатки',
@@ -1524,14 +1644,25 @@ export const STRINGS_UK = {
                 name: 'Показувати властивості в компактному режимі',
                 desc: 'Відображати властивості при активному компактному режимі.'
             },
-            notePropertyType: {
-                name: 'Властивість нотатки',
-                desc: 'Виберіть властивість нотатки для відображення в елементах файлів.',
+            showWordCount: {
+                name: 'Показувати кількість слів',
+                desc: 'Показувати кількість слів нотаток в елементах файлів.'
+            },
+            wordCountPlacement: {
+                name: 'Розміщення',
+                desc: 'Виберіть, де відображати кількість слів.',
                 options: {
-                    frontmatter: 'Властивість frontmatter',
-                    wordCount: 'Кількість слів',
-                    none: 'Немає'
+                    title: 'У заголовку',
+                    property: 'Як властивість'
                 }
+            },
+            wordCountTargetProperty: {
+                name: 'Цільова властивість',
+                desc: 'Ключ властивості frontmatter із цільовою кількістю слів. Залиште порожнім, щоб приховати цілі.'
+            },
+            showWordCountPercentage: {
+                name: 'Показувати відсоток цілі',
+                desc: 'Показувати лише відсоток прогресу, коли доступна цільова кількість слів.'
             },
             propertyFields: {
                 name: 'Ключі властивостей (профіль сховища)',
@@ -1618,6 +1749,10 @@ export const STRINGS_UK = {
                     '3': '3 рядки'
                 }
             },
+            useFolderColor: {
+                name: 'Використовувати колір папки',
+                desc: 'Забарвлювати заголовки нотаток та значки файлів кольором батьківської папки, коли не задано користувацький колір файлу. Пріоритет: користувацький колір файлу > колір папки > колір за замовчуванням.'
+            },
             showFeatureImage: {
                 name: 'Показувати головне зображення',
                 desc: 'Відображає мініатюру першого зображення у нотатці.'
@@ -1658,6 +1793,19 @@ export const STRINGS_UK = {
             downloadExternalFeatureImages: {
                 name: 'Завантажувати зовнішні зображення',
                 desc: 'Завантажувати віддалені зображення та мініатюри YouTube для обкладинок.'
+            },
+            hideDrawingPreviewImages: {
+                name: 'Сховати експортовані зображення попереднього перегляду',
+                desc: 'Приховує експортовані PNG-файли попереднього перегляду малюнків. Увімкніть «Показати приховані елементи», щоб відобразити їх.'
+            },
+            drawingIntegrationInfo: {
+                intro: 'Notebook Navigator показує PNG-файли, експортовані Excalidraw, як попередній перегляд малюнків.',
+                items: [
+                    'У **налаштуваннях Excalidraw** відкрийте **Embedding Excalidraw into your Notes and Exporting**, потім **Export Settings**, потім **Auto-export Settings**.',
+                    'Увімкніть **Auto-export PNG**. За бажанням увімкніть **Export both dark- and light-themed image**.',
+                    'Notebook Navigator шукає **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png** або **Drawing.excalidraw.light.png**.',
+                    'Поки увімкнено **Сховати експортовані зображення попереднього перегляду**, PNG-файли видно лише тоді, коли також увімкнено **Показати приховані елементи**.'
+                ]
             },
             showRootFolder: {
                 name: 'Показувати кореневу папку',

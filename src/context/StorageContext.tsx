@@ -60,13 +60,13 @@ import type { StorageFileData } from './storage/storageFileData';
 import type { PropertyTreeNode, TagTreeNode } from '../types/storage';
 import { getFileDisplayName as getDisplayName } from '../utils/fileNameUtils';
 import { findTagNode, collectAllTagPaths } from '../utils/tagTree';
-import { isPdfFile } from '../utils/fileTypeUtils';
 import { useServices } from './ServicesContext';
 import { useSettingsState, useActiveProfile } from './SettingsContext';
 import { useUXPreferences } from './UXPreferencesContext';
 import type { NotebookNavigatorAPI } from '../api/NotebookNavigatorAPI';
 import { getCacheRebuildProgressTypes } from './storage/storageContentTypes';
 import { clearCacheRebuildNoticeState, getCacheRebuildNoticeState, setCacheRebuildNoticeState } from './storage/cacheRebuildNoticeStorage';
+import { shouldQueueFileThumbnailProvider } from './storageQueueFilters';
 
 /**
  * Context value providing both file data (tag tree) and the file cache
@@ -225,6 +225,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
     });
 
     const { queueIndexableFilesForContentGeneration, queueIndexableFilesNeedingContentGeneration } = useStorageContentQueue({
+        app,
         contentRegistryRef: contentRegistry,
         queueMetadataContentWhenReady
     });
@@ -335,7 +336,7 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
                 return;
             }
 
-            if (file.extension !== 'md' && !isPdfFile(file)) {
+            if (file.extension !== 'md' && !shouldQueueFileThumbnailProvider(file)) {
                 return;
             }
 

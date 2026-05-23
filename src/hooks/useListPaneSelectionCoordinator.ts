@@ -18,7 +18,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, type MouseEvent as ReactMouseEvent, type RefObject } from 'react';
 import { TFile, debounce } from 'obsidian';
-import { Virtualizer } from '@tanstack/react-virtual';
 import { resolvePrimarySelectedFile, useSelectionDispatch, useSelectionState } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
@@ -32,6 +31,7 @@ import { isKeyboardEventContextBlocked } from '../utils/domUtils';
 import { isCmdCtrlModifierPressed, isMultiSelectModifierPressed } from '../utils/keyboardOpenContext';
 import { openFileInContext } from '../utils/openFileInContext';
 import { getAdjacentFile } from '../utils/selectionUtils';
+import type { Align } from '../types/scroll';
 
 export interface SelectFileOptions {
     markKeyboardNavigation?: boolean;
@@ -55,14 +55,14 @@ interface UseListPaneSelectionCoordinatorParams {
     rootContainerRef: RefObject<HTMLDivElement | null>;
     orderedFiles: TFile[];
     filePathToIndex: Map<string, number>;
-    rowVirtualizer: Virtualizer<HTMLDivElement, Element>;
+    scrollToIndexSafely: (index: number, align: Align) => void;
 }
 
 interface UseListPaneSelectionCoordinatorResult {
     selectFileFromList: (file: TFile, options?: SelectFileOptions) => void;
     selectAdjacentFile: (direction: 'next' | 'previous') => boolean;
     ensureSelectionForCurrentFilter: (options?: EnsureSelectionOptions) => EnsureSelectionResult;
-    handleFileItemClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => void;
+    handleFileItemClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent, filesOverride?: TFile[]) => void;
     lastSelectedFilePath: string | null;
     isFileSelected: (file: TFile) => boolean;
     scheduleKeyboardSelectionOpen: () => void;
@@ -74,7 +74,7 @@ export function useListPaneSelectionCoordinator({
     rootContainerRef,
     orderedFiles,
     filePathToIndex,
-    rowVirtualizer
+    scrollToIndexSafely
 }: UseListPaneSelectionCoordinatorParams): UseListPaneSelectionCoordinatorResult {
     const { app, commandQueue, isMobile } = useServices();
     const openFileInWorkspace = useFileOpener();
@@ -369,31 +369,32 @@ export function useListPaneSelectionCoordinator({
 
             const virtualIndex = filePathToIndex.get(targetFile.path);
             if (virtualIndex !== undefined) {
-                rowVirtualizer.scrollToIndex(virtualIndex, { align: 'auto' });
+                scrollToIndexSafely(virtualIndex, 'auto');
             }
 
             return true;
         },
-        [app, filePathToIndex, orderedFiles, rowVirtualizer, selectFileFromList, selectionState, settings.enterToOpenFiles]
+        [app, filePathToIndex, orderedFiles, scrollToIndexSafely, selectFileFromList, selectionState, settings.enterToOpenFiles]
     );
 
     const handleFileClick = useCallback(
-        (file: TFile, event: ReactMouseEvent, fileIndex?: number) => {
+        (file: TFile, event: ReactMouseEvent, fileIndex?: number, filesOverride?: TFile[]) => {
             if (event.button === 1) {
                 return;
             }
 
             isUserSelectionRef.current = true;
 
+            const clickOrderedFiles = filesOverride ?? orderedFiles;
             const isShiftKey = event.shiftKey;
             const isCmdCtrlClick = isCmdCtrlModifierPressed(event);
             const shouldMultiSelect = !isMobile && isMultiSelectModifierPressed(event, settings.multiSelectModifier);
             const shouldOpenInNewTab = !isMobile && !shouldMultiSelect && settings.multiSelectModifier === 'optionAlt' && isCmdCtrlClick;
 
             if (shouldMultiSelect) {
-                multiSelection.handleMultiSelectClick(file, fileIndex, orderedFiles);
+                multiSelection.handleMultiSelectClick(file, fileIndex, clickOrderedFiles);
             } else if (!isMobile && isShiftKey && fileIndex !== undefined) {
-                multiSelection.handleRangeSelectClick(file, fileIndex, orderedFiles);
+                multiSelection.handleRangeSelectClick(file, fileIndex, clickOrderedFiles);
             } else {
                 selectFileFromList(file, {
                     markUserSelection: true,
@@ -415,8 +416,8 @@ export function useListPaneSelectionCoordinator({
     );
 
     const handleFileItemClick = useCallback(
-        (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => {
-            handleFileClick(file, event, fileIndex);
+        (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent, filesOverride?: TFile[]) => {
+            handleFileClick(file, event, fileIndex, filesOverride);
         },
         [handleFileClick]
     );
