@@ -16,7 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 import { describe, it, expect } from 'vitest';
-import { getExtensionSuffix, isPrimaryDocumentFile, shouldShowExtensionSuffix } from '../../src/utils/fileTypeUtils';
+import {
+    getExtensionSuffix,
+    isPrimaryDocumentFile,
+    isRasterImageExtension,
+    isRasterImageFile,
+    isSvgExtension,
+    shouldShowExtensionSuffix
+} from '../../src/utils/fileTypeUtils';
 import { createTestTFile } from './createTestTFile';
 
 describe('fileTypeUtils', () => {
@@ -50,6 +57,13 @@ describe('fileTypeUtils', () => {
             expect(isPrimaryDocumentFile(createTestTFile('Board.canvas'))).toBe(true);
             expect(isPrimaryDocumentFile(createTestTFile('Data.base'))).toBe(true);
             expect(isPrimaryDocumentFile(createTestTFile('Asset.png'))).toBe(false);
+        });
+
+        it('excludes SVG files from rendered image previews', () => {
+            expect(isSvgExtension('SVG')).toBe(true);
+            expect(isRasterImageExtension('svg')).toBe(false);
+            expect(isRasterImageFile(createTestTFile('Vector.svg'))).toBe(false);
+            expect(isRasterImageFile(createTestTFile('Photo.png'))).toBe(true);
         });
     });
 });

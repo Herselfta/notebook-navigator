@@ -156,6 +156,8 @@ body {
     );
     --nn-theme-nav-separator-height: 1px;
     --nn-theme-nav-separator-opacity: 0.3;
+    --nn-theme-nav-indent-guide-color: var(--nn-theme-foreground-faded);
+    --nn-theme-nav-leader-color: var(--nn-theme-foreground-faded);
     --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.03);
 
     /* -- Navigation Calendar -- */

@@ -258,10 +258,15 @@ export function useNavigationPaneTreeSections({
         settings.scopeTagsToCurrentContext,
         settings.showTags
     ]);
+    const scopedTagPropertySelectionVersion = selectionScope.selectionType === ItemType.PROPERTY ? sourceState.propertyDataVersion : 0;
+    const scopedTagPropertyTree = selectionScope.selectionType === ItemType.PROPERTY ? sourceState.propertyTree : null;
 
     const scopedTagSectionSource = useMemo((): ScopedTagSectionSource | null => {
         void sourceState.fileChangeVersion;
-        void sourceState.metadataDecorationVersion;
+        void sourceState.tagDataVersion;
+        void scopedTagPropertySelectionVersion;
+        void scopedTagPropertyTree;
+        void sourceState.metadataVisibilityVersion;
 
         if (!isScopedTagContextActive) {
             return null;
@@ -309,7 +314,10 @@ export function useNavigationPaneTreeSections({
         sourceState.hiddenMatcherHasRules,
         sourceState.hiddenTagMatcher,
         sourceState.hiddenTags,
-        sourceState.metadataDecorationVersion,
+        sourceState.metadataVisibilityVersion,
+        sourceState.tagDataVersion,
+        scopedTagPropertySelectionVersion,
+        scopedTagPropertyTree,
         tagTreeService
     ]);
 
@@ -645,10 +653,19 @@ export function useNavigationPaneTreeSections({
         settings.scopePropertiesToCurrentContext,
         settings.showProperties
     ]);
+    const scopedPropertyTagSelectionVersion =
+        selectionScope.selectionType === ItemType.TAG ||
+        (selectionScope.selectionType === ItemType.FOLDER && !showHiddenItems && sourceState.hiddenFileTags.length > 0)
+            ? sourceState.tagDataVersion
+            : 0;
+    const scopedPropertyTagTree = selectionScope.selectionType === ItemType.TAG ? sourceState.tagTree : null;
 
     const scopedPropertySectionSource = useMemo((): ScopedPropertySectionSource | null => {
         void sourceState.fileChangeVersion;
-        void sourceState.metadataDecorationVersion;
+        void sourceState.propertyDataVersion;
+        void scopedPropertyTagSelectionVersion;
+        void scopedPropertyTagTree;
+        void sourceState.metadataVisibilityVersion;
 
         if (!isScopedPropertyContextActive) {
             return null;
@@ -690,8 +707,11 @@ export function useNavigationPaneTreeSections({
         settings,
         showHiddenItems,
         sourceState.fileChangeVersion,
-        sourceState.metadataDecorationVersion,
+        sourceState.metadataVisibilityVersion,
+        sourceState.propertyDataVersion,
         sourceState.visiblePropertyNavigationKeySet,
+        scopedPropertyTagSelectionVersion,
+        scopedPropertyTagTree,
         tagTreeService
     ]);
 

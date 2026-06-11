@@ -313,6 +313,8 @@ export const STRINGS_RU = {
             moveFileToFolder: 'Переместить файл в...',
             moveMultipleNotesToFolder: 'Переместить {count} заметок в...',
             moveMultipleFilesToFolder: 'Переместить {count} файлов в...',
+            mergeNotes: 'Объединить {count} заметок...',
+            mergeNotesInGroup: 'Объединить заметки в группе...',
             setManualSortGroupHeader: 'Задать заголовок группы',
             changeManualSortGroupHeader: 'Изменить заголовок группы',
             manualSortGroupHeader: {
@@ -434,8 +436,28 @@ export const STRINGS_RU = {
             wordCountTarget: 'Целевое количество слов',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Когда это поле пустое, цель группы использует целевое свойство, заданное в Настройки > Заметки > Количество слов. Переопределите его, задав целевое значение для этой группы.',
+                'Если это поле пустое, цель группы использует целевое свойство, заданное в Настройки > Заметки > Количество слов и символов. Переопределите его, задав целевое значение для этой группы.',
             description: 'Настройте заголовок группы для этой заметки. Оставьте заголовок пустым, чтобы удалить его.'
+        },
+        mergeNotes: {
+            title: 'Объединить заметки',
+            summary: 'Создать одну заметку из {count} заметок в {folder}.',
+            frontmatterRule: 'Frontmatter из первой заметки сохраняется. Frontmatter из остальных заметок удаляется.',
+            crossFolderWarning:
+                'Исходные заметки находятся в разных папках. Относительные ссылки и встраивания могут перестать работать в объединенной заметке.',
+            outputName: 'Имя результата',
+            outputNameDesc: 'Объединенная заметка будет создана в папке, показанной выше.',
+            outputNamePlaceholder: 'Объединенные заметки',
+            separator: 'Разделитель',
+            separatorDesc: 'Вставляется между заметками.',
+            separatorOptions: {
+                none: 'Нет',
+                blankLine: 'Пустая строка',
+                horizontalRule: 'Горизонтальная линия',
+                heading: 'Заголовок с названием заметки'
+            },
+            moveSourcesToTrash: 'Переместить исходные заметки в корзину после объединения',
+            mergeButton: 'Объединить'
         },
         navRainbowSection: {
             title: (section: string) => `Цвета радуги: ${section}`
@@ -482,6 +504,7 @@ export const STRINGS_RU = {
                 'list-sort-property': 'Сортировать по свойству',
                 'list-appearance': 'Изменить вид',
                 'list-new-note': 'Новая заметка',
+                'list-pinned': 'Закреплённые заметки',
                 'nav-folder-open': 'Папка открыта',
                 'nav-folder-closed': 'Папка закрыта',
                 'nav-tags': 'Теги',
@@ -490,7 +513,8 @@ export const STRINGS_RU = {
                 'nav-property': 'Свойство',
                 'nav-property-value': 'Значение',
                 'file-unfinished-task': 'Незавершённые задачи',
-                'file-word-count': 'Количество слов'
+                'file-word-count': 'Количество слов',
+                'file-character-count': 'Количество символов'
             }
         },
         colorPicker: {
@@ -693,6 +717,11 @@ export const STRINGS_RU = {
             deleteFolder: 'Не удалось удалить папку: {error}',
             deleteFile: 'Не удалось удалить файл: {error}',
             deleteAttachments: 'Не удалось удалить вложения: {error}',
+            mergeNotes: 'Не удалось объединить заметки: {error}',
+            mergeNotesOpenOutput:
+                'Объединенная заметка создана как {name}, но ее не удалось открыть: {error}. Исходные заметки не изменены.',
+            mergeNotesOpenSkipped: 'Другой запрос на открытие файла получил приоритет.',
+            mergeNotesTrashSources: 'Объединенная заметка создана. Не удалось переместить {count} исходных заметок в корзину.',
             duplicateNote: 'Не удалось дублировать заметку: {error}',
             duplicateFolder: 'Не удалось дублировать папку: {error}',
             openVersionHistory: 'Не удалось открыть историю версий: {error}',
@@ -726,7 +755,8 @@ export const STRINGS_RU = {
         },
         notices: {
             hideFolder: 'Папка скрыта: {name}',
-            showFolder: 'Папка показана: {name}'
+            showFolder: 'Папка показана: {name}',
+            mergeNotes: 'Объединено {count} заметок в {name}'
         },
         notifications: {
             deletedMultipleFiles: 'Удалено файлов: {count}',
@@ -744,6 +774,7 @@ export const STRINGS_RU = {
             tagsClearedFromNotes: 'Все теги удалены из {count} заметок',
             noTagsToRemove: 'Нет тегов для удаления',
             noFilesSelected: 'Файлы не выбраны',
+            mergeNotesRequireMultipleMarkdown: 'Выберите не менее двух Markdown-заметок для объединения',
             tagOperationsNotAvailable: 'Операции с тегами недоступны',
             propertyOperationsNotAvailable: 'Операции со свойствами недоступны',
             tagsRequireMarkdown: 'Теги поддерживаются только для Markdown-заметок',
@@ -821,6 +852,7 @@ export const STRINGS_RU = {
         createNewNote: 'Создать новую заметку', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Новая заметка из шаблона', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Переместить файлы', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Объединить заметки', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Выбрать следующий файл', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Выбрать предыдущий файл', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Назад',
@@ -842,6 +874,7 @@ export const STRINGS_RU = {
         toggleCompactMode: 'Переключить компактный режим', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Переключить закреплённый раздел',
         collapseExpand: 'Свернуть / развернуть все элементы', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'Свернуть / развернуть выбранный элемент',
         addTag: 'Добавить тег к выбранным файлам', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Задать свойство для выбранных файлов', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Удалить тег из выбранных файлов', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -854,6 +887,7 @@ export const STRINGS_RU = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Календарь', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'Заметка папки', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'Показать в Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -869,6 +903,12 @@ export const STRINGS_RU = {
         wordCount: 'Количество слов'
     },
 
+    fileCounts: {
+        words: '{count} слов',
+        characters: '{count} символов',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Изменить настройки по умолчанию',
@@ -878,23 +918,48 @@ export const STRINGS_RU = {
         },
         sections: {
             general: 'Общие',
-            navigationPane: 'Навигация',
+            vaultFilters: 'Фильтры отображения',
+            appearanceBehavior: 'Внешний вид и поведение',
+            navigationPane: 'Панель навигации',
             calendar: 'Календарь',
-            files: 'Файлы',
+            fileOperations: 'Операции с файлами',
             icons: 'Наборы иконок',
             folders: 'Папки',
             folderNotes: 'Заметки папок',
-            foldersAndTags: 'Папки',
+            folderNoteFiles: 'Файлы заметок папок',
+            foldersAndFolderNotes: 'Папки и заметки папок',
             tagsAndProperties: 'Теги и свойства',
             tags: 'Теги',
-            listPane: 'Список',
-            notes: 'Заметки',
+            listPane: 'Панель списка',
+            notes: 'Отображение файлов',
+            shortcutsAndRecentFiles: 'Ярлыки и недавние файлы',
             advanced: 'Расширенные'
+        },
+        pageGroups: {
+            configuration: 'Конфигурация',
+            navigationAndContent: 'Панель навигации',
+            notesAndLists: 'Панель списка',
+            calendarAndTools: 'Календарь и инструменты'
+        },
+        pageDescriptions: {
+            general: 'Заметки о выпуске, поддержка, профиль хранилища, типы файлов и ключи свойств.',
+            vaultFilters: 'Скрытые папки, теги, файлы, теги файлов и правила свойств.',
+            appearanceBehavior: 'Поведение, навигация с клавиатуры, кнопки мыши, внешний вид и форматирование.',
+            navigationPane: 'Компоновка, внешний вид, количество заметок, поведение сворачивания и цвета радуги.',
+            shortcuts: 'Видимость ярлыков, значки, недавние файлы и закреплённые элементы.',
+            calendar: 'Отображение календаря, заметки дат, шаблоны, локаль и размещение боковой панели.',
+            fileOperations: 'Шаблоны, подтверждения удаления, вложения и поведение при конфликтах перемещения файлов.',
+            foldersAndFolderNotes: 'Отображение папок, заметки папок, шаблоны заметок папок и поведение заметок папок.',
+            tagsProperties: 'Разделы тегов и свойств, иконки, сортировка, область действия и наследование.',
+            listPane: 'Сортировка, группировка, режимы списка, закреплённые заметки и предпросмотр рисунков.',
+            frontmatter: 'Поля frontmatter для отображаемых имён, временных меток, иконок и цветов.',
+            notes: 'Заголовки, текст превью, изображения записей, теги, свойства, даты, количество слов и количество символов.',
+            iconPacks: 'Иконки интерфейса, иконки файлов и управление наборами иконок.',
+            advanced: 'Диагностика, очистка метаданных, импорт/экспорт и сброс.'
         },
         groups: {
             general: {
-                vaultProfiles: 'Профили хранилища',
-                filtering: 'Фильтрация',
+                vaultConfiguration: 'Настройка хранилища',
                 templates: 'Шаблоны',
                 behavior: 'Поведение',
                 keyboardNavigation: 'Навигация с клавиатуры',
@@ -905,6 +970,10 @@ export const STRINGS_RU = {
                 mobileAppearance: 'Мобильный вид',
                 formatting: 'Форматирование'
             },
+            advanced: {
+                maintenance: 'Обслуживание',
+                resetSettings: 'Сброс настроек'
+            },
             navigation: {
                 appearance: 'Внешний вид',
                 rainbowColors: 'Цвета радуги',
@@ -913,7 +982,6 @@ export const STRINGS_RU = {
             },
             list: {
                 display: 'Внешний вид',
-                organization: 'Организация',
                 groupHeaders: 'Заголовки групп',
                 propertySort: 'Сортировка по свойству',
                 manualSort: 'Ручная сортировка',
@@ -921,7 +989,7 @@ export const STRINGS_RU = {
                 drawingPreviews: 'Предпросмотр рисунков'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Поля frontmatter',
                 tasks: 'Задачи',
                 icon: 'Иконка',
                 title: 'Заголовок',
@@ -931,12 +999,11 @@ export const STRINGS_RU = {
                 properties: 'Свойства',
                 date: 'Дата',
                 parentFolder: 'Родительская папка',
-                wordCount: 'Количество слов'
+                wordCount: 'Количество слов и символов'
             }
         },
         syncMode: {
             notSynced: '(не синхронизировано)',
-            disabled: '(отключено)',
             switchToSynced: 'Включить синхронизацию',
             switchToLocal: 'Отключить синхронизацию'
         },
@@ -1036,15 +1103,15 @@ export const STRINGS_RU = {
             },
             includeDescendantNotes: {
                 name: 'Показывать заметки из подпапок / потомков',
-                desc: 'Включать заметки из вложенных подпапок и потомков тегов при просмотре папки или тега.'
+                desc: 'Включать заметки из вложенных подпапок и потомков тегов и свойств при просмотре папки, тега или свойства.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Закреплять заметки только в их папке',
                 desc: 'Закреплённые заметки отображаются закреплёнными только в своей собственной папке. Полезно для заметок-папок или если у вас много закреплённых заметок. Не влияет на представления тегов или свойств.'
             },
             separateNoteCounts: {
-                name: 'Показывать текущие и потомков отдельно',
-                desc: 'Отображать количество заметок в формате "текущие ▾ потомки" в папках и тегах.'
+                name: 'Показывать текущие заметки и заметки потомков отдельно',
+                desc: 'Отображать количество заметок в формате "текущие ▾ потомки" для папок, тегов и свойств.'
             },
             groupNotes: {
                 name: 'Группировка по умолчанию',
@@ -1062,6 +1129,14 @@ export const STRINGS_RU = {
             stickyGroupHeaders: {
                 name: 'Закреплённые заголовки групп',
                 desc: 'Сохранять видимым заголовок текущей даты, папки или раздела закреплённых при прокрутке.'
+            },
+            showFolderGroupPaths: {
+                name: 'Показывать пути подпапок',
+                desc: 'При группировке по папке в панели списка показывать пути подпапок вместо только названий папок.'
+            },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Группировка по папкам: файлы текущей папки внизу',
+                desc: 'Если для группировки по умолчанию выбран вариант «Папка», файлы непосредственно в выбранной папке будут показаны ниже групп вложенных папок.'
             },
             defaultListMode: {
                 name: 'Режим списка по умолчанию',
@@ -1088,7 +1163,7 @@ export const STRINGS_RU = {
                 desc: 'Применять цвет фона, когда заметка содержит незавершённые задачи.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Цвет фона',
+                name: 'Цвет фона незавершённых задач',
                 desc: 'Задать цвет фона, используемый когда заметка содержит незавершённые задачи.'
             },
             showFilenameMatchIcons: {
@@ -1113,7 +1188,7 @@ export const STRINGS_RU = {
             },
             compactItemHeight: {
                 name: 'Высота компактных элементов',
-                desc: 'Установите высоту компактных элементов списка на компьютере и мобильном.',
+                desc: 'Установите высоту компактных элементов списка на компьютере и мобильном (в пикселях).',
                 resetTooltip: 'Восстановить по умолчанию (28px)'
             },
             compactItemHeightScaleText: {
@@ -1122,7 +1197,7 @@ export const STRINGS_RU = {
             },
             showParentFolder: {
                 name: 'Показывать родительскую папку',
-                desc: 'Отображать название родительской папки для заметок в подпапках или тегах.'
+                desc: 'Отображать название родительской папки для заметок в подпапках, тегах или свойствах.'
             },
             showParentFolderFullPath: {
                 name: 'Показывать полный путь',
@@ -1167,7 +1242,7 @@ export const STRINGS_RU = {
             },
             appearanceScale: {
                 name: 'Уровень масштабирования',
-                desc: 'Управляет общим масштабом Notebook Navigator.'
+                desc: 'Управляет общим масштабом Notebook Navigator (в процентах).'
             },
             useFloatingToolbars: {
                 name: 'Использовать плавающие панели инструментов на iOS/iPadOS',
@@ -1196,15 +1271,15 @@ export const STRINGS_RU = {
                 desc: 'Автоматически показывать заметки, открытые из быстрого переключателя, ссылок или поиска.'
             },
             autoRevealShortestPath: {
-                name: 'Использовать кратчайший путь',
+                name: 'Автопоказ: Использовать кратчайший путь',
                 desc: 'Включено: Автопоказ выбирает ближайшую видимую родительскую папку или тег. Выключено: Автопоказ выбирает фактическую папку файла и точный тег.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Игнорировать события из правой боковой панели',
+                name: 'Автопоказ: Игнорировать события из правой боковой панели',
                 desc: 'Не менять активную заметку при клике или изменении заметок в правой боковой панели.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Игнорировать события из других окон',
+                name: 'Автопоказ: Игнорировать события из других окон',
                 desc: 'Не менять активную заметку при работе с заметками в другом окне.'
             },
             paneTransitionDuration: {
@@ -1214,7 +1289,7 @@ export const STRINGS_RU = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Автовыбор первой заметки',
-                desc: 'Автоматически открывать первую заметку при смене папок или тегов.'
+                desc: 'Автоматически открывать первую заметку при смене папок, тегов или свойств.'
             },
             skipAutoScroll: {
                 name: 'Отключить автопрокрутку для ярлыков',
@@ -1229,11 +1304,11 @@ export const STRINGS_RU = {
                 desc: 'Разворачивать папки и теги при наведении во время перетаскивания.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Задержка первого разворачивания',
+                name: 'Разворачивать при перетаскивании: Задержка первого разворачивания',
                 desc: 'Задержка перед разворачиванием первой папки или тега во время перетаскивания (секунды).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Задержка последующих разворачиваний',
+                name: 'Разворачивать при перетаскивании: Задержка последующих разворачиваний',
                 desc: 'Задержка перед разворачиванием дополнительных папок или тегов во время того же перетаскивания (секунды).'
             },
             navigationBanner: {
@@ -1264,7 +1339,7 @@ export const STRINGS_RU = {
                 desc: 'Отображать раздел недавних файлов в панели навигации.'
             },
             hideRecentNotes: {
-                name: 'Скрыть типы файлов',
+                name: 'Скрыть типы файлов из недавних файлов',
                 desc: 'Выберите типы файлов для скрытия в разделе недавних файлов.',
                 options: {
                     none: 'Нет',
@@ -1391,15 +1466,18 @@ export const STRINGS_RU = {
             calendarTemplateFolder: {
                 name: 'Расположение папки шаблонов',
                 desc: 'Выбор файла шаблона показывает заметки из этой папки.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Используется заметками календаря и заметками папок. Настройте шаблоны в Календарь > Интеграция с календарём и Папки и заметки папок > Файлы заметок папок.'
             },
             calendarCustomFilePattern: {
                 name: 'Ежедневные заметки',
-                desc: 'Формат пути с использованием формата даты Moment. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон. Укажите расположение папки шаблонов в Общие > Шаблоны.',
+                desc: 'Формат пути с использованием формата даты Moment. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон. Укажите расположение папки шаблонов в Операции с файлами > Шаблоны.',
                 momentDescPrefix: 'Формат пути с использованием ',
                 momentLinkText: 'формата даты Moment',
                 momentDescSuffix:
-                    '. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон. Укажите расположение папки шаблонов в Общие > Шаблоны.',
+                    '. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на значок шаблона, чтобы задать шаблон. Укажите расположение папки шаблонов в Операции с файлами > Шаблоны.',
+                templaterSupportInstalled: '✅ Плагин Templater установлен с полной поддержкой шаблонов.',
+                templaterSupportMissing: '⚠️ Установите плагин Templater для полной поддержки шаблонов.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Текущий синтаксис: {path}',
                 parsingError: 'Шаблон должен форматироваться и разбираться обратно как полная дата (год, месяц, день).'
@@ -1432,11 +1510,11 @@ export const STRINGS_RU = {
                 desc: 'Отображать всплывающие подсказки с дополнительной информацией для заметок и папок.'
             },
             showTooltipPath: {
-                name: 'Показывать путь',
+                name: 'Показывать путь в подсказках',
                 desc: 'Отображать путь к папке под названиями заметок в подсказках.'
             },
             showTooltipWordCount: {
-                name: 'Показывать количество слов',
+                name: 'Показывать количество слов в подсказках',
                 desc: 'Отображать количество слов в заметках в подсказках.'
             },
             resetPaneSeparator: {
@@ -1542,11 +1620,11 @@ export const STRINGS_RU = {
                     yearlyNote: 'Ежегодная заметка'
                 },
                 file: {
-                    name: 'Файл запуска',
+                    name: 'Домашняя страница: Файл запуска',
                     empty: 'Файл не выбран'
                 },
                 createMissing: {
-                    name: 'Создавать заметку, если отсутствует',
+                    name: 'Домашняя страница: Создавать заметку, если отсутствует',
                     desc: 'Создаёт периодическую заметку при запуске или по команде, если её не существует.'
                 }
             },
@@ -1562,7 +1640,7 @@ export const STRINGS_RU = {
             },
             vaultProfiles: {
                 name: 'Профиль хранилища',
-                desc: 'Профили хранят видимость типов файлов, скрытые файлы, скрытые папки, скрытые теги, скрытые заметки, ярлыки и баннер навигации. Переключайте профили из заголовка панели навигации.',
+                desc: 'Профили хранят видимость типов файлов, скрытые файлы, скрытые папки, скрытые теги, правила свойств для скрытых заметок, ярлыки и баннер навигации. Переключайте профили из заголовка панели навигации.',
                 defaultName: 'По умолчанию',
                 addButton: 'Добавить профиль',
                 editProfilesButton: 'Редактировать профили',
@@ -1574,7 +1652,7 @@ export const STRINGS_RU = {
                 addModalPlaceholder: 'Название профиля',
                 deleteModalTitle: 'Удалить {name}',
                 deleteModalMessage:
-                    'Удалить {name}? Фильтры скрытых файлов, папок, тегов и заметок, сохранённые в этом профиле, будут удалены.',
+                    'Удалить {name}? Фильтры скрытых файлов, папок, тегов и заметок на основе свойств, сохранённые в этом профиле, будут удалены.',
                 moveUp: 'Переместить вверх',
                 moveDown: 'Переместить вниз',
                 errors: {
@@ -1643,16 +1721,30 @@ export const STRINGS_RU = {
                 name: 'Показывать свойства в компактном режиме',
                 desc: 'Отображать свойства при активном компактном режиме.'
             },
-            showWordCount: {
-                name: 'Показывать количество слов',
-                desc: 'Показывать количество слов в заметках в элементах файлов.'
+            textCountDisplay: {
+                name: 'Тип счётчика',
+                desc: 'Выберите, какие счётчики заметок отображаются в элементах файлов.',
+                options: {
+                    none: 'Нет',
+                    words: 'Количество слов',
+                    characters: 'Количество символов',
+                    both: 'Количество слов и символов'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Размещение',
-                desc: 'Выберите, где показывать количество слов.',
+                desc: 'Выберите, где отображаются счётчики заметок.',
                 options: {
                     title: 'В заголовке',
                     property: 'Как свойство'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Количество символов',
+                desc: 'Выберите, учитывать ли пробелы в количестве символов.',
+                options: {
+                    include: 'С пробелами',
+                    exclude: 'Без пробелов'
                 }
             },
             wordCountTargetProperty: {
@@ -1828,7 +1920,7 @@ export const STRINGS_RU = {
             },
             showNoteCount: {
                 name: 'Показывать количество заметок',
-                desc: 'Отображать количество заметок рядом с каждой папкой и тегом.'
+                desc: 'Отображать количество заметок рядом с папками, тегами и свойствами.'
             },
             showSectionIcons: {
                 name: 'Показывать иконки для ярлыков и недавних',
@@ -1836,7 +1928,7 @@ export const STRINGS_RU = {
             },
             interfaceIcons: {
                 name: 'Иконки интерфейса',
-                desc: 'Редактировать иконки панели инструментов, папок, тегов, закреплённых, поиска и сортировки.',
+                desc: 'Редактировать иконки панели инструментов, папок, тегов, свойств, закреплённых, поиска и сортировки.',
                 buttonText: 'Редактировать иконки'
             },
             showIconsColorOnly: {
@@ -1940,11 +2032,11 @@ export const STRINGS_RU = {
             },
             navIndent: {
                 name: 'Отступ дерева',
-                desc: 'Настройте ширину отступа для вложенных папок и тегов.'
+                desc: 'Настройте ширину отступа для вложенных папок, тегов и свойств (в пикселях).'
             },
             navItemHeight: {
                 name: 'Высота элемента',
-                desc: 'Настройте высоту папок и тегов в панели навигации.'
+                desc: 'Настройте высоту папок, тегов и свойств в панели навигации (в пикселях).'
             },
             navItemHeightScaleText: {
                 name: 'Масштабировать текст с высотой элемента',
@@ -1952,11 +2044,21 @@ export const STRINGS_RU = {
             },
             showIndentGuides: {
                 name: 'Показать направляющие отступов',
-                desc: 'Отображать направляющие отступов для вложенных папок и тегов.'
+                desc: 'Отображать направляющие отступов для вложенных папок, тегов и свойств.'
+            },
+            navCountLeaderStyle: {
+                name: 'Показать заполнители',
+                desc: 'Отображать точки, тире или линию между названиями элементов и количеством заметок.',
+                options: {
+                    none: 'Нет',
+                    dots: 'Точки (...)',
+                    dashes: 'Тире (---)',
+                    line: 'Линия'
+                }
             },
             navRootSpacing: {
                 name: 'Отступ корневых элементов',
-                desc: 'Отступ между корневыми папками и тегами.'
+                desc: 'Отступ между корневыми папками, тегами и свойствами (в пикселях).'
             },
             showTags: {
                 name: 'Показывать теги',
@@ -2001,7 +2103,7 @@ export const STRINGS_RU = {
                 name: 'Показать свойства',
                 desc: 'Отображать раздел свойств в навигаторе.',
                 propertyKeysInfoPrefix: 'Настроить свойства в ',
-                propertyKeysInfoLinkText: 'Общие > Ключи свойств',
+                propertyKeysInfoLinkText: 'Начало > Ключи свойств',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2066,11 +2168,11 @@ export const STRINGS_RU = {
             },
             folderNoteTemplate: {
                 name: 'Шаблон заметки папки',
-                desc: 'Файл шаблона для новых заметок папок Markdown. Укажите расположение папки шаблонов в Общие > Шаблоны.'
+                desc: 'Файл шаблона для новых заметок папок Markdown. Укажите расположение папки шаблонов в Операции с файлами > Шаблоны.'
             },
             enableFolderNoteLinks: {
-                name: 'Включить ссылки заметок папок',
-                desc: 'Метки папок отображаются как ссылки и открывают заметки папок при нажатии. При выключении заметки папок по-прежнему предоставляют метаданные имени, значка и цвета.'
+                name: 'Названия папок открывают заметки папок',
+                desc: 'Нажатие на название папки открывает её заметку папки. Если выключено, заметки папок предоставляют только метаданные папки, такие как название, значок и цвет.'
             },
             hideFolderNoteInList: {
                 name: 'Скрывать заметку папки в списке',
@@ -2080,9 +2182,18 @@ export const STRINGS_RU = {
                 name: 'Закреплять созданные заметки папок',
                 desc: 'Закреплять заметки папок при создании из контекстного меню.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Открывать заметки папок в новой вкладке',
-                desc: 'Открывать заметки папок в новой вкладке при нажатии на папку.'
+            folderNoteOpenLocation: {
+                name: 'Открывать заметки папок в',
+                desc: 'Выберите, где открываются заметки папок при нажатии на ссылки заметок папок.',
+                options: {
+                    currentTab: 'Текущая вкладка',
+                    newTab: 'Новая вкладка',
+                    rightSidebar: 'Правая боковая панель'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Правая боковая панель: показывать ближайшую заметку папки',
+                desc: 'Когда выбрана папка, правая боковая панель автоматически показывает ближайшую родительскую заметку папки.'
             },
             confirmBeforeDelete: {
                 name: 'Подтверждать перед удалением',
@@ -2107,7 +2218,7 @@ export const STRINGS_RU = {
             },
             metadataCleanup: {
                 name: 'Очистка метаданных',
-                desc: 'Удаляет осиротевшие метаданные, оставшиеся после удаления, перемещения или переименования файлов, папок или тегов вне Obsidian. Это влияет только на файл настроек Notebook Navigator.',
+                desc: 'Удаляет осиротевшие метаданные, оставшиеся после удаления, перемещения или переименования файлов, папок, тегов или свойств вне Obsidian. Это влияет только на файл настроек Notebook Navigator.',
                 buttonText: 'Очистить метаданные',
                 error: 'Ошибка очистки настроек',
                 loading: 'Проверка метаданных...',
@@ -2197,6 +2308,10 @@ export const STRINGS_RU = {
                 desc: 'Проверяет наличие новых релизов плагина при запуске и показывает уведомление, когда доступно обновление. Проверки происходят не чаще одного раза в день.',
                 status: 'Доступна новая версия: {version}'
             },
+            debugLogging: {
+                name: 'Журнал отладки запуска',
+                desc: 'Записывает диагностику запуска в Markdown-файл с временной меткой в корне хранилища, затем останавливается после стабилизации запуска. Файл может синхронизироваться и содержать пути к файлам.'
+            },
             whatsNew: {
                 name: 'Что нового в Notebook Navigator {version}',
                 desc: 'Посмотреть последние обновления и улучшения',
@@ -2231,6 +2346,7 @@ export const STRINGS_RU = {
     },
     whatsNew: {
         title: 'Что нового в Notebook Navigator',
+        openBannerImage: 'Открыть изображение баннера релиза',
         supportMessage: 'Если вы находите Notebook Navigator полезным, пожалуйста, рассмотрите возможность поддержки его разработки.',
         supportButton: 'Купить кофе',
         thanksButton: 'Спасибо!'

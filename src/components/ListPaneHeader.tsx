@@ -63,7 +63,7 @@ export function ListPaneHeader({
     showIcon
 }: ListPaneHeaderProps) {
     const iconRef = React.useRef<HTMLSpanElement | null>(null);
-    const { app, isMobile } = useServices();
+    const { app, isMobile, plugin } = useServices();
     const commandQueue = useCommandQueue();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
@@ -161,7 +161,7 @@ export function ListPaneHeader({
 
             const openContext = resolveFolderNoteClickOpenContext(
                 event,
-                settings.openFolderNotesInNewTab,
+                settings.folderNoteOpenLocation,
                 settings.multiSelectModifier,
                 isMobile
             );
@@ -172,11 +172,21 @@ export function ListPaneHeader({
                     commandQueue,
                     folder: selectedFolder,
                     folderNote: selectedFolderNote,
-                    context: openContext
+                    context: openContext,
+                    openInRightSidebar: folderNote => plugin.openFolderNoteInRightSidebar(folderNote)
                 })
             );
         },
-        [selectedFolder, selectedFolderNote, settings.openFolderNotesInNewTab, settings.multiSelectModifier, isMobile, app, commandQueue]
+        [
+            selectedFolder,
+            selectedFolderNote,
+            settings.folderNoteOpenLocation,
+            settings.multiSelectModifier,
+            isMobile,
+            app,
+            commandQueue,
+            plugin
+        ]
     );
 
     const handleSelectedFolderNoteMouseDown = React.useCallback(

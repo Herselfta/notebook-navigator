@@ -440,6 +440,24 @@ settings:
         default-light: '#'
         default-dark: '#'
     -
+        id: nn-theme-nav-indent-guide-color
+        title: Indent guide color
+        description: Line color for navigation indent guides.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-nav-leader-color
+        title: Leader color
+        description: Color for leaders between item names and trailing values.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
         id: nn-nav-pane-items-heading
         title: Folder & tag items
         type: heading

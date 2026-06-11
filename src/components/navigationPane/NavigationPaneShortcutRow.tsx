@@ -73,7 +73,7 @@ export function NavigationPaneShortcutRow({ item, context, adjacentFilledClassNa
             const isRootShortcut = folderPath === '/';
             const folderName = (() => {
                 if (isRootShortcut) {
-                    return settings.customVaultName || app.vault.getName();
+                    return item.displayName || settings.customVaultName || app.vault.getName();
                 }
                 if (canInteract && folder) {
                     return item.displayName || folder.name;
@@ -264,7 +264,7 @@ export function NavigationPaneShortcutRow({ item, context, adjacentFilledClassNa
                 },
                 onClick: () => shortcuts.handleShortcutSearchActivate(item.key, searchShortcut),
                 onContextMenu: (event: React.MouseEvent<HTMLDivElement>) =>
-                    shortcuts.handleShortcutContextMenu(event, { type: 'search', key: item.key }),
+                    shortcuts.handleShortcutContextMenu(event, { type: 'search', key: item.key, searchShortcut }),
                 dragHandlers: shortcuts.buildShortcutExternalHandlers(item.key),
                 dragHandleConfig: shortcuts.shortcutDragHandleConfig
             };

@@ -27,7 +27,7 @@ import { isEnterKey, isModifierArrowReorderShortcut, resolveKeyboardOpenContext 
 import { KeyboardShortcutAction, matchesShortcut } from '../utils/keyboardShortcuts';
 import { getManualSortSelectedMarkdownPaths, moveManualSortSelectionByDirection, type ManualSortMoveDirection } from '../utils/manualSort';
 import { openFileInContext } from '../utils/openFileInContext';
-import { getFilesInRange } from '../utils/selectionUtils';
+import { getFilesInRange, mergeFilesIntoSelection } from '../utils/selectionUtils';
 import { useFileOpener } from './useFileOpener';
 import { useMultiSelection } from './useMultiSelection';
 
@@ -99,7 +99,7 @@ export function useManualSortKeyboard({
     const selectionState = useSelectionState();
     const selectionDispatch = useSelectionDispatch();
     const openFileInWorkspace = useFileOpener();
-    const multiSelection = useMultiSelection();
+    const { handleShiftArrowSelection, selectAll } = useMultiSelection();
     const keyboardScrollPathRef = useRef<string | null>(null);
     const handledSelectionScrollPathRef = useRef<string | null>(null);
 
@@ -214,13 +214,14 @@ export function useManualSortKeyboard({
             }
 
             const filesInRange = getFilesInRange(files, Math.min(currentIndex, targetIndex), Math.max(currentIndex, targetIndex));
-            filesInRange.forEach(file => {
-                if (!selectionState.selectedFiles.has(file.path)) {
-                    selectionDispatch({ type: 'TOGGLE_FILE_SELECTION', file });
-                }
-            });
+            const { selectedFiles, changed: selectionChanged } = mergeFilesIntoSelection(selectionState.selectedFiles, filesInRange);
 
-            selectionDispatch({ type: 'UPDATE_CURRENT_FILE', file: targetFile });
+            selectionDispatch({
+                type: 'APPLY_FILE_SELECTION',
+                selectedFiles,
+                selectedFile: targetFile,
+                lastMovementDirection: selectionChanged ? null : selectionState.lastMovementDirection
+            });
             if (!settings.enterToOpenFiles) {
                 openFileInWorkspace(targetFile);
             }
@@ -233,6 +234,7 @@ export function useManualSortKeyboard({
             selectionDispatch,
             selectionState.selectedFile,
             selectionState.selectedFiles,
+            selectionState.lastMovementDirection,
             settings.enterToOpenFiles
         ]
     );
@@ -316,7 +318,7 @@ export function useManualSortKeyboard({
             if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.LIST_EXTEND_SELECTION_DOWN)) {
                 event.preventDefault();
                 if (!isMobile && currentIndex !== -1) {
-                    const finalIndex = multiSelection.handleShiftArrowSelection('down', currentIndex, files, {
+                    const finalIndex = handleShiftArrowSelection('down', currentIndex, files, {
                         openFile:
                             nativeEvent.key === 'ArrowDown' && onScheduleKeyboardOpenForFile ? onScheduleKeyboardOpenForFile : undefined
                     });
@@ -336,7 +338,7 @@ export function useManualSortKeyboard({
             if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.LIST_EXTEND_SELECTION_UP)) {
                 event.preventDefault();
                 if (!isMobile && currentIndex !== -1) {
-                    const finalIndex = multiSelection.handleShiftArrowSelection('up', currentIndex, files, {
+                    const finalIndex = handleShiftArrowSelection('up', currentIndex, files, {
                         openFile: nativeEvent.key === 'ArrowUp' && onScheduleKeyboardOpenForFile ? onScheduleKeyboardOpenForFile : undefined
                     });
                     if (finalIndex === -1 && nativeEvent.key === 'ArrowUp') {
@@ -354,7 +356,7 @@ export function useManualSortKeyboard({
 
             if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.LIST_SELECT_ALL)) {
                 event.preventDefault();
-                multiSelection.selectAll(files);
+                selectAll(files);
                 return;
             }
 
@@ -462,8 +464,8 @@ export function useManualSortKeyboard({
             app,
             commandQueue,
             handleKeyboardReorder,
+            handleShiftArrowSelection,
             isMobile,
-            multiSelection,
             onScheduleKeyboardOpen,
             onScheduleKeyboardOpenForFile,
             openFileInWorkspace,
@@ -471,6 +473,7 @@ export function useManualSortKeyboard({
             scrollKeyboardTargetIntoView,
             selectFileAtIndex,
             selectRangeToIndex,
+            selectAll,
             selectedFileIndex,
             selectionState,
             settings

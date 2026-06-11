@@ -40,6 +40,14 @@ const WORD_PATTERN = new RegExp(
     `(?:[0-9]+(?:(?:,|\\.)[0-9]+)*|[\\-'\u2019${OBSIDIAN_GF_PATTERN_SOURCE}஀-௿가-힣ꥠ-ꥼힰ-ퟆ])+|[${CJK_SINGLE_CHARS}]`,
     'g'
 );
+const CHARACTER_COUNT_WHITESPACE_PATTERN = /\s/u;
+const FRONTMATTER_START_PATTERN = /^---(\r?\n)/g;
+const FRONTMATTER_END_PATTERN = /---(\r?\n|$)/g;
+
+export interface CharacterCountResult {
+    withSpaces: number;
+    withoutSpaces: number;
+}
 
 export function countWordsForNoteProperty(content: string, startIndex: number): number {
     const text = startIndex > 0 ? content.slice(startIndex) : content;
@@ -49,6 +57,53 @@ export function countWordsForNoteProperty(content: string, startIndex: number): 
         count += 1;
     }
     return count;
+}
+
+export function getObsidianTextCountStartIndex(content: string): number {
+    // Matches Obsidian's bundled word-count plugin frontmatter slicing, not metadata body offsets.
+    FRONTMATTER_START_PATTERN.lastIndex = 0;
+    if (!FRONTMATTER_START_PATTERN.exec(content)) {
+        return 0;
+    }
+
+    FRONTMATTER_END_PATTERN.lastIndex = FRONTMATTER_START_PATTERN.lastIndex;
+    let match = FRONTMATTER_END_PATTERN.exec(content);
+    while (match && content.charAt(match.index - 1) !== '\n') {
+        match = FRONTMATTER_END_PATTERN.exec(content);
+    }
+
+    if (!match) {
+        return 0;
+    }
+
+    return FRONTMATTER_END_PATTERN.lastIndex;
+}
+
+function isCharacterCountWhitespace(char: string): boolean {
+    return (
+        char === ' ' ||
+        char === '\n' ||
+        char === '\r' ||
+        char === '\t' ||
+        char === '\f' ||
+        char === '\v' ||
+        CHARACTER_COUNT_WHITESPACE_PATTERN.test(char)
+    );
+}
+
+export function countCharactersForNoteProperty(content: string, startIndex: number): CharacterCountResult {
+    const text = startIndex > 0 ? content.slice(startIndex) : content;
+    const withSpaces = text.length;
+    let withoutSpaces = 0;
+
+    for (let index = 0; index < text.length; index += 1) {
+        const char = text.charAt(index);
+        if (!isCharacterCountWhitespace(char)) {
+            withoutSpaces += 1;
+        }
+    }
+
+    return { withSpaces, withoutSpaces };
 }
 
 function parseWordCountTargetValue(value: unknown): number | null {

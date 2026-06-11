@@ -27,6 +27,7 @@ export const SUPPORT_SPONSOR_URL = 'https://github.com/sponsors/johansan/';
 export const SUPPORT_BUY_ME_A_COFFEE_URL = 'https://buymeacoffee.com/johansan';
 
 export const MOMENT_FORMAT_DOCS_URL = 'https://momentjs.com/docs/#/displaying/format/';
+export const ICON_ASSETS_REPOSITORY_URL = `https://github.com/${NOTEBOOK_NAVIGATOR_REPOSITORY}/tree/main/icon-assets`;
 
 const WELCOME_VIDEO_URL = 'https://www.youtube.com/watch?v=BewIlG8wLAM';
 const WELCOME_VIDEO_TIMESTAMP_DESKTOP = 66;

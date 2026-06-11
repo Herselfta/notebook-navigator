@@ -42,6 +42,8 @@ const {
     updateFileMetadataMock,
     getFolderNoteMock,
     getFolderNoteDetectionSettingsMock,
+    resolveFolderNoteNameForFolderMock,
+    resolveRootFolderNoteSourceNameMock,
     onContentChangeMock,
     getDBInstanceOrNullMock
 } = vi.hoisted(() => ({
@@ -54,7 +56,18 @@ const {
         enableFolderNotes: settings.enableFolderNotes,
         folderNoteName: settings.folderNoteName,
         folderNoteNamePattern: settings.folderNoteNamePattern
-    }))
+    })),
+    resolveFolderNoteNameForFolderMock: vi.fn(
+        (folder: TFolder, settings: NotebookNavigatorSettings) => settings.folderNoteName || folder.name
+    ),
+    resolveRootFolderNoteSourceNameMock: vi.fn((folder: TFolder, vault?: { getName?: () => string }) => {
+        const vaultName = typeof vault?.getName === 'function' ? vault.getName() : '';
+        if (typeof vaultName === 'string' && vaultName.trim().length > 0) {
+            return vaultName;
+        }
+
+        return folder.name && folder.name !== '/' ? folder.name : 'Vault';
+    })
 }));
 
 vi.mock('../../src/storage/fileOperations', () => ({
@@ -68,7 +81,9 @@ vi.mock('../../src/storage/fileOperations', () => ({
 
 vi.mock('../../src/utils/folderNotes', () => ({
     getFolderNote: getFolderNoteMock,
-    getFolderNoteDetectionSettings: getFolderNoteDetectionSettingsMock
+    getFolderNoteDetectionSettings: getFolderNoteDetectionSettingsMock,
+    resolveFolderNoteNameForFolder: resolveFolderNoteNameForFolderMock,
+    resolveRootFolderNoteSourceName: resolveRootFolderNoteSourceNameMock
 }));
 
 class TestSettingsProvider implements ISettingsProvider {
@@ -147,6 +162,7 @@ describe('FolderMetadataService folder note frontmatter integration', () => {
         }));
         getFolderNoteMock.mockReset();
         getFolderNoteDetectionSettingsMock.mockClear();
+        resolveRootFolderNoteSourceNameMock.mockClear();
         processFrontMatter.mockReset();
         getFolderByPath.mockReset();
 
@@ -315,6 +331,67 @@ describe('FolderMetadataService folder note frontmatter integration', () => {
         expect(result.icon).toBe('phosphor:apple-logo');
         expect(result.color).toBe('#112233');
         expect(result.backgroundColor).toBe('#223344');
+    });
+
+    it('prefers root folder note metadata at the vault root', () => {
+        folderNoteFile.path = 'Shared Scratch.md';
+        getFileMock.mockImplementation((path: string) => {
+            if (path !== folderNoteFile.path) {
+                return null;
+            }
+
+            return {
+                metadata: {
+                    name: 'Vault home',
+                    icon: 'phosphor:apple-logo'
+                }
+            };
+        });
+
+        const result = service.getFolderDisplayData('/', {
+            includeDisplayName: true,
+            includeColor: false,
+            includeBackgroundColor: false,
+            includeIcon: true
+        });
+
+        expect(result.displayName).toBe('Vault home');
+        expect(result.icon).toBe('phosphor:apple-logo');
+        expect(getFolderByPath).not.toHaveBeenCalledWith('/');
+        expect(getFolderNoteMock.mock.calls.some(([folder]) => folder instanceof TFolder && folder.path === '/')).toBe(true);
+    });
+
+    it('writes root folder style to the root folder note', async () => {
+        folderNoteFile.path = 'Shared Scratch.md';
+
+        await service.setFolderColor('/', '#112233');
+
+        expect(processFrontMatter).toHaveBeenCalledTimes(1);
+        expect(frontmatter.color).toBe('#112233');
+        expect(updateFileMetadataMock).toHaveBeenCalledWith(folderNoteFile.path, {
+            color: '#112233'
+        });
+        expect(getFolderByPath).not.toHaveBeenCalledWith('/');
+    });
+
+    it('keeps root folder metadata during direct cleanup', async () => {
+        settingsProvider.settings.folderColors = {
+            '/': '#112233',
+            Missing: '#445566'
+        };
+        settingsProvider.settings.folderIcons = {
+            '/': 'lucide-vault',
+            Missing: 'lucide-folder'
+        };
+
+        const changed = await service.cleanupFolderMetadata();
+
+        expect(changed).toBe(true);
+        expect(settingsProvider.settings.folderColors['/']).toBe('#112233');
+        expect(settingsProvider.settings.folderIcons['/']).toBe('lucide-vault');
+        expect(settingsProvider.settings.folderColors.Missing).toBeUndefined();
+        expect(settingsProvider.settings.folderIcons.Missing).toBeUndefined();
+        expect(getFolderByPath).not.toHaveBeenCalledWith('/');
     });
 
     it('ignores invalid style color updates while applying valid icon updates', async () => {
@@ -1156,7 +1233,26 @@ describe('FolderMetadataService folder note frontmatter integration', () => {
         expect(getFolderByPath).not.toHaveBeenCalled();
     });
 
-    it('detects root folder display-name metadata changes using the root folder name', () => {
+    it('detects root folder display-name metadata changes using the vault name', () => {
+        Object.defineProperty(app.vault, 'getName', {
+            configurable: true,
+            value: () => 'Shared Scratch'
+        });
+        settingsProvider.settings.folderNoteName = '';
+        settingsProvider.settings.folderNoteNamePattern = '';
+
+        const rootFolderNoteChanges: MetadataChangeEvent[] = [
+            {
+                path: 'Shared Scratch.md',
+                changes: { metadata: { name: 'Vault home' } },
+                metadataNameChanged: true
+            }
+        ];
+
+        expect(service.hasFolderDisplayNameMetadataChanges(rootFolderNoteChanges)).toBe(true);
+    });
+
+    it('falls back to the root folder name when the vault name is unavailable', () => {
         Object.defineProperty(app.vault, 'getRoot', {
             configurable: true,
             value: () => ({ name: 'VaultRoot' })

@@ -33,6 +33,7 @@ import { type CachedFileTagsDB, getCachedFileTags } from './tagUtils';
 import { casefold, casefoldPreservingWhitespace, sortAndDedupeByComparator } from './recordUtils';
 import { normalizePropertyTreeValuePath } from './propertyUtils';
 import { isNonMarkdownDrawingFeatureImageFile, shouldHideDrawingCompanionImageFile } from './drawingFeatureImages';
+import { isDebugLogPath } from '../services/diagnostics/DebugLoggingService';
 
 interface FileFilterOptions {
     showHiddenItems?: boolean;
@@ -711,6 +712,10 @@ function passesExclusionFilters(file: TFile, state: ExclusionFilterState, app: A
         hiddenFileTagVisibility,
         db
     } = state;
+
+    if (isDebugLogPath(file.path)) {
+        return false;
+    }
 
     if (!includeHiddenItems && shouldHideDrawingCompanionImageFile(app, file, { hideDrawingPreviewImages })) {
         return false;

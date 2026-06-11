@@ -20,6 +20,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { App, type TFile, type TFolder, type WorkspaceLeaf } from 'obsidian';
 import { FileDeletionService } from '../../src/services/fileSystem/FileDeletionService';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
+import { ItemType } from '../../src/types';
 import { createTestTFile } from '../utils/createTestTFile';
 
 vi.mock('../../src/modals/ConfirmModal', () => ({
@@ -70,8 +71,10 @@ function createService() {
 
 type FileDeletionServiceTestAccess = {
     readonly app: App;
+    hasOpenLeafForFiles(files: readonly TFile[]): boolean;
     getLeavesDisplayingFile(file: TFile): WorkspaceLeaf[];
     getActiveFileViewLeaf(): WorkspaceLeaf | null;
+    clearOpenLeavesForFileDelete(file: TFile): Promise<void>;
     replaceOpenLeavesForFileDelete(fileToReplace: TFile, replacement: TFile): Promise<void>;
     replaceOpenLeavesForFilesDelete(filesToReplace: readonly TFile[], replacement: TFile): Promise<void>;
 };
@@ -81,6 +84,38 @@ function getTestAccess(service: FileDeletionService): FileDeletionServiceTestAcc
 }
 
 describe('FileDeletionService replacement file activation', () => {
+    it('uses open-leaf cleanup when trashing files directly', async () => {
+        const first = createTestTFile('daily/2026-03-24.md');
+        const second = createTestTFile('daily/2026-03-25.md');
+        const service = createService();
+        const serviceAccess = getTestAccess(service);
+        const app = serviceAccess.app;
+        const trashFile = vi.fn(async () => undefined);
+        const hasOpenLeafSpy = vi.spyOn(serviceAccess, 'hasOpenLeafForFiles').mockReturnValue(true);
+        const clearOpenLeavesSpy = vi.spyOn(serviceAccess, 'clearOpenLeavesForFileDelete').mockResolvedValue(undefined);
+
+        Object.defineProperty(app, 'fileManager', {
+            configurable: true,
+            value: {
+                trashFile
+            }
+        });
+
+        const result = await service.trashFilesWithOpenLeafCleanup([first, second]);
+
+        expect(result).toMatchObject({
+            trashedCount: 2,
+            failedCount: 0,
+            trashedSourcePaths: [first.path, second.path],
+            errors: []
+        });
+        expect(hasOpenLeafSpy).toHaveBeenCalledWith([first, second]);
+        expect(clearOpenLeavesSpy).toHaveBeenNthCalledWith(1, first);
+        expect(clearOpenLeavesSpy).toHaveBeenNthCalledWith(2, second);
+        expect(trashFile).toHaveBeenNthCalledWith(1, first);
+        expect(trashFile).toHaveBeenNthCalledWith(2, second);
+    });
+
     it('opens the replacement file as active in a fallback leaf when the deleted file is not open', async () => {
         const deletedFile = createTestTFile('daily/2026-03-24.md');
         const replacementFile = createTestTFile('daily/2026-03-25.md');
@@ -153,5 +188,44 @@ describe('FileDeletionService replacement file activation', () => {
 
         expect(openFileMock).toHaveBeenCalledTimes(1);
         expect(openFileMock).toHaveBeenCalledWith(replacementFile, { active: true });
+    });
+
+    it('uses the supplied visible file order when selecting after single delete', async () => {
+        const firstVisibleFile = createTestTFile('Folder/direct.md');
+        const deletedFile = createTestTFile('Folder/Child/deleted.md');
+        const nextVisibleFile = createTestTFile('Folder/Other/next.md');
+        const service = createService();
+        const serviceAccess = getTestAccess(service);
+        const app = serviceAccess.app;
+        const trashFile = vi.fn(async () => undefined);
+        const selectionDispatch = vi.fn();
+        const filesByPath = new Map([
+            [firstVisibleFile.path, firstVisibleFile],
+            [deletedFile.path, deletedFile],
+            [nextVisibleFile.path, nextVisibleFile]
+        ]);
+
+        vi.spyOn(app.vault, 'getFileByPath').mockImplementation(path => filesByPath.get(path) ?? null);
+        vi.spyOn(serviceAccess, 'replaceOpenLeavesForFileDelete').mockResolvedValue(undefined);
+        Object.defineProperty(app, 'fileManager', {
+            configurable: true,
+            value: {
+                trashFile
+            }
+        });
+
+        await service.deleteSelectedFile(
+            deletedFile,
+            DEFAULT_SETTINGS,
+            {
+                selectionType: ItemType.FOLDER
+            },
+            selectionDispatch,
+            false,
+            [firstVisibleFile, deletedFile, nextVisibleFile]
+        );
+
+        expect(selectionDispatch).toHaveBeenCalledWith({ type: 'SET_SELECTED_FILE', file: nextVisibleFile });
+        expect(trashFile).toHaveBeenCalledWith(deletedFile);
     });
 });

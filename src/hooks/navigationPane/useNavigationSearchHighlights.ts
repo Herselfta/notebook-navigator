@@ -249,11 +249,14 @@ export function useNavigationSearchHighlights({ searchNavFilters }: UseNavigatio
         [getFoldedPropertyNodeId, propertyIncludeOperators]
     );
 
-    return {
-        getTagSearchMatch,
-        getPropertySearchMatch,
-        getTagCollectionSearchMatch,
-        getTagInclusionOperator,
-        getPropertyInclusionOperator
-    };
+    return useMemo(
+        () => ({
+            getTagSearchMatch,
+            getPropertySearchMatch,
+            getTagCollectionSearchMatch,
+            getTagInclusionOperator,
+            getPropertyInclusionOperator
+        }),
+        [getPropertyInclusionOperator, getPropertySearchMatch, getTagCollectionSearchMatch, getTagInclusionOperator, getTagSearchMatch]
+    );
 }

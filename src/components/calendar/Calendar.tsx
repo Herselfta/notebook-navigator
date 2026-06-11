@@ -61,7 +61,13 @@ import {
     shouldAutoRevealCalendarNoteKind,
     setUnfinishedTaskCount
 } from './calendarUtils';
-import { useCalendarFeatureImages, type CalendarFeatureImageTarget } from './useCalendarFeatureImages';
+import {
+    clearCalendarFeatureImageRegenerationSlotsForPath,
+    consumeCalendarFeatureImageRegenerationSlot,
+    getCalendarFeatureImageRegenerationKey,
+    useCalendarFeatureImages,
+    type CalendarFeatureImageTarget
+} from './useCalendarFeatureImages';
 import { useCalendarHoverTooltip } from './useCalendarHoverTooltip';
 import { useCalendarNoteActions } from './useCalendarNoteActions';
 import type { CalendarDay, CalendarHeaderPeriodNoteFiles, CalendarWeek, CalendarYearMonthEntry } from './types';
@@ -72,6 +78,7 @@ export interface CalendarProps {
     onNavigationAction?: () => void;
     weeksToShowOverride?: CalendarWeeksToShow;
     onAddDateFilter?: (dateToken: string) => void;
+    onMissingFeatureImage?: (target: CalendarFeatureImageTarget) => void;
     isRightSidebar?: boolean;
 }
 
@@ -158,6 +165,7 @@ export function Calendar({
     onNavigationAction,
     weeksToShowOverride,
     onAddDateFilter,
+    onMissingFeatureImage,
     isRightSidebar = false
 }: CalendarProps) {
     const { app, commandQueue, fileSystemOps, isMobile, plugin } = useServices();
@@ -169,6 +177,7 @@ export function Calendar({
     const fileCache = useFileCacheOptional();
     const [dbFallback, setDbFallback] = useState(() => getDBInstanceOrNull());
     const db = fileCache?.getDB() ?? dbFallback;
+    const regenerateFeatureImageForFile = fileCache?.regenerateFeatureImageForFile;
     const openFile = useFileOpener();
     const calendarLabelId = useId();
 
@@ -192,6 +201,7 @@ export function Calendar({
     const visibleIndicatorNotePathsRef = useRef<Set<string>>(new Set());
     const visibleFeatureImageNotePathsRef = useRef<Set<string>>(new Set());
     const visibleFrontmatterNotePathsRef = useRef<Set<string>>(new Set());
+    const missingFeatureImageRegenerationRef = useRef<Set<string>>(new Set());
     const lastAppliedActiveEditorDateKeyRef = useRef<string | null>(null);
     const shouldSkipInitialActiveEditorRevealRef = useRef(initialStoredCursorDateIso !== null);
     const dayNoteFileLookupCacheRef = useRef<Map<string, TFile | null>>(new Map());
@@ -233,6 +243,26 @@ export function Calendar({
             });
         },
         [app.workspace]
+    );
+    const handleMissingCalendarFeatureImage = useCallback(
+        (target: CalendarFeatureImageTarget) => {
+            const shouldRegenerate = consumeCalendarFeatureImageRegenerationSlot({
+                regenerationKeys: missingFeatureImageRegenerationRef.current,
+                filePath: target.file.path,
+                featureImageKey: target.key
+            });
+            if (!shouldRegenerate) {
+                return;
+            }
+
+            if (regenerateFeatureImageForFile) {
+                void regenerateFeatureImageForFile(target.file);
+                return;
+            }
+
+            onMissingFeatureImage?.(target);
+        },
+        [onMissingFeatureImage, regenerateFeatureImageForFile]
     );
     const shouldTrackCalendarVaultChange = useCallback((file: unknown): boolean => {
         if (!(file instanceof TFile)) {
@@ -348,6 +378,14 @@ export function Calendar({
             let hasHoverPreviewChange = !shouldTrackHoverPreview;
 
             for (const change of changes) {
+                const hasFeatureImageContentChange =
+                    change.changes.featureImage !== undefined ||
+                    change.changes.featureImageKey !== undefined ||
+                    change.changes.featureImageStatus !== undefined;
+                if (hasFeatureImageContentChange) {
+                    clearCalendarFeatureImageRegenerationSlotsForPath(missingFeatureImageRegenerationRef.current, change.path);
+                }
+
                 if (
                     !hasHoverPreviewChange &&
                     hoverPreviewPath &&
@@ -361,13 +399,7 @@ export function Calendar({
                     hasTaskIndicatorChange = true;
                 }
 
-                if (
-                    !hasFeatureImageChange &&
-                    visibleFeatureImagePaths.has(change.path) &&
-                    (change.changes.featureImage !== undefined ||
-                        change.changes.featureImageKey !== undefined ||
-                        change.changes.featureImageStatus !== undefined)
-                ) {
+                if (!hasFeatureImageChange && visibleFeatureImagePaths.has(change.path) && hasFeatureImageContentChange) {
                     hasFeatureImageChange = true;
                 }
 
@@ -973,7 +1005,8 @@ export function Calendar({
         db,
         showFeatureImages: settings.calendarShowFeatureImage,
         targets: dayFeatureImageTargets,
-        maxConcurrentLoads: isMobile ? 4 : 6
+        maxConcurrentLoads: isMobile ? 4 : 6,
+        onMissingFeatureImage: handleMissingCalendarFeatureImage
     });
 
     const handleNavigate = useCallback(
@@ -1270,6 +1303,23 @@ export function Calendar({
         return targets;
     }, [db, featureImageVersion, highlightedMonthFilesByKey, settings.calendarShowFeatureImage]);
 
+    useEffect(() => {
+        const activeKeys = new Set<string>();
+        for (const target of [...dayFeatureImageTargets, ...highlightedMonthFeatureImageTargets]) {
+            const regenerationKey = getCalendarFeatureImageRegenerationKey(target.file.path, target.key);
+            if (regenerationKey) {
+                activeKeys.add(regenerationKey);
+            }
+        }
+
+        const pendingKeys = missingFeatureImageRegenerationRef.current;
+        for (const key of pendingKeys) {
+            if (!activeKeys.has(key)) {
+                pendingKeys.delete(key);
+            }
+        }
+    }, [dayFeatureImageTargets, highlightedMonthFeatureImageTargets]);
+
     const highlightedMonthFeatureImageKeys = useMemo(() => {
         const keys = new Set<string>();
 
@@ -1292,7 +1342,8 @@ export function Calendar({
         db,
         showFeatureImages: settings.calendarShowFeatureImage && showYearCalendar,
         targets: highlightedMonthFeatureImageTargets,
-        maxConcurrentLoads: isMobile ? 2 : 4
+        maxConcurrentLoads: isMobile ? 2 : 4,
+        onMissingFeatureImage: handleMissingCalendarFeatureImage
     });
 
     const yearPanelDate = useMemo(() => {

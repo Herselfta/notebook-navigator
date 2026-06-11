@@ -114,6 +114,8 @@ export function createDefaultFileData(params: { mtime: number; path: string }): 
         fileThumbnailsMtime: 0,
         tags: isMarkdown ? null : [],
         wordCount: isMarkdown ? null : 0,
+        characterCountWithSpaces: isMarkdown ? null : 0,
+        characterCountWithoutSpaces: isMarkdown ? null : 0,
         taskTotal: isMarkdown ? null : 0,
         taskUnfinished: isMarkdown ? null : 0,
         properties: null,
@@ -164,6 +166,8 @@ export interface FileData {
     fileThumbnailsMtime: number;
     tags: string[] | null; // null = not extracted yet (e.g. when tags disabled)
     wordCount: number | null; // null = not generated yet
+    characterCountWithSpaces: number | null; // null = not generated yet
+    characterCountWithoutSpaces: number | null; // null = not generated yet
     taskTotal: number | null; // null = not generated yet
     taskUnfinished: number | null; // null = not generated yet
     properties: PropertyItem[] | null; // null = not generated yet
@@ -218,12 +222,15 @@ export interface FileContentChange {
     path: string;
     changes: {
         preview?: string | null;
+        previewStatus?: PreviewStatus;
         featureImage?: Blob | null;
         featureImageKey?: string | null;
         featureImageStatus?: FeatureImageStatus;
         metadata?: FileData['metadata'] | null;
         tags?: string[] | null;
         wordCount?: number | null;
+        characterCountWithSpaces?: number | null;
+        characterCountWithoutSpaces?: number | null;
         taskTotal?: number | null;
         taskUnfinished?: number | null;
         properties?: FileData['properties'];
@@ -231,6 +238,8 @@ export interface FileContentChange {
     changeType?: 'metadata' | 'content' | 'both';
     /** True when metadata.name changes between persisted values */
     metadataNameChanged?: boolean;
+    /** True when metadata fields used by navigation/list decorations change between persisted values */
+    metadataDecorationChanged?: boolean;
     /** True when metadata.hidden changes between persisted values */
     metadataHiddenChanged?: boolean;
 }
@@ -238,6 +247,11 @@ export interface FileContentChange {
 type FileMetadata = NonNullable<FileData['metadata']>;
 type FileMetadataPatchKey = keyof FileMetadata;
 const FILE_METADATA_PATCH_KEYS: readonly FileMetadataPatchKey[] = ['name', 'created', 'modified', 'icon', 'color', 'background', 'hidden'];
+const FILE_METADATA_DECORATION_KEYS: readonly Exclude<FileMetadataPatchKey, 'name' | 'hidden' | 'created' | 'modified'>[] = [
+    'icon',
+    'color',
+    'background'
+];
 
 function hasOwnMetadataPatchField(patch: Partial<FileMetadata>, key: keyof FileMetadata): boolean {
     return Object.prototype.hasOwnProperty.call(patch, key);
@@ -297,6 +311,17 @@ export function hasMetadataNameChanged(
     nextMetadata: FileData['metadata'] | null | undefined
 ): boolean {
     return normalizeMetadataNameForComparison(previousMetadata) !== normalizeMetadataNameForComparison(nextMetadata);
+}
+
+export function hasMetadataDecorationChanged(
+    previousMetadata: FileData['metadata'] | null | undefined,
+    nextMetadata: FileData['metadata'] | null | undefined
+): boolean {
+    if (hasMetadataNameChanged(previousMetadata, nextMetadata)) {
+        return true;
+    }
+
+    return FILE_METADATA_DECORATION_KEYS.some(key => previousMetadata?.[key] !== nextMetadata?.[key]);
 }
 
 export function hasMetadataHiddenChanged(

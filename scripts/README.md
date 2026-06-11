@@ -125,16 +125,32 @@ cp main.js manifest.json styles.css ~/Documents/ObsidianVault/.obsidian/plugins/
 
 ## check-unused-strings.mjs
 
-Finds unused i18n keys in `src/i18n/locales/en.ts` by scanning for `strings.<keyPath>` usage across `src` (excluding `src/i18n/locales`). Prompts to remove unused keys from all locale files.
+Finds unused i18n keys in `src/i18n/locales/en.ts` by scanning for `strings.<keyPath>` usage across `src` (excluding `src/i18n/locales`). Also validates that every locale file matches the English locale shape.
 
 ```bash
-node scripts/check-unused-strings.mjs
+node scripts/check-unused-strings.mjs          # Report and prompt before removing unused keys
+node scripts/check-unused-strings.mjs --check  # Exit non-zero if unused keys or locale shape issues exist
+node scripts/check-unused-strings.mjs --fix    # Remove unused keys without prompting
+```
+
+To keep an intentionally dynamic key, add an allowlist comment:
+
+```ts
+// unused-strings keep settings.items.example
 ```
 
 ## check-unused-css.mjs
 
-Scans `styles.css` and `src` for unused plugin CSS classes and variables.
+Builds the expected generated CSS from `src/styles/index.css` in memory, checks whether `styles.css` is stale, and scans `src` for unused plugin CSS classes and variables.
 
 ```bash
-node scripts/check-unused-css.mjs
+node scripts/check-unused-css.mjs          # Report unused CSS and stale generated CSS
+node scripts/check-unused-css.mjs --check  # Exit non-zero if stale CSS or unused CSS exists
+node scripts/check-unused-css.mjs --fix    # Regenerate stale styles.css, then check unused CSS
+```
+
+To keep intentional dynamic CSS usage, add an allowlist comment:
+
+```css
+/* unused-css keep nn-dynamic-class --nn-dynamic-variable */
 ```

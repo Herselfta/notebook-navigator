@@ -110,7 +110,7 @@ Keep this list ordered: later files override earlier ones.
 @import './sections/layout-virtual-list.css';
 
 /* Settings */
-/* settings-page.css: settings tab layout, sub-setting indentation, toolbar visibility controls, and settings helpers. */
+/* settings-page.css: settings tab layout, toolbar visibility controls, and settings helpers. */
 @import './sections/settings-page.css';
 /* settings-sponsor-button.css: hover styling for the settings support button. */
 @import './sections/settings-sponsor-button.css';

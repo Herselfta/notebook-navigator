@@ -24,7 +24,7 @@ describe('propertyUtils', () => {
     it('omits the word count target property when nothing consumes it', () => {
         const fields = getPropertyFrontmatterFields({
             ...DEFAULT_SETTINGS,
-            showWordCount: false,
+            textCountDisplay: 'none',
             noteGrouping: 'date',
             wordCountTargetProperty: 'word-goal'
         });
@@ -35,7 +35,7 @@ describe('propertyUtils', () => {
     it('includes the word count target property when word count display is enabled', () => {
         const fields = getPropertyFrontmatterFields({
             ...DEFAULT_SETTINGS,
-            showWordCount: true,
+            textCountDisplay: 'words',
             wordCountTargetProperty: 'word-goal'
         });
 
@@ -45,7 +45,7 @@ describe('propertyUtils', () => {
     it('includes the word count target property when custom group headers are configured', () => {
         const fields = getPropertyFrontmatterFields({
             ...DEFAULT_SETTINGS,
-            showWordCount: false,
+            textCountDisplay: 'none',
             noteGrouping: 'custom',
             wordCountTargetProperty: 'word-goal'
         });
@@ -61,7 +61,7 @@ describe('propertyUtils', () => {
 
         const fields = getPropertyFrontmatterFields({
             ...DEFAULT_SETTINGS,
-            showWordCount: true,
+            textCountDisplay: 'words',
             wordCountTargetProperty: 'word-goal',
             vaultProfiles: [
                 {

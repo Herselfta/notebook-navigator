@@ -17,7 +17,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { IndexedDBStorage, createDefaultFileData } from '../../src/storage/IndexedDBStorage';
+import { IndexedDBStorage, createDefaultFileData, type FileContentChange } from '../../src/storage/IndexedDBStorage';
 import { MemoryFileCache } from '../../src/storage/MemoryFileCache';
 import type { PreviewTextCoordinator } from '../../src/storage/indexeddb/previewTextOps';
 
@@ -139,6 +139,91 @@ class MockIDBDatabase {
 }
 
 describe('IndexedDBStorage preview text moves', () => {
+    it('hydrates preview text without emitting a preview status change', async () => {
+        const path = 'notes/hydrate.md';
+        const previewText = 'Hydrated preview text';
+
+        const previewTexts = new Map<string, string>([[path, previewText]]);
+        const storage = new IndexedDBStorage('test-preview-hydration', { previewTextCacheMaxEntries: 10 });
+
+        const cache = Reflect.get(storage, 'cache') as MemoryFileCache;
+        cache.markInitialized();
+
+        const seeded = createDefaultFileData({ mtime: 1, path });
+        seeded.previewStatus = 'has';
+        storage.seedMemoryFile(path, seeded);
+
+        const previewEvents: FileContentChange['changes'][] = [];
+        const unsubscribe = storage.onFileContentChange(path, changes => {
+            previewEvents.push(changes);
+        });
+
+        try {
+            storage.init = async () => void 0;
+            Reflect.set(storage, 'db', new MockIDBDatabase(previewTexts));
+            const previewCoordinator = Reflect.get(storage, 'previewTexts') as PreviewTextCoordinator;
+
+            const previewLoadDeferred = Reflect.get(previewCoordinator, 'previewLoadDeferred') as Map<string, { resolve: () => void }>;
+            const previewLoadQueue = Reflect.get(previewCoordinator, 'previewLoadQueue') as Set<string>;
+
+            let wasResolved = false;
+            previewLoadDeferred.set(path, { resolve: () => (wasResolved = true) });
+            previewLoadQueue.add(path);
+
+            const flushPreviewTextLoadQueue = Reflect.get(previewCoordinator, 'flushPreviewTextLoadQueue') as () => Promise<void>;
+            await flushPreviewTextLoadQueue.call(previewCoordinator);
+
+            expect(wasResolved).toBe(true);
+            expect(storage.getFile(path)?.previewStatus).toBe('has');
+            expect(storage.getCachedPreviewText(path)).toBe(previewText);
+            expect(previewEvents).toEqual([{ preview: previewText }]);
+        } finally {
+            unsubscribe();
+        }
+    });
+
+    it('emits preview status when a missing preview record downgrades status', async () => {
+        const path = 'notes/missing-preview.md';
+
+        const previewTexts = new Map<string, string>();
+        const storage = new IndexedDBStorage('test-preview-missing-record', { previewTextCacheMaxEntries: 10 });
+
+        const cache = Reflect.get(storage, 'cache') as MemoryFileCache;
+        cache.markInitialized();
+
+        const seeded = createDefaultFileData({ mtime: 1, path });
+        seeded.previewStatus = 'has';
+        storage.seedMemoryFile(path, seeded);
+
+        const previewEvents: FileContentChange['changes'][] = [];
+        const unsubscribe = storage.onFileContentChange(path, changes => {
+            previewEvents.push(changes);
+        });
+
+        try {
+            storage.init = async () => void 0;
+            Reflect.set(storage, 'db', new MockIDBDatabase(previewTexts));
+            const previewCoordinator = Reflect.get(storage, 'previewTexts') as PreviewTextCoordinator;
+            Reflect.set(previewCoordinator, 'repairPreviewStatusRecords', async () => void 0);
+
+            const previewLoadDeferred = Reflect.get(previewCoordinator, 'previewLoadDeferred') as Map<string, { resolve: () => void }>;
+            const previewLoadQueue = Reflect.get(previewCoordinator, 'previewLoadQueue') as Set<string>;
+
+            let wasResolved = false;
+            previewLoadDeferred.set(path, { resolve: () => (wasResolved = true) });
+            previewLoadQueue.add(path);
+
+            const flushPreviewTextLoadQueue = Reflect.get(previewCoordinator, 'flushPreviewTextLoadQueue') as () => Promise<void>;
+            await flushPreviewTextLoadQueue.call(previewCoordinator);
+
+            expect(wasResolved).toBe(true);
+            expect(storage.getFile(path)?.previewStatus).toBe('unprocessed');
+            expect(previewEvents).toEqual([{ preview: null, previewStatus: 'unprocessed' }]);
+        } finally {
+            unsubscribe();
+        }
+    });
+
     it('does not downgrade preview status while a move is in-flight', async () => {
         const oldPath = 'notes/old.md';
         const newPath = 'notes/new.md';

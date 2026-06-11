@@ -17,7 +17,7 @@
  */
 
 import { useEffect, useMemo, useRef } from 'react';
-import { TFile, TFolder, type App, debounce } from 'obsidian';
+import { TFolder, type App } from 'obsidian';
 import { NavigationPaneItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../../types';
 import type { CombinedNavigationItem } from '../../../types/virtualization';
 import type { NoteCountInfo } from '../../../types/noteCounts';
@@ -31,7 +31,6 @@ import { getFolderNoteDetectionSettings } from '../../../utils/folderNotes';
 import { calculateFolderNoteCounts } from '../../../utils/noteCountUtils';
 import type { PropertyTreeNode } from '../../../types/storage';
 import { getDirectPropertyKeyNoteCount, getTotalPropertyNoteCount } from '../../../utils/propertyTree';
-import { TIMEOUTS } from '../../../types/obsidian-extended';
 
 export interface NavigationNoteCounts {
     tagCounts: Map<string, NoteCountInfo>;
@@ -57,7 +56,8 @@ export interface UseNavigationNoteCountsParams {
     folderCountFileNameMatcher: HiddenFileNameMatcher | null;
     fileVisibility: FileVisibility;
     vaultChangeVersion: number;
-    bumpVaultChangeVersion: () => void;
+    metadataVisibilityVersion: number;
+    tagDataVersion: number;
 }
 
 export function useNavigationNoteCounts(params: UseNavigationNoteCountsParams): NavigationNoteCounts {
@@ -79,12 +79,14 @@ export function useNavigationNoteCounts(params: UseNavigationNoteCountsParams): 
         folderCountFileNameMatcher,
         fileVisibility,
         vaultChangeVersion,
-        bumpVaultChangeVersion
+        metadataVisibilityVersion,
+        tagDataVersion
     } = params;
 
     const lastTagCountsRef = useRef<Map<string, NoteCountInfo>>(new Map());
     const lastPropertyCountsRef = useRef<Map<string, NoteCountInfo>>(new Map());
     const lastFolderCountsRef = useRef<Map<string, NoteCountInfo>>(new Map());
+    const hiddenFileTagDataVersion = !showHiddenItems && hiddenFileTags.length > 0 ? tagDataVersion : 0;
 
     const computedTagCounts = useMemo((): Map<string, NoteCountInfo> | null => {
         if (!isVisible || !settings.showTags || !settings.showNoteCount) {
@@ -232,6 +234,8 @@ export function useNavigationNoteCounts(params: UseNavigationNoteCountsParams): 
 
     const computedFolderCounts = useMemo((): Map<string, NoteCountInfo> | null => {
         void vaultChangeVersion;
+        void metadataVisibilityVersion;
+        void hiddenFileTagDataVersion;
         if (!isVisible || !settings.showNoteCount) {
             return null;
         }
@@ -278,11 +282,13 @@ export function useNavigationNoteCounts(params: UseNavigationNoteCountsParams): 
         effectiveFrontmatterExclusions,
         fileVisibility,
         folderCountFileNameMatcher,
+        hiddenFileTagDataVersion,
         hiddenFileTags,
         hiddenFolders,
         includeDescendantNotes,
         isVisible,
         itemsWithMetadata,
+        metadataVisibilityVersion,
         settings.enableFolderNotes,
         settings.folderNoteName,
         settings.folderNoteNamePattern,
@@ -308,27 +314,6 @@ export function useNavigationNoteCounts(params: UseNavigationNoteCountsParams): 
             lastFolderCountsRef.current = computedFolderCounts;
         }
     }, [computedFolderCounts, settings.showNoteCount]);
-
-    useEffect(() => {
-        const bumpCounts = debounce(
-            () => {
-                bumpVaultChangeVersion();
-            },
-            TIMEOUTS.FILE_OPERATION_DELAY,
-            true
-        );
-
-        const metaRef = app.metadataCache.on('changed', file => {
-            if (file instanceof TFile) {
-                bumpCounts();
-            }
-        });
-
-        return () => {
-            app.metadataCache.offref(metaRef);
-            bumpCounts.cancel();
-        };
-    }, [app, bumpVaultChangeVersion]);
 
     return { tagCounts, propertyCounts, folderCounts };
 }

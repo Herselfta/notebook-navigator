@@ -16,11 +16,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, Modal } from 'obsidian';
+import { App, Modal, Platform } from 'obsidian';
 import { getReleaseBannerUrl, SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
 import { getCurrentLanguage, strings } from '../i18n';
 import { ReleaseNote } from '../releaseNotes';
 import { addAsyncEventListener } from '../utils/domEventListeners';
+import { focusElementPreventScroll } from '../utils/domUtils';
 import { DateUtils } from '../utils/dateUtils';
 import { getYoutubeThumbnailUrl, getYoutubeVideoId } from '../utils/youtubeUtils';
 
@@ -117,8 +118,19 @@ export class WhatsNewModal extends Modal {
         });
     }
 
-    private renderReleaseBanner(container: HTMLElement, imageUrl: string): void {
-        const banner = container.createDiv({ cls: 'nn-whats-new-banner' });
+    private renderReleaseBanner(container: HTMLElement, imageUrl: string, isClickable: boolean): void {
+        let banner: HTMLElement;
+        if (isClickable) {
+            const link = container.createEl('a', { cls: 'nn-whats-new-banner' });
+            link.setAttr('href', imageUrl);
+            link.setAttr('rel', 'noopener noreferrer');
+            link.setAttr('target', '_blank');
+            link.setAttr('aria-label', strings.whatsNew.openBannerImage);
+            banner = link;
+        } else {
+            banner = container.createDiv({ cls: 'nn-whats-new-banner' });
+        }
+
         const image = banner.createEl('img', { cls: 'nn-whats-new-banner-image' });
         image.setAttr('alt', '');
         image.setAttr('loading', 'lazy');
@@ -198,7 +210,7 @@ export class WhatsNewModal extends Modal {
 
             const bannerUrl = getReleaseBannerUrl(note.bannerUrl, note.version);
             if (bannerUrl) {
-                this.renderReleaseBanner(versionContainer, bannerUrl);
+                this.renderReleaseBanner(versionContainer, bannerUrl, note.bannerClickable === true);
             }
 
             if (note.youtubeUrl) {
@@ -287,10 +299,12 @@ export class WhatsNewModal extends Modal {
     open(): void {
         super.open();
         // Focus the thanks button after the modal is fully opened
-        if (this.thanksButton) {
+        if (this.thanksButton && !Platform.isMobile) {
             // Use requestAnimationFrame to ensure DOM is ready
             window.requestAnimationFrame(() => {
-                this.thanksButton?.focus();
+                if (this.thanksButton) {
+                    focusElementPreventScroll(this.thanksButton);
+                }
             });
         }
     }

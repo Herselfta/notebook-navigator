@@ -24,6 +24,7 @@ import { buildPropertyValueNodeId, normalizePropertyTreeValuePath } from '../../
 
 describe('MetadataAPI icon normalization', () => {
     let foldersByPath: Map<string, TFolder>;
+    let rootFolder: TFolder;
     let plugin: {
         settings: NotebookNavigatorSettings;
         saveSettingsAndUpdate: ReturnType<typeof vi.fn>;
@@ -38,6 +39,8 @@ describe('MetadataAPI icon normalization', () => {
 
     beforeEach(() => {
         foldersByPath = new Map();
+        rootFolder = new TFolder();
+        rootFolder.path = '/';
         plugin = {
             settings: structuredClone(DEFAULT_SETTINGS),
             saveSettingsAndUpdate: vi.fn().mockResolvedValue(undefined),
@@ -49,7 +52,8 @@ describe('MetadataAPI icon normalization', () => {
             getPlugin: () => plugin as never,
             getApp: () => ({
                 vault: {
-                    getFolderByPath: (path: string) => foldersByPath.get(path) ?? null
+                    getFolderByPath: (path: string) => foldersByPath.get(path) ?? null,
+                    getRoot: () => rootFolder
                 }
             }),
             trigger: triggerMock
@@ -370,6 +374,49 @@ describe('MetadataAPI icon normalization', () => {
         expect(triggerMock).toHaveBeenCalledWith('folder-changed', {
             folder,
             metadata: null
+        });
+    });
+
+    it('emits folder-changed events for root folder metadata changes', () => {
+        plugin.settings.folderColors['/'] = '#112233';
+        const metadataAPI = new MetadataAPI(api);
+
+        const updatedSettings = structuredClone(plugin.settings);
+        updatedSettings.folderColors['/'] = '#445566';
+
+        metadataAPI.updateFromSettings(updatedSettings);
+
+        expect(triggerMock).toHaveBeenCalledWith('folder-changed', {
+            folder: rootFolder,
+            metadata: {
+                color: '#445566',
+                backgroundColor: undefined,
+                icon: undefined
+            }
+        });
+    });
+
+    it('emits folder-changed events for root folder metadata service bridge updates', () => {
+        plugin.metadataService = {
+            setFolderStyle: vi.fn().mockResolvedValue(undefined),
+            getFolderDisplayData: vi.fn().mockReturnValue({
+                displayName: undefined,
+                color: '#112233',
+                backgroundColor: undefined,
+                icon: undefined
+            })
+        };
+        const metadataAPI = new MetadataAPI(api);
+
+        metadataAPI.emitFolderChangedForPath('/');
+
+        expect(triggerMock).toHaveBeenCalledWith('folder-changed', {
+            folder: rootFolder,
+            metadata: {
+                color: '#112233',
+                backgroundColor: undefined,
+                icon: undefined
+            }
         });
     });
 

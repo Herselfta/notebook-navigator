@@ -24,20 +24,18 @@ export function setElementVisible(element: HTMLElement, visible: boolean): void 
     element.classList.toggle(SETTING_HIDDEN_CLASS, !visible);
 }
 
-export function createSubSettingsContainer(parentSetting: Setting, cls = 'nn-sub-settings'): HTMLDivElement {
+export function createDependentSettingsSection(parentSetting: Setting): HTMLDivElement {
     const container = parentSetting.settingEl.ownerDocument.createElement('div');
-    container.className = cls;
     parentSetting.settingEl.after(container);
     return container;
 }
 
-export function wireToggleSettingWithSubSettings(
+export function wireToggleSettingWithDependentSection(
     parentSetting: Setting,
     getValue: () => boolean,
-    onValueChange: (value: boolean) => Promise<void> | void,
-    cls = 'nn-sub-settings'
+    onValueChange: (value: boolean) => Promise<void> | void
 ): HTMLDivElement {
-    const container = createSubSettingsContainer(parentSetting, cls);
+    const container = createDependentSettingsSection(parentSetting);
     setElementVisible(container, getValue());
 
     parentSetting.addToggle(toggle =>

@@ -7,7 +7,7 @@ import globals from 'globals';
 
 export default tseslint.config(
     {
-        ignores: ['node_modules/**', 'dist/**', 'build/**', 'main.js', '*.min.js', 'web/**', 'codemods/**', 'tests/api-test-suite.js'],
+        ignores: ['node_modules/**', 'dist/**', 'build/**', 'main.js', '*.min.js', 'web/**', 'tests/api-test-suite.js'],
         linterOptions: {
             reportUnusedDisableDirectives: 'error'
         }

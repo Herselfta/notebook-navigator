@@ -91,11 +91,13 @@ export interface NavigationPaneSourceState {
     missingRootPropertyKeys: string[];
     visiblePropertyNavigationKeySet: ReadonlySet<string>;
     metadataDecorationVersion: number;
+    metadataVisibilityVersion: number;
+    tagDataVersion: number;
+    propertyDataVersion: number;
     getFolderSortName: (folder: TFolder) => string;
     folderExclusionByFolderNote: ((folder: TFolder) => boolean) | undefined;
     recentNotesHiddenFileMatcher: ReturnType<typeof createFileHiddenMatcher>;
     fileChangeVersion: number;
-    bumpVaultChangeVersion: () => void;
 }
 
 export function useNavigationPaneSourceState({
@@ -135,8 +137,10 @@ export function useNavigationPaneSourceState({
         rootFolderOrderMap,
         missingRootFolderPaths,
         fileChangeVersion,
-        bumpFileChangeVersion,
         metadataDecorationVersion,
+        metadataVisibilityVersion,
+        tagDataVersion,
+        propertyDataVersion,
         getFolderSortName,
         folderExclusionByFolderNote
     } = folderNavigationSource;
@@ -274,11 +278,13 @@ export function useNavigationPaneSourceState({
             missingRootPropertyKeys,
             visiblePropertyNavigationKeySet,
             metadataDecorationVersion,
+            metadataVisibilityVersion,
+            tagDataVersion,
+            propertyDataVersion,
             getFolderSortName,
             folderExclusionByFolderNote,
             recentNotesHiddenFileMatcher,
-            fileChangeVersion,
-            bumpVaultChangeVersion: bumpFileChangeVersion
+            fileChangeVersion
         }),
         [
             effectiveFrontmatterExclusions,
@@ -313,11 +319,13 @@ export function useNavigationPaneSourceState({
             missingRootPropertyKeys,
             visiblePropertyNavigationKeySet,
             metadataDecorationVersion,
+            metadataVisibilityVersion,
+            tagDataVersion,
+            propertyDataVersion,
             getFolderSortName,
             folderExclusionByFolderNote,
             recentNotesHiddenFileMatcher,
-            fileChangeVersion,
-            bumpFileChangeVersion
+            fileChangeVersion
         ]
     );
 }

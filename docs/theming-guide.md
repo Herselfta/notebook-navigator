@@ -1,6 +1,6 @@
 # Notebook Navigator Theming Guide
 
-Updated: May 17, 2026
+Updated: June 4, 2026
 
 ## Table of Contents
 
@@ -87,6 +87,8 @@ Most variables are colors and should resolve to a computed color (some are used 
 | `--nn-theme-nav-separator-background` | `linear-gradient(90deg, transparent 0%, var(--nn-theme-nav-separator-color) 15%, var(--nn-theme-nav-separator-color) 85%, transparent 100%)` | Fill for navigation separators; override to supply your own gradient or solid color |
 | `--nn-theme-nav-separator-height`     | `1px`                                                                                                                                        | Thickness for navigation separators                                                 |
 | `--nn-theme-nav-separator-opacity`    | `0.3`                                                                                                                                        | Opacity for navigation separators                                                   |
+| `--nn-theme-nav-indent-guide-color`   | `var(--nn-theme-foreground-faded)`                                                                                                           | Line color for navigation indent guides                                             |
+| `--nn-theme-nav-leader-color`         | `var(--nn-theme-foreground-faded)`                                                                                                           | Color for leaders between item names and trailing values                            |
 
 #### Pinned shortcuts
 
@@ -312,6 +314,8 @@ body {
   --nn-theme-nav-separator-background: var(--nn-theme-nav-separator-color);
   --nn-theme-nav-separator-height: 1px;
   --nn-theme-nav-separator-opacity: 0.35;
+  --nn-theme-nav-indent-guide-color: rgba(127, 139, 145, 0.65);
+  --nn-theme-nav-leader-color: rgba(127, 139, 145, 0.65);
 
   /* Navigation calendar */
   --nn-theme-calendar-header-color: var(--nn-theme-foreground);

@@ -39,7 +39,9 @@ import { getFilesForFolder, getFilesForProperty, getFilesForTag } from './fileFi
  * @param selectionState The current selection state
  * @returns The path string or null if nothing is selected
  */
-export function getSelectedPath(selectionState: SelectionState): string | null {
+export function getSelectedPath(
+    selectionState: Pick<SelectionState, 'selectionType' | 'selectedFolder' | 'selectedTag' | 'selectedProperty'>
+): string | null {
     if (selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder) {
         return selectionState.selectedFolder.path;
     }
@@ -146,7 +148,7 @@ export function getFilesForNavigationSelection(
  * @param removedPaths - Set of paths that are being removed (deleted or moved)
  * @returns The file to select after removal, or null if none
  */
-export function findNextFileAfterRemoval(allFiles: TFile[], removedPaths: Set<string>): TFile | null {
+export function findNextFileAfterRemoval(allFiles: readonly TFile[], removedPaths: Set<string>): TFile | null {
     if (allFiles.length === 0) return null;
 
     // Find the first removed file's index
@@ -200,6 +202,27 @@ export function getFilesInRange(files: TFile[], startIndex: number, endIndex: nu
     return result;
 }
 
+export function mergeFilesIntoSelection(
+    selectedFiles: ReadonlySet<string>,
+    files: readonly TFile[]
+): { selectedFiles: Set<string>; changed: boolean } {
+    const nextSelectedFiles = new Set<string>(selectedFiles);
+    let changed = false;
+
+    files.forEach(file => {
+        if (!nextSelectedFiles.has(file.path)) {
+            changed = true;
+        }
+
+        nextSelectedFiles.add(file.path);
+    });
+
+    return {
+        selectedFiles: nextSelectedFiles,
+        changed
+    };
+}
+
 /**
  * Find the index of a file in an ordered list
  * @param files - Ordered list of files
@@ -209,6 +232,37 @@ export function getFilesInRange(files: TFile[], startIndex: number, endIndex: nu
 export function findFileIndex(files: TFile[], targetFile: TFile | null): number {
     if (!targetFile) return -1;
     return files.findIndex(f => f.path === targetFile.path);
+}
+
+export function orderFilesByReference(files: readonly TFile[], orderedFiles?: readonly TFile[]): TFile[] {
+    if (!orderedFiles || files.length < 2) {
+        return [...files];
+    }
+
+    const fileByPath = new Map(files.map(file => [file.path, file]));
+    const ordered: TFile[] = [];
+    const seenPaths = new Set<string>();
+
+    orderedFiles.forEach(file => {
+        const matchedFile = fileByPath.get(file.path);
+        if (!matchedFile || seenPaths.has(file.path)) {
+            return;
+        }
+
+        seenPaths.add(file.path);
+        ordered.push(matchedFile);
+    });
+
+    files.forEach(file => {
+        if (seenPaths.has(file.path)) {
+            return;
+        }
+
+        seenPaths.add(file.path);
+        ordered.push(file);
+    });
+
+    return ordered;
 }
 
 /**

@@ -29,7 +29,7 @@
  *
  * 3. Extracted subsystems:
  *    - useFileItemContentState: Cache hydration, content subscriptions, feature-image URL lifecycle
- *    - useFileItemPills: Tag/property/word-count pill models and rendering
+ *    - useFileItemPills: Tag/property/text-count pill models and rendering
  *    - listPaneMeasurements helpers: Shared layout rules with the virtualizer
  *
  * 4. Image optimization:
@@ -51,13 +51,12 @@ import { DateUtils } from '../utils/dateUtils';
 import { runAsyncAction } from '../utils/async';
 import { getTooltipPlacement } from '../utils/domUtils';
 import { openFileInContext } from '../utils/openFileInContext';
-import { FILE_VISIBILITY, getExtensionSuffix, isImageFile, shouldDisplayFile } from '../utils/fileTypeUtils';
+import { FILE_VISIBILITY, getExtensionSuffix, isRasterImageFile, shouldDisplayFile } from '../utils/fileTypeUtils';
 import { resolveFolderDecorationColors } from '../utils/folderDecoration';
 import { resolveFileDragIconId, resolveFileIconId } from '../utils/fileIconUtils';
 import { buildFileTooltip } from '../utils/navigationTooltipUtils';
 import {
     getFileItemLayoutState,
-    isListPaneCompactMode,
     shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
     shouldShowFileItemParentFolderLine
@@ -73,6 +72,7 @@ import { resolveDefaultDateField } from '../utils/sortUtils';
 import { resolveFolderDisplayPath } from '../utils/folderDisplayName';
 import type { FileNameIconNeedle } from '../utils/fileIconUtils';
 import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoration';
+import type { FileItemPillOrderModel } from '../utils/fileItemPillOrder';
 import type { HiddenTagVisibility } from '../utils/tagPrefixMatcher';
 import { useFileItemContentState, type FileItemContentDb } from './fileItem/useFileItemContentState';
 import { useFileItemPills } from './fileItem/useFileItemPills';
@@ -81,8 +81,38 @@ import { getDrawingFeatureImageSource } from '../utils/drawingFeatureImages';
 import { useDrawingFeatureImage } from '../hooks/useDrawingFeatureImage';
 import { resolveFileRowBackgroundColor } from '../utils/colorUtils';
 import { getWordCountDisplayText } from '../utils/wordCountUtils';
+import { showsCharacterCount, showsWordCount } from '../settings/types';
 
 const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
+
+function formatCountTextLabel(template: string, countText: string): string {
+    return template.replace('{count}', countText);
+}
+
+function getCharacterCountDisplayText(count: number | null | undefined): string | null {
+    if (typeof count !== 'number' || !Number.isFinite(count) || count <= 0) {
+        return null;
+    }
+
+    return Math.trunc(count).toLocaleString();
+}
+
+function getTitleCountDisplayText(params: {
+    wordCountDisplayText: string | null;
+    characterCountDisplayText: string | null;
+}): string | null {
+    const { wordCountDisplayText, characterCountDisplayText } = params;
+    if (wordCountDisplayText && characterCountDisplayText) {
+        const wordText =
+            !wordCountDisplayText.includes('/') && !wordCountDisplayText.includes('%')
+                ? formatCountTextLabel(strings.fileCounts.words, wordCountDisplayText)
+                : wordCountDisplayText;
+        const characterText = formatCountTextLabel(strings.fileCounts.characters, characterCountDisplayText);
+        return `${wordText}${strings.fileCounts.separator}${characterText}`;
+    }
+
+    return wordCountDisplayText ?? characterCountDisplayText;
+}
 
 function useImageFileResourceVersion(app: ReturnType<typeof useServices>['app'], file: TFile, enabled: boolean): number {
     const [version, setVersion] = useState(file.stat.mtime);
@@ -150,6 +180,7 @@ interface FileItemProps {
     onToggleNoteShortcut: (file: TFile, shortcutKey: string | undefined) => Promise<void>;
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
+    fileItemPillOrderModel: FileItemPillOrderModel;
     getSolidBackground: (color?: string | null) => string | undefined;
     disableNativeDrag?: boolean;
     manualSortDisabled?: boolean;
@@ -369,6 +400,7 @@ export const FileItem = React.memo(function FileItem({
     onToggleNoteShortcut,
     folderDecorationModel,
     fileItemPillDecorationModel,
+    fileItemPillOrderModel,
     getSolidBackground,
     disableNativeDrag = false,
     manualSortDisabled = false
@@ -378,7 +410,32 @@ export const FileItem = React.memo(function FileItem({
     const settings = useSettingsState();
     const metadataService = useMetadataService();
     const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = fileItemStorage;
-    const fileStatMtime = useImageFileResourceVersion(app, file, appearanceSettings.showImage && isImageFile(file));
+    const isCompactMode = appearanceSettings.mode === 'compact';
+    const shouldShowWordCount = showsWordCount(settings.textCountDisplay);
+    const shouldShowCharacterCount = showsCharacterCount(settings.textCountDisplay);
+    const isMarkdownFile = file.extension === 'md';
+    const canShowPropertyPills = isMarkdownFile && (!isCompactMode || settings.showFilePropertiesInCompactMode);
+    const shouldLoadTags =
+        isMarkdownFile && settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode);
+    const shouldLoadWordCountForDisplay =
+        isMarkdownFile &&
+        shouldShowWordCount &&
+        (settings.textCountPlacement === 'title' || (settings.textCountPlacement === 'property' && canShowPropertyPills));
+    const shouldLoadWordCount =
+        shouldLoadWordCountForDisplay || (isMarkdownFile && !isMobile && settings.showTooltips && settings.showTooltipWordCount);
+    const shouldLoadCharacterCount =
+        isMarkdownFile &&
+        shouldShowCharacterCount &&
+        (settings.textCountPlacement === 'title' || (settings.textCountPlacement === 'property' && canShowPropertyPills));
+    const shouldLoadProperties =
+        isMarkdownFile &&
+        ((canShowPropertyPills && settings.showFileProperties && visiblePropertyKeys.size > 0) ||
+            (shouldLoadWordCountForDisplay && settings.wordCountTargetProperty.trim().length > 0));
+    const shouldLoadTaskUnfinished =
+        isMarkdownFile &&
+        (settings.showFileIconUnfinishedTask || settings.showFileBackgroundUnfinishedTask || (!isMobile && settings.showTooltips));
+    const shouldRefreshMetadataVersionOnFeatureImageChange = isMarkdownFile && appearanceSettings.showImage;
+    const fileStatMtime = useImageFileResourceVersion(app, file, appearanceSettings.showImage && isRasterImageFile(file));
     const drawingFeatureImageSource = getDrawingFeatureImageSource(app, file);
     const isDrawingFeatureImageRow = drawingFeatureImageSource !== null;
     const {
@@ -389,6 +446,8 @@ export const FileItem = React.memo(function FileItem({
         featureImageUrl,
         properties,
         wordCount,
+        characterCountWithSpaces,
+        characterCountWithoutSpaces,
         taskUnfinished,
         metadataVersion
     } = useFileItemContentState({
@@ -399,7 +458,17 @@ export const FileItem = React.memo(function FileItem({
         skipFeatureImage: isDrawingFeatureImageRow,
         fileStatMtime,
         getDB,
-        regenerateFeatureImageForFile
+        regenerateFeatureImageForFile,
+        loadOptions: {
+            loadPreviewText: appearanceSettings.showPreview && isMarkdownFile && !searchMeta?.excerpt,
+            loadTags: shouldLoadTags,
+            loadFeatureImage: appearanceSettings.showImage && !isDrawingFeatureImageRow,
+            loadProperties: shouldLoadProperties,
+            loadWordCount: shouldLoadWordCount,
+            loadCharacterCount: shouldLoadCharacterCount,
+            loadTaskUnfinished: shouldLoadTaskUnfinished
+        },
+        refreshMetadataVersionOnFeatureImageChange: shouldRefreshMetadataVersionOnFeatureImageChange
     });
     const drawingFeatureImage = useDrawingFeatureImage({
         app,
@@ -598,12 +667,6 @@ export const FileItem = React.memo(function FileItem({
         return resolveFileDragIconId(file, settings.fileTypeIconMap, app.metadataCache, effectiveFileIconId);
     }, [app.metadataCache, effectiveFileIconId, file, metadataVersion, settings.fileTypeIconMap]);
 
-    const isCompactMode = isListPaneCompactMode({
-        showDate: appearanceSettings.showDate,
-        showPreview: appearanceSettings.showPreview,
-        showImage: appearanceSettings.showImage
-    });
-
     // Determines whether to display the file icon based on icon availability
     const shouldShowFileIcon = useMemo(() => {
         if (!showFileIcons) {
@@ -620,7 +683,7 @@ export const FileItem = React.memo(function FileItem({
     const dragIconColor = showFileIconUnfinishedTask ? undefined : (fileIconColor ?? undefined);
     const shouldShowCompactExtensionBadge = isCompactMode && (isBaseFile || isCanvasFile);
     const wordCountDisplayText = useMemo(() => {
-        if (!settings.showWordCount || file.extension !== 'md') {
+        if (!shouldShowWordCount || file.extension !== 'md') {
             return null;
         }
 
@@ -630,8 +693,20 @@ export const FileItem = React.memo(function FileItem({
             targetProperty: settings.wordCountTargetProperty,
             showTargetPercentage: settings.showWordCountPercentage
         });
-    }, [file.extension, properties, settings.showWordCount, settings.showWordCountPercentage, settings.wordCountTargetProperty, wordCount]);
-    const shouldShowWordCountInTitle = settings.showWordCount && settings.wordCountPlacement === 'title' && wordCountDisplayText !== null;
+    }, [file.extension, properties, settings.showWordCountPercentage, settings.wordCountTargetProperty, shouldShowWordCount, wordCount]);
+    const selectedCharacterCount = settings.characterCountSpaces === 'include' ? characterCountWithSpaces : characterCountWithoutSpaces;
+    const characterCountDisplayText = useMemo(() => {
+        if (!shouldShowCharacterCount || file.extension !== 'md') {
+            return null;
+        }
+
+        return getCharacterCountDisplayText(selectedCharacterCount);
+    }, [file.extension, selectedCharacterCount, shouldShowCharacterCount]);
+    const titleCountDisplayText = useMemo(
+        () => getTitleCountDisplayText({ wordCountDisplayText, characterCountDisplayText }),
+        [characterCountDisplayText, wordCountDisplayText]
+    );
+    const shouldShowCountInTitle = settings.textCountPlacement === 'title' && titleCountDisplayText !== null;
 
     const fileTitleElement = useMemo(() => {
         return (
@@ -647,7 +722,7 @@ export const FileItem = React.memo(function FileItem({
                 }
             >
                 {highlightedName}
-                {shouldShowWordCountInTitle ? <span className="nn-file-word-count-suffix"> ({wordCountDisplayText})</span> : null}
+                {shouldShowCountInTitle ? <span className="nn-file-word-count-suffix"> ({titleCountDisplayText})</span> : null}
                 {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
             </div>
         );
@@ -657,8 +732,8 @@ export const FileItem = React.memo(function FileItem({
         fileTitleColor,
         applyColorToName,
         highlightedName,
-        shouldShowWordCountInTitle,
-        wordCountDisplayText
+        shouldShowCountInTitle,
+        titleCountDisplayText
     ]);
 
     const { shouldShowFileTags, hasVisiblePillRows, pillRows } = useFileItemPills({
@@ -667,14 +742,17 @@ export const FileItem = React.memo(function FileItem({
         tags,
         properties,
         wordCount,
+        characterCount: selectedCharacterCount,
         wordCountDisplayText,
+        characterCountDisplayText,
         settings,
         visiblePropertyKeys,
         visibleNavigationPropertyKeys,
         hiddenTagVisibility,
         onModifySearchWithTag,
         onModifySearchWithProperty,
-        fileItemPillDecorationModel
+        fileItemPillDecorationModel,
+        fileItemPillOrderModel
     });
 
     // Format display date based on current sort
@@ -747,9 +825,9 @@ export const FileItem = React.memo(function FileItem({
     const renderedPillRows = shouldShowPillRows ? pillRows : null;
 
     const { shouldShowMultilinePreview, shouldShowDateForItem } = getFileItemLayoutState({
+        isCompactMode,
         showDate: appearanceSettings.showDate,
         showPreview: appearanceSettings.showPreview,
-        showImage: appearanceSettings.showImage,
         isPinned,
         hasPreviewContent,
         showFeatureImageArea,
@@ -998,10 +1076,7 @@ export const FileItem = React.memo(function FileItem({
     const pinContext = getNavigatorPinContext(selectionType ?? null);
     const isPinnedInCurrentContext = metadataService.isFilePinned(file.path, pinContext);
 
-    // Quick action handlers - these don't need memoization because:
-    // 1. They're only attached to DOM elements that appear on hover
-    // 2. They're not passed as props to child components
-    // 3. They don't cause re-renders when recreated
+    // Quick action handlers are used only by local action elements.
     const handleOpenInNewTab = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
@@ -1162,7 +1237,7 @@ export const FileItem = React.memo(function FileItem({
         iconService.renderIcon(iconContainer, iconId, fileIconSize);
     }, [effectiveFileIconId, iconServiceVersion, shouldShowFileIcon, isCompactMode, fileIconSize]);
 
-    // Set up the icons when quick actions panel is shown
+    // Set up quick action icons after their elements mount.
     useEffect(() => {
         if (isMobile || !showQuickActionsPanel) {
             return;
@@ -1226,7 +1301,7 @@ export const FileItem = React.memo(function FileItem({
             style={fileRowStyle}
         >
             <div className="nn-file-content">
-                {/* Quick actions panel - appears on hover */}
+                {/* Quick actions mount only for the row currently tracked by the list pane hover state. */}
                 {!isMobile && hasQuickActions && showQuickActionsPanel && (
                     <div
                         className={`nn-quick-actions-panel ${isCompactMode ? 'nn-compact-mode' : ''}`}
@@ -1262,7 +1337,7 @@ export const FileItem = React.memo(function FileItem({
                     {isCompactMode ? (
                         // ========== COMPACT MODE ==========
                         // Minimal layout: file name + pills
-                        // Used when date, preview, and image are all disabled
+                        // Used when the current list appearance mode is compact
                         <div className="nn-compact-file-text-content">
                             <div className="nn-compact-file-header">
                                 {fileTitleElement}

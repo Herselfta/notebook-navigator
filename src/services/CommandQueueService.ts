@@ -30,6 +30,7 @@ export enum OperationType {
     OPEN_FOLDER_NOTE = 'open-folder-note',
     OPEN_VERSION_HISTORY = 'open-version-history',
     OPEN_IN_NEW_CONTEXT = 'open-in-new-context',
+    OPEN_BACKGROUND_FILE = 'open-background-file',
     OPEN_ACTIVE_FILE = 'open-active-file',
     OPEN_HOMEPAGE = 'open-homepage'
 }
@@ -86,6 +87,14 @@ interface OpenInNewContextOperation extends BaseOperation {
 }
 
 /**
+ * Operation for opening a file without changing the active editor context.
+ */
+interface OpenBackgroundFileOperation extends BaseOperation {
+    type: OperationType.OPEN_BACKGROUND_FILE;
+    file: TFile;
+}
+
+/**
  * Operation for opening the active file in the current context
  */
 interface OpenActiveFileOperation extends BaseOperation {
@@ -107,6 +116,7 @@ type Operation =
     | OpenFolderNoteOperation
     | OpenVersionHistoryOperation
     | OpenInNewContextOperation
+    | OpenBackgroundFileOperation
     | OpenActiveFileOperation
     | OpenHomepageOperation;
 
@@ -282,6 +292,13 @@ export class CommandQueueService {
      */
     isOpeningActiveFileInBackground(filePath: string): boolean {
         for (const operation of this.activeOperations.values()) {
+            if (operation.type === OperationType.OPEN_BACKGROUND_FILE) {
+                if (operation.file.path === filePath) {
+                    return true;
+                }
+                continue;
+            }
+
             if (operation.type === OperationType.OPEN_ACTIVE_FILE) {
                 if (operation.file.path !== filePath) {
                     continue;
@@ -301,6 +318,36 @@ export class CommandQueueService {
         }
 
         return false;
+    }
+
+    /**
+     * Execute a background file open without affecting active-file open ordering.
+     */
+    async executeBackgroundFileOpen(file: TFile, openFile: () => Promise<void>): Promise<CommandResult> {
+        const operationId = this.generateOperationId();
+        const operation: OpenBackgroundFileOperation = {
+            id: operationId,
+            type: OperationType.OPEN_BACKGROUND_FILE,
+            timestamp: Date.now(),
+            file
+        };
+
+        this.activeOperations.set(operationId, operation);
+
+        try {
+            await openFile();
+            const now = Date.now();
+            this.recentBackgroundOpenByPath.set(file.path, now);
+            this.cleanupRecentBackgroundOpens(now);
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                error: error as Error
+            };
+        } finally {
+            this.activeOperations.delete(operationId);
+        }
     }
 
     /**

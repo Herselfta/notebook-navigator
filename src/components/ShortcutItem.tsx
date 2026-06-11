@@ -207,6 +207,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
             dragHandlers={dragHandlers}
             isDragSource={isDragSource}
             showCount={shouldShowCount || hasRemove}
+            showCountLeader={hasBadge}
             count={countLabel}
             countSlot={countSlot}
             className={classNames}

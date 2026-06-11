@@ -19,7 +19,7 @@
 import { App, type PaneType, TFile, TFolder, normalizePath } from 'obsidian';
 import { strings } from '../i18n';
 import { FolderNoteType, FOLDER_NOTE_TYPE_EXTENSIONS, FolderNoteCreationPreference } from '../types/folderNote';
-import { createDatabaseContent, createMarkdownFileFromTemplate } from './fileCreationUtils';
+import { buildPathInFolder, createDatabaseContent, createMarkdownFileFromTemplatePreferTemplater } from './fileCreationUtils';
 import { type FolderNoteNameSettings, resolveFolderNoteName } from './folderNoteName';
 import { EXCALIDRAW_BASENAME_SUFFIX, isExcalidrawFile, stripExcalidrawSuffix } from './fileNameUtils';
 import { CommandQueueService } from '../services/CommandQueueService';
@@ -27,13 +27,16 @@ import { promptForFolderNoteType } from '../modals/FolderNoteTypeModal';
 import { showNotice } from './noticeUtils';
 import { openFileInContext } from './openFileInContext';
 
+export type FolderNoteOpenContext = PaneType | 'right-sidebar' | null;
+
 interface OpenFolderNoteFileParams {
     app: App;
     commandQueue: CommandQueueService | null;
     folder: TFolder;
     folderNote: TFile;
-    context: PaneType | null;
+    context: FolderNoteOpenContext;
     active?: boolean;
+    openInRightSidebar?: (folderNote: TFile) => Promise<void>;
 }
 
 /**
@@ -53,6 +56,8 @@ export interface FolderNoteCreationSettings extends FolderNoteNameSettings {
 
 interface CreateFolderNoteOptions {
     folderDisplayName?: string;
+    openContext?: FolderNoteOpenContext;
+    openInRightSidebar?: (folderNote: TFile) => Promise<void>;
 }
 
 /**
@@ -68,6 +73,29 @@ export function getFolderNoteDetectionSettings(settings: FolderNoteDetectionSett
 
 /** Set of file extensions that are valid for folder notes */
 const SUPPORTED_FOLDER_NOTE_EXTENSIONS = new Set<string>(Object.values(FOLDER_NOTE_TYPE_EXTENSIONS));
+
+interface RootFolderNoteVault {
+    getName?: () => string;
+}
+
+export function resolveRootFolderNoteSourceName(folder: TFolder, vaultOverride?: RootFolderNoteVault): string {
+    const vault = vaultOverride ?? (folder as TFolder & { vault?: RootFolderNoteVault }).vault;
+    const vaultName = typeof vault?.getName === 'function' ? vault.getName() : '';
+    if (typeof vaultName === 'string' && vaultName.trim().length > 0) {
+        return vaultName;
+    }
+
+    const folderName = typeof folder.name === 'string' ? folder.name : '';
+    if (folderName.trim().length > 0 && folderName !== '/') {
+        return folderName;
+    }
+
+    return 'Vault';
+}
+
+export function resolveFolderNoteNameForFolder(folder: TFolder, settings: FolderNoteNameSettings): string {
+    return resolveFolderNoteName(folder.path === '/' ? resolveRootFolderNoteSourceName(folder) : folder.name, settings);
+}
 
 /**
  * Checks if a file extension is supported for folder notes
@@ -89,7 +117,7 @@ export function getFolderNote(folder: TFolder, settings: FolderNoteDetectionSett
         return null;
     }
 
-    const expectedName = resolveFolderNoteName(folder.name, settings);
+    const expectedName = resolveFolderNoteNameForFolder(folder, settings);
     const prefix = folder.path === '/' ? '' : `${folder.path}/`;
     const exactCandidates: TFile[] = [];
 
@@ -157,9 +185,26 @@ export async function openFolderNoteFile({
     folder,
     folderNote,
     context,
-    active = true
+    active = true,
+    openInRightSidebar
 }: OpenFolderNoteFileParams): Promise<void> {
     const openFile = async () => {
+        if (context === 'right-sidebar') {
+            if (openInRightSidebar) {
+                await openInRightSidebar(folderNote);
+                return;
+            }
+
+            const leaf = app.workspace.getRightLeaf(true) ?? app.workspace.getRightLeaf(false);
+            if (!leaf) {
+                return;
+            }
+
+            await leaf.openFile(folderNote, { active: false });
+            await app.workspace.revealLeaf(leaf);
+            return;
+        }
+
         if (context) {
             await openFileInContext({ app, commandQueue, file: folderNote, context, active });
             return;
@@ -200,7 +245,7 @@ export function isFolderNote(file: TFile, folder: TFolder, settings: FolderNoteD
         return false;
     }
 
-    const expectedName = resolveFolderNoteName(folder.name, settings);
+    const expectedName = resolveFolderNoteNameForFolder(folder, settings);
     if (file.basename === expectedName) {
         return true;
     }
@@ -256,9 +301,9 @@ export async function createFolderNote(
     }
 
     const extension = FOLDER_NOTE_TYPE_EXTENSIONS[selectedType];
-    const baseName = resolveFolderNoteName(folder.name, settings);
+    const baseName = resolveFolderNoteNameForFolder(folder, settings);
     const noteFileName = `${baseName}.${extension}`;
-    const notePath = normalizePath(`${folder.path}/${noteFileName}`);
+    const notePath = buildPathInFolder(folder.path, noteFileName);
 
     const conflictingItem = app.vault.getAbstractFileByPath(notePath);
     if (conflictingItem) {
@@ -269,7 +314,7 @@ export async function createFolderNote(
     try {
         let file: TFile;
         if (selectedType === 'markdown') {
-            file = await createMarkdownFileFromTemplate({
+            file = await createMarkdownFileFromTemplatePreferTemplater({
                 app,
                 folder,
                 baseName,
@@ -287,8 +332,9 @@ export async function createFolderNote(
             commandQueue: commandQueue ?? null,
             folder,
             folderNote: file,
-            context: null,
-            active: true
+            context: options?.openContext ?? null,
+            active: true,
+            openInRightSidebar: options?.openInRightSidebar
         });
         return file;
     } catch (error) {

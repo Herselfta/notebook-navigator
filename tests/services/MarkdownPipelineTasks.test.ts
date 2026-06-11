@@ -135,6 +135,8 @@ function createFileData(overrides: Partial<FileData>): FileData {
         fileThumbnailsMtime: 0,
         tags: null,
         wordCount: 0,
+        characterCountWithSpaces: 0,
+        characterCountWithoutSpaces: 0,
         taskTotal: null,
         taskUnfinished: null,
         properties: null,

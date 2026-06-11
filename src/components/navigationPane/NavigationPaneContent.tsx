@@ -22,7 +22,7 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Platform, TFile } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
 import { useExpansionDispatch, useExpansionState } from '../../context/ExpansionContext';
-import { useSelectionDispatch, useSelectionState } from '../../context/SelectionContext';
+import { useNavigationSelection, useSelectionDispatch } from '../../context/SelectionContext';
 import { useServices, useMetadataService, useCommandQueue } from '../../context/ServicesContext';
 import { useSettingsState, useSettingsUpdate, useActiveProfile } from '../../context/SettingsContext';
 import { useUXPreferences } from '../../context/UXPreferencesContext';
@@ -56,8 +56,14 @@ import { NavigationRootReorderPanel } from '../NavigationRootReorderPanel';
 import { NavigationToolbar } from '../NavigationToolbar';
 import { localStorage } from '../../utils/localStorage';
 import { getSelectedPath } from '../../utils/selectionUtils';
-import { buildIndentGuideLevelsMap, getNavigationIndex, normalizeNavigationPath } from '../../utils/navigationIndex';
+import {
+    buildIndentGuideLevelsMap,
+    getNavigationIndex,
+    getNavigationItemRenderKey,
+    normalizeNavigationPath
+} from '../../utils/navigationIndex';
 import { collectAllTagPaths } from '../../utils/tagTree';
+import { getNavigationExpansionTargetForItem, toggleNavigationExpansionTarget } from '../../utils/navigationExpansion';
 import type { TagTreeNode } from '../../types/storage';
 import { normalizeNavigationSectionOrderInput } from '../../utils/navigationSections';
 import { compositeWithBase } from '../../utils/colorUtils';
@@ -84,6 +90,7 @@ export interface NavigationPaneHandle {
     virtualizer: Virtualizer<HTMLDivElement, Element> | null;
     scrollContainerRef: HTMLDivElement | null;
     requestScroll: (path: string, options: { align?: 'auto' | 'center' | 'start' | 'end'; itemType: ItemType }) => void;
+    triggerSelectedItemCollapse: () => boolean;
     openShortcutByNumber: (shortcutNumber: number) => Promise<boolean>;
 }
 
@@ -114,7 +121,7 @@ export const NavigationPane = React.memo(
         const metadataService = useMetadataService();
         const expansionState = useExpansionState();
         const expansionDispatch = useExpansionDispatch();
-        const selectionState = useSelectionState();
+        const selectionState = useNavigationSelection();
         const selectionDispatch = useSelectionDispatch();
         const settings = useSettingsState();
         const activeProfile = useActiveProfile();
@@ -407,6 +414,7 @@ export const NavigationPane = React.memo(
             setShortcutsExpanded: shortcuts.setShortcutsExpanded,
             setRecentNotesExpanded: shortcuts.setRecentNotesExpanded,
             clearActiveShortcut: shortcuts.clearActiveShortcut,
+            openFolderNoteInRightSidebar: folderNote => plugin.openFolderNoteInRightSidebar(folderNote),
             onModifySearchWithTag,
             onModifySearchWithProperty
         });
@@ -460,7 +468,7 @@ export const NavigationPane = React.memo(
         ]);
 
         const indentGuideLevelsByKey = useMemo(
-            () => (settings.showIndentGuides ? buildIndentGuideLevelsMap(items) : EMPTY_INDENT_GUIDE_MAP),
+            () => (settings.showIndentGuides ? buildIndentGuideLevelsMap(items, getNavigationItemRenderKey) : EMPTY_INDENT_GUIDE_MAP),
             [items, settings.showIndentGuides]
         );
 
@@ -689,6 +697,52 @@ export const NavigationPane = React.memo(
             prevShowAllTagsFolder.current = settings.showAllTagsFolder;
         }, [expansionDispatch, expansionState.expandedVirtualFolders, settings.showAllTagsFolder]);
 
+        const getSelectedRenderedItem = useCallback((): CombinedNavigationItem | null => {
+            if (isRootReorderMode) {
+                return null;
+            }
+
+            const resolveItem = (itemType: ItemType, path: string): CombinedNavigationItem | null => {
+                const index = getNavigationIndex(pathToIndex, itemType, path);
+                if (index === undefined) {
+                    return null;
+                }
+                return items[index] ?? null;
+            };
+
+            if (selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder?.path) {
+                return resolveItem(ItemType.FOLDER, selectionState.selectedFolder.path);
+            }
+
+            if (selectionState.selectionType === ItemType.TAG && selectionState.selectedTag) {
+                return resolveItem(ItemType.TAG, selectionState.selectedTag);
+            }
+
+            if (selectionState.selectionType === ItemType.PROPERTY && selectionState.selectedProperty) {
+                return resolveItem(ItemType.PROPERTY, selectionState.selectedProperty);
+            }
+
+            return null;
+        }, [
+            isRootReorderMode,
+            items,
+            pathToIndex,
+            selectionState.selectedFolder,
+            selectionState.selectedProperty,
+            selectionState.selectedTag,
+            selectionState.selectionType
+        ]);
+
+        const triggerSelectedItemCollapse = useCallback((): boolean => {
+            const item = getSelectedRenderedItem();
+            if (!item) {
+                return false;
+            }
+
+            const target = getNavigationExpansionTargetForItem(item, { showHiddenItems });
+            return target ? toggleNavigationExpansionTarget(target, expansionState, expansionDispatch) : false;
+        }, [expansionDispatch, expansionState, getSelectedRenderedItem, showHiddenItems]);
+
         useImperativeHandle(
             ref,
             () => ({
@@ -699,9 +753,10 @@ export const NavigationPane = React.memo(
                 virtualizer: rowVirtualizer,
                 scrollContainerRef: scrollContainerRef.current,
                 requestScroll,
+                triggerSelectedItemCollapse,
                 openShortcutByNumber: shortcuts.openShortcutByNumber
             }),
-            [pathToIndex, requestScroll, rowVirtualizer, scrollContainerRef, shortcuts.openShortcutByNumber]
+            [pathToIndex, requestScroll, rowVirtualizer, scrollContainerRef, shortcuts.openShortcutByNumber, triggerSelectedItemCollapse]
         );
 
         const keyboardItems = isRootReorderMode ? [] : items;

@@ -48,14 +48,14 @@
 import { useRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { useVirtualizer, Virtualizer } from '@tanstack/react-virtual';
 import { useServices } from '../context/ServicesContext';
-import { useSelectionState } from '../context/SelectionContext';
+import { useNavigationSelection, useSelectionReveal } from '../context/SelectionContext';
 import { useUIState } from '../context/UIStateContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { NavigationPaneItemType, ItemType, NAVPANE_MEASUREMENTS, OVERSCAN } from '../types';
 import { Align, NavScrollIntent, getNavAlign } from '../types/scroll';
 import type { CombinedNavigationItem } from '../types/virtualization';
-import { getNavigationIndex, normalizeNavigationPath } from '../utils/navigationIndex';
+import { getNavigationIndex, getNavigationItemRenderKey, normalizeNavigationPath } from '../utils/navigationIndex';
 
 /**
  * Parameters for the useNavigationPaneScroll hook
@@ -152,7 +152,8 @@ export function useNavigationPaneScroll({
     scrollPaddingEnd
 }: UseNavigationPaneScrollParams): UseNavigationPaneScrollResult {
     const { isMobile } = useServices();
-    const selectionState = useSelectionState();
+    const selectionState = useNavigationSelection();
+    const selectionReveal = useSelectionReveal();
     const uiState = useUIState();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
@@ -283,6 +284,13 @@ export function useNavigationPaneScroll({
      */
     const effectiveScrollMargin = Number.isFinite(scrollMargin) && scrollMargin > 0 ? scrollMargin : 0;
     const effectiveScrollPaddingEnd = Number.isFinite(scrollPaddingEnd) && scrollPaddingEnd > 0 ? scrollPaddingEnd : 0;
+    const getVirtualItemKey = useCallback(
+        (index: number) => {
+            const item = items[index];
+            return item ? getNavigationItemRenderKey(item) : index;
+        },
+        [items]
+    );
 
     const ensureIndexNotCovered = useCallback(
         (index: number) => {
@@ -315,7 +323,7 @@ export function useNavigationPaneScroll({
 
     const rowVirtualizer = useVirtualizer({
         count: items.length,
-        getItemKey: index => items[index]?.key ?? index,
+        getItemKey: getVirtualItemKey,
         getScrollElement: () => scrollContainerRef.current,
         // Align virtualizer scroll math with the start of the tree rows (excluding non-virtualized scroll content).
         scrollMargin: effectiveScrollMargin,
@@ -454,7 +462,7 @@ export function useNavigationPaneScroll({
     useEffect(() => {
         if (!selectedPath || !rowVirtualizer || !isScrollContainerReady) return;
 
-        if (selectionState.isRevealOperation) {
+        if (selectionReveal.isRevealOperation) {
             // Reveal operations issue explicit `requestScroll(...)` calls. Keep the previous-state refs in sync but
             // skip selection-driven auto-scroll while the reveal flag is set.
             prevSelectedPathRef.current = selectedPath;
@@ -464,7 +472,7 @@ export function useNavigationPaneScroll({
         }
 
         const currentSelectionType = selectedItemType ?? ItemType.FOLDER;
-        const suppressShortcutScroll = settings.skipAutoScroll && selectionState.revealSource === 'shortcut';
+        const suppressShortcutScroll = settings.skipAutoScroll && selectionReveal.revealSource === 'shortcut';
 
         // Check if this is an actual selection change vs just a tree structure update
         const isSelectionChange = prevSelectedPathRef.current !== selectedPath;
@@ -514,11 +522,11 @@ export function useNavigationPaneScroll({
         selectedPath,
         rowVirtualizer,
         isScrollContainerReady,
-        selectionState.isRevealOperation,
+        selectionReveal.isRevealOperation,
         uiState.focusedPane,
         showHiddenItems,
         selectedItemType,
-        selectionState.revealSource,
+        selectionReveal.revealSource,
         resolveIndex,
         activeShortcutKey,
         settings.skipAutoScroll,
@@ -535,7 +543,7 @@ export function useNavigationPaneScroll({
             return;
         }
 
-        if (selectionState.isRevealOperation) {
+        if (selectionReveal.isRevealOperation) {
             // Tag/property reveals request scroll explicitly. This deferred-scroll effect is for restored selections
             // where the navigation rows may not exist yet.
             prevSelectedDeferredPathRef.current = selectedPath;
@@ -551,7 +559,7 @@ export function useNavigationPaneScroll({
             return;
         }
 
-        const suppressShortcutScroll = settings.skipAutoScroll && selectionState.revealSource === 'shortcut';
+        const suppressShortcutScroll = settings.skipAutoScroll && selectionReveal.revealSource === 'shortcut';
         if (suppressShortcutScroll) {
             prevSelectedDeferredPathRef.current = selectedPath;
             return;
@@ -586,11 +594,11 @@ export function useNavigationPaneScroll({
         selectedPath,
         rowVirtualizer,
         isScrollContainerReady,
-        selectionState.isRevealOperation,
+        selectionReveal.isRevealOperation,
         showHiddenItems,
         resolveIndex,
         activeShortcutKey,
-        selectionState.revealSource,
+        selectionReveal.revealSource,
         settings.skipAutoScroll,
         scrollToIndexSafely
     ]);
@@ -809,7 +817,7 @@ export function useNavigationPaneScroll({
             // When showHiddenItems changes and we have a selected tag/property item, defer scrolling until the tree rebuilds
             if (
                 selectedPath &&
-                (selectionState.selectionType === ItemType.TAG || selectionState.selectionType === ItemType.PROPERTY) &&
+                (selectedItemType === ItemType.TAG || selectedItemType === ItemType.PROPERTY) &&
                 isScrollContainerReady &&
                 rowVirtualizer
             ) {
@@ -826,15 +834,7 @@ export function useNavigationPaneScroll({
 
             prevShowHiddenItemsRef.current = showHiddenItems;
         }
-    }, [
-        selectedItemType,
-        showHiddenItems,
-        selectedPath,
-        isScrollContainerReady,
-        rowVirtualizer,
-        selectionState.selectionType,
-        selectionState.selectedTag
-    ]);
+    }, [selectedItemType, showHiddenItems, selectedPath, isScrollContainerReady, rowVirtualizer]);
 
     return {
         rowVirtualizer,

@@ -45,8 +45,9 @@ import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortc
 import { runAsyncAction } from '../utils/async';
 import { getNavigationIndex } from '../utils/navigationIndex';
 import { getFolderNote, openFolderNoteFile } from '../utils/folderNotes';
-import { isEnterKey, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveFolderNoteDefaultOpenContext, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
 import { buildPropertyKeyNodeId } from '../utils/propertyTree';
+import { getNavigationExpansionTargetForItem, toggleNavigationExpansionTarget } from '../utils/navigationExpansion';
 
 type VirtualTagCollectionItem = VirtualFolderItem & { tagCollectionId: string };
 type VirtualPropertyCollectionItem = VirtualFolderItem & { propertyCollectionId: string };
@@ -99,7 +100,7 @@ interface UseNavigationPaneKeyboardProps {
  * Handles folder/tag-specific keyboard interactions.
  */
 export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pathToIndex }: UseNavigationPaneKeyboardProps) {
-    const { app, commandQueue, isMobile } = useServices();
+    const { app, commandQueue, isMobile, plugin } = useServices();
     const fileSystemOps = useFileSystemOps();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
@@ -219,50 +220,6 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
     );
 
     /**
-     * Handle expand/collapse for folders and tags
-     */
-    const handleExpandCollapse = useCallback(
-        (item: CombinedNavigationItem, expand: boolean) => {
-            if (item.type === NavigationPaneItemType.FOLDER) {
-                if (!(item.data instanceof TFolder)) return;
-                const folder = item.data;
-                const isExpanded = expansionState.expandedFolders.has(folder.path);
-                if (expand && !isExpanded && folder.children.length > 0) {
-                    expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: folder.path });
-                } else if (!expand && isExpanded) {
-                    expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: folder.path });
-                }
-            } else if (item.type === NavigationPaneItemType.TAG) {
-                const tag = item.data;
-                const isExpanded = expansionState.expandedTags.has(tag.path);
-                if (expand && !isExpanded && tag.children.size > 0) {
-                    expansionDispatch({ type: 'TOGGLE_TAG_EXPANDED', tagPath: tag.path });
-                } else if (!expand && isExpanded) {
-                    expansionDispatch({ type: 'TOGGLE_TAG_EXPANDED', tagPath: tag.path });
-                }
-            } else if (item.type === NavigationPaneItemType.PROPERTY_KEY || item.type === NavigationPaneItemType.PROPERTY_VALUE) {
-                const propertyNode = item.data;
-                const isExpanded = expansionState.expandedProperties.has(propertyNode.id);
-                if (expand && !isExpanded && propertyNode.children.size > 0) {
-                    expansionDispatch({ type: 'TOGGLE_PROPERTY_EXPANDED', propertyNodeId: propertyNode.id });
-                } else if (!expand && isExpanded) {
-                    expansionDispatch({ type: 'TOGGLE_PROPERTY_EXPANDED', propertyNodeId: propertyNode.id });
-                }
-            } else if (isVirtualTagCollection(item) || isVirtualPropertyCollection(item)) {
-                // Handle expansion for virtual folders that act as tag collections
-                const folderId = item.data.id;
-                const isExpanded = expansionState.expandedVirtualFolders.has(folderId);
-                if (expand && !isExpanded) {
-                    expansionDispatch({ type: 'TOGGLE_VIRTUAL_FOLDER_EXPANDED', folderId });
-                } else if (!expand && isExpanded) {
-                    expansionDispatch({ type: 'TOGGLE_VIRTUAL_FOLDER_EXPANDED', folderId });
-                }
-            }
-        },
-        [expansionState, expansionDispatch]
-    );
-
-    /**
      * Navigation pane-specific keyboard handler
      */
     const handleKeyDown = useCallback(
@@ -306,10 +263,18 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                     e.preventDefault();
 
                     const modifierContext = resolveKeyboardOpenContext(e, settings);
-                    const openContext = modifierContext ?? (settings.openFolderNotesInNewTab ? 'tab' : null);
+                    const openContext = modifierContext ?? resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
 
                     runAsyncAction(() =>
-                        openFolderNoteFile({ app, commandQueue, folder, folderNote, context: openContext, active: false })
+                        openFolderNoteFile({
+                            app,
+                            commandQueue,
+                            folder,
+                            folderNote,
+                            context: openContext,
+                            active: false,
+                            openInRightSidebar: folderNoteFile => plugin.openFolderNoteInRightSidebar(folderNoteFile)
+                        })
                     );
                     return;
                 }
@@ -387,58 +352,11 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                         return;
                     }
 
-                    let shouldSwitchPane = false;
-                    let expandedInThisAction = false;
-                    if (item.type === NavigationPaneItemType.FOLDER) {
-                        if (!(item.data instanceof TFolder)) {
-                            return;
-                        }
-                        const folder = item.data;
-                        const isExpanded = expansionState.expandedFolders.has(folder.path);
-                        const hasChildren = folder.children.some(child => child instanceof TFolder);
-
-                        if (hasChildren && !isExpanded) {
-                            handleExpandCollapse(item, true);
-                            expandedInThisAction = true;
-                        } else {
-                            shouldSwitchPane = true;
-                        }
-                    } else if (item.type === NavigationPaneItemType.TAG) {
-                        const tag = item.data;
-                        const isExpanded = expansionState.expandedTags.has(tag.path);
-                        const hasChildren = tag.children.size > 0;
-
-                        if (hasChildren && !isExpanded) {
-                            handleExpandCollapse(item, true);
-                            expandedInThisAction = true;
-                        } else {
-                            shouldSwitchPane = true;
-                        }
-                    } else if (item.type === NavigationPaneItemType.PROPERTY_KEY || item.type === NavigationPaneItemType.PROPERTY_VALUE) {
-                        const propertyNode = item.data;
-                        const isExpanded = expansionState.expandedProperties.has(propertyNode.id);
-                        const hasChildren = propertyNode.children.size > 0;
-
-                        if (hasChildren && !isExpanded) {
-                            handleExpandCollapse(item, true);
-                            expandedInThisAction = true;
-                        } else {
-                            shouldSwitchPane = true;
-                        }
-                    } else if (isVirtualTagCollection(item) || isVirtualPropertyCollection(item)) {
-                        const folderId = item.data.id;
-                        const isExpanded = expansionState.expandedVirtualFolders.has(folderId);
-                        const hasChildren = item.hasChildren ?? false;
-
-                        if (hasChildren && !isExpanded) {
-                            handleExpandCollapse(item, true);
-                            expandedInThisAction = true;
-                        } else {
-                            shouldSwitchPane = true;
-                        }
-                    } else {
-                        shouldSwitchPane = true;
-                    }
+                    const expansionTarget = getNavigationExpansionTargetForItem(item, { showHiddenItems });
+                    const expandedInThisAction = expansionTarget
+                        ? toggleNavigationExpansionTarget(expansionTarget, expansionState, expansionDispatch, 'expand')
+                        : false;
+                    const shouldSwitchPane = !expandedInThisAction;
 
                     if (expandedInThisAction && uiState.singlePane && settings.autoExpandNavItems) {
                         uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
@@ -465,6 +383,12 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                         return;
                     }
 
+                    const expansionTarget = getNavigationExpansionTargetForItem(item, { showHiddenItems });
+                    const collapseItem = () =>
+                        expansionTarget
+                            ? toggleNavigationExpansionTarget(expansionTarget, expansionState, expansionDispatch, 'collapse')
+                            : false;
+
                     const selectTaggedRootParent = () => {
                         if (!settings.showAllTagsFolder) {
                             return;
@@ -484,10 +408,7 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                             return;
                         }
                         const folder = item.data;
-                        const isExpanded = expansionState.expandedFolders.has(folder.path);
-                        if (isExpanded) {
-                            handleExpandCollapse(item, false);
-                        } else if (folder.parent && (!settings.showRootFolder || folder.path !== '/')) {
+                        if (!collapseItem() && folder.parent && (!settings.showRootFolder || folder.path !== '/')) {
                             const parentPath = folder.parent.path;
                             const parentIndex = resolveIndex(parentPath, ItemType.FOLDER);
                             if (parentIndex >= 0) {
@@ -500,10 +421,7 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                         }
                     } else if (item.type === NavigationPaneItemType.TAG) {
                         const tag = item.data;
-                        const isExpanded = expansionState.expandedTags.has(tag.path);
-                        if (isExpanded) {
-                            handleExpandCollapse(item, false);
-                        } else {
+                        if (!collapseItem()) {
                             const lastSlashIndex = tag.path.lastIndexOf('/');
                             if (lastSlashIndex > 0) {
                                 const parentPath = tag.path.substring(0, lastSlashIndex);
@@ -523,36 +441,31 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                         selectTaggedRootParent();
                     } else if (item.type === NavigationPaneItemType.PROPERTY_KEY || item.type === NavigationPaneItemType.PROPERTY_VALUE) {
                         const propertyNode = item.data;
-                        const isExpanded = expansionState.expandedProperties.has(propertyNode.id);
 
-                        if (isExpanded) {
-                            handleExpandCollapse(item, false);
-                        } else if (propertyNode.kind === 'value') {
-                            const parentNodeId = buildPropertyKeyNodeId(propertyNode.key);
-                            const parentIndex = resolveIndex(parentNodeId, ItemType.PROPERTY);
-                            if (parentIndex >= 0) {
-                                const parentItem = helpers.getItemAt(parentIndex);
-                                if (parentItem) {
-                                    selectItemAtIndex(parentItem);
-                                    helpers.scrollToIndex(parentIndex);
+                        if (!collapseItem()) {
+                            if (propertyNode.kind === 'value') {
+                                const parentNodeId = buildPropertyKeyNodeId(propertyNode.key);
+                                const parentIndex = resolveIndex(parentNodeId, ItemType.PROPERTY);
+                                if (parentIndex >= 0) {
+                                    const parentItem = helpers.getItemAt(parentIndex);
+                                    if (parentItem) {
+                                        selectItemAtIndex(parentItem);
+                                        helpers.scrollToIndex(parentIndex);
+                                    }
                                 }
-                            }
-                        } else {
-                            const parentIndex = resolveIndex(PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, ItemType.PROPERTY);
-                            if (parentIndex >= 0) {
-                                const parentItem = helpers.getItemAt(parentIndex);
-                                if (parentItem) {
-                                    selectItemAtIndex(parentItem);
-                                    helpers.scrollToIndex(parentIndex);
+                            } else {
+                                const parentIndex = resolveIndex(PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, ItemType.PROPERTY);
+                                if (parentIndex >= 0) {
+                                    const parentItem = helpers.getItemAt(parentIndex);
+                                    if (parentItem) {
+                                        selectItemAtIndex(parentItem);
+                                        helpers.scrollToIndex(parentIndex);
+                                    }
                                 }
                             }
                         }
                     } else if (isVirtualTagCollection(item) || isVirtualPropertyCollection(item)) {
-                        const folderId = item.data.id;
-                        const isExpanded = expansionState.expandedVirtualFolders.has(folderId);
-                        if (isExpanded) {
-                            handleExpandCollapse(item, false);
-                        }
+                        collapseItem();
                     }
                 }
             } else if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.NAV_FOCUS_LIST)) {
@@ -616,7 +529,7 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
             settings,
             items.length,
             expansionState,
-            handleExpandCollapse,
+            expansionDispatch,
             uiState.singlePane,
             isMobile,
             uiDispatch,
@@ -626,6 +539,7 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
             selectionState,
             app,
             commandQueue,
+            plugin,
             fileSystemOps,
             virtualizer,
             includeDescendantNotes,

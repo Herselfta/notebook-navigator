@@ -37,12 +37,13 @@ import { confirmRemoveAllTagsFromFiles, openAddTagToFilesModal, removeTagFromFil
 import { addFolderStyleChangeActions, addFolderStyleMenu, addStyleMenu } from './styleMenuBuilder';
 import { resolveIconForMenu, resolveUXIconForMenu } from '../uxIcons';
 import { isFolderNote } from '../../utils/folderNotes';
-import { getFilesForNavigationSelection, getNavigatorPinContext } from '../selectionUtils';
+import { getFilesForNavigationSelection, getNavigatorPinContext, orderFilesByReference } from '../selectionUtils';
 import { collectFileMenuPropertyActions, type FileMenuPropertyAction } from '../../utils/propertyMenuActions';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
 import { getManualSortGroupHeaderPropertyKey } from '../manualSort';
 import { getEffectiveListSort, isManualSortPropertyKey } from '../sortUtils';
 import { addManualSortGroupHeaderMenuItems } from './manualSortGroupHeaderMenuItems';
+import { addMergeNotesMenuItem } from './mergeNotesMenuItems';
 import { resolveEffectiveListGroupingForSort, resolveListGrouping } from '../listGrouping';
 
 type FileStyleTarget = { type: 'folder'; folderPath: string } | { type: 'files'; files: TFile[] };
@@ -159,6 +160,13 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
             return cachedFileList;
         }
 
+        if (
+            options?.orderedFiles?.some(orderedFile => orderedFile.path === file.path || selectionState.selectedFiles.has(orderedFile.path))
+        ) {
+            cachedFileList = [...options.orderedFiles];
+            return cachedFileList;
+        }
+
         cachedFileList = getFilesForNavigationSelection(
             {
                 selectionType: selectionState.selectionType,
@@ -178,9 +186,7 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
 
     // Cache selected files to avoid repeated path-to-file conversions
     const cachedSelectedFiles = shouldShowMultiOptions
-        ? Array.from(selectionState.selectedFiles)
-              .map(path => app.vault.getFileByPath(path))
-              .filter((f): f is TFile => !!f)
+        ? resolveSelectedFilesInOrder(selectionState.selectedFiles, app, options?.orderedFiles)
         : [];
     const selectedFilesCount = cachedSelectedFiles.length;
 
@@ -377,6 +383,8 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
         }
 
         // Move, Duplicate, Delete - grouped together
+        addMultipleFilesMergeOption(menu, cachedSelectedFiles, app, commandQueue, fileSystemOps);
+
         // Move note(s) to folder
         const allMarkdownForMove = cachedSelectedFiles.every(f => f.extension === 'md');
         menu.addItem((item: MenuItem) => {
@@ -539,7 +547,16 @@ export function buildFileMenu(params: FileMenuBuilderParams): void {
         addSingleFileDuplicateOption(menu, file, fileSystemOps);
 
         // Delete note
-        addSingleFileDeleteOption(menu, file, selectionState, settings, fileSystemOps, selectionDispatch, isFolderNoteFile);
+        addSingleFileDeleteOption(
+            menu,
+            file,
+            selectionState,
+            settings,
+            fileSystemOps,
+            selectionDispatch,
+            isFolderNoteFile,
+            getCachedFileList
+        );
     }
 }
 
@@ -587,6 +604,14 @@ function resolveFileStyleTarget(params: ResolveFileStyleTargetParams): FileStyle
         type: 'files',
         files: shouldShowMultiOptions ? selectedFiles : [file]
     };
+}
+
+function resolveSelectedFilesInOrder(selectedPaths: ReadonlySet<string>, app: App, orderedFiles?: readonly TFile[]): TFile[] {
+    const selectedFiles = Array.from(selectedPaths)
+        .map(path => app.vault.getFileByPath(path))
+        .filter((file): file is TFile => file !== null);
+
+    return orderFilesByReference(selectedFiles, orderedFiles);
 }
 
 function addStyleActionsForFileContext(params: AddStyleActionsForFileContextParams): void {
@@ -1012,6 +1037,32 @@ function addMultipleFilesPinOption(menu: Menu, selectedFiles: TFile[], metadataS
     });
 }
 
+function addMultipleFilesMergeOption(
+    menu: Menu,
+    selectedFiles: TFile[],
+    app: App,
+    commandQueue: CommandQueueService | null,
+    fileSystemOps: FileSystemOperations
+): void {
+    if (selectedFiles.length < 2 || !selectedFiles.every(file => file.extension === 'md')) {
+        return;
+    }
+
+    const firstFile = selectedFiles[0];
+    const outputFolder = firstFile.parent instanceof TFolder ? firstFile.parent : app.vault.getRoot();
+
+    addMergeNotesMenuItem({
+        menu,
+        app,
+        commandQueue,
+        fileSystemOps,
+        files: selectedFiles,
+        outputFolder,
+        defaultOutputName: strings.modals.mergeNotes.outputNamePlaceholder,
+        title: strings.contextMenu.file.mergeNotes.replace('{count}', selectedFiles.length.toString())
+    });
+}
+
 /**
  * Add duplicate option for a single file
  */
@@ -1075,7 +1126,8 @@ function addSingleFileDeleteOption(
     settings: NotebookNavigatorSettings,
     fileSystemOps: FileSystemOperations,
     selectionDispatch: React.Dispatch<SelectionAction>,
-    isFolderNoteFile: boolean
+    isFolderNoteFile: boolean,
+    getCachedFileList: () => TFile[]
 ): void {
     menu.addItem((item: MenuItem) => {
         const title = isFolderNoteFile
@@ -1097,7 +1149,8 @@ function addSingleFileDeleteOption(
                         selectedProperty: selectionState.selectedProperty ?? undefined
                     },
                     selectionDispatch,
-                    settings.confirmBeforeDelete
+                    settings.confirmBeforeDelete,
+                    getCachedFileList()
                 );
             } else {
                 // Normal deletion - not the currently selected file

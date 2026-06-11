@@ -131,6 +131,8 @@ function createFileData(overrides: Partial<FileData>): FileData {
         fileThumbnailsMtime: 0,
         tags: null,
         wordCount: null,
+        characterCountWithSpaces: null,
+        characterCountWithoutSpaces: null,
         taskTotal: 0,
         taskUnfinished: 0,
         properties: null,
@@ -182,7 +184,13 @@ describe('MarkdownPipelineContentProvider word count', () => {
         const result = await provider.runProcessFile(file, fileData, settings);
 
         expect(result.processed).toBe(true);
-        expect(result.update).toEqual({ path: file.path, wordCount: 0, preview: '' });
+        expect(result.update).toEqual({
+            path: file.path,
+            wordCount: 0,
+            characterCountWithSpaces: 0,
+            characterCountWithoutSpaces: 0,
+            preview: ''
+        });
     });
 
     it('falls back to safe defaults after repeated read failures', async () => {
@@ -206,6 +214,8 @@ describe('MarkdownPipelineContentProvider word count', () => {
             mtime: file.stat.mtime,
             markdownPipelineMtime: 100,
             wordCount: 123,
+            characterCountWithSpaces: 456,
+            characterCountWithoutSpaces: 400,
             previewStatus: 'has',
             featureImageStatus: 'none',
             featureImageKey: ''
@@ -219,7 +229,13 @@ describe('MarkdownPipelineContentProvider word count', () => {
 
         const result = await provider.runProcessFile(file, fileData, settings);
         expect(result.processed).toBe(true);
-        expect(result.update).toEqual({ path: file.path, wordCount: 0, preview: '' });
+        expect(result.update).toEqual({
+            path: file.path,
+            wordCount: 0,
+            characterCountWithSpaces: 0,
+            characterCountWithoutSpaces: 0,
+            preview: ''
+        });
     });
 
     it('counts hyphens and apostrophes as part of a word', async () => {
@@ -316,6 +332,19 @@ describe('MarkdownPipelineContentProvider word count', () => {
         const result = await provider.runWordCount(file, settings);
 
         expect(result).toBe(2);
+    });
+
+    it('counts characters using Obsidian frontmatter slicing even when character counts are hidden', async () => {
+        const context = createApp();
+        const settings = createSettings({ textCountDisplay: 'none' });
+        const provider = new TestMarkdownPipelineContentProvider(context.app);
+        const file = createFile('notes/note.md');
+
+        setMarkdownContent(context, file, '---\ntitle: Draft\n---\n\nBody');
+        const result = await provider.runProcessFile(file, null, settings);
+
+        expect(result.update?.characterCountWithSpaces).toBe(5);
+        expect(result.update?.characterCountWithoutSpaces).toBe(4);
     });
 
     it('counts isolated punctuation when Math Alphanumeric Symbols are present', async () => {

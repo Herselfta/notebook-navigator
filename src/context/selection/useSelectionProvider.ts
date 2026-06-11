@@ -229,10 +229,7 @@ export function loadInitialSelectionState({ app, settings }: LoadInitialSelectio
 
 export function useSelectionStateRef(state: SelectionState): MutableRefObject<SelectionState> {
     const stateRef = useRef(state);
-
-    useEffect(() => {
-        stateRef.current = state;
-    }, [state]);
+    stateRef.current = state;
 
     return stateRef;
 }

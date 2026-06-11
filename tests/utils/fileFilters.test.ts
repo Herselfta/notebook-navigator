@@ -201,6 +201,16 @@ describe('getFilteredIndexableFiles', () => {
 
         expect(toPaths(getFilteredIndexableFiles(app, settings))).toEqual(['Notes/A.md', 'Drawings/Sketch.tldr']);
     });
+
+    it('excludes debug log markdown files from indexing', () => {
+        const note = createTestTFile('Notes/A.md');
+        const debugLog = createTestTFile('nn-debug-2026-05-23T21-30-12-123Z.md');
+        const app = createAppWithFiles([note, debugLog]);
+        const settings = createSettings();
+
+        expect(toPaths(getFilteredIndexableFiles(app, settings))).toEqual(['Notes/A.md']);
+        expect(toPaths(getFilteredFiles(app, settings, { showHiddenItems: true }))).toEqual(['Notes/A.md']);
+    });
 });
 
 describe('createFrontmatterPropertyExclusionMatcher', () => {

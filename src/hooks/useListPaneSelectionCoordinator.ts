@@ -85,7 +85,7 @@ export function useListPaneSelectionCoordinator({
     const uiDispatch = useUIDispatch();
     const uxPreferences = useUXPreferences();
     const isSearchActive = uxPreferences.searchActive;
-    const multiSelection = useMultiSelection();
+    const { handleMultiSelectClick, handleRangeSelectClick, isFileSelected } = useMultiSelection();
 
     const isUserSelectionRef = useRef(false);
     const keyboardOpenPendingRef = useRef(false);
@@ -392,9 +392,9 @@ export function useListPaneSelectionCoordinator({
             const shouldOpenInNewTab = !isMobile && !shouldMultiSelect && settings.multiSelectModifier === 'optionAlt' && isCmdCtrlClick;
 
             if (shouldMultiSelect) {
-                multiSelection.handleMultiSelectClick(file, fileIndex, clickOrderedFiles);
+                handleMultiSelectClick(file, fileIndex, clickOrderedFiles);
             } else if (!isMobile && isShiftKey && fileIndex !== undefined) {
-                multiSelection.handleRangeSelectClick(file, fileIndex, clickOrderedFiles);
+                handleRangeSelectClick(file, fileIndex, clickOrderedFiles);
             } else {
                 selectFileFromList(file, {
                     markUserSelection: true,
@@ -412,7 +412,17 @@ export function useListPaneSelectionCoordinator({
                 app.workspace.leftSplit.collapse();
             }
         },
-        [app, commandQueue, isMobile, multiSelection, orderedFiles, selectFileFromList, settings.multiSelectModifier, uiDispatch]
+        [
+            app,
+            commandQueue,
+            handleMultiSelectClick,
+            handleRangeSelectClick,
+            isMobile,
+            orderedFiles,
+            selectFileFromList,
+            settings.multiSelectModifier,
+            uiDispatch
+        ]
     );
 
     const handleFileItemClick = useCallback(
@@ -537,7 +547,7 @@ export function useListPaneSelectionCoordinator({
         ensureSelectionForCurrentFilter,
         handleFileItemClick,
         lastSelectedFilePath: lastSelectedFilePathRef.current,
-        isFileSelected: multiSelection.isFileSelected,
+        isFileSelected,
         scheduleKeyboardSelectionOpen,
         scheduleKeyboardSelectionOpenForFile,
         commitPendingKeyboardSelectionOpen

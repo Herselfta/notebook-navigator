@@ -106,7 +106,7 @@
     );
     width: var(--nn-indent-guide-line-width);
     transform: translateX(-50%);
-    background-color: var(--nn-theme-foreground-faint);
+    background-color: var(--nn-theme-nav-indent-guide-color);
     pointer-events: none;
     z-index: 0;
 }
@@ -275,8 +275,57 @@
 
 /* Spacer element to push count to the end */
 .nn-navitem-spacer {
+    --nn-nav-leader-color: var(--nn-theme-nav-leader-color);
+    --nn-nav-count-leader-bottom-offset: calc((var(--nn-setting-nav-item-height) - var(--nn-nav-line-height)) / 2 + 4px);
     flex: 1;
     min-width: 8px; /* Minimum space between name and count */
+}
+
+.notebook-navigator-mobile .nn-navitem-spacer {
+    --nn-nav-count-leader-bottom-offset: calc((var(--nn-setting-nav-item-height-mobile) - var(--nn-nav-line-height)) / 2 + 5px);
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader,
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader,
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader {
+    position: relative;
+    align-self: stretch;
+    margin-inline: 8px;
+    min-width: 16px;
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader::after,
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader::after,
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: var(--nn-nav-count-leader-bottom-offset);
+    pointer-events: none;
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader::after {
+    height: 2px;
+    background-image: radial-gradient(circle, var(--nn-nav-leader-color) 0, var(--nn-nav-leader-color) 1px, transparent 1px);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: 6px 2px;
+}
+
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader::after {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--nn-nav-leader-color) 0,
+        var(--nn-nav-leader-color) 6px,
+        transparent 6px,
+        transparent 10px
+    );
+}
+
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader::after {
+    height: 1px;
+    background-color: var(--nn-nav-leader-color);
 }
 
 /* Folder file count - shows number of files in folder */

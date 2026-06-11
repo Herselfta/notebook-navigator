@@ -32,7 +32,7 @@ import {
     normalizeCalendarVaultFolderPath,
     splitCalendarCustomPattern
 } from './calendarCustomNotePatterns';
-import { createMarkdownFileFromTemplate } from './fileCreationUtils';
+import { createMarkdownFileFromTemplatePreferTemplater } from './fileCreationUtils';
 import type { MomentApi, MomentInstance } from './moment';
 
 export type CalendarNoteKind = 'day' | 'week' | 'month' | 'quarter' | 'year';
@@ -195,11 +195,12 @@ export async function createCalendarMarkdownFile(
         throw new Error('Calendar folder path is not a folder');
     }
 
-    return createMarkdownFileFromTemplate({
+    return createMarkdownFileFromTemplatePreferTemplater({
         app,
         folder,
         baseName,
         templatePath,
-        templateErrorContext: 'calendar'
+        templateErrorContext: 'calendar',
+        templaterCreationErrorContext: 'calendar note'
     });
 }

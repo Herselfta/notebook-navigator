@@ -21,7 +21,7 @@ import { ItemType, ListPaneItemType, type NavigationItemType } from '../types';
 import type { FeatureImageStatus, FileData } from '../storage/IndexedDBStorage';
 import { type FeatureImageSizeSetting } from '../settings/types';
 import type { ListPaneItem } from '../types/virtualization';
-import { isImageFile } from './fileTypeUtils';
+import { isRasterImageFile } from './fileTypeUtils';
 import {
     buildPropertyKeyNodeId,
     buildPropertyValueNodeId,
@@ -250,18 +250,6 @@ export function forEachVisibleFrontmatterProperty({
     }
 }
 
-export function isListPaneCompactMode({
-    showDate,
-    showPreview,
-    showImage
-}: {
-    showDate: boolean;
-    showPreview: boolean;
-    showImage: boolean;
-}): boolean {
-    return !showDate && !showPreview && !showImage;
-}
-
 export function getTagPillDisplayName(tag: string, showFileTagAncestors: boolean): string {
     if (showFileTagAncestors) {
         return tag;
@@ -283,26 +271,46 @@ export interface FileItemLayoutState {
     isPinnedImageRow: boolean;
 }
 
+export interface FileRowHeightInputs {
+    isPinned: boolean;
+    hasPreviewContent: boolean;
+    showFeatureImageArea: boolean;
+    showExtensionBadgeThumbnail: boolean;
+    showParentFolderLine: boolean;
+    visiblePillRowCount: number;
+}
+
+export interface FileRowHeightConfig {
+    heights: ListPaneMeasurements;
+    titleRows: number;
+    previewRows: number;
+    isCompactMode: boolean;
+    showDate: boolean;
+    showPreview: boolean;
+    showImage: boolean;
+    compactPaddingTotal: number;
+}
+
 export function getFileItemLayoutState({
+    isCompactMode = false,
     showDate,
     showPreview,
-    showImage,
     isPinned,
     hasPreviewContent,
     showFeatureImageArea,
     showExtensionBadgeThumbnail = false,
     hasVisiblePillRows
 }: {
+    isCompactMode?: boolean;
     showDate: boolean;
     showPreview: boolean;
-    showImage: boolean;
+    showImage?: boolean;
     isPinned: boolean;
     hasPreviewContent: boolean;
     showFeatureImageArea: boolean;
     showExtensionBadgeThumbnail?: boolean;
     hasVisiblePillRows: boolean;
 }): FileItemLayoutState {
-    const isCompactMode = isListPaneCompactMode({ showDate, showPreview, showImage });
     const hasImageTextArea = showFeatureImageArea && !showExtensionBadgeThumbnail;
     const isPinnedImageRow = isPinned && hasImageTextArea;
     const shouldReplaceEmptyPreviewWithPills = !hasPreviewContent && hasVisiblePillRows;
@@ -377,6 +385,37 @@ export function calculateNormalListFileRowHeightEstimate({
     return heights.basePadding + applyFeatureImageFloor(richContentHeight + pillRowsExtraHeight);
 }
 
+export function estimateFileRowHeight(inputs: FileRowHeightInputs, config: FileRowHeightConfig): number {
+    const { heights, titleRows, previewRows, compactPaddingTotal } = config;
+    const visiblePillRowCount = Math.max(0, inputs.visiblePillRowCount);
+    const layoutState = getFileItemLayoutState({
+        isCompactMode: config.isCompactMode,
+        showDate: config.showDate,
+        showPreview: config.showPreview,
+        isPinned: inputs.isPinned,
+        hasPreviewContent: inputs.hasPreviewContent,
+        showFeatureImageArea: inputs.showFeatureImageArea,
+        showExtensionBadgeThumbnail: inputs.showExtensionBadgeThumbnail,
+        hasVisiblePillRows: visiblePillRowCount > 0
+    });
+
+    if (layoutState.isCompactMode) {
+        const textContentHeight = heights.titleLineHeight * titleRows + heights.tagRowHeight * visiblePillRowCount;
+        return compactPaddingTotal + textContentHeight;
+    }
+
+    return calculateNormalListFileRowHeightEstimate({
+        heights,
+        titleRows,
+        previewRows: inputs.isPinned ? 1 : previewRows,
+        layoutState,
+        showFeatureImageArea: inputs.showFeatureImageArea,
+        showExtensionBadgeThumbnail: inputs.showExtensionBadgeThumbnail,
+        showParentFolderLine: inputs.showParentFolderLine,
+        visiblePillRowCount
+    });
+}
+
 export function shouldShowFileItemParentFolderLine({
     showParentFolder,
     isPinned,
@@ -396,7 +435,7 @@ export function shouldShowFileItemParentFolderLine({
         return false;
     }
 
-    if (selectionType === 'tag') {
+    if (selectionType === 'tag' || selectionType === 'property') {
         return true;
     }
 
@@ -431,7 +470,7 @@ export function shouldShowFeatureImageArea({
         return true;
     }
 
-    if (isImageFile(file)) {
+    if (isRasterImageFile(file)) {
         return true;
     }
 
@@ -551,24 +590,26 @@ function getVisibleFrontmatterPropertySummary({
 }
 
 export function getPropertyRowCount({
-    showWordCountProperty,
+    showTextCountProperty,
     showFileProperties,
     showPropertiesOnSeparateRows,
     showFilePropertiesInCompactMode,
     isCompactMode,
     file,
     wordCount,
+    characterCount,
     properties,
     visiblePropertyKeys,
     hiddenPropertyValueNodeId
 }: {
-    showWordCountProperty: boolean;
+    showTextCountProperty: boolean;
     showFileProperties: boolean;
     showPropertiesOnSeparateRows: boolean;
     showFilePropertiesInCompactMode: boolean;
     isCompactMode: boolean;
     file: TFile | null;
     wordCount: FileData['wordCount'] | undefined;
+    characterCount: FileData['characterCountWithSpaces'] | undefined;
     properties: FileData['properties'] | undefined;
     visiblePropertyKeys?: ReadonlySet<string>;
     hiddenPropertyValueNodeId?: string | null;
@@ -583,7 +624,9 @@ export function getPropertyRowCount({
         return 0;
     }
 
-    const wordCountEnabled = showWordCountProperty && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const wordCountEnabled = showTextCountProperty && typeof wordCount === 'number' && Number.isFinite(wordCount) && wordCount > 0;
+    const characterCountEnabled =
+        showTextCountProperty && typeof characterCount === 'number' && Number.isFinite(characterCount) && characterCount > 0;
     const propertySummary = showFileProperties
         ? getVisibleFrontmatterPropertySummary({
               properties,
@@ -592,11 +635,11 @@ export function getPropertyRowCount({
           })
         : EMPTY_VISIBLE_FRONTMATTER_PROPERTY_SUMMARY;
 
-    if (!wordCountEnabled && !propertySummary.hasVisiblePills) {
+    if (!wordCountEnabled && !characterCountEnabled && !propertySummary.hasVisiblePills) {
         return 0;
     }
 
-    const wordCountRowCount = wordCountEnabled ? 1 : 0;
+    const textCountRowCount = wordCountEnabled || characterCountEnabled ? 1 : 0;
 
     let frontmatterPropertyRowCount = 0;
     if (!showPropertiesOnSeparateRows) {
@@ -606,12 +649,12 @@ export function getPropertyRowCount({
     }
 
     if (frontmatterPropertyRowCount === 0) {
-        return wordCountRowCount;
+        return textCountRowCount;
     }
 
     if (!showPropertiesOnSeparateRows) {
-        return 1 + wordCountRowCount;
+        return 1 + textCountRowCount;
     }
 
-    return frontmatterPropertyRowCount + wordCountRowCount;
+    return frontmatterPropertyRowCount + textCountRowCount;
 }

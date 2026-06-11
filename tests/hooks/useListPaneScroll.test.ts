@@ -16,9 +16,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { describe, expect, it } from 'vitest';
-import type { FileContentChange } from '../../src/storage/IndexedDBStorage';
-import { isListRowHeightAffectingContentChange } from '../../src/hooks/useListPaneScroll';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { App, TFile } from 'obsidian';
+import { ItemType, ListPaneItemType } from '../../src/types';
+import type { ListPaneItem } from '../../src/types/virtualization';
+import { getListPaneMeasurements } from '../../src/utils/listPaneMeasurements';
+import { createHiddenTagVisibility } from '../../src/utils/tagPrefixMatcher';
+import type { FileContentChange, IndexedDBStorage } from '../../src/storage/IndexedDBStorage';
+import {
+    createRemeasureScheduler,
+    isListRowHeightAffectingContentChange,
+    type ListRowHeightAffectingContentChangeConfig,
+    resolveListFileRowHeightInputs,
+    type ListFileRowSizingConfig
+} from '../../src/hooks/useListPaneScroll';
+import { createTestTFile } from '../utils/createTestTFile';
 
 function createContentChange(patch: Partial<FileContentChange>): FileContentChange {
     return {
@@ -28,27 +40,401 @@ function createContentChange(patch: Partial<FileContentChange>): FileContentChan
     };
 }
 
+function createFileItem(file: TFile, overrides: Partial<ListPaneItem> = {}): ListPaneItem {
+    return {
+        type: ListPaneItemType.FILE,
+        data: file,
+        key: file.path,
+        hasTags: false,
+        ...overrides
+    };
+}
+
+function createRowSizingConfig(overrides: Partial<ListFileRowSizingConfig> = {}): ListFileRowSizingConfig {
+    const showPreview = overrides.showPreview ?? true;
+    const showImage = overrides.showImage ?? false;
+
+    return {
+        heights: getListPaneMeasurements(false),
+        titleRows: 1,
+        previewRows: 3,
+        showDate: true,
+        showPreview,
+        showImage,
+        compactPaddingTotal: 18,
+        isCompactMode: false,
+        tagsBaseEnabled: false,
+        frontmatterPropertyRowsPossible: false,
+        propertyRowsPossible: false,
+        showTextCountProperty: false,
+        showWordCountProperty: false,
+        showCharacterCountProperty: false,
+        showFileProperties: false,
+        showPropertiesOnSeparateRows: false,
+        showFilePropertiesInCompactMode: false,
+        characterCountSpaces: 'include',
+        showParentFolder: false,
+        selectionType: ItemType.FOLDER,
+        includeDescendantNotes: false,
+        selectedTagToHide: null,
+        selectedPropertyValueNodeIdToHide: null,
+        hiddenTagVisibility: createHiddenTagVisibility([], false),
+        visiblePropertyKeys: new Set(),
+        themeMode: 'light',
+        ...overrides
+    };
+}
+
+function createDb(record: unknown = null) {
+    return {
+        getFile: vi.fn(() => record)
+    };
+}
+
+function installAnimationFrameStub() {
+    let nextFrameId = 1;
+    const callbacks = new Map<number, FrameRequestCallback>();
+    const requestAnimationFrame = vi.fn((callback: FrameRequestCallback): number => {
+        const frameId = nextFrameId;
+        nextFrameId += 1;
+        callbacks.set(frameId, callback);
+        return frameId;
+    });
+    const cancelAnimationFrame = vi.fn((frameId: number): void => {
+        callbacks.delete(frameId);
+    });
+
+    vi.stubGlobal('window', {
+        requestAnimationFrame,
+        cancelAnimationFrame
+    });
+
+    return {
+        requestAnimationFrame,
+        cancelAnimationFrame,
+        runNextFrame(): boolean {
+            const next = callbacks.entries().next();
+            if (next.done) {
+                return false;
+            }
+
+            const [frameId, callback] = next.value;
+            callbacks.delete(frameId);
+            callback(0);
+            return true;
+        }
+    };
+}
+
+afterEach(() => {
+    vi.unstubAllGlobals();
+});
+
 describe('isListRowHeightAffectingContentChange', () => {
+    function createHeightChangeConfig(
+        overrides: Partial<ListRowHeightAffectingContentChangeConfig> = {}
+    ): ListRowHeightAffectingContentChangeConfig {
+        return {
+            showPreview: true,
+            showImage: true,
+            tagsBaseEnabled: true,
+            frontmatterPropertyRowsPossible: true,
+            showWordCountProperty: true,
+            showCharacterCountProperty: true,
+            characterCountSpaces: 'include',
+            ...overrides
+        };
+    }
+
     it('detects content fields that can change estimated list row height', () => {
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: 'Preview' } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageKey: 'key' } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageStatus: 'has' } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { tags: ['work'] } }))).toBe(true);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { wordCount: 123 } }))).toBe(true);
+        const config = createHeightChangeConfig({
+            characterCountSpaces: 'exclude'
+        });
+
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'has' } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'none' } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageKey: 'key' } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageStatus: 'has' } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { tags: ['work'] } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { wordCount: 123 } }), config)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithoutSpaces: 400 } }), config)).toBe(
+            true
+        );
+    });
+
+    it('ignores content fields disabled by the active row sizing config', () => {
+        const config = createHeightChangeConfig({
+            showPreview: false,
+            showImage: false,
+            tagsBaseEnabled: false,
+            frontmatterPropertyRowsPossible: false,
+            showWordCountProperty: false,
+            showCharacterCountProperty: false
+        });
+
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { previewStatus: 'has' } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageKey: 'key' } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { featureImageStatus: 'has' } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { tags: ['work'] } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { wordCount: 123 } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithSpaces: 456 } }), config)).toBe(
+            false
+        );
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { characterCountWithoutSpaces: 400 } }), config)).toBe(
+            false
+        );
+    });
+
+    it('ignores property changes when only text-count property rows can be shown', () => {
+        const config = createHeightChangeConfig({
+            frontmatterPropertyRowsPossible: false
+        });
+
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { properties: [] } }), config)).toBe(false);
+    });
+
+    it('uses the selected character count variant when deciding whether to remeasure', () => {
+        expect(
+            isListRowHeightAffectingContentChange(
+                createContentChange({ changes: { characterCountWithSpaces: 456 } }),
+                createHeightChangeConfig({ characterCountSpaces: 'include' })
+            )
+        ).toBe(true);
+        expect(
+            isListRowHeightAffectingContentChange(
+                createContentChange({ changes: { characterCountWithoutSpaces: 400 } }),
+                createHeightChangeConfig({ characterCountSpaces: 'include' })
+            )
+        ).toBe(false);
+        expect(
+            isListRowHeightAffectingContentChange(
+                createContentChange({ changes: { characterCountWithSpaces: 456 } }),
+                createHeightChangeConfig({ characterCountSpaces: 'exclude' })
+            )
+        ).toBe(false);
+        expect(
+            isListRowHeightAffectingContentChange(
+                createContentChange({ changes: { characterCountWithoutSpaces: 400 } }),
+                createHeightChangeConfig({ characterCountSpaces: 'exclude' })
+            )
+        ).toBe(true);
     });
 
     it('ignores content fields that do not change estimated row height', () => {
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskTotal: 4 } }))).toBe(false);
-        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskUnfinished: 2 } }))).toBe(false);
+        const config = createHeightChangeConfig();
+
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: 'Preview' } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { preview: null } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskTotal: 4 } }), config)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(createContentChange({ changes: { taskUnfinished: 2 } }), config)).toBe(false);
         expect(
             isListRowHeightAffectingContentChange(
                 createContentChange({
                     changes: { metadata: { name: 'Daily note', icon: 'lucide-star', color: '#ff0000', hidden: true } },
                     metadataHiddenChanged: true,
                     metadataNameChanged: true
-                })
+                }),
+                config
             )
         ).toBe(false);
+    });
+});
+
+describe('resolveListFileRowHeightInputs', () => {
+    it('skips db and drawing metadata reads when row features are disabled', () => {
+        const app = new App();
+        const getFileCache = vi.fn(() => null);
+        app.metadataCache.getFileCache = getFileCache;
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb();
+        const hasPreview = vi.fn(() => true);
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview,
+            item: createFileItem(file),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                showImage: false,
+                tagsBaseEnabled: false,
+                propertyRowsPossible: false
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(0);
+        expect(inputs.showFeatureImageArea).toBe(false);
+        expect(db.getFile).not.toHaveBeenCalled();
+        expect(hasPreview).not.toHaveBeenCalled();
+        expect(getFileCache).not.toHaveBeenCalled();
+    });
+
+    it('reads drawing metadata only when image rows are enabled', () => {
+        const app = new App();
+        const getFileCache = vi.fn(() => null);
+        app.metadataCache.getFileCache = getFileCache;
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({ featureImageStatus: 'none' });
+
+        resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file),
+            file,
+            config: createRowSizingConfig({
+                showImage: true
+            })
+        });
+
+        expect(db.getFile).toHaveBeenCalledWith(file.path);
+        expect(getFileCache).toHaveBeenCalledWith(file);
+    });
+
+    it('uses item tag presence without reading the file record when no selected tag is hidden', () => {
+        const app = new App();
+        const getFileCache = vi.fn(() => null);
+        app.metadataCache.getFileCache = getFileCache;
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({ tags: ['work'] });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file, { hasTags: true }),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                tagsBaseEnabled: true,
+                selectedTagToHide: null
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(1);
+        expect(db.getFile).not.toHaveBeenCalled();
+        expect(getFileCache).not.toHaveBeenCalled();
+    });
+
+    it('reads live tags when selected navigation pills can hide the only tag row', () => {
+        const app = new App();
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({ tags: ['work', 'project'] });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file, { hasTags: true }),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                tagsBaseEnabled: true,
+                selectedTagToHide: 'work'
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(1);
+        expect(db.getFile).toHaveBeenCalledWith(file.path);
+    });
+
+    it('skips db reads when frontmatter properties are enabled without visible list property keys', () => {
+        const app = new App();
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({
+            properties: [{ fieldKey: 'status', value: 'active', valueKind: 'text' }]
+        });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                showFileProperties: true,
+                visiblePropertyKeys: new Set(),
+                propertyRowsPossible: false
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(0);
+        expect(db.getFile).not.toHaveBeenCalled();
+    });
+
+    it('reads the file record when visible property rows can affect height', () => {
+        const app = new App();
+        const file = createTestTFile('Notes/Daily.md');
+        const db = createDb({
+            properties: [{ fieldKey: 'status', value: 'active', valueKind: 'text' }]
+        });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => false,
+            item: createFileItem(file),
+            file,
+            config: createRowSizingConfig({
+                showPreview: false,
+                propertyRowsPossible: true,
+                showFileProperties: true,
+                visiblePropertyKeys: new Set(['status'])
+            })
+        });
+
+        expect(inputs.visiblePillRowCount).toBe(1);
+        expect(db.getFile).toHaveBeenCalledWith(file.path);
+    });
+});
+
+describe('createRemeasureScheduler', () => {
+    it('coalesces multiple schedule calls into one animation frame measure', () => {
+        const animationFrameStub = installAnimationFrameStub();
+        const measure = vi.fn();
+        const scheduler = createRemeasureScheduler(measure);
+
+        scheduler.schedule();
+        scheduler.schedule();
+        scheduler.schedule();
+
+        expect(animationFrameStub.requestAnimationFrame).toHaveBeenCalledTimes(1);
+        expect(measure).not.toHaveBeenCalled();
+
+        expect(animationFrameStub.runNextFrame()).toBe(true);
+
+        expect(measure).toHaveBeenCalledTimes(1);
+        expect(animationFrameStub.runNextFrame()).toBe(false);
+    });
+
+    it('schedules a new measure after the pending frame runs', () => {
+        const animationFrameStub = installAnimationFrameStub();
+        const measure = vi.fn();
+        const scheduler = createRemeasureScheduler(measure);
+
+        scheduler.schedule();
+        animationFrameStub.runNextFrame();
+        scheduler.schedule();
+        animationFrameStub.runNextFrame();
+
+        expect(animationFrameStub.requestAnimationFrame).toHaveBeenCalledTimes(2);
+        expect(measure).toHaveBeenCalledTimes(2);
+    });
+
+    it('cancels a pending measure before the animation frame runs', () => {
+        const animationFrameStub = installAnimationFrameStub();
+        const measure = vi.fn();
+        const scheduler = createRemeasureScheduler(measure);
+
+        scheduler.schedule();
+        scheduler.cancel();
+
+        expect(animationFrameStub.cancelAnimationFrame).toHaveBeenCalledWith(1);
+        expect(animationFrameStub.runNextFrame()).toBe(false);
+        expect(measure).not.toHaveBeenCalled();
     });
 });

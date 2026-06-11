@@ -17,7 +17,7 @@
  */
 
 import { Platform } from 'obsidian';
-import type { FileOpenContext, MultiSelectModifier } from '../settings/types';
+import type { FileOpenContext, FolderNoteOpenLocation, MultiSelectModifier } from '../settings/types';
 
 interface KeyboardOpenContextSettings {
     shiftEnterOpenContext: FileOpenContext;
@@ -81,13 +81,17 @@ export function isModifierArrowReorderShortcut(event: KeyboardEvent, multiSelect
 
 export function resolveFolderNoteClickOpenContext(
     event: CmdCtrlEventState,
-    openFolderNotesInNewTab: boolean,
+    folderNoteOpenLocation: FolderNoteOpenLocation,
     multiSelectModifier: MultiSelectModifier,
     isMobile: boolean
-): 'tab' | null {
+): 'tab' | 'right-sidebar' | null {
     // Explicit setting takes precedence over modifier-driven behavior.
-    if (openFolderNotesInNewTab) {
+    if (folderNoteOpenLocation === 'new-tab') {
         return 'tab';
+    }
+
+    if (folderNoteOpenLocation === 'right-sidebar') {
+        return 'right-sidebar';
     }
 
     // Folder note click-to-tab modifier is desktop-only and tied to optionAlt mode.
@@ -96,4 +100,16 @@ export function resolveFolderNoteClickOpenContext(
     }
 
     return isCmdCtrlModifierPressed(event) ? 'tab' : null;
+}
+
+export function resolveFolderNoteDefaultOpenContext(folderNoteOpenLocation: FolderNoteOpenLocation): 'tab' | 'right-sidebar' | null {
+    if (folderNoteOpenLocation === 'new-tab') {
+        return 'tab';
+    }
+
+    if (folderNoteOpenLocation === 'right-sidebar') {
+        return 'right-sidebar';
+    }
+
+    return null;
 }

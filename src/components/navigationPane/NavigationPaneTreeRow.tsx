@@ -33,6 +33,7 @@ import { TagTreeItem } from '../TagTreeItem';
 import { VirtualFolderComponent, type VirtualFolderTrailingAction } from '../VirtualFolderItem';
 import type { NavigationPaneRowProps } from './NavigationPaneItemRenderer.types';
 import { getNavigationItemSearchMatch, isNavigationItemSelected } from './navigationPaneItemState';
+import { getNavigationItemRenderKey } from '../../utils/navigationIndex';
 
 export function NavigationPaneTreeRow({ item, context, adjacentFilledClassName }: NavigationPaneRowProps) {
     const {
@@ -62,7 +63,7 @@ export function NavigationPaneTreeRow({ item, context, adjacentFilledClassName }
         case NavigationPaneItemType.FOLDER: {
             const folderPath = item.data.path;
             const countInfo = folderCounts.get(folderPath);
-            const indentGuideLevels = indentGuideLevelsByKey.get(item.key);
+            const indentGuideLevels = indentGuideLevelsByKey.get(getNavigationItemRenderKey(item));
             const shouldHideFolderSeparatorActions =
                 shouldPinShortcuts && firstInlineFolderPath !== null && folderPath === firstInlineFolderPath;
 
@@ -105,7 +106,7 @@ export function NavigationPaneTreeRow({ item, context, adjacentFilledClassName }
 
         case NavigationPaneItemType.VIRTUAL_FOLDER: {
             const virtualFolder = item.data;
-            const indentGuideLevels = indentGuideLevelsByKey.get(item.key);
+            const indentGuideLevels = indentGuideLevelsByKey.get(getNavigationItemRenderKey(item));
             const isShortcutsGroup = virtualFolder.id === SHORTCUTS_VIRTUAL_FOLDER_ID;
             const isRecentNotesGroup = virtualFolder.id === RECENT_NOTES_VIRTUAL_FOLDER_ID;
             const hasChildren = item.hasChildren ?? false;
@@ -168,6 +169,7 @@ export function NavigationPaneTreeRow({ item, context, adjacentFilledClassName }
                     hasChildren={hasChildren}
                     isSelected={Boolean(isSelected)}
                     showFileCount={showFileCount}
+                    showCountLeader={!isShortcutsGroup && !isRecentNotesGroup}
                     countInfo={collectionCountInfo}
                     searchMatch={collectionSearchMatch}
                     trailingAction={trailingAction}
@@ -219,7 +221,7 @@ export function NavigationPaneTreeRow({ item, context, adjacentFilledClassName }
         case NavigationPaneItemType.TAG:
         case NavigationPaneItemType.UNTAGGED: {
             const tagNode = item.data;
-            const indentGuideLevels = indentGuideLevelsByKey.get(item.key);
+            const indentGuideLevels = indentGuideLevelsByKey.get(getNavigationItemRenderKey(item));
             const searchMatch = getNavigationItemSearchMatch(item, searchHighlights);
             const inclusionOperator = searchMatch === 'include' ? searchHighlights.getTagInclusionOperator(tagNode.path) : undefined;
 
@@ -261,7 +263,7 @@ export function NavigationPaneTreeRow({ item, context, adjacentFilledClassName }
         case NavigationPaneItemType.PROPERTY_KEY:
         case NavigationPaneItemType.PROPERTY_VALUE: {
             const propertyNode = item.data;
-            const indentGuideLevels = indentGuideLevelsByKey.get(item.key);
+            const indentGuideLevels = indentGuideLevelsByKey.get(getNavigationItemRenderKey(item));
             const searchMatch = getNavigationItemSearchMatch(item, searchHighlights);
             const inclusionOperator =
                 searchMatch === 'include' ? searchHighlights.getPropertyInclusionOperator(propertyNode.id) : undefined;

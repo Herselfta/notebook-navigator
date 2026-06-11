@@ -19,13 +19,47 @@
 import { describe, expect, it } from 'vitest';
 import { App, TFile } from 'obsidian';
 import {
+    countCharactersForNoteProperty,
     getCachedWordCountTargetFromFrontmatter,
+    getObsidianTextCountStartIndex,
     getWordCountDisplayText,
     getWordCountTargetFromProperties
 } from '../../src/utils/wordCountUtils';
 import { createTestTFile } from './createTestTFile';
 
 describe('wordCountUtils', () => {
+    it('counts characters with and without whitespace after frontmatter', () => {
+        const content = '---\ntitle: Draft\n---\nHi there\n🙂';
+        const bodyStartIndex = content.indexOf('Hi');
+
+        expect(countCharactersForNoteProperty(content, bodyStartIndex)).toEqual({
+            withSpaces: 11,
+            withoutSpaces: 9
+        });
+    });
+
+    it('uses Obsidian frontmatter slicing for text counts', () => {
+        const content = '---\ntitle: Draft\n---\n\nBody';
+        const startIndex = getObsidianTextCountStartIndex(content);
+
+        expect(content.slice(startIndex)).toBe('\nBody');
+        expect(countCharactersForNoteProperty(content, startIndex)).toEqual({
+            withSpaces: 5,
+            withoutSpaces: 4
+        });
+    });
+
+    it('keeps the blank line after frontmatter in character counts', () => {
+        const content = '---\ntitle: Draft\n---\n\nA B';
+        const startIndex = getObsidianTextCountStartIndex(content);
+
+        expect(content.slice(startIndex)).toBe('\nA B');
+        expect(countCharactersForNoteProperty(content, startIndex)).toEqual({
+            withSpaces: 4,
+            withoutSpaces: 2
+        });
+    });
+
     it('reads the configured target property case-insensitively', () => {
         const target = getWordCountTargetFromProperties(
             [

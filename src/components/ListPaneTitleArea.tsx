@@ -31,7 +31,7 @@ interface ListPaneTitleAreaProps {
 }
 
 export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
-    const { app, isMobile } = useServices();
+    const { app, isMobile, plugin } = useServices();
     const commandQueue = useCommandQueue();
     const settings = useSettingsState();
     const selectionState = useSelectionState();
@@ -77,7 +77,7 @@ export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
 
             const openContext = resolveFolderNoteClickOpenContext(
                 event,
-                settings.openFolderNotesInNewTab,
+                settings.folderNoteOpenLocation,
                 settings.multiSelectModifier,
                 isMobile
             );
@@ -88,11 +88,21 @@ export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
                     commandQueue,
                     folder: selectedFolder,
                     folderNote: selectedFolderNote,
-                    context: openContext
+                    context: openContext,
+                    openInRightSidebar: folderNote => plugin.openFolderNoteInRightSidebar(folderNote)
                 })
             );
         },
-        [selectedFolder, selectedFolderNote, settings.openFolderNotesInNewTab, settings.multiSelectModifier, isMobile, app, commandQueue]
+        [
+            selectedFolder,
+            selectedFolderNote,
+            settings.folderNoteOpenLocation,
+            settings.multiSelectModifier,
+            isMobile,
+            app,
+            commandQueue,
+            plugin
+        ]
     );
 
     const handleFolderNoteMouseDown = useCallback(

@@ -149,8 +149,13 @@ export class PreviewTextCoordinator {
             return;
         }
 
+        const previousPreviewStatus = existingRecord.previewStatus;
         this.cache.updateFileContent(newPath, { previewText: cachedPreviewText, previewStatus: 'has' });
-        this.emitChanges([{ path: newPath, changes: { preview: cachedPreviewText }, changeType: 'content' }]);
+        const changes: FileContentChange['changes'] = { preview: cachedPreviewText };
+        if (previousPreviewStatus !== 'has') {
+            changes.previewStatus = 'has';
+        }
+        this.emitChanges([{ path: newPath, changes, changeType: 'content' }]);
     }
 
     async deletePreviewText(path: string): Promise<void> {
@@ -354,8 +359,13 @@ export class PreviewTextCoordinator {
 
             if (this.cache.isReady()) {
                 if (movedPreviewText && movedPreviewText.length > 0) {
+                    const previousPreviewStatus = this.cache.getFile(newPath)?.previewStatus ?? null;
                     this.cache.updateFileContent(newPath, { previewText: movedPreviewText, previewStatus: 'has' });
-                    this.emitChanges([{ path: newPath, changes: { preview: movedPreviewText }, changeType: 'content' }]);
+                    const changes: FileContentChange['changes'] = { preview: movedPreviewText };
+                    if (previousPreviewStatus !== null && previousPreviewStatus !== 'has') {
+                        changes.previewStatus = 'has';
+                    }
+                    this.emitChanges([{ path: newPath, changes, changeType: 'content' }]);
 
                     try {
                         await this.repairPreviewStatusRecords([{ path: newPath, previewStatus: 'has' }]);
@@ -369,7 +379,13 @@ export class PreviewTextCoordinator {
                     if (file && file.previewStatus === 'has') {
                         const nextPreviewStatus = getDefaultPreviewStatusForPath(newPath);
                         this.cache.updateFileContent(newPath, { previewText: '', previewStatus: nextPreviewStatus });
-                        this.emitChanges([{ path: newPath, changes: { preview: null }, changeType: 'content' }]);
+                        this.emitChanges([
+                            {
+                                path: newPath,
+                                changes: { preview: null, previewStatus: nextPreviewStatus },
+                                changeType: 'content'
+                            }
+                        ]);
                         try {
                             await this.repairPreviewStatusRecords([{ path: newPath, previewStatus: nextPreviewStatus }]);
                         } catch (error: unknown) {
@@ -965,7 +981,7 @@ export class PreviewTextCoordinator {
                     const nextPreviewStatus = getDefaultPreviewStatusForPath(path);
                     this.cache.updateFileContent(path, { previewText: '', previewStatus: nextPreviewStatus });
                     previewStatusRepairs.push({ path, previewStatus: nextPreviewStatus });
-                    changes.push({ path, changes: { preview: null }, changeType: 'content' });
+                    changes.push({ path, changes: { preview: null, previewStatus: nextPreviewStatus }, changeType: 'content' });
                 }
 
                 this.previewLoadDeferred.get(path)?.resolve();

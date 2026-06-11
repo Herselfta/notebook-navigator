@@ -46,7 +46,7 @@ type MetadataUpdate = {
 };
 
 type MetadataAPIHost = {
-    getApp: () => { vault: { getFolderByPath: (path: string) => TFolder | null } };
+    getApp: () => { vault: { getFolderByPath: (path: string) => TFolder | null; getRoot: () => TFolder } };
     getPlugin: () => NotebookNavigatorPlugin;
     trigger: <T extends NotebookNavigatorEventType>(
         event: T,
@@ -254,6 +254,11 @@ export class MetadataAPI {
         return new Map(entries);
     }
 
+    private getFolderByPath(folderPath: string): TFolder | null {
+        const vault = this.api.getApp().vault;
+        return folderPath === '/' ? vault.getRoot() : vault.getFolderByPath(folderPath);
+    }
+
     /**
      * Update internal cache when settings change and trigger events
      * Called by the plugin when settings are modified
@@ -322,7 +327,7 @@ export class MetadataAPI {
 
         // Fire events for changed folders
         for (const folderPath of changedFolders) {
-            const folder = this.api.getApp().vault.getFolderByPath(folderPath);
+            const folder = this.getFolderByPath(folderPath);
             if (folder) {
                 const metadata = this.getFolderMeta(folder);
                 this.api.trigger('folder-changed', {
@@ -513,7 +518,7 @@ export class MetadataAPI {
 
     /** @internal */
     emitFolderChangedForPath(folderPath: string): void {
-        const folder = this.api.getApp().vault.getFolderByPath(folderPath);
+        const folder = this.getFolderByPath(folderPath);
         if (!folder) {
             return;
         }

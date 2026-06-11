@@ -65,7 +65,8 @@ export default class WorkspaceCoordinator {
             return shouldContinue() ? existingLeaf : null;
         }
 
-        const leaf = workspace.getRightLeaf(false);
+        // Split instead of reusing the current right sidebar leaf so file views stay intact.
+        const leaf = workspace.getRightLeaf(true) ?? workspace.getRightLeaf(false);
         if (!leaf) {
             return null;
         }

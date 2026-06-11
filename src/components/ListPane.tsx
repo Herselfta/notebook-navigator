@@ -87,6 +87,7 @@ import { getPropertyKeySet } from '../utils/vaultProfiles';
 import { DateUtils } from '../utils/dateUtils';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../hooks/useNavigatorReveal';
 import type { FileItemPillDecorationModel } from '../utils/fileItemPillDecoration';
+import type { FileItemPillOrderModel } from '../utils/fileItemPillOrder';
 import { compositeWithBase } from '../utils/colorUtils';
 import { runAsyncAction } from '../utils/async';
 import { getPinnedSectionCollapseKey } from '../utils/selectionUtils';
@@ -131,6 +132,7 @@ export interface ListPaneHandle {
     getIndexOfPath: (path: string) => number;
     virtualizer: Virtualizer<HTMLDivElement, Element> | null;
     scrollContainerRef: HTMLDivElement | null;
+    getOrderedFiles: () => TFile[];
     selectFile: (file: TFile, options?: SelectFileOptions) => void;
     selectAdjacentFile: (direction: 'next' | 'previous') => boolean;
     modifySearchWithTag: (tag: string, operator: InclusionOperator, options?: SearchQueryUpdateOptions) => void;
@@ -163,6 +165,7 @@ interface ListPaneProps {
     onSearchTokensChange?: (state: SearchNavFilterState) => void;
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
+    fileItemPillOrderModel: FileItemPillOrderModel;
     onNavigateToFolder: (folderPath: string, options?: NavigateToFolderOptions) => void;
     onRevealTag: (tagPath: string, options?: RevealTagOptions) => void;
     onRevealProperty: (propertyNodeId: string, options?: RevealPropertyOptions) => boolean;
@@ -268,7 +271,14 @@ function ListPaneTitleChrome({
 export const ListPane = React.memo(
     forwardRef<ListPaneHandle, ListPaneProps>(function ListPane(props, ref) {
         const { app, isMobile, plugin, fileSystemOps } = useServices();
-        const { onNavigateToFolder, onRevealTag, onRevealProperty, folderDecorationModel, fileItemPillDecorationModel } = props;
+        const {
+            onNavigateToFolder,
+            onRevealTag,
+            onRevealProperty,
+            folderDecorationModel,
+            fileItemPillDecorationModel,
+            fileItemPillOrderModel
+        } = props;
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
         const settings = useSettingsState();
@@ -305,6 +315,7 @@ export const ListPane = React.memo(
         const [hoveredFilePath, setHoveredFilePath] = useState<string | null>(null);
         const [manualSortEditState, setManualSortEditState] = useState<ManualSortEditState | null>(null);
         const [propertyKeyboardReorderState, setPropertyKeyboardReorderState] = useState<PropertyKeyboardReorderState | null>(null);
+        const hoverSyncFrameRef = useRef<number | null>(null);
         const manualSortEditSessionCounterRef = useRef(0);
         const manualSortEditSaveCounterRef = useRef(0);
         const propertyKeyboardReorderSaveCounterRef = useRef(0);
@@ -408,6 +419,7 @@ export const ListPane = React.memo(
         });
 
         const { selectionType, selectedFolder, selectedTag, selectedProperty, selectedFile } = selectionState;
+        const selectedFolderPath = selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
         const effectiveSortSpec = getEffectiveListSort(settings, selectionType, selectedFolder, selectedTag, selectedProperty);
         const effectiveSortOption = effectiveSortSpec.option;
         const effectivePropertySortKey = effectiveSortSpec.propertyKey.trim();
@@ -746,6 +758,24 @@ export const ListPane = React.memo(
             const nextHoveredFilePath = getHoveredFilePathAtPointer(scrollElement, hoverPointerClientPositionRef.current);
             setHoveredFilePath(previous => (previous === nextHoveredFilePath ? previous : nextHoveredFilePath));
         }, []);
+        const syncHoveredFilePathToPointerAfterPaint = React.useCallback(
+            (scrollElement: HTMLDivElement | null) => {
+                if (typeof window === 'undefined' || typeof window.requestAnimationFrame !== 'function') {
+                    syncHoveredFilePathToPointer(scrollElement);
+                    return;
+                }
+
+                if (hoverSyncFrameRef.current !== null) {
+                    window.cancelAnimationFrame(hoverSyncFrameRef.current);
+                }
+
+                hoverSyncFrameRef.current = window.requestAnimationFrame(() => {
+                    hoverSyncFrameRef.current = null;
+                    syncHoveredFilePathToPointer(scrollElement);
+                });
+            },
+            [syncHoveredFilePathToPointer]
+        );
         const handleVirtualizerScrollingChange = React.useCallback(
             (isScrolling: boolean, scrollElement: HTMLDivElement | null) => {
                 if (isScrolling) {
@@ -758,6 +788,24 @@ export const ListPane = React.memo(
                 setIsListScrolling(false);
             },
             [syncHoveredFilePathToPointer]
+        );
+        const handleScrollContainerVisibilityChange = React.useCallback(
+            (isContainerVisible: boolean, scrollElement: HTMLDivElement | null) => {
+                setIsListScrolling(false);
+
+                if (!isContainerVisible) {
+                    if (hoverSyncFrameRef.current !== null) {
+                        window.cancelAnimationFrame(hoverSyncFrameRef.current);
+                        hoverSyncFrameRef.current = null;
+                    }
+                    setHoveredFilePath(previous => (previous === null ? previous : null));
+                    return;
+                }
+
+                syncHoveredFilePathToPointer(scrollElement);
+                syncHoveredFilePathToPointerAfterPaint(scrollElement);
+            },
+            [syncHoveredFilePathToPointer, syncHoveredFilePathToPointerAfterPaint]
         );
         const visibleListPropertyKeySignature = useMemo(() => {
             if (visibleListPropertyKeys.size === 0) {
@@ -795,7 +843,8 @@ export const ListPane = React.memo(
                 hiddenTagVisibility,
                 scrollMargin: 0,
                 scrollPaddingEnd,
-                onVirtualizerScrollingChange: handleVirtualizerScrollingChange
+                onVirtualizerScrollingChange: handleVirtualizerScrollingChange,
+                onScrollContainerVisibilityChange: handleScrollContainerVisibilityChange
             });
 
         const prevCalendarOverlayVisibleRef = useRef<boolean>(shouldRenderCalendarOverlay);
@@ -844,6 +893,40 @@ export const ListPane = React.memo(
             []
         );
 
+        useEffect(() => {
+            if (isMobile) {
+                return;
+            }
+
+            const handleWindowMouseMove = (event: MouseEvent) => {
+                hoverPointerClientPositionRef.current = {
+                    clientX: event.clientX,
+                    clientY: event.clientY
+                };
+            };
+            const handleWindowMouseOut = (event: MouseEvent) => {
+                if (!event.relatedTarget) {
+                    hoverPointerClientPositionRef.current = null;
+                }
+            };
+
+            window.addEventListener('mousemove', handleWindowMouseMove, { passive: true });
+            window.addEventListener('mouseout', handleWindowMouseOut);
+            return () => {
+                window.removeEventListener('mousemove', handleWindowMouseMove);
+                window.removeEventListener('mouseout', handleWindowMouseOut);
+            };
+        }, [isMobile]);
+
+        useEffect(() => {
+            return () => {
+                if (hoverSyncFrameRef.current !== null) {
+                    window.cancelAnimationFrame(hoverSyncFrameRef.current);
+                    hoverSyncFrameRef.current = null;
+                }
+            };
+        }, []);
+
         useLayoutEffect(() => {
             if (isListScrolling) {
                 return;
@@ -858,10 +941,9 @@ export const ListPane = React.memo(
         }, [addNoteShortcut, removeShortcut]);
 
         // Attach context menu to empty areas in the list pane for file creation
-        useContextMenu(scrollContainerRef, { type: EMPTY_LIST_MENU_TYPE, item: selectedFolder ?? null });
+        useContextMenu(scrollContainerRef, { type: EMPTY_LIST_MENU_TYPE, item: selectedFolder ?? null, options: { orderedFiles } });
 
-        // Check if we're in compact mode
-        const isCompactMode = !appearanceSettings.showDate && !appearanceSettings.showPreview && !appearanceSettings.showImage;
+        const isCompactMode = appearanceSettings.mode === 'compact';
         const {
             selectFileFromList,
             selectAdjacentFile,
@@ -1209,6 +1291,7 @@ export const ListPane = React.memo(
                 getIndexOfPath: (path: string) => filePathToIndex.get(path) ?? -1,
                 virtualizer: rowVirtualizer,
                 scrollContainerRef: scrollContainerRef.current,
+                getOrderedFiles: () => orderedFiles,
                 // Allow parent components to trigger file selection programmatically
                 selectFile: selectFileFromList,
                 // Provide imperative adjacent navigation for command handlers
@@ -1226,6 +1309,7 @@ export const ListPane = React.memo(
             }),
             [
                 filePathToIndex,
+                orderedFiles,
                 rowVirtualizer,
                 scrollContainerRef,
                 toggleSearch,
@@ -1344,6 +1428,7 @@ export const ListPane = React.memo(
                             noteShortcutKeysByPath={noteShortcutKeysByPath}
                             folderDecorationModel={folderDecorationModel}
                             fileItemPillDecorationModel={fileItemPillDecorationModel}
+                            fileItemPillOrderModel={fileItemPillOrderModel}
                             getSolidBackground={getSolidBackground}
                             selectedFiles={selectionState.selectedFiles}
                             selectedFilePath={selectedFile?.path ?? null}
@@ -1370,6 +1455,7 @@ export const ListPane = React.memo(
                             onPinnedGroupHeaderToggle={handlePinnedGroupHeaderToggle}
                             onListGroupHeaderToggle={handleListGroupHeaderToggle}
                             selectionType={selectionType}
+                            selectedFolderPath={selectedFolderPath}
                             sortOption={effectiveSortOption}
                             searchHighlightQuery={searchHighlightQuery}
                             isFolderNavigation={selectionState.isFolderNavigation}
@@ -1395,6 +1481,7 @@ export const ListPane = React.memo(
                             onNavigateToFolder={onNavigateToFolder}
                             folderDecorationModel={folderDecorationModel}
                             fileItemPillDecorationModel={fileItemPillDecorationModel}
+                            fileItemPillOrderModel={fileItemPillOrderModel}
                             getSolidBackground={getSolidBackground}
                         />
                     )}

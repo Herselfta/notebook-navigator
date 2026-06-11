@@ -50,9 +50,11 @@ export interface FolderNavigationSourceState {
     rootFolderOrderMap: Map<string, number>;
     missingRootFolderPaths: string[];
     fileChangeVersion: number;
-    bumpFileChangeVersion: () => void;
     folderDisplayVersion: number;
     metadataDecorationVersion: number;
+    metadataVisibilityVersion: number;
+    tagDataVersion: number;
+    propertyDataVersion: number;
     getFolderSortName: (folder: TFolder) => string;
     folderExclusionByFolderNote: ((folder: TFolder) => boolean) | undefined;
     isFolderExcluded: (folderPath: string) => boolean;
@@ -193,6 +195,9 @@ export function useFolderNavigationSourceState({
     }, [metadataService]);
 
     const [metadataDecorationVersion, setMetadataDecorationVersion] = useState(0);
+    const [metadataVisibilityVersion, setMetadataVisibilityVersion] = useState(0);
+    const [tagDataVersion, setTagDataVersion] = useState(0);
+    const [propertyDataVersion, setPropertyDataVersion] = useState(0);
 
     useEffect(() => {
         const db = getDBInstance();
@@ -204,17 +209,39 @@ export function useFolderNavigationSourceState({
             true
         );
         const unsubscribe = db.onContentChange(changes => {
-            let hasMetadataChange = false;
+            let hasMetadataDecorationChange = false;
+            let hasMetadataVisibilityChange = false;
+            let hasTagDataChange = false;
+            let hasPropertyDataChange = false;
             let shouldRefreshFolderExclusions = false;
             const folderNotePathByParentPath = new Map<string, string | null>();
 
             for (const change of changes) {
-                if (change.changeType !== 'metadata' && change.changeType !== 'both') {
+                const hasTagChange = change.changes.tags !== undefined;
+                const hasPropertyChange = change.changes.properties !== undefined;
+                const hasMetadataVisibilityChangeForFile = change.metadataHiddenChanged === true;
+
+                if (change.metadataDecorationChanged === true) {
+                    hasMetadataDecorationChange = true;
+                }
+                if (hasMetadataVisibilityChangeForFile) {
+                    hasMetadataVisibilityChange = true;
+                }
+                if (hasTagChange) {
+                    hasTagDataChange = true;
+                }
+                if (hasPropertyChange) {
+                    hasPropertyDataChange = true;
+                }
+
+                if (!shouldEvaluateFolderNoteExclusions || shouldRefreshFolderExclusions) {
                     continue;
                 }
 
-                hasMetadataChange = true;
-                if (!shouldEvaluateFolderNoteExclusions || shouldRefreshFolderExclusions) {
+                const canAffectFolderNoteExclusion =
+                    (hiddenFilePropertyMatcher.hasCriteria && hasMetadataVisibilityChangeForFile) ||
+                    (hiddenFileTags.length > 0 && hasTagChange);
+                if (!canAffectFolderNoteExclusion) {
                     continue;
                 }
 
@@ -231,18 +258,27 @@ export function useFolderNavigationSourceState({
                 }
             }
 
-            if (hasMetadataChange) {
+            if (hasMetadataDecorationChange) {
                 setMetadataDecorationVersion(version => version + 1);
-                if (shouldRefreshFolderExclusions) {
-                    bumpFolderExclusionVersion();
-                }
+            }
+            if (hasMetadataVisibilityChange) {
+                setMetadataVisibilityVersion(version => version + 1);
+            }
+            if (hasTagDataChange) {
+                setTagDataVersion(version => version + 1);
+            }
+            if (hasPropertyDataChange) {
+                setPropertyDataVersion(version => version + 1);
+            }
+            if (shouldRefreshFolderExclusions) {
+                bumpFolderExclusionVersion();
             }
         });
         return () => {
             unsubscribe();
             bumpFolderExclusionVersion.cancel();
         };
-    }, [app, folderNoteSettings, shouldEvaluateFolderNoteExclusions]);
+    }, [app, folderNoteSettings, hiddenFilePropertyMatcher.hasCriteria, hiddenFileTags.length, shouldEvaluateFolderNoteExclusions]);
 
     const getFolderSortName = useMemo(() => {
         void folderDisplayNameVersion;
@@ -387,15 +423,16 @@ export function useFolderNavigationSourceState({
             rootFolderOrderMap,
             missingRootFolderPaths,
             fileChangeVersion,
-            bumpFileChangeVersion,
             folderDisplayVersion,
             metadataDecorationVersion,
+            metadataVisibilityVersion,
+            tagDataVersion,
+            propertyDataVersion,
             getFolderSortName,
             folderExclusionByFolderNote,
             isFolderExcluded
         }),
         [
-            bumpFileChangeVersion,
             folderExclusionByFolderNote,
             folderDisplayVersion,
             fileChangeVersion,
@@ -403,10 +440,13 @@ export function useFolderNavigationSourceState({
             hiddenFolders,
             isFolderExcluded,
             metadataDecorationVersion,
+            metadataVisibilityVersion,
             missingRootFolderPaths,
+            propertyDataVersion,
             rootFolders,
             rootFolderOrderMap,
-            rootLevelFolders
+            rootLevelFolders,
+            tagDataVersion
         ]
     );
 }

@@ -18,6 +18,7 @@
 
 import type { App } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../settings';
+import { showsWordCount } from '../settings/types';
 import type { PropertyItem } from '../storage/IndexedDBStorage';
 import { formatCommaSeparatedList, getCachedCommaSeparatedList } from './commaSeparatedListUtils';
 import { casefold } from './recordUtils';
@@ -65,7 +66,7 @@ function hasCustomGroupingAppearance(settings: NotebookNavigatorSettings): boole
 }
 
 function hasWordCountTargetPropertyConsumer(settings: NotebookNavigatorSettings): boolean {
-    return settings.showWordCount || (hasCustomGroupHeaderProperty(settings) && hasCustomGroupingAppearance(settings));
+    return showsWordCount(settings.textCountDisplay) || (hasCustomGroupHeaderProperty(settings) && hasCustomGroupingAppearance(settings));
 }
 
 export function hasPropertyFrontmatterFields(settings: NotebookNavigatorSettings): boolean {

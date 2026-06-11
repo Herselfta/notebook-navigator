@@ -50,8 +50,9 @@ import {
     type BackgroundMode,
     type DualPaneOrientation
 } from '../types';
-import { getSelectedPath, getFilesForSelection } from '../utils/selectionUtils';
+import { getSelectedPath, getFilesForSelection, orderFilesByReference } from '../utils/selectionUtils';
 import { normalizeNavigationPath } from '../utils/navigationIndex';
+import { createIndexMap } from '../utils/arrayUtils';
 import { deleteSelectedFiles } from '../utils/deleteOperations';
 import { localStorage } from '../utils/localStorage';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
@@ -63,6 +64,8 @@ import { normalizeTagPath } from '../utils/tagUtils';
 import { getTemplaterCreateNewNoteFromTemplate } from '../utils/templaterIntegration';
 import { normalizePropertyNodeId } from '../utils/propertyTree';
 import { collectFileMenuPropertyActions } from '../utils/propertyMenuActions';
+import { openMergeNotesModal } from '../utils/mergeNotesModal';
+import { getMarkdownFilesInOrder } from '../utils/noteMerge';
 import { useNavigatorScale } from '../hooks/useNavigatorScale';
 import { ListPane } from './ListPane';
 import type { ListPaneHandle } from './ListPane';
@@ -77,6 +80,8 @@ import { getFeatureImageDisplayMeasurements, getListPaneMeasurements } from '../
 import type { InclusionOperator } from '../utils/filterSearch';
 import { useFolderDecorationState } from '../hooks/useFolderDecorationState';
 import { useFileItemPillDecorationState } from '../hooks/useFileItemPillDecorationState';
+import { useSelectedFolderFileVersion } from '../hooks/useSelectedFolderFileVersion';
+import type { FileItemPillOrderModel } from '../utils/fileItemPillOrder';
 import { useNavigationPaneTreeSections } from '../hooks/navigationPane/data/useNavigationPaneTreeSections';
 import { useNavigationPaneSourceState } from '../hooks/navigationPane/data/useNavigationPaneSourceState';
 import type { SelectionHistoryEntry } from '../context/selection/types';
@@ -140,6 +145,7 @@ export interface NotebookNavigatorHandle {
     focusVisiblePane: () => void;
     focusNavigationPane: () => void;
     deleteSelectedFiles: () => void;
+    mergeSelectedFiles: () => Promise<void>;
     createNoteInSelectedFolder: (openInNewTab?: boolean) => Promise<void>;
     createNoteFromTemplateInSelectedFolder: () => Promise<void>;
     moveSelectedFiles: () => Promise<void>;
@@ -159,6 +165,7 @@ export interface NotebookNavigatorHandle {
     removeAllTagsFromSelectedFiles: () => Promise<void>;
     toggleSearch: () => void;
     triggerCollapse: () => void;
+    triggerSelectedItemCollapse: () => boolean;
     stopContentProcessing: () => void;
     rebuildCache: () => Promise<void>;
     selectNextFile: () => Promise<boolean>;
@@ -208,6 +215,26 @@ export const NotebookNavigatorComponent = React.memo(
         } = getNavigationPaneSizing(orientation);
         const selectionState = useSelectionState();
         const selectionDispatch = useSelectionDispatch();
+        const selectedFolderForFolderNoteSidebar = selectionState.selectionType === ItemType.FOLDER ? selectionState.selectedFolder : null;
+        const selectedFolderFileVersionForFolderNoteSidebar = useSelectedFolderFileVersion(
+            app.vault,
+            selectedFolderForFolderNoteSidebar,
+            settings.enableFolderNotes && settings.folderNoteOpenLocation === 'right-sidebar' && settings.showNearestFolderNoteInSidebar,
+            { includeAncestors: true }
+        );
+        useEffect(() => {
+            void selectedFolderFileVersionForFolderNoteSidebar;
+            runAsyncAction(() => plugin.syncFolderNoteSidebarToFolder(selectedFolderForFolderNoteSidebar));
+        }, [
+            plugin,
+            selectedFolderFileVersionForFolderNoteSidebar,
+            selectedFolderForFolderNoteSidebar,
+            settings.enableFolderNotes,
+            settings.folderNoteName,
+            settings.folderNoteNamePattern,
+            settings.folderNoteOpenLocation,
+            settings.showNearestFolderNoteInSidebar
+        ]);
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
         const {
@@ -863,6 +890,12 @@ export const NotebookNavigatorComponent = React.memo(
                 return selectedFiles;
             };
 
+            const getSelectedFilesInCurrentListOrder = (): TFile[] => {
+                const selectedFiles = getSelectedFiles();
+                const orderedFiles = listPaneRef.current?.getOrderedFiles() ?? [];
+                return orderFilesByReference(selectedFiles, orderedFiles);
+            };
+
             // Routes adjacent file selection requests through the list pane reference
             const navigateToAdjacentFile = (direction: 'next' | 'previous'): boolean => {
                 const listHandle = listPaneRef.current;
@@ -929,8 +962,28 @@ export const NotebookNavigatorComponent = React.memo(
                             selectionState,
                             selectionDispatch,
                             tagTreeService,
-                            propertyTreeService
+                            propertyTreeService,
+                            orderedFiles: listPaneRef.current?.getOrderedFiles() ?? undefined
                         });
+                    });
+                },
+                mergeSelectedFiles: async () => {
+                    const selectedFiles = getSelectedFilesInCurrentListOrder();
+                    const markdownFiles = getMarkdownFilesInOrder(selectedFiles);
+                    if (markdownFiles.length < 2) {
+                        showNotice(strings.fileSystem.notifications.mergeNotesRequireMultipleMarkdown, { variant: 'warning' });
+                        return;
+                    }
+
+                    const firstFile = markdownFiles[0];
+                    const outputFolder = firstFile.parent instanceof TFolder ? firstFile.parent : app.vault.getRoot();
+                    await openMergeNotesModal({
+                        app,
+                        commandQueue,
+                        fileSystemOps,
+                        files: markdownFiles,
+                        outputFolder,
+                        defaultOutputName: strings.modals.mergeNotes.outputNamePlaceholder
                     });
                 },
                 createNoteInSelectedFolder: async (openInNewTab = false) => {
@@ -1221,6 +1274,15 @@ export const NotebookNavigatorComponent = React.memo(
                     window.requestAnimationFrame(() => {
                         ensureSelectedNavigationItemVisible();
                     });
+                },
+                triggerSelectedItemCollapse: () => {
+                    const didToggle = navigationPaneRef.current?.triggerSelectedItemCollapse() ?? false;
+                    if (didToggle) {
+                        window.requestAnimationFrame(() => {
+                            ensureSelectedNavigationItemVisible();
+                        });
+                    }
+                    return didToggle;
                 }
             };
         }, [
@@ -1228,6 +1290,7 @@ export const NotebookNavigatorComponent = React.memo(
             revealFileInNearestFolder,
             selectionState,
             fileSystemOps,
+            commandQueue,
             selectionDispatch,
             navigateToFolder,
             navigateToTag,
@@ -1413,6 +1476,20 @@ export const NotebookNavigatorComponent = React.memo(
             includeDescendantNotes: uxPreferences.includeDescendantNotes,
             navRainbowState
         });
+        const fileItemPillOrderModel = useMemo<FileItemPillOrderModel>(
+            () => ({
+                tagTree: navigationSourceState.tagTreeForOrdering,
+                rootTagOrderMap: navigationSourceState.rootTagOrderMap,
+                tagComparator: navigationSourceState.tagComparator,
+                rootPropertyNavigationOrderMap: createIndexMap(navigationTreeSections.resolvedRootPropertyKeys)
+            }),
+            [
+                navigationTreeSections.resolvedRootPropertyKeys,
+                navigationSourceState.rootTagOrderMap,
+                navigationSourceState.tagComparator,
+                navigationSourceState.tagTreeForOrdering
+            ]
+        );
 
         return (
             <div className="nn-scale-wrapper" data-ui-scale={scaleWrapperDataAttr} style={scaleWrapperStyle}>
@@ -1423,6 +1500,7 @@ export const NotebookNavigatorComponent = React.memo(
                         uiState.singlePane ? (uiState.currentSinglePaneView === 'navigation' ? 'navigation' : 'files') : uiState.focusedPane
                     }
                     data-navigator-focused={isMobile ? 'true' : isNavigatorFocused}
+                    data-nav-count-leader-style={settings.navCountLeaderStyle}
                     tabIndex={-1}
                     onKeyDown={() => {
                         // Allow keyboard events to bubble up from child components
@@ -1462,6 +1540,7 @@ export const NotebookNavigatorComponent = React.memo(
                         rootContainerRef={containerRef}
                         folderDecorationModel={folderDecorationModel}
                         fileItemPillDecorationModel={fileItemPillDecorationModel}
+                        fileItemPillOrderModel={fileItemPillOrderModel}
                         onSearchTokensChange={handleSearchTokensChange}
                         onNavigateToFolder={navigateToFolder}
                         onRevealTag={revealTag}

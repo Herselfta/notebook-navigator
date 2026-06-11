@@ -21,6 +21,7 @@ import { NotebookNavigatorSettingTab, type NotebookNavigatorSettings } from './s
 import {
     LocalStorageKeys,
     NOTEBOOK_NAVIGATOR_CALENDAR_VIEW,
+    NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW,
     NOTEBOOK_NAVIGATOR_VIEW,
     STORAGE_KEYS,
     type DualPaneOrientation,
@@ -47,6 +48,7 @@ import type { NavigateToFolderOptions } from './hooks/useNavigatorReveal';
 import ReleaseCheckService, { type ReleaseUpdateNotice } from './services/ReleaseCheckService';
 import { NotebookNavigatorView } from './view/NotebookNavigatorView';
 import { NotebookNavigatorCalendarView } from './view/NotebookNavigatorCalendarView';
+import { FolderNoteSidebarPlaceholderView } from './view/FolderNoteSidebarPlaceholderView';
 import { localStorage } from './utils/localStorage';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API, NotebookNavigatorAPI } from './api/NotebookNavigatorAPI';
 import { initializeDatabase, shutdownDatabase } from './storage/fileOperations';
@@ -56,6 +58,7 @@ import { cloneCollapsedPinnedContextsRecord, sanitizeRecord } from './utils/reco
 import { runAsyncAction } from './utils/async';
 import WorkspaceCoordinator from './services/workspace/WorkspaceCoordinator';
 import HomepageController from './services/workspace/HomepageController';
+import { FolderNoteSidebarService } from './services/workspace/FolderNoteSidebarService';
 import registerNavigatorCommands from './services/commands/registerNavigatorCommands';
 import registerWorkspaceEvents from './services/workspace/registerWorkspaceEvents';
 import type { RevealFileOptions } from './hooks/useNavigatorReveal';
@@ -71,12 +74,18 @@ import {
     type SyncModeSettingId,
     type TagSortOrder
 } from './settings/types';
-import type { SettingsTabId } from './settings/tabs/SettingsTabContext';
 import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
 import { PluginSettingsController } from './services/settings/PluginSettingsController';
 import { PluginPreferencesController } from './services/settings/PluginPreferencesController';
-import { consumePendingPdfProcessingDiagnostic } from './services/content/pdf/pdfCrashDiagnostics';
+import { clearPendingPdfProcessingDiagnostic, consumePendingPdfProcessingDiagnostic } from './services/content/pdf/pdfCrashDiagnostics';
+import {
+    DebugLoggingService,
+    recordStartupDiagnostic,
+    recordStartupUserVisible,
+    setDebugLoggingService
+} from './services/diagnostics/DebugLoggingService';
 import { applyModifiedSettingsTransfer, createModifiedSettingsTransfer } from './settings/transfer';
+import { DEFAULT_SETTINGS } from './settings/defaultSettings';
 
 interface ObsidianSettingsModal {
     open(): void;
@@ -109,12 +118,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     tagTreeService: TagTreeService | null = null;
     propertyTreeService: PropertyTreeService | null = null;
     commandQueue: CommandQueueService | null = null;
+    public settings: NotebookNavigatorSettings = { ...DEFAULT_SETTINGS };
     fileSystemOps: FileSystemOperations | null = null;
     omnisearchService: OmnisearchService | null = null;
     externalIconController: ExternalIconProviderController | null = null;
     api: NotebookNavigatorAPI | null = null;
     recentNotesService: RecentNotesService | null = null;
     releaseCheckService: ReleaseCheckService | null = null;
+    debugLoggingService: DebugLoggingService | null = null;
     // Keys used for persisting UI state in browser localStorage
     keys: LocalStorageKeys = STORAGE_KEYS;
     // Map of callbacks to notify open React views when settings change
@@ -129,6 +140,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     private workspaceCoordinator: WorkspaceCoordinator | null = null;
     // Handles homepage file opening and startup behavior
     private homepageController: HomepageController | null = null;
+    private folderNoteSidebarService: FolderNoteSidebarService | null = null;
     private settingTab: NotebookNavigatorSettingTab | null = null;
     private pendingUpdateNotice: ReleaseUpdateNotice | null = null;
     private hasWorkspaceLayoutReady = false;
@@ -154,14 +166,6 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         refreshMatcherCachesIfNeeded: () => this.settingsController.refreshMatcherCachesIfNeeded()
     });
 
-    public get settings(): NotebookNavigatorSettings {
-        return this.settingsController.settings;
-    }
-
-    public set settings(settings: NotebookNavigatorSettings) {
-        this.settingsController.settings = settings;
-    }
-
     public getSyncMode(settingId: SyncModeSettingId): SettingSyncMode {
         return this.settingsController.getSyncMode(settingId);
     }
@@ -174,14 +178,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         return this.settingsController.isSynced(settingId);
     }
 
-    public openSettingsTab(tabId: SettingsTabId): boolean {
-        const settingTab = this.settingTab;
-        if (!settingTab) {
-            return false;
-        }
-
-        settingTab.selectTab(tabId);
-
+    public openSettings(): boolean {
         const settingsModal = getSettingsModal(this.app);
         if (!settingsModal) {
             return false;
@@ -190,10 +187,20 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         try {
             settingsModal.open();
             settingsModal.openTabById(this.manifest.id);
-            settingTab.selectTab(tabId, { focus: true });
             return true;
         } catch {
             return false;
+        }
+    }
+
+    public isDebugLoggingEnabled(): boolean {
+        return this.debugLoggingService?.isEnabled() ?? false;
+    }
+
+    public setDebugLoggingEnabled(enabled: boolean): void {
+        this.debugLoggingService?.setEnabled(enabled);
+        if (!enabled) {
+            clearPendingPdfProcessingDiagnostic();
         }
     }
 
@@ -247,7 +254,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      * Returns true if this is the first launch (no saved data)
      */
     async loadSettings(): Promise<boolean> {
-        return this.settingsController.loadSettings();
+        const isFirstLaunch = await this.settingsController.loadSettings();
+        this.settings = this.settingsController.settings;
+        return isFirstLaunch;
+    }
+
+    private replaceSettings(settings: NotebookNavigatorSettings): void {
+        this.settings = settings;
+        this.settingsController.settings = settings;
     }
 
     /**
@@ -333,6 +347,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      * Checks if the given file is open in the right sidebar
      */
     public isFileInRightSidebar(file: TFile): boolean {
+        if (this.folderNoteSidebarService?.isSuppressingSidebarOpen(file.path)) {
+            return true;
+        }
+
         if (!this.settings.autoRevealIgnoreRightSidebar) {
             return false;
         }
@@ -352,6 +370,16 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     async onload() {
         // Initialize localStorage before database so version checks work
         localStorage.init(this.app);
+        this.debugLoggingService = new DebugLoggingService(this.app, { pluginVersion: this.manifest.version });
+        setDebugLoggingService(this.debugLoggingService);
+        this.debugLoggingService.initialize();
+        if (!this.debugLoggingService.isEnabled()) {
+            clearPendingPdfProcessingDiagnostic();
+        }
+        recordStartupDiagnostic('onload.start', {
+            pluginVersion: this.manifest.version,
+            minAppVersion: this.manifest.minAppVersion
+        });
 
         if (typeof addIcon === 'function') {
             addIcon(NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG);
@@ -365,16 +393,25 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         const previewTextCacheMaxEntries = Platform.isMobile ? 10000 : 50000;
         // Limit the number of preview text paths processed per load flush.
         const previewLoadMaxBatch = Platform.isMobile ? 20 : 50;
+        recordStartupDiagnostic('database.init.scheduled', {
+            featureImageCacheMaxEntries,
+            previewTextCacheMaxEntries,
+            previewLoadMaxBatch
+        });
         runAsyncAction(
             async () => {
                 try {
+                    recordStartupDiagnostic('database.init.start');
                     await initializeDatabase(appId, { featureImageCacheMaxEntries, previewTextCacheMaxEntries, previewLoadMaxBatch });
+                    recordStartupDiagnostic('database.init.complete');
                 } catch (error: unknown) {
+                    recordStartupDiagnostic('database.init.failed', { error });
                     console.error('Failed to initialize database:', error);
                 }
             },
             {
                 onError: (error: unknown) => {
+                    recordStartupDiagnostic('database.init.failed', { error });
                     console.error('Failed to initialize database:', error);
                 }
             }
@@ -382,6 +419,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         // Load settings and check if this is first launch
         const isFirstLaunch = await this.loadSettings();
+        recordStartupDiagnostic('settings.loaded', { isFirstLaunch });
         this.preferencesController.syncMirrorsFromSettings();
         const storedLocalStorageVersion = this.settingsController.getStoredLocalStorageVersion();
         this.preferencesController.loadUXPreferences();
@@ -449,6 +487,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             () => this.propertyTreeService
         );
         this.commandQueue = new CommandQueueService();
+        this.folderNoteSidebarService = new FolderNoteSidebarService(this);
+        this.folderNoteSidebarService.start();
         this.fileSystemOps = new FileSystemOperations(
             this.app,
             () => this.tagTreeService,
@@ -471,6 +511,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this.api[INTERNAL_NOTEBOOK_NAVIGATOR_API].metadata.emitFolderChangedForPath(folderPath);
         });
         this.releaseCheckService = new ReleaseCheckService(this);
+        recordStartupDiagnostic('services.initialized');
 
         const iconService = getIconService();
         iconService.registerProvider(new VaultIconProvider(this.app));
@@ -519,6 +560,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.registerView(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, leaf => {
             return new NotebookNavigatorCalendarView(leaf, this);
         });
+        this.registerView(NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW, leaf => {
+            return new FolderNoteSidebarPlaceholderView(leaf);
+        });
 
         // Register commands
         registerNavigatorCommands(this);
@@ -536,13 +580,16 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         this.app.workspace.onLayoutReady(() => {
             this.hasWorkspaceLayoutReady = true;
+            recordStartupDiagnostic('layout.ready');
             // Execute startup tasks asynchronously to avoid blocking the layout
             runAsyncAction(async () => {
+                recordStartupDiagnostic('layout.readyTasks.start');
                 if (this.isUnloading) {
                     return;
                 }
 
                 await this.homepageController?.handleWorkspaceReady({ shouldActivateOnStartup });
+                this.folderNoteSidebarService?.handleWorkspaceReady();
 
                 if (isFirstLaunch) {
                     const { WelcomeModal } = await import('./modals/WelcomeModal');
@@ -552,6 +599,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 // PDF_CRASH_DIAGNOSTICS: show the last unfinished mobile PDF path from the previous session.
                 const pendingPdfPath = consumePendingPdfProcessingDiagnostic();
                 if (pendingPdfPath) {
+                    this.debugLoggingService?.logReport('PDF processing from previous run', { path: pendingPdfPath });
                     const { InfoModal } = await import('./modals/InfoModal');
                     new InfoModal(this.app, {
                         title: 'PDF processing from previous run',
@@ -588,8 +636,11 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 if (this.settings.checkForUpdatesOnStart) {
                     runAsyncAction(() => this.runReleaseUpdateCheck());
                 }
+                recordStartupDiagnostic('layout.readyTasks.complete');
+                recordStartupUserVisible({ shouldActivateOnStartup });
             });
         });
+        recordStartupDiagnostic('onload.complete');
     }
 
     /**
@@ -613,6 +664,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
     public isShuttingDown(): boolean {
         return this.isUnloading;
+    }
+
+    public async openFolderNoteInRightSidebar(folderNote: TFile): Promise<void> {
+        await this.folderNoteSidebarService?.openFolderNote(folderNote);
+    }
+
+    public async syncFolderNoteSidebarToFolder(folder: TFolder | null): Promise<void> {
+        await this.folderNoteSidebarService?.syncToSelectedFolder(folder);
     }
 
     /**
@@ -1059,8 +1118,14 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     onunload() {
         this.initiateShutdown();
+        this.debugLoggingService?.dispose();
+        setDebugLoggingService(null);
+        this.debugLoggingService = null;
 
         this.preferencesController.dispose();
+
+        this.folderNoteSidebarService?.dispose();
+        this.folderNoteSidebarService = null;
 
         // Clear all listeners first to prevent any callbacks during cleanup
         this.settingsUpdateListeners.clear();
@@ -1118,7 +1183,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             throw new Error('Plugin is unloading');
         }
 
-        this.settings = applyModifiedSettingsTransfer(this.settings, transferData);
+        this.replaceSettings(applyModifiedSettingsTransfer(this.settings, transferData));
         this.settingsController.normalizeTagSettings();
         this.settingsController.normalizePropertySettings();
         this.settingsController.normalizeNavigationSeparatorSettings();

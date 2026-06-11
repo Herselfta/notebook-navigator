@@ -15,7 +15,6 @@
 .nn-stats-text {
     font-size: var(--font-ui-smaller);
     color: var(--nn-theme-foreground-muted);
-    text-align: center;
     line-height: 1.5;
 }
 
@@ -24,17 +23,4 @@
     border: none;
     padding: 0;
     margin-top: 0;
-}
-
-/* Advanced > Local cache: center text by removing the empty control column */
-.nn-local-cache-stats-setting .setting-item-control {
-    display: none;
-}
-
-.nn-local-cache-stats-setting .setting-item-info {
-    width: 100%;
-}
-
-.nn-local-cache-stats-setting .nn-stats-text {
-    text-align: center;
 }

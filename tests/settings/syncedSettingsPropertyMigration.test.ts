@@ -54,8 +54,8 @@ describe('migrateLegacySyncedSettings property key migration', () => {
         const legacyPropertyFields = extractLegacyPropertyFields({ settings, storedData: null });
         applyLegacyPropertyFieldsMigration({ settings, legacyPropertyFields });
 
-        expect(settings.showWordCount).toBe(true);
-        expect(settings.wordCountPlacement).toBe('title');
+        expect(settings.textCountDisplay).toBe('words');
+        expect(settings.textCountPlacement).toBe('title');
         expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'notePropertyType')).toBe(false);
         expect(settings.vaultProfiles[0]?.propertyKeys).toEqual([
             { key: 'status', showInNavigation: true, showInList: true, showInFileMenu: false },
@@ -101,9 +101,28 @@ describe('migrateLegacySyncedSettings property key migration', () => {
             defaultSettings: DEFAULT_SETTINGS
         });
 
-        expect(settings.showWordCount).toBe(true);
-        expect(settings.wordCountPlacement).toBe('title');
+        expect(settings.textCountDisplay).toBe('words');
+        expect(settings.textCountPlacement).toBe('title');
         expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'notePropertyType')).toBe(false);
+    });
+
+    it('migrates legacy word count display settings to text count settings', () => {
+        const settings = createSettings();
+        const settingsRecord = settings as unknown as Record<string, unknown>;
+        settingsRecord['showWordCount'] = true;
+        settingsRecord['wordCountPlacement'] = 'property';
+
+        migrateLegacySyncedSettings({
+            settings,
+            storedData: { showWordCount: true, wordCountPlacement: 'property' },
+            keys: STORAGE_KEYS,
+            defaultSettings: DEFAULT_SETTINGS
+        });
+
+        expect(settings.textCountDisplay).toBe('words');
+        expect(settings.textCountPlacement).toBe('property');
+        expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'showWordCount')).toBe(false);
+        expect(Object.prototype.hasOwnProperty.call(settingsRecord, 'wordCountPlacement')).toBe(false);
     });
 
     it('migrates legacy folder appearance customPropertyType override', () => {

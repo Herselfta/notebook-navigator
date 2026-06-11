@@ -35,7 +35,8 @@ import { getVirtualTagCollection, VIRTUAL_TAG_COLLECTION_IDS } from '../utils/vi
 import { getActiveHiddenFolders } from '../utils/vaultProfiles';
 import { resolveUXIcon } from '../utils/uxIcons';
 import { buildPropertyKeyNodeId, parsePropertyNodeId, type PropertySelectionNodeId } from '../utils/propertyTree';
-import { resolveFolderDisplayPathSegments } from '../utils/folderDisplayName';
+import { resolveFolderDisplayName, resolveFolderDisplayPathSegments } from '../utils/folderDisplayName';
+import { resolveRootFolderNoteSourceName } from '../utils/folderNotes';
 
 const FOLDER_NOTE_EXTENSIONS = Object.values(FOLDER_NOTE_TYPE_EXTENSIONS);
 
@@ -122,7 +123,11 @@ export function useListPaneTitle(): UseListPaneTitleResult {
         const targets = new Set<string>();
 
         if (selectedFolderPath === '/') {
-            addFolderNoteCandidatePaths(targets, '/', selectedFolderName ?? '', folderNoteNameSettings);
+            const rootFolder = selectionState.selectedFolder;
+            const rootFolderNoteSourceName = rootFolder
+                ? resolveRootFolderNoteSourceName(rootFolder, app.vault)
+                : (selectedFolderName ?? '');
+            addFolderNoteCandidatePaths(targets, '/', rootFolderNoteSourceName, folderNoteNameSettings);
             return targets;
         }
 
@@ -137,6 +142,8 @@ export function useListPaneTitle(): UseListPaneTitleResult {
     }, [
         selectedFolderName,
         selectedFolderPath,
+        app.vault,
+        selectionState.selectedFolder,
         selectionState.selectionType,
         settings.enableFolderNotes,
         settings.folderNoteName,
@@ -296,7 +303,13 @@ export function useListPaneTitle(): UseListPaneTitleResult {
             const folder = selectionState.selectedFolder;
 
             if (folder.path === '/') {
-                const vaultName = settings.customVaultName || app.vault.getName();
+                const vaultName = resolveFolderDisplayName({
+                    app,
+                    metadataService,
+                    settings: { customVaultName: settings.customVaultName },
+                    folderPath: folder.path,
+                    fallbackName: folder.name
+                });
                 const rootBreadcrumb: BreadcrumbSegment[] = [
                     {
                         label: vaultName,
@@ -455,7 +468,7 @@ export function useListPaneTitle(): UseListPaneTitleResult {
             breadcrumbSegments: noSelectionBreadcrumb
         };
     }, [
-        app.vault,
+        app,
         getTagDisplayPath,
         getPropertyTree,
         metadataService,

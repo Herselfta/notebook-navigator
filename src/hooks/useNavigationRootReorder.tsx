@@ -797,7 +797,13 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
                     } else {
                         icon = foldersSectionExpanded ? 'open-vault' : 'vault';
                     }
-                    label = customVaultName || app.vault.getName();
+                    label = resolveFolderDisplayName({
+                        app,
+                        metadataService,
+                        settings: { customVaultName },
+                        folderPath: vaultRootDescriptor.key,
+                        fallbackName: vaultRootDescriptor.folder?.name ?? app.vault.getRoot().name
+                    });
                 } else {
                     icon = NOTEBOOK_NAVIGATOR_ICON_ID;
                     label = strings.settings.sections.folders;
@@ -844,7 +850,8 @@ export function useNavigationRootReorder(options: UseNavigationRootReorderOption
         rootFolderIconMap,
         rootFolderColorMap,
         customVaultName,
-        app.vault,
+        app,
+        metadataService,
         settings.interfaceIcons,
         foldersSectionExpanded,
         tagsSectionExpanded,

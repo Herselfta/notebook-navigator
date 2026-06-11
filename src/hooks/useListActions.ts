@@ -474,11 +474,11 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
     const hasAppearanceOrSortSelection = hasFolderSelection || hasTagSelection || hasPropertySelection;
 
     const openDefaultListSettings = useCallback(() => {
-        plugin.openSettingsTab('list-pane');
+        plugin.openSettings();
     }, [plugin]);
 
     const openDefaultListAppearanceSettings = useCallback(() => {
-        plugin.openSettingsTab('notes');
+        plugin.openSettings();
     }, [plugin]);
     const canCreateNewFile = Boolean(selectionState.selectedFolder) || hasCreatableTagSelection || hasCreatablePropertySelection;
 

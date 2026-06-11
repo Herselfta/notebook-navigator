@@ -16,8 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { App } from 'obsidian';
 import { describe, expect, it } from 'vitest';
-import { resolveFolderDisplayPath, resolveFolderDisplayPathSegments } from '../../src/utils/folderDisplayName';
+import { resolveFolderDisplayName, resolveFolderDisplayPath, resolveFolderDisplayPathSegments } from '../../src/utils/folderDisplayName';
 import type { MetadataService } from '../../src/services/MetadataService';
 
 function createMetadataService(displayNames: Record<string, string | undefined>): Pick<MetadataService, 'getFolderDisplayData'> {
@@ -32,6 +33,45 @@ function createMetadataService(displayNames: Record<string, string | undefined>)
 }
 
 describe('folderDisplayName', () => {
+    it('uses root folder note display metadata before the custom vault name', () => {
+        const app = new App();
+        Object.defineProperty(app.vault, 'getName', {
+            configurable: true,
+            value: () => 'Shared Scratch'
+        });
+        const metadataService = createMetadataService({
+            '/': 'Vault home'
+        });
+
+        expect(
+            resolveFolderDisplayName({
+                app,
+                metadataService,
+                settings: { customVaultName: 'Scratch' },
+                folderPath: '/',
+                fallbackName: '/'
+            })
+        ).toBe('Vault home');
+    });
+
+    it('falls back to the custom vault name when root display metadata is missing', () => {
+        const app = new App();
+        Object.defineProperty(app.vault, 'getName', {
+            configurable: true,
+            value: () => 'Shared Scratch'
+        });
+
+        expect(
+            resolveFolderDisplayName({
+                app,
+                metadataService: createMetadataService({}),
+                settings: { customVaultName: 'Scratch' },
+                folderPath: '/',
+                fallbackName: '/'
+            })
+        ).toBe('Scratch');
+    });
+
     it('resolves full paths with folder display names where available', () => {
         const metadataService = createMetadataService({
             Projects: 'Work',

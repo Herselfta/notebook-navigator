@@ -31,6 +31,7 @@ import type { ListPaneAppearanceSettings } from '../../hooks/useListPaneAppearan
 import { useManualSortKeyboard } from '../../hooks/useManualSortKeyboard';
 import type { FileNameIconNeedle } from '../../utils/fileIconUtils';
 import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecoration';
+import type { FileItemPillOrderModel } from '../../utils/fileItemPillOrder';
 import type { FolderDecorationModel } from '../../utils/folderDecoration';
 import type { HiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { typeFilteredCollisionDetection, verticalAxisOnly } from '../../utils/dndConfig';
@@ -85,6 +86,7 @@ interface ManualSortListContentProps {
     noteShortcutKeysByPath: ReadonlyMap<string, string>;
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
+    fileItemPillOrderModel: FileItemPillOrderModel;
     getSolidBackground: (color?: string | null) => string | undefined;
     selectedFiles: ReadonlySet<string>;
     selectedFilePath: string | null;
@@ -128,6 +130,7 @@ interface ManualSortRowContext {
     fileItemStorage: FileItemStorageHelpers;
     folderDecorationModel: FolderDecorationModel;
     fileItemPillDecorationModel: FileItemPillDecorationModel;
+    fileItemPillOrderModel: FileItemPillOrderModel;
     getSolidBackground: (color?: string | null) => string | undefined;
     onFileClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => void;
 }
@@ -210,6 +213,7 @@ function ManualSortRowContent({
     shortcutKey,
     folderDecorationModel,
     fileItemPillDecorationModel,
+    fileItemPillOrderModel,
     getSolidBackground,
     onFileClick,
     isSelected,
@@ -248,6 +252,7 @@ function ManualSortRowContent({
                     onToggleNoteShortcut={noopToggleShortcut}
                     folderDecorationModel={folderDecorationModel}
                     fileItemPillDecorationModel={fileItemPillDecorationModel}
+                    fileItemPillOrderModel={fileItemPillOrderModel}
                     getSolidBackground={getSolidBackground}
                     disableNativeDrag={true}
                     manualSortDisabled={!canReorder}
@@ -594,6 +599,7 @@ export function ManualSortListContent({
     noteShortcutKeysByPath,
     folderDecorationModel,
     fileItemPillDecorationModel,
+    fileItemPillOrderModel,
     getSolidBackground,
     selectedFiles,
     selectedFilePath,
@@ -691,6 +697,7 @@ export function ManualSortListContent({
             fileItemStorage,
             folderDecorationModel,
             fileItemPillDecorationModel,
+            fileItemPillOrderModel,
             getSolidBackground,
             onFileClick
         }),
@@ -709,6 +716,7 @@ export function ManualSortListContent({
             fileItemStorage,
             folderDecorationModel,
             fileItemPillDecorationModel,
+            fileItemPillOrderModel,
             getSolidBackground,
             onFileClick
         ]

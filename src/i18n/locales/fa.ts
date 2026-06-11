@@ -312,6 +312,8 @@ export const STRINGS_FA = {
             moveFileToFolder: 'انتقال فایل به...',
             moveMultipleNotesToFolder: 'انتقال {count} یادداشت به...',
             moveMultipleFilesToFolder: 'انتقال {count} فایل به...',
+            mergeNotes: 'ادغام {count} یادداشت...',
+            mergeNotesInGroup: 'ادغام یادداشت‌های گروه...',
             setManualSortGroupHeader: 'تنظیم هدر گروه',
             changeManualSortGroupHeader: 'تغییر هدر گروه',
             manualSortGroupHeader: {
@@ -433,8 +435,28 @@ export const STRINGS_FA = {
             wordCountTarget: 'تعداد کلمات هدف',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'وقتی این فیلد خالی باشد، هدف گروه از ویژگی هدف تنظیم‌شده در تنظیمات > یادداشت‌ها > تعداد کلمات استفاده می‌کند. با تعیین مقدار هدف برای این گروه، آن را بازنویسی کنید.',
+                'وقتی این فیلد خالی است، هدف گروه از ویژگی هدف تنظیم‌شده در تنظیمات > یادداشت‌ها > تعداد کلمات و نویسه‌ها استفاده می‌کند. با تنظیم مقدار هدف برای این گروه آن را بازنویسی کنید.',
             description: 'هدر گروه را برای این یادداشت سفارشی کنید. عنوان را خالی بگذارید تا هدر حذف شود.'
+        },
+        mergeNotes: {
+            title: 'ادغام یادداشت‌ها',
+            summary: 'ایجاد یک یادداشت از {count} یادداشت در {folder}.',
+            frontmatterRule: 'فرانت‌متر یادداشت اول حفظ می‌شود. فرانت‌متر یادداشت‌های دیگر حذف می‌شود.',
+            crossFolderWarning:
+                'یادداشت‌های مبدأ در پوشه‌های مختلف هستند. پیوندها و جاسازی‌های نسبی ممکن است در یادداشت ادغام‌شده از کار بیفتند.',
+            outputName: 'نام خروجی',
+            outputNameDesc: 'یادداشت ادغام‌شده در پوشه نشان‌داده‌شده در بالا ایجاد می‌شود.',
+            outputNamePlaceholder: 'یادداشت‌های ادغام‌شده',
+            separator: 'جداکننده',
+            separatorDesc: 'بین یادداشت‌ها درج می‌شود.',
+            separatorOptions: {
+                none: 'هیچ‌کدام',
+                blankLine: 'خط خالی',
+                horizontalRule: 'خط افقی',
+                heading: 'عنوان با نام یادداشت'
+            },
+            moveSourcesToTrash: 'انتقال یادداشت‌های مبدأ به زباله‌دان پس از ادغام',
+            mergeButton: 'ادغام'
         },
         navRainbowSection: {
             title: (section: string) => `رنگ‌های رنگین‌کمان: ${section}`
@@ -481,6 +503,7 @@ export const STRINGS_FA = {
                 'list-sort-property': 'مرتب‌سازی بر اساس ویژگی',
                 'list-appearance': 'تغییر ظاهر',
                 'list-new-note': 'یادداشت جدید',
+                'list-pinned': 'یادداشت‌های سنجاق‌شده',
                 'nav-folder-open': 'پوشه باز',
                 'nav-folder-closed': 'پوشه بسته',
                 'nav-tags': 'برچسب‌ها',
@@ -489,7 +512,8 @@ export const STRINGS_FA = {
                 'nav-property': 'ویژگی',
                 'nav-property-value': 'مقدار',
                 'file-unfinished-task': 'وظایف ناتمام',
-                'file-word-count': 'تعداد کلمات'
+                'file-word-count': 'تعداد کلمات',
+                'file-character-count': 'تعداد نویسه‌ها'
             }
         },
         colorPicker: {
@@ -696,6 +720,11 @@ export const STRINGS_FA = {
             deleteFolder: 'حذف پوشه ناموفق بود: {error}',
             deleteFile: 'حذف فایل ناموفق بود: {error}',
             deleteAttachments: 'حذف پیوست‌ها ناموفق بود: {error}',
+            mergeNotes: 'ادغام یادداشت‌ها ناموفق بود: {error}',
+            mergeNotesOpenOutput:
+                'یادداشت ادغام‌شده با نام {name} ایجاد شد، اما باز نشد: {error}. یادداشت‌های مبدأ بدون تغییر باقی ماندند.',
+            mergeNotesOpenSkipped: 'درخواست دیگری برای باز کردن فایل اولویت پیدا کرد.',
+            mergeNotesTrashSources: 'یادداشت ادغام‌شده ایجاد شد. انتقال {count} یادداشت مبدأ به زباله‌دان ناموفق بود.',
             duplicateNote: 'کپی یادداشت ناموفق بود: {error}',
             duplicateFolder: 'کپی پوشه ناموفق بود: {error}',
             openVersionHistory: 'باز کردن تاریخچه نسخه ناموفق بود: {error}',
@@ -729,7 +758,8 @@ export const STRINGS_FA = {
         },
         notices: {
             hideFolder: 'پوشه مخفی شد: {name}',
-            showFolder: 'پوشه نمایش داده شد: {name}'
+            showFolder: 'پوشه نمایش داده شد: {name}',
+            mergeNotes: '{count} یادداشت در {name} ادغام شد'
         },
         notifications: {
             deletedMultipleFiles: '{count} فایل حذف شد',
@@ -747,6 +777,7 @@ export const STRINGS_FA = {
             tagsClearedFromNotes: 'همه برچسب‌ها از {count} یادداشت پاک شد',
             noTagsToRemove: 'برچسبی برای حذف نیست',
             noFilesSelected: 'فایلی انتخاب نشده است',
+            mergeNotesRequireMultipleMarkdown: 'حداقل دو یادداشت Markdown برای ادغام انتخاب کنید',
             tagOperationsNotAvailable: 'عملیات برچسب در دسترس نیست',
             propertyOperationsNotAvailable: 'عملیات ویژگی‌ها در دسترس نیست',
             tagsRequireMarkdown: 'برچسب‌ها فقط روی یادداشت‌های Markdown پشتیبانی می‌شوند',
@@ -824,6 +855,7 @@ export const STRINGS_FA = {
         createNewNote: 'ایجاد یادداشت جدید',
         createNewNoteFromTemplate: 'یادداشت جدید از قالب',
         moveFiles: 'انتقال فایل‌ها',
+        mergeNotes: 'ادغام یادداشت‌ها', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'انتخاب فایل بعدی',
         selectPreviousFile: 'انتخاب فایل قبلی',
         navigateBack: 'بازگشت',
@@ -845,6 +877,7 @@ export const STRINGS_FA = {
         toggleCompactMode: 'تغییر حالت فشرده', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'تغییر بخش سنجاق‌شده',
         collapseExpand: 'جمع / باز کردن همه آیتم‌ها',
+        collapseExpandSelectedItem: 'جمع / باز کردن آیتم انتخاب‌شده',
         addTag: 'افزودن برچسب به فایل‌های انتخابی',
         setProperty: 'تنظیم ویژگی روی فایل‌های انتخابی', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'حذف برچسب از فایل‌های انتخابی',
@@ -857,6 +890,7 @@ export const STRINGS_FA = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'تقویم',
+        folderNoteSidebarViewName: 'یادداشت پوشه',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'نمایش در Notebook Navigator'
     },
@@ -872,6 +906,12 @@ export const STRINGS_FA = {
         wordCount: 'تعداد کلمات'
     },
 
+    fileCounts: {
+        words: '{count} کلمه',
+        characters: '{count} نویسه',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'تغییر تنظیمات پیش‌فرض',
@@ -881,23 +921,48 @@ export const STRINGS_FA = {
         },
         sections: {
             general: 'عمومی',
-            navigationPane: 'ناوبری',
+            vaultFilters: 'فیلترهای نمایش',
+            appearanceBehavior: 'ظاهر و رفتار',
+            navigationPane: 'پنل ناوبری',
             calendar: 'تقویم',
-            files: 'فایل‌ها',
+            fileOperations: 'عملیات فایل',
             icons: 'بسته‌های آیکون',
             folders: 'پوشه‌ها',
             folderNotes: 'یادداشت‌های پوشه',
-            foldersAndTags: 'پوشه‌ها',
+            folderNoteFiles: 'فایل‌های یادداشت پوشه',
+            foldersAndFolderNotes: 'پوشه‌ها و یادداشت‌های پوشه',
             tagsAndProperties: 'برچسب‌ها و ویژگی‌ها',
             tags: 'برچسب‌ها',
-            listPane: 'لیست',
-            notes: 'یادداشت‌ها',
+            listPane: 'پنل لیست',
+            notes: 'نمایش فایل',
+            shortcutsAndRecentFiles: 'میان‌برها و فایل‌های اخیر',
             advanced: 'پیشرفته'
+        },
+        pageGroups: {
+            configuration: 'پیکربندی',
+            navigationAndContent: 'پنل ناوبری',
+            notesAndLists: 'پنل لیست',
+            calendarAndTools: 'تقویم و ابزارها'
+        },
+        pageDescriptions: {
+            general: 'یادداشت‌های انتشار، پشتیبانی، پروفایل خزانه، انواع فایل و کلیدهای ویژگی.',
+            vaultFilters: 'پوشه‌ها، برچسب‌ها، فایل‌ها، برچسب‌های فایل و قوانین ویژگی پنهان.',
+            appearanceBehavior: 'رفتار، پیمایش با صفحه‌کلید، دکمه‌های ماوس، ظاهر و قالب‌بندی.',
+            navigationPane: 'چیدمان، ظاهر، تعداد یادداشت‌ها، رفتار جمع‌شدن و رنگ‌های رنگین‌کمان.',
+            shortcuts: 'قابلیت دید میان‌برها، نشان‌ها، فایل‌های اخیر و موارد سنجاق‌شده.',
+            calendar: 'نمایش تقویم، یادداشت‌های تاریخ، الگوها، تنظیمات محلی و مکان نوار کناری.',
+            fileOperations: 'الگوها، تأییدیه‌های حذف، پیوست‌ها و رفتار تعارض در جابجایی فایل.',
+            foldersAndFolderNotes: 'نمایش پوشه‌ها، یادداشت‌های پوشه، الگوهای یادداشت پوشه و رفتار یادداشت پوشه.',
+            tagsProperties: 'بخش‌های برچسب و ویژگی، آیکون‌ها، مرتب‌سازی، محدوده و وراثت.',
+            listPane: 'مرتب‌سازی، گروه‌بندی، حالت‌های لیست، یادداشت‌های سنجاق‌شده و پیش‌نمایش‌های طراحی.',
+            frontmatter: 'فیلدهای فرانت‌متر برای نام‌های نمایشی، نشانه‌های زمانی، آیکون‌ها و رنگ‌ها.',
+            notes: 'عناوین، متن پیش‌نمایش، تصاویر ویژه، برچسب‌ها، ویژگی‌ها، تاریخ‌ها، تعداد کلمات و تعداد نویسه‌ها.',
+            iconPacks: 'آیکون‌های رابط کاربری، آیکون‌های فایل و مدیریت بسته‌های آیکون.',
+            advanced: 'تشخیص، پاکسازی متادیتا، واردکردن/صادرکردن و بازنشانی.'
         },
         groups: {
             general: {
-                vaultProfiles: 'پروفایل‌های خزانه',
-                filtering: 'فیلتر کردن',
+                vaultConfiguration: 'پیکربندی خزانه',
                 templates: 'الگوها',
                 behavior: 'رفتار',
                 keyboardNavigation: 'پیمایش با صفحه‌کلید',
@@ -908,6 +973,10 @@ export const STRINGS_FA = {
                 mobileAppearance: 'ظاهر موبایل',
                 formatting: 'قالب‌بندی'
             },
+            advanced: {
+                maintenance: 'نگهداری',
+                resetSettings: 'بازنشانی تنظیمات'
+            },
             navigation: {
                 appearance: 'ظاهر',
                 rainbowColors: 'رنگ‌های رنگین‌کمان',
@@ -916,7 +985,6 @@ export const STRINGS_FA = {
             },
             list: {
                 display: 'ظاهر',
-                organization: 'سازماندهی',
                 groupHeaders: 'هدرهای گروه',
                 propertySort: 'مرتب‌سازی بر اساس ویژگی',
                 manualSort: 'مرتب‌سازی دستی',
@@ -924,7 +992,7 @@ export const STRINGS_FA = {
                 drawingPreviews: 'پیش‌نمایش‌های طراحی'
             },
             notes: {
-                frontmatter: 'فرانت‌متر',
+                frontmatter: 'فیلدهای فرانت‌متر',
                 tasks: 'وظایف',
                 icon: 'آیکون',
                 title: 'عنوان',
@@ -934,12 +1002,11 @@ export const STRINGS_FA = {
                 properties: 'ویژگی‌ها',
                 date: 'تاریخ',
                 parentFolder: 'پوشه والد',
-                wordCount: 'تعداد کلمات'
+                wordCount: 'تعداد کلمات و نویسه‌ها'
             }
         },
         syncMode: {
             notSynced: '(همگام نشده)',
-            disabled: '(غیرفعال)',
             switchToSynced: 'فعال‌سازی همگام‌سازی',
             switchToLocal: 'غیرفعال‌سازی همگام‌سازی'
         },
@@ -1039,15 +1106,15 @@ export const STRINGS_FA = {
             },
             includeDescendantNotes: {
                 name: 'نمایش یادداشت‌ها از زیرپوشه‌ها / زیرمجموعه‌ها',
-                desc: 'یادداشت‌های زیرپوشه‌های تودرتو و زیرمجموعه‌های برچسب را هنگام مشاهده پوشه یا برچسب شامل کنید.'
+                desc: 'یادداشت‌های زیرپوشه‌های تودرتو و زیرمجموعه‌های برچسب و ویژگی را هنگام مشاهده پوشه، برچسب یا ویژگی شامل کنید.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'سنجاق کردن یادداشت‌ها فقط در پوشه خودشان',
                 desc: 'یادداشت‌های سنجاق‌شده فقط در پوشه خودشان سنجاق‌شده نشان داده می‌شوند. مفید برای یادداشت‌های پوشه یا اگر تعداد زیادی یادداشت سنجاق‌شده دارید. بر نماهای برچسب یا ویژگی تأثیر نمی‌گذارد.'
             },
             separateNoteCounts: {
-                name: 'نمایش جداگانه تعداد فعلی و زیرمجموعه',
-                desc: 'تعداد یادداشت‌ها را به صورت "فعلی ▾ زیرمجموعه" در پوشه‌ها و برچسب‌ها نمایش دهید.'
+                name: 'نمایش جداگانه تعداد یادداشت‌های فعلی و زیرمجموعه',
+                desc: 'تعداد یادداشت‌ها را به صورت "فعلی ▾ زیرمجموعه" برای پوشه‌ها، برچسب‌ها و ویژگی‌ها نمایش دهید.'
             },
             groupNotes: {
                 name: 'گروه‌بندی پیش‌فرض',
@@ -1065,6 +1132,14 @@ export const STRINGS_FA = {
             stickyGroupHeaders: {
                 name: 'هدرهای گروه چسبان',
                 desc: 'هدر بخش تاریخ، پوشه یا قسمت سنجاق‌شده فعلی را هنگام پیمایش نمایان نگه می‌دارد.'
+            },
+            showFolderGroupPaths: {
+                name: 'نمایش مسیرهای زیرپوشه',
+                desc: 'هنگام گروه‌بندی بر اساس پوشه در پنل لیست، مسیرهای زیرپوشه را به جای فقط نام پوشه‌ها نمایش دهید.'
+            },
+            showCurrentFolderFilesAtBottom: {
+                name: 'گروه‌بندی پوشه: فایل‌های پوشه فعلی در پایین',
+                desc: 'وقتی گروه‌بندی پیش‌فرض روی پوشه است، فایل‌هایی را که مستقیماً در پوشه انتخاب‌شده هستند به زیر گروه‌های زیرپوشه منتقل کن.'
             },
             defaultListMode: {
                 name: 'حالت لیست پیش‌فرض',
@@ -1091,7 +1166,7 @@ export const STRINGS_FA = {
                 desc: 'اعمال رنگ پس‌زمینه زمانی که یادداشت وظایف ناتمام دارد.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'رنگ پس‌زمینه',
+                name: 'رنگ پس‌زمینه وظایف ناتمام',
                 desc: 'تنظیم رنگ پس‌زمینه مورد استفاده زمانی که یادداشت وظایف ناتمام دارد.'
             },
             showFilenameMatchIcons: {
@@ -1116,7 +1191,7 @@ export const STRINGS_FA = {
             },
             compactItemHeight: {
                 name: 'ارتفاع آیتم فشرده',
-                desc: 'ارتفاع آیتم‌های لیست فشرده را در دسکتاپ و موبایل تنظیم کنید.',
+                desc: 'ارتفاع آیتم‌های لیست فشرده را در دسکتاپ و موبایل تنظیم کنید (پیکسل).',
                 resetTooltip: 'بازگشت به پیش‌فرض (۲۸ پیکسل)'
             },
             compactItemHeightScaleText: {
@@ -1125,7 +1200,7 @@ export const STRINGS_FA = {
             },
             showParentFolder: {
                 name: 'نمایش پوشه والد',
-                desc: 'نام پوشه والد را برای یادداشت‌ها در زیرپوشه‌ها یا برچسب‌ها نمایش دهید.'
+                desc: 'نام پوشه والد را برای یادداشت‌ها در زیرپوشه‌ها، برچسب‌ها یا ویژگی‌ها نمایش دهید.'
             },
             showParentFolderFullPath: {
                 name: 'نمایش مسیر کامل',
@@ -1170,7 +1245,7 @@ export const STRINGS_FA = {
             },
             appearanceScale: {
                 name: 'سطح زوم',
-                desc: 'سطح زوم کلی Notebook Navigator را کنترل می‌کند.'
+                desc: 'سطح زوم کلی Notebook Navigator را کنترل می‌کند (درصد).'
             },
             useFloatingToolbars: {
                 name: 'استفاده از نوار ابزار شناور در iOS/iPadOS',
@@ -1199,15 +1274,15 @@ export const STRINGS_FA = {
                 desc: 'یادداشت‌ها را هنگام باز شدن از Quick Switcher، لینک‌ها یا جستجو به طور خودکار نمایش دهید.'
             },
             autoRevealShortestPath: {
-                name: 'استفاده از کوتاه‌ترین مسیر',
+                name: 'نمایش خودکار: استفاده از کوتاه‌ترین مسیر',
                 desc: 'فعال: نمایش خودکار نزدیک‌ترین پوشه یا برچسب قابل مشاهده را انتخاب می‌کند. غیرفعال: نمایش خودکار پوشه واقعی فایل و برچسب دقیق را انتخاب می‌کند.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'نادیده گرفتن رویدادها از نوار کناری راست',
+                name: 'نمایش خودکار: نادیده گرفتن رویدادها از نوار کناری راست',
                 desc: 'یادداشت فعال را هنگام کلیک یا تغییر یادداشت‌ها در نوار کناری راست تغییر ندهید.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'نادیده گرفتن رویدادها از پنجره‌های دیگر',
+                name: 'نمایش خودکار: نادیده گرفتن رویدادها از پنجره‌های دیگر',
                 desc: 'یادداشت فعال را هنگام کار با یادداشت‌ها در پنجره دیگر تغییر ندهید.'
             },
             paneTransitionDuration: {
@@ -1217,7 +1292,7 @@ export const STRINGS_FA = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'انتخاب خودکار اولین یادداشت',
-                desc: 'هنگام تعویض پوشه‌ها یا برچسب‌ها به طور خودکار اولین یادداشت را باز کنید.'
+                desc: 'هنگام تعویض پوشه‌ها، برچسب‌ها یا ویژگی‌ها به طور خودکار اولین یادداشت را باز کنید.'
             },
             skipAutoScroll: {
                 name: 'غیرفعال کردن اسکرول خودکار برای میانبرها',
@@ -1232,11 +1307,11 @@ export const STRINGS_FA = {
                 desc: 'پوشه‌ها و برچسب‌ها را هنگام قرار گرفتن روی آن‌ها در حین کشیدن گسترش دهید.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'تأخیر گسترش اول',
+                name: 'گسترش هنگام کشیدن: تأخیر گسترش اول',
                 desc: 'تأخیر قبل از گسترش اولین پوشه یا برچسب هنگام کشیدن (ثانیه).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'تأخیر گسترش‌های بعدی',
+                name: 'گسترش هنگام کشیدن: تأخیر گسترش‌های بعدی',
                 desc: 'تأخیر قبل از گسترش پوشه‌ها یا برچسب‌های بیشتر در همان عملیات کشیدن (ثانیه).'
             },
             navigationBanner: {
@@ -1267,7 +1342,7 @@ export const STRINGS_FA = {
                 desc: 'بخش فایل‌های اخیر را در پنل ناوبری نمایش دهید.'
             },
             hideRecentNotes: {
-                name: 'پنهان کردن انواع فایل',
+                name: 'پنهان کردن انواع فایل از فایل‌های اخیر',
                 desc: 'انتخاب کنید کدام انواع فایل در بخش فایل‌های اخیر پنهان شوند.',
                 options: {
                     none: 'هیچ‌کدام',
@@ -1394,15 +1469,18 @@ export const STRINGS_FA = {
             calendarTemplateFolder: {
                 name: 'محل پوشه قالب',
                 desc: 'انتخابگر فایل قالب یادداشت‌های این پوشه را نمایش می‌دهد.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'برای یادداشت‌های تقویم و یادداشت‌های پوشه استفاده می‌شود. الگوها را در تقویم > یکپارچه‌سازی تقویم و پوشه‌ها و یادداشت‌های پوشه > فایل‌های یادداشت پوشه پیکربندی کنید.'
             },
             calendarCustomFilePattern: {
                 name: 'یادداشت‌های روزانه',
-                desc: 'قالب‌بندی مسیر با استفاده از فرمت تاریخ Moment. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی نماد قالب کلیک کنید تا قالب تنظیم شود. محل پوشه الگوها را در عمومی > الگوها تنظیم کنید.',
+                desc: 'قالب‌بندی مسیر با استفاده از فرمت تاریخ Moment. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی نماد قالب کلیک کنید تا قالب تنظیم شود. محل پوشه الگوها را در عملیات فایل > الگوها تنظیم کنید.',
                 momentDescPrefix: 'قالب‌بندی مسیر با استفاده از ',
                 momentLinkText: 'فرمت تاریخ Moment',
                 momentDescSuffix:
-                    '. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی نماد قالب کلیک کنید تا قالب تنظیم شود. محل پوشه الگوها را در عمومی > الگوها تنظیم کنید.',
+                    '. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی نماد قالب کلیک کنید تا قالب تنظیم شود. محل پوشه الگوها را در عملیات فایل > الگوها تنظیم کنید.',
+                templaterSupportInstalled: '✅ افزونه Templater با پشتیبانی کامل از قالب‌ها نصب شده است.',
+                templaterSupportMissing: '⚠️ برای پشتیبانی کامل از قالب‌ها، افزونه Templater را نصب کنید.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'نحوه نگارش فعلی: {path}',
                 parsingError: 'الگو باید بتواند به یک تاریخ کامل (سال، ماه، روز) قالب‌بندی شود و دوباره به همان تاریخ تجزیه شود.'
@@ -1435,11 +1513,11 @@ export const STRINGS_FA = {
                 desc: 'راهنماهای hover را با اطلاعات اضافی برای یادداشت‌ها و پوشه‌ها نمایش دهید.'
             },
             showTooltipPath: {
-                name: 'نمایش مسیر',
+                name: 'نمایش مسیر در راهنماها',
                 desc: 'مسیر پوشه را زیر نام یادداشت در راهنماها نمایش دهید.'
             },
             showTooltipWordCount: {
-                name: 'نمایش تعداد کلمات',
+                name: 'نمایش تعداد کلمات در راهنماها',
                 desc: 'تعداد کلمات یادداشت‌ها را در راهنماها نمایش دهید.'
             },
             resetPaneSeparator: {
@@ -1545,11 +1623,11 @@ export const STRINGS_FA = {
                     yearlyNote: 'یادداشت سالانه'
                 },
                 file: {
-                    name: 'فایل راه‌اندازی',
+                    name: 'صفحه اصلی: فایل راه‌اندازی',
                     empty: 'فایلی انتخاب نشده'
                 },
                 createMissing: {
-                    name: 'ایجاد یادداشت در صورت عدم وجود',
+                    name: 'صفحه اصلی: ایجاد یادداشت در صورت عدم وجود',
                     desc: 'در صورت عدم وجود، یادداشت دوره‌ای را هنگام راه‌اندازی یا با فرمان ایجاد می‌کند.'
                 }
             },
@@ -1565,7 +1643,7 @@ export const STRINGS_FA = {
             },
             vaultProfiles: {
                 name: 'پروفایل خزانه',
-                desc: 'پروفایل‌ها نمایش انواع فایل، فایل‌های مخفی، پوشه‌های مخفی، برچسب‌های مخفی، یادداشت‌های مخفی، میانبرها و بنر ناوبری را ذخیره می‌کنند. پروفایل‌ها را از هدر پنل ناوبری تعویض کنید.',
+                desc: 'پروفایل‌ها نمایش انواع فایل، فایل‌های مخفی، پوشه‌های مخفی، برچسب‌های مخفی، قوانین ویژگی برای یادداشت‌های مخفی، میانبرها و بنر ناوبری را ذخیره می‌کنند. پروفایل‌ها را از هدر پنل ناوبری تعویض کنید.',
                 defaultName: 'پیش‌فرض',
                 addButton: 'افزودن پروفایل',
                 editProfilesButton: 'ویرایش پروفایل‌ها',
@@ -1576,7 +1654,8 @@ export const STRINGS_FA = {
                 editProfilesModalTitle: 'ویرایش پروفایل‌ها',
                 addModalPlaceholder: 'نام پروفایل',
                 deleteModalTitle: 'حذف {name}',
-                deleteModalMessage: '{name} حذف شود؟ فیلترهای فایل، پوشه، برچسب و یادداشت مخفی ذخیره‌شده در این پروفایل حذف می‌شوند.',
+                deleteModalMessage:
+                    '{name} حذف شود؟ فیلترهای فایل، پوشه، برچسب و یادداشت مبتنی بر ویژگی ذخیره‌شده در این پروفایل حذف می‌شوند.',
                 moveUp: 'انتقال به بالا',
                 moveDown: 'انتقال به پایین',
                 errors: {
@@ -1645,16 +1724,30 @@ export const STRINGS_FA = {
                 name: 'نمایش ویژگی‌ها در حالت فشرده',
                 desc: 'نمایش ویژگی‌ها هنگام فعال بودن حالت فشرده.'
             },
-            showWordCount: {
-                name: 'نمایش تعداد کلمات',
-                desc: 'تعداد کلمات یادداشت‌ها را در موارد فایل نمایش دهید.'
+            textCountDisplay: {
+                name: 'نوع شمارش',
+                desc: 'انتخاب کنید کدام شمارش‌های یادداشت در موارد فایل نمایش داده شوند.',
+                options: {
+                    none: 'هیچ‌کدام',
+                    words: 'تعداد کلمات',
+                    characters: 'تعداد نویسه‌ها',
+                    both: 'تعداد کلمات و نویسه‌ها'
+                }
             },
-            wordCountPlacement: {
-                name: 'محل نمایش',
-                desc: 'انتخاب کنید تعداد کلمات کجا نمایش داده شود.',
+            textCountPlacement: {
+                name: 'جایگاه',
+                desc: 'انتخاب کنید شمارش‌های یادداشت کجا نمایش داده شوند.',
                 options: {
                     title: 'در عنوان',
                     property: 'به‌عنوان ویژگی'
+                }
+            },
+            characterCountSpaces: {
+                name: 'تعداد نویسه‌ها',
+                desc: 'انتخاب کنید فاصله‌ها در شمارش نویسه‌ها لحاظ شوند یا نه.',
+                options: {
+                    include: 'با فاصله‌ها',
+                    exclude: 'بدون فاصله‌ها'
                 }
             },
             wordCountTargetProperty: {
@@ -1830,7 +1923,7 @@ export const STRINGS_FA = {
             },
             showNoteCount: {
                 name: 'نمایش تعداد یادداشت',
-                desc: 'تعداد یادداشت‌ها را کنار هر پوشه و برچسب نمایش دهید.'
+                desc: 'تعداد یادداشت‌ها را کنار پوشه‌ها، برچسب‌ها و ویژگی‌ها نمایش دهید.'
             },
             showSectionIcons: {
                 name: 'نمایش آیکون برای میانبرها و آیتم‌های اخیر',
@@ -1838,7 +1931,7 @@ export const STRINGS_FA = {
             },
             interfaceIcons: {
                 name: 'آیکون‌های رابط کاربری',
-                desc: 'ویرایش آیکون‌های نوار ابزار، پوشه، برچسب، سنجاق شده، جستجو و مرتب‌سازی.',
+                desc: 'ویرایش آیکون‌های نوار ابزار، پوشه، برچسب، ویژگی، سنجاق شده، جستجو و مرتب‌سازی.',
                 buttonText: 'ویرایش آیکون‌ها'
             },
             showIconsColorOnly: {
@@ -1942,11 +2035,11 @@ export const STRINGS_FA = {
             },
             navIndent: {
                 name: 'تورفتگی درخت',
-                desc: 'عرض تورفتگی را برای پوشه‌ها و برچسب‌های تودرتو تنظیم کنید.'
+                desc: 'عرض تورفتگی را برای پوشه‌ها، برچسب‌ها و ویژگی‌های تودرتو تنظیم کنید (پیکسل).'
             },
             navItemHeight: {
                 name: 'ارتفاع آیتم',
-                desc: 'ارتفاع پوشه‌ها و برچسب‌ها را در پنل ناوبری تنظیم کنید.'
+                desc: 'ارتفاع پوشه‌ها، برچسب‌ها و ویژگی‌ها را در پنل ناوبری تنظیم کنید (پیکسل).'
             },
             navItemHeightScaleText: {
                 name: 'مقیاس‌بندی متن با ارتفاع آیتم',
@@ -1954,11 +2047,21 @@ export const STRINGS_FA = {
             },
             showIndentGuides: {
                 name: 'نمایش خطوط راهنمای تورفتگی',
-                desc: 'نمایش خطوط راهنمای تورفتگی برای پوشه‌ها و برچسب‌های تودرتو.'
+                desc: 'نمایش خطوط راهنمای تورفتگی برای پوشه‌ها، برچسب‌ها و ویژگی‌های تودرتو.'
+            },
+            navCountLeaderStyle: {
+                name: 'نمایش نشانه‌های اتصال',
+                desc: 'نمایش نقطه، خط تیره یا یک خط بین نام موارد و تعداد یادداشت‌ها.',
+                options: {
+                    none: 'هیچ',
+                    dots: 'نقطه (...)',
+                    dashes: 'خط تیره (---)',
+                    line: 'خط'
+                }
             },
             navRootSpacing: {
                 name: 'فاصله آیتم اصلی',
-                desc: 'فاصله بین پوشه‌ها و برچسب‌های سطح اصلی.'
+                desc: 'فاصله بین پوشه‌ها، برچسب‌ها و ویژگی‌های سطح اصلی (پیکسل).'
             },
             showTags: {
                 name: 'نمایش برچسب‌ها',
@@ -2003,7 +2106,7 @@ export const STRINGS_FA = {
                 name: 'نمایش ویژگی‌ها',
                 desc: 'نمایش بخش ویژگی‌ها در ناوبر.',
                 propertyKeysInfoPrefix: 'پیکربندی ویژگی‌ها در ',
-                propertyKeysInfoLinkText: 'عمومی > کلیدهای ویژگی',
+                propertyKeysInfoLinkText: 'شروع > کلیدهای ویژگی',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2068,11 +2171,11 @@ export const STRINGS_FA = {
             },
             folderNoteTemplate: {
                 name: 'الگوی یادداشت پوشه',
-                desc: 'فایل الگو برای یادداشت‌های پوشه مارک‌داون جدید. محل پوشه الگوها را در عمومی > الگوها تنظیم کنید.'
+                desc: 'فایل الگو برای یادداشت‌های پوشه مارک‌داون جدید. محل پوشه الگوها را در عملیات فایل > الگوها تنظیم کنید.'
             },
             enableFolderNoteLinks: {
-                name: 'فعال‌سازی پیوندهای یادداشت پوشه',
-                desc: 'برچسب‌های پوشه به صورت پیوند نمایش داده می‌شوند و با کلیک، یادداشت‌های پوشه را باز می‌کنند. در صورت غیرفعال بودن، یادداشت‌های پوشه همچنان اطلاعات نام، آیکون و رنگ را ارائه می‌دهند.'
+                name: 'نام پوشه‌ها یادداشت‌های پوشه را باز می‌کند',
+                desc: 'کلیک روی نام پوشه، یادداشت پوشه آن را باز می‌کند. در صورت غیرفعال بودن، یادداشت‌های پوشه فقط فراداده پوشه مانند نام، آیکون و رنگ را ارائه می‌دهند.'
             },
             hideFolderNoteInList: {
                 name: 'مخفی کردن یادداشت پوشه در لیست',
@@ -2082,9 +2185,18 @@ export const STRINGS_FA = {
                 name: 'سنجاق کردن یادداشت‌های پوشه ایجاد شده',
                 desc: 'سنجاق کردن یادداشت‌های پوشه هنگام ایجاد از منوی زمینه.'
             },
-            openFolderNotesInNewTab: {
-                name: 'باز کردن یادداشت پوشه در تب جدید',
-                desc: 'باز کردن یادداشت‌های پوشه در تب جدید هنگام کلیک روی پوشه.'
+            folderNoteOpenLocation: {
+                name: 'باز کردن یادداشت‌های پوشه در',
+                desc: 'انتخاب کنید یادداشت‌های پوشه هنگام کلیک روی پیوندهای یادداشت پوشه کجا باز شوند.',
+                options: {
+                    currentTab: 'تب فعلی',
+                    newTab: 'تب جدید',
+                    rightSidebar: 'نوار کناری راست'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'نوار کناری راست: نمایش نزدیک‌ترین یادداشت پوشه',
+                desc: 'وقتی پوشه‌ای انتخاب می‌شود، نوار کناری راست به‌طور خودکار نزدیک‌ترین یادداشت پوشه والد را نشان می‌دهد.'
             },
             confirmBeforeDelete: {
                 name: 'تأیید قبل از حذف',
@@ -2109,7 +2221,7 @@ export const STRINGS_FA = {
             },
             metadataCleanup: {
                 name: 'پاکسازی متادیتا',
-                desc: 'متادیتای یتیم را که هنگام حذف، انتقال یا تغییر نام فایل‌ها، پوشه‌ها یا برچسب‌ها خارج از اوبسیدین باقی مانده حذف می‌کند. این فقط فایل تنظیمات Notebook Navigator را تحت تأثیر قرار می‌دهد.',
+                desc: 'متادیتای یتیم را که هنگام حذف، انتقال یا تغییر نام فایل‌ها، پوشه‌ها، برچسب‌ها یا ویژگی‌ها خارج از اوبسیدین باقی مانده حذف می‌کند. این فقط فایل تنظیمات Notebook Navigator را تحت تأثیر قرار می‌دهد.',
                 buttonText: 'پاکسازی متادیتا',
                 error: 'پاکسازی تنظیمات ناموفق بود',
                 loading: 'بررسی متادیتا...',
@@ -2199,6 +2311,10 @@ export const STRINGS_FA = {
                 desc: 'هنگام شروع نسخه‌های جدید افزونه را بررسی می‌کند و هنگام در دسترس بودن به‌روزرسانی اعلان نمایش می‌دهد. بررسی‌ها حداکثر روزی یک بار انجام می‌شوند.',
                 status: 'نسخه جدید موجود: {version}'
             },
+            debugLogging: {
+                name: 'ثبت اشکال‌زدایی راه‌اندازی',
+                desc: 'تشخیص‌های راه‌اندازی را در یک فایل Markdown زمان‌دار در ریشه خزانه می‌نویسد و پس از پایدار شدن راه‌اندازی متوقف می‌شود. فایل ممکن است همگام‌سازی شود و می‌تواند مسیرهای فایل را شامل شود.'
+            },
             whatsNew: {
                 name: 'چه چیزی جدید است در Notebook Navigator {version}',
                 desc: 'به‌روزرسانی‌ها و بهبودهای اخیر را ببینید',
@@ -2233,6 +2349,7 @@ export const STRINGS_FA = {
     },
     whatsNew: {
         title: 'چه چیزی جدید است در Notebook Navigator',
+        openBannerImage: 'باز کردن تصویر بنر انتشار',
         supportMessage: 'اگر Notebook Navigator را مفید می‌دانید، لطفاً حمایت از توسعه آن را در نظر بگیرید.',
         supportButton: 'یک قهوه مهمانم کن',
         thanksButton: 'ممنون!'

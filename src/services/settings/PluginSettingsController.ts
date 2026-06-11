@@ -53,6 +53,7 @@ import {
     isCalendarWeekendDays,
     isFeatureImagePixelSizeSetting,
     isFeatureImageSizeSetting,
+    isFolderNoteOpenLocation,
     isHomepageSource,
     isMouseBackForwardAction,
     isManualSortNewNotePlacement,
@@ -234,7 +235,11 @@ export class PluginSettingsController {
     public clearAllLocalStorage(): void {
         const storageKeyNames = Object.keys(STORAGE_KEYS) as (keyof LocalStorageKeys)[];
         storageKeyNames.forEach(storageKey => {
-            if (storageKey === 'databaseSchemaVersionKey' || storageKey === 'databaseContentVersionKey') {
+            if (
+                storageKey === 'databaseSchemaVersionKey' ||
+                storageKey === 'databaseContentVersionKey' ||
+                storageKey === 'debugLoggingEnabledKey'
+            ) {
                 return;
             }
 
@@ -264,9 +269,7 @@ export class PluginSettingsController {
         );
         const storedInterfaceIcons = storedData?.['interfaceIcons'];
         const hadPinnedSectionIconInStoredData = Boolean(
-            isRecord(storedInterfaceIcons) &&
-            (Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'list-pinned') ||
-                Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'pinned-section'))
+            isRecord(storedInterfaceIcons) && Object.prototype.hasOwnProperty.call(storedInterfaceIcons, 'pinned-section')
         );
         const hadInvalidPropertySortKeyInStoredData = Boolean(
             storedData &&
@@ -284,6 +287,9 @@ export class PluginSettingsController {
             (!isSortOption(storedData['defaultFolderSort']) || isPropertySortOption(storedData['defaultFolderSort']))
         );
         const hadLegacyNoneGroupingInStoredData = containsLegacyNoneGroupingInStoredData(storedData);
+        const hadLegacyOpenFolderNotesInNewTabInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'openFolderNotesInNewTab')
+        );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -306,6 +312,12 @@ export class PluginSettingsController {
         delete settingsRecord['saveMetadataToFrontmatter'];
         delete settingsRecord['lastAnnouncedRelease'];
         delete settingsRecord['optimizeNoteHeight'];
+
+        if (!isFolderNoteOpenLocation(storedData?.['folderNoteOpenLocation'])) {
+            this.currentSettings.folderNoteOpenLocation =
+                storedData?.['openFolderNotesInNewTab'] === true ? 'new-tab' : DEFAULT_SETTINGS.folderNoteOpenLocation;
+        }
+        delete settingsRecord['openFolderNotesInNewTab'];
 
         if (typeof this.currentSettings.propertySortKey !== 'string') {
             this.currentSettings.propertySortKey = DEFAULT_SETTINGS.propertySortKey;
@@ -492,6 +504,7 @@ export class PluginSettingsController {
             hadInvalidManualSortPropertyKeyInStoredData ||
             hadUnavailableDefaultFolderSortInStoredData ||
             hadLegacyNoneGroupingInStoredData ||
+            hadLegacyOpenFolderNotesInNewTabInStoredData ||
             prunedUnavailablePropertySortOverrides ||
             uiScaleMigrated ||
             migratedMomentFormats ||
@@ -662,6 +675,10 @@ export class PluginSettingsController {
         delete rest.optimizeNoteHeight;
         delete rest.showPinnedIcon;
         delete rest.showPinnedGroupHeader;
+        delete rest.showWordCount;
+        delete rest.wordCountPlacement;
+        delete rest.wordCharacterCountDisplay;
+        delete rest.characterCountMode;
 
         const syncModeRegistry = this.getSyncModeRegistry();
         SYNC_MODE_SETTING_IDS.forEach(settingId => {

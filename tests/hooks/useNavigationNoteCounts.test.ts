@@ -98,7 +98,8 @@ describe('useNavigationNoteCounts', () => {
                 folderCountFileNameMatcher: null,
                 fileVisibility: DEFAULT_SETTINGS.vaultProfiles[0].fileVisibility,
                 vaultChangeVersion: 0,
-                bumpVaultChangeVersion: () => {}
+                metadataVisibilityVersion: 0,
+                tagDataVersion: 0
             });
             return null;
         }

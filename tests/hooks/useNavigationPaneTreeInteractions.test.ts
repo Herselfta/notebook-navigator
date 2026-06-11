@@ -17,7 +17,7 @@
  */
 
 import React from 'react';
-import { App } from 'obsidian';
+import { App, TFolder } from 'obsidian';
 import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
@@ -30,6 +30,7 @@ import {
     type NavigationPaneTreeInteractionsResult
 } from '../../src/hooks/navigationPane/useNavigationPaneTreeInteractions';
 import { buildPropertyKeyNodeId, buildPropertyValueNodeId } from '../../src/utils/propertyTree';
+import { createTestTFile } from '../utils/createTestTFile';
 
 function createPropertyValueNode(key: string, valuePath: string, name: string, notes: string[]): PropertyTreeNode {
     return {
@@ -83,6 +84,38 @@ function createSelectionState(): SelectionState {
     };
 }
 
+interface TestVaultMethods {
+    registerFile(file: ReturnType<typeof createTestTFile>): void;
+    registerFolder(folder: TFolder): void;
+}
+
+function getTestVault(app: App): App['vault'] & TestVaultMethods {
+    return app.vault as App['vault'] & TestVaultMethods;
+}
+
+function createTestFolder(app: App, path: string): TFolder {
+    const folder = new TFolder(path) as TFolder & {
+        children: ReturnType<typeof createTestTFile>[];
+        name: string;
+        parent: TFolder | null;
+        vault: App['vault'];
+    };
+    folder.children = [];
+    folder.name = path.split('/').pop() ?? path;
+    folder.parent = null;
+    folder.vault = app.vault;
+    getTestVault(app).registerFolder(folder);
+    return folder;
+}
+
+function addFolderNote(app: App, folder: TFolder, path: string): void {
+    const file = createTestTFile(path) as ReturnType<typeof createTestTFile> & { parent: TFolder; vault: App['vault'] };
+    file.parent = folder;
+    file.vault = app.vault;
+    (folder as TFolder & { children: ReturnType<typeof createTestTFile>[] }).children.push(file);
+    getTestVault(app).registerFile(file);
+}
+
 describe('useNavigationPaneTreeInteractions', () => {
     it('uses the property tree provider cache for global descendant expansion', () => {
         const childNode = createPropertyValueNode('status', 'open', 'Open', ['notes/a.md']);
@@ -127,6 +160,7 @@ describe('useNavigationPaneTreeInteractions', () => {
                 setShortcutsExpanded: vi.fn(),
                 setRecentNotesExpanded: vi.fn(),
                 clearActiveShortcut: vi.fn(),
+                openFolderNoteInRightSidebar: vi.fn(),
                 onModifySearchWithTag: vi.fn(),
                 onModifySearchWithProperty: vi.fn()
             });
@@ -143,5 +177,124 @@ describe('useNavigationPaneTreeInteractions', () => {
 
         expect(result.getAllDescendantPropertyNodeIds(keyNode)).toEqual([childNode.id]);
         expect(collectDescendantNodeIds).toHaveBeenCalledWith(keyNode.id);
+    });
+
+    it('switches to the list pane when a right-sidebar folder note is clicked in single-pane mode', () => {
+        const app = new App();
+        const folder = createTestFolder(app, 'Projects');
+        addFolderNote(app, folder, 'Projects/index.md');
+        const uiDispatch = vi.fn();
+        let captured: NavigationPaneTreeInteractionsResult | null = null;
+
+        function Harness() {
+            captured = useNavigationPaneTreeInteractions({
+                app,
+                commandQueue: null,
+                isMobile: false,
+                settings: {
+                    ...DEFAULT_SETTINGS,
+                    enableFolderNotes: true,
+                    folderNoteName: 'index',
+                    folderNoteOpenLocation: 'right-sidebar',
+                    showNearestFolderNoteInSidebar: true
+                },
+                uiState: { singlePane: true },
+                expansionState: {
+                    expandedFolders: new Set(),
+                    expandedTags: new Set(),
+                    expandedProperties: new Set(),
+                    expandedVirtualFolders: new Set()
+                },
+                expansionDispatch: vi.fn(),
+                selectionState: createSelectionState(),
+                selectionDispatch: vi.fn(),
+                uiDispatch,
+                propertyTreeService: null,
+                tagTree: new Map(),
+                propertyTree: new Map(),
+                tagsVirtualFolderHasChildren: false,
+                setShortcutsExpanded: vi.fn(),
+                setRecentNotesExpanded: vi.fn(),
+                clearActiveShortcut: vi.fn(),
+                openFolderNoteInRightSidebar: vi.fn(),
+                onModifySearchWithTag: vi.fn(),
+                onModifySearchWithProperty: vi.fn()
+            });
+            return null;
+        }
+
+        renderToStaticMarkup(React.createElement(Harness));
+
+        expect(captured).not.toBeNull();
+        if (!captured) {
+            throw new Error('Expected hook result');
+        }
+        const result = captured as NavigationPaneTreeInteractionsResult;
+
+        result.handleFolderNameClick(folder);
+
+        expect(uiDispatch).toHaveBeenCalledWith({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+        expect(uiDispatch).toHaveBeenCalledWith({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+    });
+
+    it('keeps the current pane when a non-sidebar folder note is clicked in single-pane mode', () => {
+        const app = new App();
+        app.workspace = {
+            getLeaf: vi.fn(() => null)
+        } as unknown as App['workspace'];
+        const folder = createTestFolder(app, 'Projects');
+        addFolderNote(app, folder, 'Projects/index.md');
+        const uiDispatch = vi.fn();
+        let captured: NavigationPaneTreeInteractionsResult | null = null;
+
+        function Harness() {
+            captured = useNavigationPaneTreeInteractions({
+                app,
+                commandQueue: null,
+                isMobile: false,
+                settings: {
+                    ...DEFAULT_SETTINGS,
+                    enableFolderNotes: true,
+                    folderNoteName: 'index',
+                    folderNoteOpenLocation: 'current-tab',
+                    showNearestFolderNoteInSidebar: true
+                },
+                uiState: { singlePane: true },
+                expansionState: {
+                    expandedFolders: new Set(),
+                    expandedTags: new Set(),
+                    expandedProperties: new Set(),
+                    expandedVirtualFolders: new Set()
+                },
+                expansionDispatch: vi.fn(),
+                selectionState: createSelectionState(),
+                selectionDispatch: vi.fn(),
+                uiDispatch,
+                propertyTreeService: null,
+                tagTree: new Map(),
+                propertyTree: new Map(),
+                tagsVirtualFolderHasChildren: false,
+                setShortcutsExpanded: vi.fn(),
+                setRecentNotesExpanded: vi.fn(),
+                clearActiveShortcut: vi.fn(),
+                openFolderNoteInRightSidebar: vi.fn(),
+                onModifySearchWithTag: vi.fn(),
+                onModifySearchWithProperty: vi.fn()
+            });
+            return null;
+        }
+
+        renderToStaticMarkup(React.createElement(Harness));
+
+        expect(captured).not.toBeNull();
+        if (!captured) {
+            throw new Error('Expected hook result');
+        }
+        const result = captured as NavigationPaneTreeInteractionsResult;
+
+        result.handleFolderNameClick(folder);
+
+        expect(uiDispatch).not.toHaveBeenCalledWith({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+        expect(uiDispatch).not.toHaveBeenCalledWith({ type: 'SET_FOCUSED_PANE', pane: 'files' });
     });
 });

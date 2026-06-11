@@ -18,6 +18,7 @@
 
 import { TFile } from 'obsidian';
 import { createDefaultFileData, IndexedDBStorage, FileData } from './IndexedDBStorage';
+import { recordStartupDiagnostic } from '../services/diagnostics/DebugLoggingService';
 
 /**
  * FileOperations - IndexedDB storage access layer and cache management
@@ -120,7 +121,13 @@ export async function initializeDatabase(
         previewLoadMaxBatch?: number;
     }
 ): Promise<void> {
+    const initStartMs = performance.now();
+    recordStartupDiagnostic('fileOperations.initializeDatabase.start', {
+        appId: appIdParam,
+        hasExistingInstance: dbInstance !== null
+    });
     if (isShuttingDown) {
+        recordStartupDiagnostic('fileOperations.initializeDatabase.skipped', { reason: 'shutdown' });
         return;
     }
     if (isShutdownState) {
@@ -144,6 +151,7 @@ export async function initializeDatabase(
     initializationPromise = (async () => {
         try {
             if (isShutdownInProgress()) {
+                recordStartupDiagnostic('fileOperations.initializeDatabase.skipped', { reason: 'shutdownInProgress' });
                 return;
             }
             appId = appIdParam;
@@ -163,6 +171,9 @@ export async function initializeDatabase(
                 return;
             }
             db.startPreviewTextWarmup();
+            recordStartupDiagnostic('fileOperations.initializeDatabase.complete', {
+                elapsedMs: Math.round(performance.now() - initStartMs)
+            });
         } finally {
             isInitializing = false;
         }
@@ -314,6 +325,8 @@ export async function recordFileChanges(
                 fileThumbnailsMtime: renamed.fileThumbnailsMtime,
                 tags: renamed.tags,
                 wordCount: renamed.wordCount,
+                characterCountWithSpaces: renamed.characterCountWithSpaces,
+                characterCountWithoutSpaces: renamed.characterCountWithoutSpaces,
                 taskTotal: renamed.taskTotal,
                 taskUnfinished: renamed.taskUnfinished,
                 properties: renamed.properties,

@@ -97,6 +97,7 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: MutableRef
             const trackFeatureImage = enabledTypes.includes('featureImage');
             const trackMetadata = enabledTypes.includes('metadata');
             const trackWordCount = enabledTypes.includes('wordCount');
+            const trackCharacterCount = enabledTypes.includes('characterCount');
             const trackTasks = enabledTypes.includes('tasks');
             const trackProperties = enabledTypes.includes('properties');
 
@@ -201,6 +202,10 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: MutableRef
                         (isMarkdown || supportsFileThumbnail);
                     const needsMetadata = trackMetadata && isMarkdown && data.metadata === null;
                     const needsWordCount = trackWordCount && isMarkdown && data.wordCount === null;
+                    const needsCharacterCount =
+                        trackCharacterCount &&
+                        isMarkdown &&
+                        (data.characterCountWithSpaces === null || data.characterCountWithoutSpaces === null);
                     const needsTasks = trackTasks && isMarkdown && (data.taskTotal === null || data.taskUnfinished === null);
                     const needsProperties = trackProperties && isMarkdown && data.properties === null;
 
@@ -210,6 +215,7 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: MutableRef
                         !needsFeatureImage &&
                         !needsMetadata &&
                         !needsWordCount &&
+                        !needsCharacterCount &&
                         !needsTasks &&
                         !needsProperties
                     ) {
@@ -236,6 +242,7 @@ export function useCacheRebuildNotice(params: { app: App; stoppedRef: MutableRef
                         hasMetadataCache &&
                         (needsPreview ||
                             needsWordCount ||
+                            needsCharacterCount ||
                             needsTasks ||
                             needsProperties ||
                             (needsFeatureImage && isMarkdown) ||

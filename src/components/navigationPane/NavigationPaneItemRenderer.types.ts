@@ -21,7 +21,7 @@ import type { App, TFile } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { FileVisibility } from '../../utils/fileTypeUtils';
 import type { ExpansionAction } from '../../context/ExpansionContext';
-import type { SelectionState } from '../../context/SelectionContext';
+import type { NavigationSelectionState } from '../../context/SelectionContext';
 import type { NoteCountInfo } from '../../types/noteCounts';
 import type { CombinedNavigationItem } from '../../types/virtualization';
 import type { NavigationSectionId } from '../../types';
@@ -42,7 +42,7 @@ export interface NavigationPaneRowContext {
     isMobile: boolean;
     expansionState: NavigationPaneExpansionStateSnapshot;
     expansionDispatch: React.Dispatch<ExpansionAction>;
-    selectionState: SelectionState;
+    selectionState: NavigationSelectionState;
     indentGuideLevelsByKey: Map<string, number[]>;
     firstSectionId: NavigationSectionId | null;
     firstInlineFolderPath: string | null;

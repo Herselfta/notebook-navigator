@@ -16,123 +16,92 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { DropdownComponent, Setting } from 'obsidian';
+import type { SettingDefinitionItem } from 'obsidian';
+import type { Setting } from 'obsidian';
 import { strings } from '../../i18n';
-import { isRecentNotesHideMode, isShortcutBadgeDisplayMode } from '../types';
+import { DEFAULT_SETTINGS } from '../defaultSettings';
 import type { SettingsTabContext } from './SettingsTabContext';
-import { createSettingGroupFactory } from '../settingGroups';
-import { wireToggleSettingWithSubSettings } from '../subSettings';
+import { createDropdownDefinition, createGroupDefinition, createRenderDefinition, createToggleDefinition } from '../nativeSettingControls';
+import { renderSliderSetting } from './SliderSetting';
 
-/** Renders the shortcuts settings tab */
-export function renderShortcutsTab(context: SettingsTabContext): void {
-    const { containerEl, plugin, addToggleSetting } = context;
-    const createGroup = createSettingGroupFactory(containerEl);
-    const shortcutsGroup = createGroup(undefined);
+/** Builds native 1.13 setting definitions for shortcut and recent note settings. */
+export function createShortcutsSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
+    const { plugin } = context;
 
-    addToggleSetting(
-        shortcutsGroup.addSetting,
-        strings.settings.items.showSectionIcons.name,
-        strings.settings.items.showSectionIcons.desc,
-        () => plugin.settings.showSectionIcons,
-        value => {
-            plugin.settings.showSectionIcons = value;
-        }
-    );
+    return [
+        createGroupDefinition(undefined, [
+            createToggleDefinition('showSectionIcons', {
+                name: strings.settings.items.showSectionIcons.name,
+                desc: strings.settings.items.showSectionIcons.desc
+            })
+        ]),
+        createGroupDefinition(strings.navigationPane.shortcutsHeader, [
+            createToggleDefinition('showShortcuts', {
+                name: strings.settings.items.showShortcuts.name,
+                desc: strings.settings.items.showShortcuts.desc
+            }),
+            createDropdownDefinition('shortcutBadgeDisplay', {
+                name: strings.settings.items.shortcutBadgeDisplay.name,
+                desc: strings.settings.items.shortcutBadgeDisplay.desc,
+                aliases: Object.values(strings.settings.items.shortcutBadgeDisplay.options),
+                visible: () => plugin.settings.showShortcuts,
+                options: {
+                    index: strings.settings.items.shortcutBadgeDisplay.options.index,
+                    count: strings.settings.items.shortcutBadgeDisplay.options.count,
+                    none: strings.settings.items.shortcutBadgeDisplay.options.none
+                }
+            }),
+            createToggleDefinition('skipAutoScroll', {
+                name: strings.settings.items.skipAutoScroll.name,
+                desc: strings.settings.items.skipAutoScroll.desc,
+                visible: () => plugin.settings.showShortcuts
+            })
+        ]),
+        createGroupDefinition(strings.navigationPane.recentFilesHeader, [
+            createToggleDefinition('showRecentNotes', {
+                name: strings.settings.items.showRecentNotes.name,
+                desc: strings.settings.items.showRecentNotes.desc
+            }),
+            createDropdownDefinition('hideRecentNotes', {
+                name: strings.settings.items.hideRecentNotes.name,
+                desc: strings.settings.items.hideRecentNotes.desc,
+                aliases: Object.values(strings.settings.items.hideRecentNotes.options),
+                visible: () => plugin.settings.showRecentNotes,
+                options: {
+                    none: strings.settings.items.hideRecentNotes.options.none,
+                    'folder-notes': strings.settings.items.hideRecentNotes.options.folderNotes
+                }
+            }),
+            createToggleDefinition('pinRecentNotesWithShortcuts', {
+                name: strings.settings.items.pinRecentNotesWithShortcuts.name,
+                desc: strings.settings.items.pinRecentNotesWithShortcuts.desc,
+                visible: () => plugin.settings.showRecentNotes
+            }),
+            createRenderDefinition({
+                name: strings.settings.items.recentNotesCount.name,
+                desc: strings.settings.items.recentNotesCount.desc,
+                visible: () => plugin.settings.showRecentNotes,
+                render: setting => renderRecentNotesCountSetting(setting, context)
+            })
+        ])
+    ];
+}
 
-    const showShortcutsSetting = shortcutsGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.showShortcuts.name).setDesc(strings.settings.items.showShortcuts.desc);
-    });
+function renderRecentNotesCountSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
 
-    const shortcutsSubSettings = wireToggleSettingWithSubSettings(
-        showShortcutsSetting,
-        () => plugin.settings.showShortcuts,
-        async value => {
-            plugin.settings.showShortcuts = value;
+    renderSliderSetting(setting, {
+        name: strings.settings.items.recentNotesCount.name,
+        desc: strings.settings.items.recentNotesCount.desc,
+        value: plugin.settings.recentNotesCount,
+        defaultValue: DEFAULT_SETTINGS.recentNotesCount,
+        min: 1,
+        max: 10,
+        step: 1,
+        onChange: async value => {
+            plugin.settings.recentNotesCount = value;
+            plugin.applyRecentNotesLimit();
             await plugin.saveSettingsAndUpdate();
         }
-    );
-
-    new Setting(shortcutsSubSettings)
-        .setName(strings.settings.items.shortcutBadgeDisplay.name)
-        .setDesc(strings.settings.items.shortcutBadgeDisplay.desc)
-        .addDropdown((dropdown: DropdownComponent) =>
-            dropdown
-                .addOption('index', strings.settings.items.shortcutBadgeDisplay.options.index)
-                .addOption('count', strings.settings.items.shortcutBadgeDisplay.options.count)
-                .addOption('none', strings.settings.items.shortcutBadgeDisplay.options.none)
-                .setValue(plugin.settings.shortcutBadgeDisplay)
-                .onChange(async value => {
-                    if (!isShortcutBadgeDisplayMode(value)) {
-                        return;
-                    }
-                    plugin.settings.shortcutBadgeDisplay = value;
-                    await plugin.saveSettingsAndUpdate();
-                })
-        );
-
-    new Setting(shortcutsSubSettings)
-        .setName(strings.settings.items.skipAutoScroll.name)
-        .setDesc(strings.settings.items.skipAutoScroll.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.skipAutoScroll).onChange(async value => {
-                plugin.settings.skipAutoScroll = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    const showRecentNotesSetting = shortcutsGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.showRecentNotes.name).setDesc(strings.settings.items.showRecentNotes.desc);
     });
-
-    const recentNotesSubSettings = wireToggleSettingWithSubSettings(
-        showRecentNotesSetting,
-        () => plugin.settings.showRecentNotes,
-        async value => {
-            plugin.settings.showRecentNotes = value;
-            await plugin.saveSettingsAndUpdate();
-        }
-    );
-
-    new Setting(recentNotesSubSettings)
-        .setName(strings.settings.items.hideRecentNotes.name)
-        .setDesc(strings.settings.items.hideRecentNotes.desc)
-        .addDropdown((dropdown: DropdownComponent) =>
-            dropdown
-                .addOption('none', strings.settings.items.hideRecentNotes.options.none)
-                .addOption('folder-notes', strings.settings.items.hideRecentNotes.options.folderNotes)
-                .setValue(plugin.settings.hideRecentNotes)
-                .onChange(async value => {
-                    if (!isRecentNotesHideMode(value)) {
-                        return;
-                    }
-                    plugin.settings.hideRecentNotes = value;
-                    await plugin.saveSettingsAndUpdate();
-                })
-        );
-
-    new Setting(recentNotesSubSettings)
-        .setName(strings.settings.items.pinRecentNotesWithShortcuts.name)
-        .setDesc(strings.settings.items.pinRecentNotesWithShortcuts.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.pinRecentNotesWithShortcuts).onChange(async value => {
-                plugin.settings.pinRecentNotesWithShortcuts = value;
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    new Setting(recentNotesSubSettings)
-        .setName(strings.settings.items.recentNotesCount.name)
-        .setDesc(strings.settings.items.recentNotesCount.desc)
-        .addSlider(slider =>
-            slider
-                .setLimits(1, 10, 1)
-                .setValue(plugin.settings.recentNotesCount)
-                .setInstant(false)
-                .setDynamicTooltip()
-                .onChange(async value => {
-                    plugin.settings.recentNotesCount = value;
-                    plugin.applyRecentNotesLimit();
-                    await plugin.saveSettingsAndUpdate();
-                })
-        );
 }

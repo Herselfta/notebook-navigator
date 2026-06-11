@@ -297,6 +297,8 @@ export const STRINGS_ZH_TW = {
             moveFileToFolder: '移動檔案至...',
             moveMultipleNotesToFolder: '將 {count} 個筆記移動至...',
             moveMultipleFilesToFolder: '將 {count} 個檔案移動至...',
+            mergeNotes: '合併 {count} 則筆記...',
+            mergeNotesInGroup: '合併群組中的筆記...',
             setManualSortGroupHeader: '設定群組標題',
             changeManualSortGroupHeader: '變更群組標題',
             manualSortGroupHeader: {
@@ -431,8 +433,28 @@ export const STRINGS_ZH_TW = {
             wordCount: '顯示字數',
             wordCountTarget: '目標字數',
             wordCountTargetPlaceholder: '10,000',
-            wordCountTargetDescription: '此欄位為空時，群組目標會使用「設定 > 筆記 > 字數」中設定的目標屬性。為此群組設定目標值即可覆寫。',
+            wordCountTargetDescription:
+                '此欄位為空時，群組目標會使用「設定 > 筆記 > 字數與字元數」中設定的目標屬性。為此群組設定目標值即可覆寫。',
             description: '為此筆記自訂群組標題。將標題留空以移除標題。'
+        },
+        mergeNotes: {
+            title: '合併筆記',
+            summary: '從 {folder} 中的 {count} 則筆記建立一則筆記。',
+            frontmatterRule: '保留第一則筆記的 frontmatter。移除其他筆記的 frontmatter。',
+            crossFolderWarning: '來源筆記位於不同資料夾。相對連結和嵌入在合併後的筆記中可能會停止運作。',
+            outputName: '輸出名稱',
+            outputNameDesc: '合併後的筆記會建立在上方顯示的資料夾中。',
+            outputNamePlaceholder: '合併的筆記',
+            separator: '分隔符',
+            separatorDesc: '插入到筆記之間。',
+            separatorOptions: {
+                none: '無',
+                blankLine: '空白行',
+                horizontalRule: '水平線',
+                heading: '含筆記標題的標題'
+            },
+            moveSourcesToTrash: '合併後將來源筆記移至回收桶',
+            mergeButton: '合併'
         },
         navRainbowSection: {
             title: (section: string) => `彩虹顏色: ${section}`
@@ -479,6 +501,7 @@ export const STRINGS_ZH_TW = {
                 'list-sort-property': '依屬性排序',
                 'list-appearance': '變更外觀',
                 'list-new-note': '新建筆記',
+                'list-pinned': '釘選筆記',
                 'nav-folder-open': '資料夾開啟',
                 'nav-folder-closed': '資料夾關閉',
                 'nav-tags': '標籤',
@@ -487,7 +510,8 @@ export const STRINGS_ZH_TW = {
                 'nav-property': '屬性',
                 'nav-property-value': '值',
                 'file-unfinished-task': '未完成任務',
-                'file-word-count': '字數統計'
+                'file-word-count': '字數統計',
+                'file-character-count': '字元數'
             }
         },
         colorPicker: {
@@ -687,6 +711,10 @@ export const STRINGS_ZH_TW = {
             deleteFolder: '刪除資料夾失敗：{error}',
             deleteFile: '刪除檔案失敗：{error}',
             deleteAttachments: '刪除附件失敗: {error}',
+            mergeNotes: '合併筆記失敗: {error}',
+            mergeNotesOpenOutput: '合併後的筆記已建立為 {name}，但無法開啟: {error}。來源筆記未變更。',
+            mergeNotesOpenSkipped: '另一個檔案開啟請求已優先執行。',
+            mergeNotesTrashSources: '合併後的筆記已建立。無法將 {count} 則來源筆記移至回收桶。',
             duplicateNote: '複製筆記失敗：{error}',
             duplicateFolder: '複製資料夾失敗：{error}',
             openVersionHistory: '開啟版本歷史失敗：{error}',
@@ -720,7 +748,8 @@ export const STRINGS_ZH_TW = {
         },
         notices: {
             hideFolder: '已隱藏資料夾：{name}',
-            showFolder: '已顯示資料夾：{name}'
+            showFolder: '已顯示資料夾：{name}',
+            mergeNotes: '已將 {count} 則筆記合併到 {name}'
         },
         notifications: {
             deletedMultipleFiles: '已刪除 {count} 個檔案',
@@ -738,6 +767,7 @@ export const STRINGS_ZH_TW = {
             tagsClearedFromNotes: '已從 {count} 個筆記中清除所有標籤',
             noTagsToRemove: '沒有可移除的標籤',
             noFilesSelected: '未選擇檔案',
+            mergeNotesRequireMultipleMarkdown: '請選擇至少兩則 Markdown 筆記進行合併',
             tagOperationsNotAvailable: '標籤操作不可用',
             propertyOperationsNotAvailable: '屬性操作不可用',
             tagsRequireMarkdown: '標籤僅支援 Markdown 筆記',
@@ -815,6 +845,7 @@ export const STRINGS_ZH_TW = {
         createNewNote: '建立新筆記',
         createNewNoteFromTemplate: '從範本新建筆記',
         moveFiles: '移動檔案',
+        mergeNotes: '合併筆記', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '選擇下一個檔案',
         selectPreviousFile: '選擇上一個檔案',
         navigateBack: '向後導覽',
@@ -836,6 +867,7 @@ export const STRINGS_ZH_TW = {
         toggleCompactMode: '切換精簡模式', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: '切換置頂區域',
         collapseExpand: '摺疊/展開所有項目',
+        collapseExpandSelectedItem: '摺疊/展開所選項目',
         addTag: '為選定檔案新增標籤',
         setProperty: '為選定檔案設定屬性', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: '從選定檔案移除標籤',
@@ -848,6 +880,7 @@ export const STRINGS_ZH_TW = {
     plugin: {
         viewName: '筆記本導覽器',
         calendarViewName: '日曆',
+        folderNoteSidebarViewName: '資料夾筆記',
         ribbonTooltip: '筆記本導覽器',
         revealInNavigator: '在筆記本導覽器中定位'
     },
@@ -863,6 +896,12 @@ export const STRINGS_ZH_TW = {
         wordCount: '字數'
     },
 
+    fileCounts: {
+        words: '{count} 個詞',
+        characters: '{count} 個字元',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: '變更預設設定',
@@ -872,23 +911,48 @@ export const STRINGS_ZH_TW = {
         },
         sections: {
             general: '一般',
-            notes: '筆記',
-            navigationPane: '導覽',
+            vaultFilters: '顯示篩選器',
+            appearanceBehavior: '外觀與行為',
+            navigationPane: '導覽窗格',
             calendar: '導覽日曆',
-            files: '檔案',
+            fileOperations: '檔案操作',
             icons: '圖示包',
-            tags: '標籤',
             folders: '資料夾',
             folderNotes: '資料夾筆記',
-            foldersAndTags: '資料夾',
+            folderNoteFiles: '資料夾筆記檔案',
+            foldersAndFolderNotes: '資料夾與資料夾筆記',
             tagsAndProperties: '標籤與屬性',
-            listPane: '列表',
+            tags: '標籤',
+            listPane: '列表窗格',
+            notes: '檔案顯示',
+            shortcutsAndRecentFiles: '快捷方式與最近檔案',
             advanced: '進階'
+        },
+        pageGroups: {
+            configuration: '設定',
+            navigationAndContent: '導覽窗格',
+            notesAndLists: '列表窗格',
+            calendarAndTools: '日曆與工具'
+        },
+        pageDescriptions: {
+            general: '發行說明、支援、保險庫設定檔、檔案類型與屬性鍵。',
+            vaultFilters: '隱藏的資料夾、標籤、檔案、檔案標籤與屬性規則。',
+            appearanceBehavior: '行為、鍵盤導覽、滑鼠按鈕、外觀與格式。',
+            navigationPane: '版面配置、外觀、筆記數量、摺疊行為與彩虹顏色。',
+            shortcuts: '快捷方式可見性、徽章、最近檔案與釘選項目。',
+            calendar: '日曆顯示、日期筆記、範本、區域設定與側邊欄位置。',
+            fileOperations: '範本、刪除確認、附件與檔案移動衝突行為。',
+            foldersAndFolderNotes: '資料夾顯示、資料夾筆記、資料夾筆記範本與資料夾筆記行為。',
+            tagsProperties: '標籤與屬性區段、圖示、排序、範圍與繼承。',
+            listPane: '排序、群組、列表模式、釘選筆記與繪圖預覽。',
+            frontmatter: '用於顯示名稱、時間戳記、圖示與顏色的前置中繼資料欄位。',
+            notes: '標題、預覽文字、特色圖片、標籤、屬性、日期、字數與字元數。',
+            iconPacks: '介面圖示、檔案圖示與圖示包管理。',
+            advanced: '診斷、中繼資料清理、匯入/匯出與重設。'
         },
         groups: {
             general: {
-                vaultProfiles: '保險庫設定檔',
-                filtering: '篩選',
+                vaultConfiguration: '保險庫設定',
                 templates: '範本',
                 behavior: '行為',
                 keyboardNavigation: '鍵盤導覽',
@@ -899,6 +963,10 @@ export const STRINGS_ZH_TW = {
                 mobileAppearance: '行動裝置外觀',
                 formatting: '格式'
             },
+            advanced: {
+                maintenance: '維護',
+                resetSettings: '重設設定'
+            },
             navigation: {
                 appearance: '外觀',
                 rainbowColors: '彩虹顏色',
@@ -907,7 +975,6 @@ export const STRINGS_ZH_TW = {
             },
             list: {
                 display: '外觀',
-                organization: '組織',
                 groupHeaders: '群組標題',
                 propertySort: '屬性排序',
                 manualSort: '手動排序',
@@ -915,7 +982,7 @@ export const STRINGS_ZH_TW = {
                 drawingPreviews: '繪圖預覽'
             },
             notes: {
-                frontmatter: '前置中繼資料',
+                frontmatter: '前置中繼資料欄位',
                 tasks: '任務',
                 icon: '圖示',
                 title: '標題',
@@ -925,12 +992,11 @@ export const STRINGS_ZH_TW = {
                 properties: '屬性',
                 date: '日期',
                 parentFolder: '父資料夾',
-                wordCount: '字數'
+                wordCount: '字數與字元數'
             }
         },
         syncMode: {
             notSynced: '（未同步）',
-            disabled: '（已停用）',
             switchToSynced: '啟用同步',
             switchToLocal: '停用同步'
         },
@@ -1027,15 +1093,15 @@ export const STRINGS_ZH_TW = {
             },
             includeDescendantNotes: {
                 name: '顯示子資料夾/後代的筆記',
-                desc: '在檢視資料夾或標籤時包含巢狀子資料夾和標籤後代中的筆記。'
+                desc: '在檢視資料夾、標籤或屬性時包含巢狀子資料夾以及標籤和屬性後代中的筆記。'
             },
             limitPinnedToCurrentFolder: {
                 name: '僅在筆記所在資料夾中釘選',
                 desc: '釘選筆記僅在其所在資料夾中顯示為已釘選。適用於資料夾筆記或釘選筆記較多的情況。不影響標籤或屬性檢視。'
             },
             separateNoteCounts: {
-                name: '分別顯示目前和後代計數',
-                desc: '在資料夾和標籤中以「目前 ▾ 後代」格式顯示筆記計數。'
+                name: '分別顯示目前和後代筆記計數',
+                desc: '為資料夾、標籤和屬性以「目前 ▾ 後代」格式顯示筆記計數。'
             },
             groupNotes: {
                 name: '預設分組',
@@ -1053,6 +1119,14 @@ export const STRINGS_ZH_TW = {
             stickyGroupHeaders: {
                 name: '固定群組標題',
                 desc: '捲動時保持目前的日期、資料夾或釘選區段的標題可見。'
+            },
+            showFolderGroupPaths: {
+                name: '顯示子資料夾路徑',
+                desc: '在列表窗格中按資料夾分組時，顯示子資料夾路徑，而不是僅顯示資料夾名稱。'
+            },
+            showCurrentFolderFilesAtBottom: {
+                name: '資料夾分組：目前資料夾檔案置底',
+                desc: '當預設分組為資料夾時，將所選資料夾中的直屬檔案移到子資料夾分組下方。'
             },
             defaultListMode: {
                 name: '預設列表模式',
@@ -1079,7 +1153,7 @@ export const STRINGS_ZH_TW = {
                 desc: '當筆記包含未完成任務時套用背景顏色。'
             },
             unfinishedTaskBackgroundColor: {
-                name: '背景顏色',
+                name: '未完成任務背景顏色',
                 desc: '設定筆記包含未完成任務時使用的背景顏色。'
             },
             showFilenameMatchIcons: {
@@ -1104,7 +1178,7 @@ export const STRINGS_ZH_TW = {
             },
             compactItemHeight: {
                 name: '精簡項目高度',
-                desc: '設定桌面和行動裝置的精簡列表項目高度。',
+                desc: '設定桌面和行動裝置的精簡列表項目高度（像素）。',
                 resetTooltip: '恢復預設值 (28px)'
             },
             compactItemHeightScaleText: {
@@ -1113,7 +1187,7 @@ export const STRINGS_ZH_TW = {
             },
             showParentFolder: {
                 name: '顯示父資料夾',
-                desc: '為子資料夾或標籤中的筆記顯示父資料夾名稱。'
+                desc: '為子資料夾、標籤或屬性中的筆記顯示父資料夾名稱。'
             },
             showParentFolderFullPath: {
                 name: '顯示完整路徑',
@@ -1158,7 +1232,7 @@ export const STRINGS_ZH_TW = {
             },
             appearanceScale: {
                 name: '縮放級別',
-                desc: '控制 Notebook Navigator 的整體縮放級別。'
+                desc: '控制 Notebook Navigator 的整體縮放級別（百分比）。'
             },
             useFloatingToolbars: {
                 name: '在 iOS/iPadOS 上使用浮動工具列',
@@ -1187,15 +1261,15 @@ export const STRINGS_ZH_TW = {
                 desc: '從快速切換器、連結或搜尋開啟筆記時自動顯示。'
             },
             autoRevealShortestPath: {
-                name: '使用最短路徑',
+                name: '自動顯示：使用最短路徑',
                 desc: '啟用：自動顯示選擇最近的可見祖先資料夾或標籤。停用：自動顯示選擇檔案的實際資料夾和精確標籤。'
             },
             autoRevealIgnoreRightSidebar: {
-                name: '忽略右側邊欄事件',
+                name: '自動顯示：忽略右側邊欄事件',
                 desc: '在右側邊欄中點按或變更筆記時不變更使用中的筆記。'
             },
             autoRevealIgnoreOtherWindows: {
-                name: '忽略其他視窗的事件',
+                name: '自動顯示：忽略其他視窗的事件',
                 desc: '在其他視窗中操作筆記時不變更使用中的筆記。'
             },
             paneTransitionDuration: {
@@ -1205,7 +1279,7 @@ export const STRINGS_ZH_TW = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '自動選擇第一個筆記',
-                desc: '切換資料夾或標籤時自動開啟第一個筆記。'
+                desc: '切換資料夾、標籤或屬性時自動開啟第一個筆記。'
             },
             skipAutoScroll: {
                 name: '停用捷徑自動捲動',
@@ -1220,11 +1294,11 @@ export const STRINGS_ZH_TW = {
                 desc: '拖曳操作中懸停時展開資料夾和標籤。'
             },
             springLoadedFoldersInitialDelay: {
-                name: '首次展開延遲',
+                name: '拖曳時展開：首次展開延遲',
                 desc: '拖曳時首次展開資料夾或標籤前的延遲（秒）。'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: '後續展開延遲',
+                name: '拖曳時展開：後續展開延遲',
                 desc: '同一次拖曳中展開更多資料夾或標籤前的延遲（秒）。'
             },
             navigationBanner: {
@@ -1255,7 +1329,7 @@ export const STRINGS_ZH_TW = {
                 desc: '在導覽窗格中顯示最近檔案區段。'
             },
             hideRecentNotes: {
-                name: '隱藏檔案類型',
+                name: '從最近檔案中隱藏檔案類型',
                 desc: '選擇在最近檔案區段中隱藏的檔案類型。',
                 options: {
                     none: '無',
@@ -1381,15 +1455,18 @@ export const STRINGS_ZH_TW = {
             calendarTemplateFolder: {
                 name: '範本資料夾位置',
                 desc: '範本檔案選擇器顯示此資料夾中的筆記。',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: '用於行事曆筆記與資料夾筆記。在導覽日曆 > 行事曆整合和資料夾與資料夾筆記 > 資料夾筆記檔案中設定範本。'
             },
             calendarCustomFilePattern: {
                 name: '日記',
-                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在一般 > 範本中設定範本資料夾位置。',
+                desc: '使用 Moment 日期格式設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在檔案操作 > 範本中設定範本資料夾位置。',
                 momentDescPrefix: '使用 ',
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
-                    ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在一般 > 範本中設定範本資料夾位置。',
+                    ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在檔案操作 > 範本中設定範本資料夾位置。',
+                templaterSupportInstalled: '✅ 已安裝 Templater 外掛，支援完整範本功能。',
+                templaterSupportMissing: '⚠️ 安裝 Templater 外掛以支援完整範本功能。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '目前語法：{path}',
                 parsingError: '模式必須能格式化並重新解析為完整日期（年、月、日）。'
@@ -1421,11 +1498,11 @@ export const STRINGS_ZH_TW = {
                 desc: '懸停時顯示筆記和資料夾的額外資訊工具提示。'
             },
             showTooltipPath: {
-                name: '顯示路徑',
+                name: '在工具提示中顯示路徑',
                 desc: '在工具提示中的筆記名稱下方顯示資料夾路徑。'
             },
             showTooltipWordCount: {
-                name: '顯示字數',
+                name: '在工具提示中顯示字數',
                 desc: '在工具提示中顯示筆記字數。'
             },
             resetPaneSeparator: {
@@ -1519,7 +1596,7 @@ export const STRINGS_ZH_TW = {
             },
             vaultProfiles: {
                 name: '保險庫設定檔',
-                desc: '設定檔儲存檔案類型可見性、隱藏檔案、隱藏資料夾、隱藏標籤、隱藏筆記、捷徑和導覽橫幅。從導覽窗格標題切換設定檔。',
+                desc: '設定檔儲存檔案類型可見性、隱藏檔案、隱藏資料夾、隱藏標籤、隱藏筆記的屬性規則、捷徑和導覽橫幅。從導覽窗格標題切換設定檔。',
                 defaultName: '預設',
                 addButton: '新增設定檔',
                 editProfilesButton: '編輯設定檔',
@@ -1530,7 +1607,7 @@ export const STRINGS_ZH_TW = {
                 editProfilesModalTitle: '編輯設定檔',
                 addModalPlaceholder: '設定檔名稱',
                 deleteModalTitle: '刪除 {name}',
-                deleteModalMessage: '刪除 {name}？儲存在此設定檔中的隱藏檔案、資料夾、標籤和筆記篩選器將被刪除。',
+                deleteModalMessage: '刪除 {name}？儲存在此設定檔中的隱藏檔案、資料夾、標籤和基於屬性的筆記篩選器將被刪除。',
                 moveUp: '上移',
                 moveDown: '下移',
                 errors: {
@@ -1575,11 +1652,11 @@ export const STRINGS_ZH_TW = {
                     yearlyNote: '年度筆記'
                 },
                 file: {
-                    name: '啟動檔案',
+                    name: '首頁：啟動檔案',
                     empty: '未選擇檔案'
                 },
                 createMissing: {
-                    name: '不存在時建立筆記',
+                    name: '首頁：不存在時建立筆記',
                     desc: '啟動或執行命令時，如果定期筆記不存在則建立。'
                 }
             },
@@ -1631,16 +1708,30 @@ export const STRINGS_ZH_TW = {
                 name: '在精簡模式中顯示屬性',
                 desc: '精簡模式啟用時顯示屬性。'
             },
-            showWordCount: {
-                name: '顯示字數',
-                desc: '在檔案項目中顯示筆記字數。'
+            textCountDisplay: {
+                name: '計數類型',
+                desc: '選擇檔案項目中要顯示哪些筆記計數。',
+                options: {
+                    none: '無',
+                    words: '字數',
+                    characters: '字元數',
+                    both: '字數與字元數'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: '位置',
-                desc: '選擇字數的顯示位置。',
+                desc: '選擇筆記計數的顯示位置。',
                 options: {
                     title: '在標題中',
                     property: '作為屬性'
+                }
+            },
+            characterCountSpaces: {
+                name: '字元數',
+                desc: '選擇字元數是否包含空格。',
+                options: {
+                    include: '包含空格',
+                    exclude: '不含空格'
                 }
             },
             wordCountTargetProperty: {
@@ -1816,7 +1907,7 @@ export const STRINGS_ZH_TW = {
             },
             showNoteCount: {
                 name: '顯示筆記數',
-                desc: '在每個資料夾和標籤旁顯示筆記數量。'
+                desc: '在資料夾、標籤和屬性旁顯示筆記數量。'
             },
             showSectionIcons: {
                 name: '顯示捷徑和最近項目的圖示',
@@ -1824,7 +1915,7 @@ export const STRINGS_ZH_TW = {
             },
             interfaceIcons: {
                 name: '介面圖示',
-                desc: '編輯工具列、資料夾、標籤、釘選、搜尋和排序圖示。',
+                desc: '編輯工具列、資料夾、標籤、屬性、釘選、搜尋和排序圖示。',
                 buttonText: '編輯圖示'
             },
             showIconsColorOnly: {
@@ -1928,11 +2019,11 @@ export const STRINGS_ZH_TW = {
             },
             navIndent: {
                 name: '樹狀縮排',
-                desc: '調整巢狀資料夾和標籤的縮排寬度。'
+                desc: '調整巢狀資料夾、標籤和屬性的縮排寬度（像素）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: '調整導覽窗格中資料夾和標籤的高度。'
+                desc: '調整導覽窗格中資料夾、標籤和屬性的高度（像素）。'
             },
             navItemHeightScaleText: {
                 name: '隨行高調整文字大小',
@@ -1940,11 +2031,21 @@ export const STRINGS_ZH_TW = {
             },
             showIndentGuides: {
                 name: '顯示縮排參考線',
-                desc: '顯示巢狀資料夾和標籤的縮排參考線。'
+                desc: '顯示巢狀資料夾、標籤和屬性的縮排參考線。'
+            },
+            navCountLeaderStyle: {
+                name: '顯示前導符號',
+                desc: '在項目名稱和筆記數量之間顯示點、短劃線或直線。',
+                options: {
+                    none: '無',
+                    dots: '點 (...)',
+                    dashes: '短劃線 (---)',
+                    line: '直線'
+                }
             },
             navRootSpacing: {
                 name: '根級項目間距',
-                desc: '根級資料夾和標籤之間的間距。'
+                desc: '根級資料夾、標籤和屬性之間的間距（像素）。'
             },
             showTags: {
                 name: '顯示標籤',
@@ -1989,7 +2090,7 @@ export const STRINGS_ZH_TW = {
                 name: '顯示屬性',
                 desc: '在導覽器中顯示屬性區段。',
                 propertyKeysInfoPrefix: '在',
-                propertyKeysInfoLinkText: '一般 > 屬性鍵',
+                propertyKeysInfoLinkText: '開始 > 屬性鍵',
                 propertyKeysInfoSuffix: '中設定屬性'
             },
             showPropertyIcons: {
@@ -2054,11 +2155,11 @@ export const STRINGS_ZH_TW = {
             },
             folderNoteTemplate: {
                 name: '資料夾筆記範本',
-                desc: '新建 Markdown 資料夾筆記的範本檔案。在一般 > 範本中設定範本資料夾位置。'
+                desc: '新建 Markdown 資料夾筆記的範本檔案。在檔案操作 > 範本中設定範本資料夾位置。'
             },
             enableFolderNoteLinks: {
-                name: '啟用資料夾筆記連結',
-                desc: '資料夾標籤顯示為連結樣式，點擊可開啟資料夾筆記。關閉時，資料夾筆記仍提供名稱、圖示和顏色中繼資料。'
+                name: '資料夾名稱開啟資料夾筆記',
+                desc: '點擊資料夾名稱會開啟其資料夾筆記。關閉時，資料夾筆記僅提供資料夾中繼資料，例如名稱、圖示和顏色。'
             },
             hideFolderNoteInList: {
                 name: '在列表中隱藏資料夾筆記',
@@ -2068,9 +2169,18 @@ export const STRINGS_ZH_TW = {
                 name: '釘選建立的資料夾筆記',
                 desc: '從右鍵選單建立時釘選資料夾筆記。'
             },
-            openFolderNotesInNewTab: {
-                name: '在新分頁中開啟資料夾筆記',
-                desc: '點擊資料夾時在新分頁中開啟資料夾筆記。'
+            folderNoteOpenLocation: {
+                name: '開啟資料夾筆記到',
+                desc: '選擇點擊資料夾筆記連結時資料夾筆記的開啟位置。',
+                options: {
+                    currentTab: '目前分頁',
+                    newTab: '新分頁',
+                    rightSidebar: '右側邊欄'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: '右側邊欄：顯示最近的資料夾筆記',
+                desc: '選取資料夾時，右側邊欄會自動顯示最近的上層資料夾筆記。'
             },
             confirmBeforeDelete: {
                 name: '刪除前確認',
@@ -2095,7 +2205,7 @@ export const STRINGS_ZH_TW = {
             },
             metadataCleanup: {
                 name: '清理中繼資料',
-                desc: '移除在 Obsidian 外部刪除、移動或重新命名檔案、資料夾或標籤時留下的孤立中繼資料。這僅影響 Notebook Navigator 設定檔案。',
+                desc: '移除在 Obsidian 外部刪除、移動或重新命名檔案、資料夾、標籤或屬性時留下的孤立中繼資料。這僅影響 Notebook Navigator 設定檔案。',
                 buttonText: '清理中繼資料',
                 error: '設定清理失敗',
                 loading: '正在檢查中繼資料...',
@@ -2184,6 +2294,10 @@ export const STRINGS_ZH_TW = {
                 desc: '啟動時檢查新的外掛版本，當有可用更新時顯示通知。檢查最多每天一次。',
                 status: '有新版本可用：{version}'
             },
+            debugLogging: {
+                name: '啟動偵錯記錄',
+                desc: '將啟動診斷寫入保存庫根目錄中含時間戳的 Markdown 檔案，並在啟動穩定後停止。該檔案可能會同步，且可能包含檔案路徑。'
+            },
             whatsNew: {
                 name: 'Notebook Navigator {version} 的最新動態',
                 desc: '查看最近的更新和改進',
@@ -2218,6 +2332,7 @@ export const STRINGS_ZH_TW = {
     },
     whatsNew: {
         title: 'Notebook Navigator 的新功能',
+        openBannerImage: '開啟發布橫幅圖片',
         supportMessage: '如果您覺得 Notebook Navigator 有用，請考慮支持其開發。',
         supportButton: '請我喝咖啡',
         thanksButton: '謝謝！'

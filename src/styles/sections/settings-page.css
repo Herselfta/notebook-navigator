@@ -4,129 +4,45 @@
    Settings Page Styles
    ======================================================================== */
 
-/* Settings page indentation for sub-settings */
-.nn-sub-settings {
-    margin-inline-start: 20px;
-    padding-left: 1em;
-}
-
-/* Restore bottom padding on last setting inside sub-settings containers
-   (Obsidian's .setting-item:last-child removes it, but nested containers need it) */
-.nn-sub-settings > .setting-item:last-child {
-    padding-bottom: var(--size-4-4);
-}
-
 /* Settings layout root */
 .nn-settings-tab-root {
     display: block;
     min-height: 0;
 }
 
-/* Settings tabs layout and navigation */
-.nn-settings-tabs {
-    display: block;
-    min-height: 0;
-}
-
-.nn-settings-tabs-nav {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-2-3);
-    flex-shrink: 0;
-    margin-bottom: var(--size-4-4);
-}
-
-.nn-settings-tabs-nav-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-2-3);
-}
-
-.nn-settings-tabs-nav-row.is-hidden {
+.nn-settings-tab-root .setting-group.nn-settings-lifecycle-group {
     display: none;
 }
 
-.nn-settings-tabs-nav-row.is-icons-hidden .nn-settings-tab-icon {
-    display: none;
-}
-
-/* Separator between primary and secondary tab rows */
-.nn-settings-tabs-nav-secondary {
-    gap: var(--size-2-2);
-    border-top: 1px solid var(--background-modifier-border);
-    padding-top: var(--size-2-3);
-}
-
-.nn-settings-tab-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--size-2-2);
-    padding: 6px 12px;
-    font-size: var(--font-ui-small);
-}
-
-/* Icon inside settings tab buttons */
-.nn-settings-tab-icon {
-    display: inline-flex;
-    align-items: center;
-}
-
-.nn-settings-tab-icon svg {
-    width: 16px;
-    height: 16px;
-    stroke-width: 2;
-}
-
-.nn-settings-tab-button.is-hidden {
-    display: none;
-}
-
-.nn-settings-tab-button-primary.is-group-active {
-    background-color: transparent;
-    color: var(--interactive-accent);
-    opacity: 0.85;
-}
-
-.nn-settings-tab-button-primary.is-group-active:hover {
-    background-color: var(--background-modifier-hover);
-    opacity: 1;
-}
-
-.nn-settings-tab-button-secondary {
-    padding: 5px 10px;
-}
-
-.nn-settings-tab-button-secondary.is-active {
-    background-color: var(--background-modifier-hover);
-    color: var(--text-normal);
-}
-
-.nn-settings-tabs-content {
-    position: static;
-    min-height: 0;
-    overflow: visible;
-    box-sizing: border-box;
-    padding-inline-end: 0;
-}
-
-/* Hide tabs by default, show only active tab */
-.nn-settings-tab {
-    display: none;
-}
-
-.nn-settings-tab.is-active {
-    display: block;
+.nn-settings-tab-root .setting-group.nn-settings-lifecycle-group + .setting-group {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
 }
 
 /* Settings section header spacing */
-.setting-item-heading {
+.nn-settings-tab-root .setting-item-heading {
     margin-top: 30px;
 }
 
 /* First settings header - no top margin */
-.setting-item-heading:first-child {
+.nn-settings-tab-root .setting-item-heading:first-child {
     margin-top: 0;
+}
+
+.nn-settings-legacy-titlebar {
+    padding-inline: 0;
+}
+
+.nn-settings-legacy-titlebar .setting-item-name {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2-2);
+}
+
+.nn-settings-legacy-page-link:focus-visible {
+    outline: 2px solid var(--background-modifier-border-focus);
+    outline-offset: -2px;
 }
 
 /* Utility class for conditionally hidden settings */
@@ -164,49 +80,10 @@
     opacity: 1;
 }
 
-/* Setting name marker appended to setting names */
-.nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
-    content: ' ' attr(data-nn-setting-marker);
-    color: var(--text-muted);
-    font-weight: normal;
-}
-
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
-    content: '';
-}
-
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::before {
-    content: attr(data-nn-setting-marker) ' ';
-    color: var(--text-muted);
-    font-weight: normal;
-}
-
-/* Dim disabled calendar pattern text inputs */
-.nn-settings-tab-root .setting-item.nn-setting-disabled input[type='text']:disabled {
-    opacity: 0.6;
-    pointer-events: none;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
 /* Container for additional info below settings */
 .nn-setting-info-container {
     margin-top: 8px;
     margin-bottom: 8px;
-}
-
-.nn-setting-info-container.nn-setting-info-centered.setting-item {
-    justify-content: center;
-}
-
-.nn-setting-info-container.nn-setting-info-centered .setting-item-info,
-.nn-setting-info-container.nn-setting-info-centered .setting-item-description {
-    text-align: center;
-}
-
-.nn-setting-info-container.nn-setting-info-list .setting-item-info,
-.nn-setting-info-container.nn-setting-info-list .setting-item-description {
-    text-align: left;
 }
 
 .nn-setting-info-list ol {
@@ -216,10 +93,6 @@
 
 .nn-setting-info-list li + li {
     margin-top: 4px;
-}
-
-.nn-sub-settings > .setting-item.nn-setting-property-keys-info:last-child {
-    padding-bottom: 0;
 }
 
 /* Wider text inputs for settings that benefit from more space */
@@ -477,11 +350,20 @@ button.nn-youtube-button svg {
     max-width: none;
 }
 
+.nn-slider-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nn-slider-control input[type='range'] {
+    flex: 0 0 100px;
+}
+
 .nn-slider-value {
-    margin-left: 12px;
+    flex: 0 0 48px;
     font-size: var(--font-ui-smaller);
     color: var(--nn-theme-foreground-muted);
-    min-width: 48px;
     text-align: right;
     font-variant-numeric: tabular-nums;
 }

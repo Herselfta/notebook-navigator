@@ -826,8 +826,42 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
     const renameShortcut = useCallback(
         async (key: string, alias: string, defaultLabel?: string) => {
             const existing = shortcutMap.get(key);
-            if (!existing || existing.type === ShortcutType.SEARCH) {
+            if (!existing) {
                 return false;
+            }
+
+            if (isSearchShortcut(existing)) {
+                const trimmedName = alias.trim();
+                if (!trimmedName) {
+                    showNotice(strings.shortcuts.emptySearchName, { variant: 'warning' });
+                    return false;
+                }
+
+                const nextNameKey = normalizeSearchShortcutName(trimmedName);
+                const currentNameKey = normalizeSearchShortcutName(existing.name);
+                const duplicateShortcut = searchShortcutsByName.get(nextNameKey);
+                if (nextNameKey !== currentNameKey && duplicateShortcut) {
+                    showNotice(strings.shortcuts.searchExists, { variant: 'warning' });
+                    return false;
+                }
+
+                return updateActiveProfileShortcuts(current => {
+                    let changed = false;
+                    const next = current.map(entry => {
+                        if (getShortcutKey(entry) !== key || !isSearchShortcut(entry)) {
+                            return entry;
+                        }
+
+                        if (entry.name === trimmedName) {
+                            return entry;
+                        }
+
+                        changed = true;
+                        return { ...entry, name: trimmedName };
+                    });
+
+                    return changed ? next : null;
+                });
             }
 
             const trimmedAlias = alias.trim();
@@ -854,7 +888,7 @@ export function ShortcutsProvider({ children }: ShortcutsProviderProps) {
                 return changed ? next : null;
             });
         },
-        [shortcutMap, updateActiveProfileShortcuts]
+        [searchShortcutsByName, shortcutMap, updateActiveProfileShortcuts]
     );
 
     // Removes a search shortcut by its name (case-insensitive)

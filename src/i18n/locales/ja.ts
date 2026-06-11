@@ -297,6 +297,8 @@ export const STRINGS_JA = {
             moveFileToFolder: 'ファイルを移動先...',
             moveMultipleNotesToFolder: '{count}個のノートを移動先...',
             moveMultipleFilesToFolder: '{count}個のファイルを移動先...',
+            mergeNotes: '{count}個のノートを結合...',
+            mergeNotesInGroup: 'グループ内のノートを結合...',
             setManualSortGroupHeader: 'グループヘッダーを設定',
             changeManualSortGroupHeader: 'グループヘッダーを変更',
             manualSortGroupHeader: {
@@ -433,8 +435,28 @@ export const STRINGS_JA = {
             wordCountTarget: '目標ワード数',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'このフィールドが空の場合、グループ目標には設定 > ノート > ワード数で設定した目標プロパティが使われます。このグループに目標値を設定すると上書きできます。',
+                'このフィールドが空の場合、グループ目標は 設定 > ノート > 単語数と文字数 で設定された目標プロパティを使用します。このグループに目標値を設定すると上書きできます。',
             description: 'このノートのグループヘッダーをカスタマイズします。ヘッダーを削除するには、タイトルを空のままにします。'
+        },
+        mergeNotes: {
+            title: 'ノートを結合',
+            summary: '{folder} の {count} 個のノートから1つのノートを作成します。',
+            frontmatterRule: '最初のノートのフロントマターは保持されます。他のノートのフロントマターは削除されます。',
+            crossFolderWarning:
+                '元のノートが異なるフォルダにあります。結合されたノートでは相対リンクと埋め込みが機能しなくなる可能性があります。',
+            outputName: '出力名',
+            outputNameDesc: '結合されたノートは上に表示されたフォルダに作成されます。',
+            outputNamePlaceholder: '結合されたノート',
+            separator: '区切り',
+            separatorDesc: 'ノート間に挿入されます。',
+            separatorOptions: {
+                none: 'なし',
+                blankLine: '空行',
+                horizontalRule: '水平線',
+                heading: 'ノートタイトル付き見出し'
+            },
+            moveSourcesToTrash: '結合後に元のノートをゴミ箱に移動',
+            mergeButton: '結合'
         },
         navRainbowSection: {
             title: (section: string) => `レインボーカラー: ${section}`
@@ -481,6 +503,7 @@ export const STRINGS_JA = {
                 'list-sort-property': 'プロパティで並べ替え',
                 'list-appearance': '外観を変更',
                 'list-new-note': '新規ノート',
+                'list-pinned': 'ピン留めされたノート',
                 'nav-folder-open': 'フォルダ（開）',
                 'nav-folder-closed': 'フォルダ（閉）',
                 'nav-tags': 'タグ',
@@ -489,7 +512,8 @@ export const STRINGS_JA = {
                 'nav-property': 'プロパティ',
                 'nav-property-value': '値',
                 'file-unfinished-task': '未完了タスク',
-                'file-word-count': '単語数'
+                'file-word-count': '単語数',
+                'file-character-count': '文字数'
             }
         },
         colorPicker: {
@@ -695,6 +719,11 @@ export const STRINGS_JA = {
             deleteFolder: 'フォルダの削除に失敗しました：{error}',
             deleteFile: 'ファイルの削除に失敗しました：{error}',
             deleteAttachments: '添付ファイルの削除に失敗しました: {error}',
+            mergeNotes: 'ノートの結合に失敗しました: {error}',
+            mergeNotesOpenOutput:
+                '結合されたノートは {name} として作成されましたが、開けませんでした: {error}。元のノートは変更されませんでした。',
+            mergeNotesOpenSkipped: '別のファイルを開くリクエストが優先されました。',
+            mergeNotesTrashSources: '結合されたノートを作成しました。{count} 個の元ノートをゴミ箱に移動できませんでした。',
             duplicateNote: 'ノートの複製に失敗しました：{error}',
             duplicateFolder: 'フォルダの複製に失敗しました：{error}',
             openVersionHistory: 'バージョン履歴を開くのに失敗しました：{error}',
@@ -728,7 +757,8 @@ export const STRINGS_JA = {
         },
         notices: {
             hideFolder: 'フォルダを非表示: {name}',
-            showFolder: 'フォルダを表示: {name}'
+            showFolder: 'フォルダを表示: {name}',
+            mergeNotes: '{count} 個のノートを {name} に結合しました'
         },
         notifications: {
             deletedMultipleFiles: '{count}個のファイルを削除しました',
@@ -746,6 +776,7 @@ export const STRINGS_JA = {
             tagsClearedFromNotes: '{count}個のノートからすべてのタグをクリアしました',
             noTagsToRemove: '削除するタグがありません',
             noFilesSelected: 'ファイルが選択されていません',
+            mergeNotesRequireMultipleMarkdown: '結合するには少なくとも2つのMarkdownノートを選択してください',
             tagOperationsNotAvailable: 'タグ操作は利用できません',
             propertyOperationsNotAvailable: 'プロパティ操作は利用できません',
             tagsRequireMarkdown: 'タグはMarkdownノートでのみサポートされています',
@@ -823,6 +854,7 @@ export const STRINGS_JA = {
         createNewNote: '新規ノートを作成', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'テンプレートから新規ノート', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'ファイルを移動', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'ノートを結合', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: '次のファイルを選択', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: '前のファイルを選択', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: '前に戻る',
@@ -844,6 +876,7 @@ export const STRINGS_JA = {
         toggleCompactMode: 'コンパクトモードの切り替え', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'ピン留めセクションの切り替え',
         collapseExpand: 'すべての項目を折りたたむ/展開', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: '選択した項目を折りたたむ/展開',
         addTag: '選択したファイルにタグを追加', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: '選択したファイルにプロパティを設定', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: '選択したファイルからタグを削除', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -856,6 +889,7 @@ export const STRINGS_JA = {
     plugin: {
         viewName: 'ノートブックナビゲーター', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'カレンダー', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'フォルダノート', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'ノートブックナビゲーター', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'ノートブックナビゲーターで表示' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -871,6 +905,12 @@ export const STRINGS_JA = {
         wordCount: '単語数'
     },
 
+    fileCounts: {
+        words: '{count} 語',
+        characters: '{count} 文字',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'デフォルト設定を変更',
@@ -880,23 +920,48 @@ export const STRINGS_JA = {
         },
         sections: {
             general: '一般設定',
-            notes: 'ノート表示',
-            navigationPane: 'ナビゲーション',
+            vaultFilters: '表示フィルター',
+            appearanceBehavior: '外観と動作',
+            navigationPane: 'ナビゲーションペイン',
             calendar: 'カレンダー',
-            files: 'ファイル',
+            fileOperations: 'ファイル操作',
             icons: 'アイコンパック',
-            tags: 'タグ表示',
             folders: 'フォルダノート',
             folderNotes: 'フォルダノート',
-            foldersAndTags: 'フォルダ',
+            folderNoteFiles: 'フォルダノートファイル',
+            foldersAndFolderNotes: 'フォルダとフォルダノート',
             tagsAndProperties: 'タグとプロパティ',
-            listPane: 'リスト',
+            tags: 'タグ表示',
+            listPane: 'リストペイン',
+            notes: 'ファイル表示',
+            shortcutsAndRecentFiles: 'ショートカットと最近のファイル',
             advanced: '詳細設定'
+        },
+        pageGroups: {
+            configuration: '設定',
+            navigationAndContent: 'ナビゲーションペイン',
+            notesAndLists: 'リストペイン',
+            calendarAndTools: 'カレンダーとツール'
+        },
+        pageDescriptions: {
+            general: 'リリースノート、サポート、保管庫プロファイル、ファイルタイプ、プロパティキー。',
+            vaultFilters: '非表示のフォルダ、タグ、ファイル、ファイルタグ、プロパティルール。',
+            appearanceBehavior: '動作、キーボード操作、マウスボタン、外観、書式。',
+            navigationPane: 'レイアウト、外観、ノート数、折りたたみ動作、レインボーカラー。',
+            shortcuts: 'ショートカットの表示、バッジ、最近のファイル、ピン留めされた項目。',
+            calendar: 'カレンダー表示、日付ノート、テンプレート、ロケール、サイドバーの配置。',
+            fileOperations: 'テンプレート、削除確認、添付ファイル、ファイル移動時の競合動作。',
+            foldersAndFolderNotes: 'フォルダ表示、フォルダノート、フォルダノートのテンプレート、フォルダノートの動作。',
+            tagsProperties: 'タグとプロパティのセクション、アイコン、並べ替え、スコープ、継承。',
+            listPane: '並べ替え、グループ化、リストモード、ピン留めされたノート、描画プレビュー。',
+            frontmatter: '表示名、タイムスタンプ、アイコン、色のフロントマターフィールド。',
+            notes: 'タイトル、プレビューテキスト、アイキャッチ画像、タグ、プロパティ、日付、単語数、文字数。',
+            iconPacks: 'インターフェースアイコン、ファイルアイコン、アイコンパック管理。',
+            advanced: '診断、メタデータのクリーンアップ、インポート/エクスポート、リセット。'
         },
         groups: {
             general: {
-                vaultProfiles: '保管庫プロファイル',
-                filtering: 'フィルター',
+                vaultConfiguration: '保管庫のセットアップ',
                 templates: 'テンプレート',
                 behavior: '動作',
                 keyboardNavigation: 'キーボード操作',
@@ -907,6 +972,10 @@ export const STRINGS_JA = {
                 mobileAppearance: 'モバイルの外観',
                 formatting: '書式'
             },
+            advanced: {
+                maintenance: 'メンテナンス',
+                resetSettings: '設定をリセット'
+            },
             navigation: {
                 appearance: '外観',
                 rainbowColors: 'レインボーカラー',
@@ -915,7 +984,6 @@ export const STRINGS_JA = {
             },
             list: {
                 display: '外観',
-                organization: '整理',
                 groupHeaders: 'グループヘッダー',
                 propertySort: 'プロパティで並べ替え',
                 manualSort: '手動並べ替え',
@@ -923,7 +991,7 @@ export const STRINGS_JA = {
                 drawingPreviews: '描画プレビュー'
             },
             notes: {
-                frontmatter: 'フロントマター',
+                frontmatter: 'フロントマターフィールド',
                 tasks: 'タスク',
                 icon: 'アイコン',
                 title: 'タイトル',
@@ -933,12 +1001,11 @@ export const STRINGS_JA = {
                 properties: 'プロパティ',
                 date: '日付',
                 parentFolder: '親フォルダ',
-                wordCount: '単語数'
+                wordCount: '単語数と文字数'
             }
         },
         syncMode: {
             notSynced: '（未同期）',
-            disabled: '（無効）',
             switchToSynced: '同期を有効化',
             switchToLocal: '同期を無効化'
         },
@@ -1038,15 +1105,15 @@ export const STRINGS_JA = {
             },
             includeDescendantNotes: {
                 name: 'サブフォルダ / 子孫のノートを表示',
-                desc: 'フォルダまたはタグを表示するとき、入れ子のサブフォルダとタグの子孫にあるノートを含めます。'
+                desc: 'フォルダ、タグ、またはプロパティを表示するとき、入れ子のサブフォルダとタグおよびプロパティの子孫にあるノートを含めます。'
             },
             limitPinnedToCurrentFolder: {
                 name: 'ノートを自身のフォルダーでのみ固定',
                 desc: '固定したノートは自身のフォルダーでのみ固定済みとして表示されます。フォルダーノートや固定ノートが多い場合に便利です。タグやプロパティビューには影響しません。'
             },
             separateNoteCounts: {
-                name: '現在と子孫のカウントを個別に表示',
-                desc: 'フォルダとタグのノート数を「現在 ▾ 子孫」形式で表示します。'
+                name: '現在と子孫のノート数を個別に表示',
+                desc: 'フォルダ、タグ、プロパティのノート数を「現在 ▾ 子孫」形式で表示します。'
             },
             groupNotes: {
                 name: 'デフォルトのグループ化',
@@ -1064,6 +1131,14 @@ export const STRINGS_JA = {
             stickyGroupHeaders: {
                 name: 'グループヘッダーを固定',
                 desc: 'スクロール中も現在の日付・フォルダ・ピン留めセクションのヘッダーを表示し続けます。'
+            },
+            showFolderGroupPaths: {
+                name: 'サブフォルダーのパスを表示',
+                desc: 'リストペインでフォルダー別にグループ化する場合、フォルダー名だけでなくサブフォルダーのパスを表示します。'
+            },
+            showCurrentFolderFilesAtBottom: {
+                name: 'フォルダーグループ化: 現在のフォルダーのファイルを下部に表示',
+                desc: 'デフォルトのグループ化がフォルダーの場合、選択したフォルダー直下のファイルをサブフォルダーグループの下に移動します。'
             },
             defaultListMode: {
                 name: 'リストのデフォルトモード',
@@ -1090,7 +1165,7 @@ export const STRINGS_JA = {
                 desc: 'ノートに未完了のタスクがある場合に背景色を適用します。'
             },
             unfinishedTaskBackgroundColor: {
-                name: '背景色',
+                name: '未完了タスクの背景色',
                 desc: 'ノートに未完了のタスクがある場合に使用する背景色を設定します。'
             },
             showFilenameMatchIcons: {
@@ -1115,7 +1190,7 @@ export const STRINGS_JA = {
             },
             compactItemHeight: {
                 name: 'スリム表示の項目高さ',
-                desc: 'デスクトップとモバイルのスリム表示項目の高さを設定します。',
+                desc: 'デスクトップとモバイルのスリム表示項目の高さを設定します（ピクセル）。',
                 resetTooltip: 'デフォルトに戻す (28px)'
             },
             compactItemHeightScaleText: {
@@ -1124,7 +1199,7 @@ export const STRINGS_JA = {
             },
             showParentFolder: {
                 name: '親フォルダを表示',
-                desc: 'サブフォルダまたはタグ内のノートに親フォルダ名を表示します。'
+                desc: 'サブフォルダ、タグ、またはプロパティ内のノートに親フォルダ名を表示します。'
             },
             showParentFolderFullPath: {
                 name: 'フルパスを表示',
@@ -1169,7 +1244,7 @@ export const STRINGS_JA = {
             },
             appearanceScale: {
                 name: 'ズームレベル',
-                desc: 'Notebook Navigator 全体のズームレベルを制御します。'
+                desc: 'Notebook Navigator 全体のズームレベルを制御します（パーセント）。'
             },
             useFloatingToolbars: {
                 name: 'iOS/iPadOSでフローティングツールバーを使用',
@@ -1198,15 +1273,15 @@ export const STRINGS_JA = {
                 desc: 'クイックスイッチャー、リンク、検索から開いたときに自動的にノートを表示します。'
             },
             autoRevealShortestPath: {
-                name: '最短パスを使用',
+                name: '自動表示: 最短パスを使用',
                 desc: '有効: 自動表示は最も近い表示中の親フォルダまたはタグを選択します。無効: 自動表示はファイルの実際のフォルダと正確なタグを選択します。'
             },
             autoRevealIgnoreRightSidebar: {
-                name: '右サイドバーのイベントを無視',
+                name: '自動表示: 右サイドバーのイベントを無視',
                 desc: '右サイドバーでのクリックやノートの変更時にアクティブノートを変更しません。'
             },
             autoRevealIgnoreOtherWindows: {
-                name: '他のウィンドウのイベントを無視',
+                name: '自動表示: 他のウィンドウのイベントを無視',
                 desc: '別のウィンドウでノートを操作しているときにアクティブノートを変更しません。'
             },
             paneTransitionDuration: {
@@ -1216,7 +1291,7 @@ export const STRINGS_JA = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: '最初のノートを自動選択',
-                desc: 'フォルダまたはタグを切り替えた際に自動的に最初のノートを開きます。'
+                desc: 'フォルダ、タグ、またはプロパティを切り替えた際に自動的に最初のノートを開きます。'
             },
             skipAutoScroll: {
                 name: 'ショートカットの自動スクロールを無効化',
@@ -1231,11 +1306,11 @@ export const STRINGS_JA = {
                 desc: 'ドラッグ操作中にホバーするとフォルダとタグを展開します。'
             },
             springLoadedFoldersInitialDelay: {
-                name: '最初の展開遅延',
+                name: 'ドラッグ時に展開: 最初の展開遅延',
                 desc: 'ドラッグ操作中に最初のフォルダまたはタグを展開するまでの遅延（秒）。'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: '次の展開遅延',
+                name: 'ドラッグ時に展開: 次の展開遅延',
                 desc: '同じドラッグ操作中に追加のフォルダまたはタグを展開するまでの遅延（秒）。'
             },
             navigationBanner: {
@@ -1266,7 +1341,7 @@ export const STRINGS_JA = {
                 desc: 'ナビゲーションペインに最近のファイルセクションを表示します。'
             },
             hideRecentNotes: {
-                name: 'ファイルの種類を非表示',
+                name: '最近のファイルからファイルの種類を非表示',
                 desc: '最近のファイルセクションで非表示にするファイルの種類を選択します。',
                 options: {
                     none: 'なし',
@@ -1392,15 +1467,18 @@ export const STRINGS_JA = {
             calendarTemplateFolder: {
                 name: 'テンプレートフォルダの場所',
                 desc: 'テンプレートファイルピッカーはこのフォルダからノートを表示します。',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'カレンダーノートとフォルダノートで使用されます。テンプレートは カレンダー > カレンダー連携 と フォルダとフォルダノート > フォルダノートファイル で設定します。'
             },
             calendarCustomFilePattern: {
                 name: 'デイリーノート',
-                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は一般 > テンプレートで設定してください。',
+                desc: 'Moment 日付フォーマットを使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。',
                 momentDescPrefix: '',
                 momentLinkText: 'Moment 日付フォーマット',
                 momentDescSuffix:
-                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所は一般 > テンプレートで設定してください。',
+                    'を使用してパスを指定。サブフォルダ名は角括弧で囲みます（例：[Work]/YYYY）。テンプレートアイコンをクリックしてテンプレートを設定。 テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。',
+                templaterSupportInstalled: '✅ Templater プラグインがインストールされており、テンプレートの完全サポートが利用できます。',
+                templaterSupportMissing: '⚠️ テンプレートの完全サポートを利用するには、Templater プラグインをインストールしてください。',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: '現在の構文: {path}',
                 parsingError: 'パターンは完全な日付（年、月、日）としてフォーマットされ、再度パースできる必要があります。'
@@ -1433,11 +1511,11 @@ export const STRINGS_JA = {
                 desc: 'ノートとフォルダの追加情報をホバー時にツールチップで表示します。'
             },
             showTooltipPath: {
-                name: 'パスを表示',
+                name: 'ツールチップにパスを表示',
                 desc: 'ツールチップでノート名の下にフォルダパスを表示します。'
             },
             showTooltipWordCount: {
-                name: '単語数を表示',
+                name: 'ツールチップに単語数を表示',
                 desc: 'ツールチップにノートの単語数を表示します。'
             },
             resetPaneSeparator: {
@@ -1531,7 +1609,7 @@ export const STRINGS_JA = {
             },
             vaultProfiles: {
                 name: '保管庫プロファイル',
-                desc: 'プロファイルは、ファイルタイプの表示、非表示ファイル、非表示フォルダ、非表示タグ、非表示ノート、ショートカット、ナビゲーションバナーを保存します。ナビゲーションペインのヘッダーからプロファイルを切り替えます。',
+                desc: 'プロファイルは、ファイルタイプの表示、非表示ファイル、非表示フォルダ、非表示タグ、非表示ノート用のプロパティルール、ショートカット、ナビゲーションバナーを保存します。ナビゲーションペインのヘッダーからプロファイルを切り替えます。',
                 defaultName: 'デフォルト',
                 addButton: 'プロファイルを追加',
                 editProfilesButton: 'プロファイルを編集',
@@ -1543,7 +1621,7 @@ export const STRINGS_JA = {
                 addModalPlaceholder: 'プロファイル名',
                 deleteModalTitle: '{name}を削除',
                 deleteModalMessage:
-                    '{name}を削除しますか？このプロファイルに保存されている非表示ファイル、フォルダ、タグ、ノートのフィルタが削除されます。',
+                    '{name}を削除しますか？このプロファイルに保存されている非表示ファイル、フォルダ、タグ、プロパティベースのノートフィルタが削除されます。',
                 moveUp: '上に移動',
                 moveDown: '下に移動',
                 errors: {
@@ -1588,11 +1666,11 @@ export const STRINGS_JA = {
                     yearlyNote: 'イヤリーノート'
                 },
                 file: {
-                    name: '起動ファイル',
+                    name: 'ホームページ: 起動ファイル',
                     empty: 'ファイルが選択されていません'
                 },
                 createMissing: {
-                    name: 'ノートが存在しない場合に作成',
+                    name: 'ホームページ: ノートが存在しない場合に作成',
                     desc: '起動時またはコマンド実行時に、定期ノートが存在しなければ作成します。'
                 }
             },
@@ -1644,16 +1722,30 @@ export const STRINGS_JA = {
                 name: 'コンパクトモードでプロパティを表示',
                 desc: 'コンパクトモードが有効な時にプロパティを表示します。'
             },
-            showWordCount: {
-                name: '単語数を表示',
-                desc: 'ファイル項目にノートの単語数を表示します。'
+            textCountDisplay: {
+                name: 'カウントの種類',
+                desc: 'ファイル項目に表示するノートのカウントを選択します。',
+                options: {
+                    none: 'なし',
+                    words: '単語数',
+                    characters: '文字数',
+                    both: '単語数と文字数'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: '配置',
-                desc: '単語数を表示する場所を選択します。',
+                desc: 'ノートのカウントを表示する場所を選択します。',
                 options: {
                     title: 'タイトル内',
                     property: 'プロパティとして'
+                }
+            },
+            characterCountSpaces: {
+                name: '文字数',
+                desc: '文字数にスペースを含めるかを選択します。',
+                options: {
+                    include: 'スペースを含む',
+                    exclude: 'スペースを除く'
                 }
             },
             wordCountTargetProperty: {
@@ -1829,7 +1921,7 @@ export const STRINGS_JA = {
             },
             showNoteCount: {
                 name: 'ノート数を表示',
-                desc: '各フォルダとタグの横にノート数を表示します。'
+                desc: 'フォルダ、タグ、プロパティの横にノート数を表示します。'
             },
             showSectionIcons: {
                 name: 'ショートカットと最近の項目のアイコンを表示',
@@ -1837,7 +1929,7 @@ export const STRINGS_JA = {
             },
             interfaceIcons: {
                 name: 'インターフェースアイコン',
-                desc: 'ツールバー、フォルダ、タグ、ピン留め、検索、並べ替えのアイコンを編集します。',
+                desc: 'ツールバー、フォルダ、タグ、プロパティ、ピン留め、検索、並べ替えのアイコンを編集します。',
                 buttonText: 'アイコンを編集'
             },
             showIconsColorOnly: {
@@ -1941,11 +2033,11 @@ export const STRINGS_JA = {
             },
             navIndent: {
                 name: 'ツリーインデント',
-                desc: 'ネストされたフォルダとタグのインデント幅を調整します。'
+                desc: 'ネストされたフォルダ、タグ、プロパティのインデント幅を調整します（ピクセル）。'
             },
             navItemHeight: {
                 name: '行高',
-                desc: 'ナビゲーションペイン内のフォルダとタグの高さを調整します。'
+                desc: 'ナビゲーションペイン内のフォルダ、タグ、プロパティの高さを調整します（ピクセル）。'
             },
             navItemHeightScaleText: {
                 name: '行高に合わせて文字サイズを調整',
@@ -1953,11 +2045,21 @@ export const STRINGS_JA = {
             },
             showIndentGuides: {
                 name: 'インデントガイドを表示',
-                desc: 'ネストされたフォルダーとタグのインデントガイドを表示します。'
+                desc: 'ネストされたフォルダー、タグ、プロパティのインデントガイドを表示します。'
+            },
+            navCountLeaderStyle: {
+                name: 'リーダーを表示',
+                desc: '項目名とノート数の間に点、ダッシュ、または線を表示します。',
+                options: {
+                    none: 'なし',
+                    dots: '点 (...)',
+                    dashes: 'ダッシュ (---)',
+                    line: '線'
+                }
             },
             navRootSpacing: {
                 name: 'ルート要素の間隔',
-                desc: '最上位のフォルダとタグの間隔。'
+                desc: '最上位のフォルダ、タグ、プロパティの間隔（ピクセル）。'
             },
             showTags: {
                 name: 'タグを表示',
@@ -2002,7 +2104,7 @@ export const STRINGS_JA = {
                 name: 'プロパティを表示',
                 desc: 'ナビゲーターにプロパティセクションを表示します。',
                 propertyKeysInfoPrefix: '',
-                propertyKeysInfoLinkText: '一般 > プロパティキー',
+                propertyKeysInfoLinkText: 'スタート > プロパティキー',
                 propertyKeysInfoSuffix: 'でプロパティを設定'
             },
             showPropertyIcons: {
@@ -2067,11 +2169,11 @@ export const STRINGS_JA = {
             },
             folderNoteTemplate: {
                 name: 'フォルダノートテンプレート',
-                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所は一般 > テンプレートで設定してください。'
+                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。'
             },
             enableFolderNoteLinks: {
-                name: 'フォルダーノートリンクを有効にする',
-                desc: 'フォルダーラベルがリンクとして表示され、クリックでフォルダーノートを開きます。オフの場合でも、フォルダーノートは名前、アイコン、色のメタデータを提供します。'
+                name: 'フォルダ名でフォルダノートを開く',
+                desc: 'フォルダ名をクリックすると、そのフォルダノートを開きます。オフの場合、フォルダノートは名前、アイコン、色などのフォルダメタデータのみを提供します。'
             },
             hideFolderNoteInList: {
                 name: 'リストでフォルダノートを非表示',
@@ -2081,9 +2183,18 @@ export const STRINGS_JA = {
                 name: '作成したフォルダノートをピン留め',
                 desc: 'コンテキストメニューから作成時にフォルダーノートをピン留めする。'
             },
-            openFolderNotesInNewTab: {
-                name: 'フォルダノートを新しいタブで開く',
-                desc: 'フォルダーをクリック時にフォルダーノートを新しいタブで開く。'
+            folderNoteOpenLocation: {
+                name: 'フォルダノートを開く場所',
+                desc: 'フォルダノートリンクをクリックしたときにフォルダノートを開く場所を選択します。',
+                options: {
+                    currentTab: '現在のタブ',
+                    newTab: '新しいタブ',
+                    rightSidebar: '右サイドバー'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: '右サイドバー: 最も近いフォルダノートを表示',
+                desc: 'フォルダを選択すると、右サイドバーに最も近い上位フォルダノートが自動的に表示されます。'
             },
             confirmBeforeDelete: {
                 name: '削除前に確認',
@@ -2108,7 +2219,7 @@ export const STRINGS_JA = {
             },
             metadataCleanup: {
                 name: 'メタデータをクリーンアップ',
-                desc: 'Obsidian外でファイル、フォルダ、タグが削除、移動、または名前変更された際に残された孤立したメタデータを削除します。これはNotebook Navigatorの設定ファイルのみに影響します。',
+                desc: 'Obsidian外でファイル、フォルダ、タグ、またはプロパティが削除、移動、または名前変更された際に残された孤立したメタデータを削除します。これはNotebook Navigatorの設定ファイルのみに影響します。',
                 buttonText: 'メタデータをクリーンアップ',
                 error: '設定のクリーンアップに失敗しました',
                 loading: 'メタデータを確認中...',
@@ -2198,6 +2309,10 @@ export const STRINGS_JA = {
                 desc: '起動時に新しいプラグインリリースを確認し、アップデートが利用可能な場合に通知を表示します。確認は最大1日1回行われます。',
                 status: '新しいバージョンが利用可能: {version}'
             },
+            debugLogging: {
+                name: '起動デバッグログ',
+                desc: '起動診断を保管庫のルートにタイムスタンプ付きの Markdown ファイルとして書き込み、起動が落ち着いた後に停止します。このファイルは同期される場合があり、ファイルパスを含むことがあります。'
+            },
             whatsNew: {
                 name: 'Notebook Navigator {version} の新着情報',
                 desc: '最近の更新と改善を確認',
@@ -2232,6 +2347,7 @@ export const STRINGS_JA = {
     },
     whatsNew: {
         title: 'Notebook Navigatorの新機能',
+        openBannerImage: 'リリースバナー画像を開く',
         supportMessage: 'Notebook Navigatorが役立つと思われる場合は、開発のサポートをご検討ください。',
         supportButton: 'コーヒーをおごる',
         thanksButton: 'ありがとう！'

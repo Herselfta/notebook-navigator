@@ -22,6 +22,7 @@ import { TIMEOUTS, OBSIDIAN_COMMANDS } from '../types/obsidian-extended';
 import { executeCommand } from './typeGuards';
 import { showNotice } from './noticeUtils';
 import { normalizeOptionalVaultFilePath } from './pathUtils';
+import { getTemplaterCreateNoteFromTemplate } from './templaterIntegration';
 
 /**
  * Options for creating a new file
@@ -58,6 +59,7 @@ interface CreateMarkdownFileFromTemplateOptions {
     baseName: string;
     templatePath?: string | null;
     templateErrorContext: string;
+    templaterCreationErrorContext?: string;
 }
 
 /**
@@ -183,7 +185,7 @@ export async function createFileWithOptions(parent: TFolder, app: App, options: 
     }
 }
 
-export async function createMarkdownFileFromTemplate({
+async function createMarkdownFileFromTemplate({
     app,
     folder,
     baseName,
@@ -216,6 +218,46 @@ export async function createMarkdownFileFromTemplate({
     }
 
     return created;
+}
+
+function getMarkdownTemplateFile(app: App, templatePath: string | null | undefined): TFile | null {
+    const normalizedTemplatePath = normalizeOptionalVaultFilePath(templatePath);
+    if (!normalizedTemplatePath) {
+        return null;
+    }
+
+    const entry = app.vault.getAbstractFileByPath(normalizedTemplatePath);
+    return entry instanceof TFile && entry.extension === 'md' ? entry : null;
+}
+
+export async function createMarkdownFileFromTemplatePreferTemplater({
+    app,
+    folder,
+    baseName,
+    templatePath,
+    templateErrorContext,
+    templaterCreationErrorContext = templateErrorContext
+}: CreateMarkdownFileFromTemplateOptions): Promise<TFile> {
+    if (templatePath) {
+        const createFromTemplater = getTemplaterCreateNoteFromTemplate(app);
+        const templateFile = createFromTemplater ? getMarkdownTemplateFile(app, templatePath) : null;
+        if (createFromTemplater && templateFile) {
+            const created = await createFromTemplater(templateFile, folder, baseName, false);
+            if (created instanceof TFile) {
+                return created;
+            }
+
+            throw new Error(`Templater did not create the ${templaterCreationErrorContext}`);
+        }
+    }
+
+    return createMarkdownFileFromTemplate({
+        app,
+        folder,
+        baseName,
+        templatePath,
+        templateErrorContext
+    });
 }
 
 /**

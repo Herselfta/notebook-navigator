@@ -126,7 +126,7 @@ export function useStorageContentQueue(params: {
                     // no "changed files" but still pending derived content in the database. Fall back to checking
                     // the database for any missing content types.
                     const db = getDBInstance();
-                    const contentTypesToCheck: FileContentType[] = ['wordCount', 'tasks'];
+                    const contentTypesToCheck: FileContentType[] = ['wordCount', 'characterCount', 'tasks'];
                     if (metadataDependentTypes.includes('tags')) {
                         contentTypesToCheck.push('tags');
                     }

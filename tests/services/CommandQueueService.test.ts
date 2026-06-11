@@ -62,6 +62,27 @@ describe('CommandQueueService', () => {
         expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(false);
     });
 
+    it('tracks dedicated background file opens without using the active-file queue', async () => {
+        const commandQueue = new CommandQueueService();
+        const file = createTestTFile('notes/sidebar.md');
+
+        const openGate = createDeferredVoid();
+        const openFile = vi.fn(async () => openGate.promise);
+
+        const task = commandQueue.executeBackgroundFileOpen(file, openFile);
+        await Promise.resolve();
+
+        expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(true);
+
+        openGate.resolve();
+        await task;
+
+        expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(true);
+
+        vi.advanceTimersByTime(500);
+        expect(commandQueue.isOpeningActiveFileInBackground(file.path)).toBe(false);
+    });
+
     it('does not report active:true opens as background', async () => {
         const commandQueue = new CommandQueueService();
         const file = createTestTFile('notes/test.md');

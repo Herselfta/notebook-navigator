@@ -142,6 +142,26 @@ describe('PluginSettingsController.prepareImportedUiScalePersistence', () => {
 });
 
 describe('PluginSettingsController.loadSettings', () => {
+    it('migrates legacy folder note new-tab setting to folder note open location', async () => {
+        const saveData = vi.fn().mockResolvedValue(undefined);
+        const controller = new PluginSettingsController({
+            keys: STORAGE_KEYS,
+            loadData: vi.fn(async () => ({
+                openFolderNotesInNewTab: true
+            })),
+            saveData,
+            mirrorUXPreferences: vi.fn()
+        });
+
+        await controller.loadSettings();
+
+        expect(controller.settings.folderNoteOpenLocation).toBe('new-tab');
+        expect(saveData).toHaveBeenCalledTimes(1);
+        const savedSettings = saveData.mock.calls[0][0] as Record<string, unknown>;
+        expect(savedSettings.folderNoteOpenLocation).toBe('new-tab');
+        expect(savedSettings.openFolderNotesInNewTab).toBeUndefined();
+    });
+
     it('persists cleanup when legacy folder color title setting is migrated', async () => {
         const saveData = vi.fn().mockResolvedValue(undefined);
         const controller = new PluginSettingsController({

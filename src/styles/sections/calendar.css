@@ -143,8 +143,7 @@
     flex: 0 0 auto;
 }
 
-.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button,
-.nn-navigation-calendar-month .nn-navigation-calendar-quarter-label {
+.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button {
     flex: 0 0 auto;
 }
 
@@ -195,16 +194,7 @@ button.nn-navigation-calendar-period-button {
     justify-content: center;
 }
 
-.nn-navigation-calendar-period-label {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 1px;
-    border-radius: 6px;
-    background-color: var(--nn-calendar-header-chip-bg);
-    line-height: 1;
-}
-
-.nn-navigation-calendar-period-button.has-period-note:not(.nn-navigation-calendar-quarter-button)::after {
+.nn-navigation-calendar-period-button.has-period-note::after {
     content: '';
     position: absolute;
     left: 3px;
@@ -214,15 +204,6 @@ button.nn-navigation-calendar-period-button {
     background-color: currentColor;
     pointer-events: none;
     z-index: 1;
-}
-
-.nn-navigation-calendar-quarter-button.has-period-note {
-    box-shadow: none;
-}
-
-.nn-navigation-calendar-quarter-button.has-period-note .nn-navigation-calendar-quarter-value {
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 1px;
 }
 
 .nn-navigation-calendar-period-button.is-active-editor-file .nn-navigation-calendar-active-outline,

@@ -98,4 +98,16 @@ describe('MarkdownPipelineContentProvider clearContent', () => {
         expect(batchClearAllFileContentMock).toHaveBeenCalledTimes(1);
         expect(batchClearAllFileContentMock).toHaveBeenCalledWith('properties');
     });
+
+    it('does not clear or regenerate content when text count display changes', async () => {
+        const provider = new MarkdownPipelineContentProvider(new App());
+        const oldSettings = createSettings({ textCountDisplay: 'none' });
+        const newSettings = createSettings({ textCountDisplay: 'characters' });
+
+        await provider.clearContent({ oldSettings, newSettings });
+
+        expect(provider.shouldRegenerate(oldSettings, newSettings)).toBe(false);
+        expect(batchClearAllFileContentMock).not.toHaveBeenCalled();
+        expect(batchClearFeatureImageContentMock).not.toHaveBeenCalled();
+    });
 });

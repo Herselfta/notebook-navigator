@@ -29,7 +29,7 @@ import { getActiveHiddenFileProperties } from '../../utils/vaultProfiles';
 export function getMetadataDependentTypes(settings: NotebookNavigatorSettings): ContentProviderType[] {
     const types: ContentProviderType[] = [];
 
-    // Always include markdownPipeline so word count, task counters, and properties can be persisted for future per-folder overrides.
+    // Always include markdownPipeline so text counts, task counters, and properties can be persisted for future consumers.
     types.push('markdownPipeline');
     if (settings.showTags) {
         types.push('tags');
@@ -50,6 +50,7 @@ export function getCacheRebuildProgressTypes(settings: NotebookNavigatorSettings
     const types = new Set<FileContentType>();
 
     types.add('wordCount');
+    types.add('characterCount');
     types.add('tasks');
 
     if (settings.showFilePreview) {

@@ -180,7 +180,7 @@ export const FolderItem = React.memo(function FolderItem({
     }, [folder, settings, folderNoteLinksEnabled, noteCounts.current, vaultChangeVersion]);
 
     const isRootFolder = folder.path === '/';
-    const effectiveDisplayName = isRootFolder ? settings.customVaultName || app.vault.getName() : displayName || folder.name;
+    const effectiveDisplayName = displayName || (isRootFolder ? settings.customVaultName || app.vault.getName() : folder.name);
     const shouldShowFolderIcon = settings.showFolderIcons || isRootFolder;
     const tooltip = useMemo(() => {
         if (isMobile || !settings.showTooltips) {
@@ -396,7 +396,7 @@ export const FolderItem = React.memo(function FolderItem({
                 >
                     {effectiveDisplayName}
                 </span>
-                <span className="nn-navitem-spacer" />
+                <span className="nn-navitem-spacer nn-navitem-spacer--leader" />
                 {shouldDisplayCount && <span className="nn-navitem-count">{noteCountLabel}</span>}
             </div>
         </div>

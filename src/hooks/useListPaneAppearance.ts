@@ -18,7 +18,7 @@
 
 import { useMemo } from 'react';
 import { useSettingsState } from '../context/SettingsContext';
-import { useSelectionState } from '../context/SelectionContext';
+import { useNavigationSelection } from '../context/SelectionContext';
 import type { ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
 import type { NotebookNavigatorSettings } from '../settings';
 import { ItemType } from '../types';
@@ -93,7 +93,7 @@ function getVisibilityForMode(mode: ListDisplayMode, defaults: VisibilityDefault
  */
 export function useListPaneAppearance() {
     const settings = useSettingsState();
-    const { selectedFolder, selectedTag, selectedProperty, selectionType } = useSelectionState();
+    const { selectedFolder, selectedTag, selectedProperty, selectionType } = useNavigationSelection();
     const selectedFolderPath = selectionType === ItemType.FOLDER ? (selectedFolder?.path ?? null) : null;
     const selectedTagPath = selectionType === ItemType.TAG ? selectedTag : null;
     const selectedPropertyNodeId = selectionType === ItemType.PROPERTY ? selectedProperty : null;

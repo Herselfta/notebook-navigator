@@ -44,7 +44,13 @@ import {
     stripLeadingPeriods
 } from '../utils/fileNameUtils';
 import { resolveFolderNoteName, shouldRenameFolderNoteWithFolderName } from '../utils/folderNoteName';
-import { getFolderNote, getFolderNoteDetectionSettings, isFolderNote, isSupportedFolderNoteExtension } from '../utils/folderNotes';
+import {
+    getFolderNote,
+    getFolderNoteDetectionSettings,
+    isFolderNote,
+    isSupportedFolderNoteExtension,
+    resolveFolderNoteNameForFolder
+} from '../utils/folderNotes';
 import { executeCommand, isPluginInstalled } from '../utils/typeGuards';
 import { getErrorMessage } from '../utils/errorUtils';
 import { TagTreeService } from './TagTreeService';
@@ -67,7 +73,7 @@ import { resolveFolderDisplayName } from '../utils/folderDisplayName';
 import { normalizeTagPath } from '../utils/tagUtils';
 import { FolderPathSettingsSync } from './fileSystem/FolderPathSettingsSync';
 import { FileMoveService } from './fileSystem/FileMoveService';
-import { FileDeletionService } from './fileSystem/FileDeletionService';
+import { FileDeletionService, type FileTrashResult } from './fileSystem/FileDeletionService';
 import {
     buildManualSortInsertionRankPlan,
     getLocalizedManualSortWriteFailureMessage,
@@ -85,6 +91,7 @@ import type {
     SelectionContext
 } from './fileSystem/types';
 export { FolderMoveError } from './fileSystem/FileMoveService';
+export type { FileTrashResult };
 export type { ManualSortNewFilePlacementContext };
 
 /**
@@ -1008,9 +1015,17 @@ export class FileSystemOperations {
         settings: NotebookNavigatorSettings,
         selectionContext: SelectionContext,
         selectionDispatch: SelectionDispatch,
-        confirmBeforeDelete: boolean
+        confirmBeforeDelete: boolean,
+        currentFiles?: readonly TFile[]
     ): Promise<void> {
-        await this.deletionService.deleteSelectedFile(file, settings, selectionContext, selectionDispatch, confirmBeforeDelete);
+        await this.deletionService.deleteSelectedFile(
+            file,
+            settings,
+            selectionContext,
+            selectionDispatch,
+            confirmBeforeDelete,
+            currentFiles
+        );
     }
 
     /**
@@ -1061,10 +1076,6 @@ export class FileSystemOperations {
             return;
         }
 
-        if (parent.path === '/') {
-            return;
-        }
-
         const detectionSettings = getFolderNoteDetectionSettings(settings);
 
         if (isFolderNote(file, parent, detectionSettings)) {
@@ -1086,7 +1097,7 @@ export class FileSystemOperations {
         }
 
         const isExcalidraw = isExcalidrawFile(file);
-        let targetBaseName = resolveFolderNoteName(parent.name, settings);
+        let targetBaseName = resolveFolderNoteNameForFolder(parent, settings);
         if (isExcalidraw) {
             // Strip .excalidraw from the base name for folder note naming.
             targetBaseName = stripExcalidrawSuffix(targetBaseName);
@@ -1370,9 +1381,13 @@ export class FileSystemOperations {
         await this.deletionService.deleteMultipleFiles(files, confirmBeforeDelete, preDeleteAction);
     }
 
+    async trashFilesWithOpenLeafCleanup(files: readonly TFile[]): Promise<FileTrashResult> {
+        return this.deletionService.trashFilesWithOpenLeafCleanup(files);
+    }
+
     async deleteFilesWithSmartSelection(
         selectedFiles: Set<string>,
-        allFiles: TFile[],
+        allFiles: readonly TFile[],
         selectionDispatch: SelectionDispatch,
         confirmBeforeDelete: boolean
     ): Promise<void> {

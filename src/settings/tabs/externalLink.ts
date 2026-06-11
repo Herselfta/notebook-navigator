@@ -32,11 +32,9 @@ type InlineExternalLinkTextParams = Readonly<{
     suffix: string;
 }>;
 
-type InlineActionLinkTextParams = Readonly<{
-    prefix: string;
-    linkText: string;
-    suffix: string;
-    onClick: () => void;
+type ExternalLinkTextParams = Readonly<{
+    text: string;
+    link: ExternalLinkConfig;
 }>;
 
 function createExternalLinkElement({ href, text }: ExternalLinkConfig): HTMLAnchorElement {
@@ -61,15 +59,17 @@ export function createInlineExternalLinkText(params: InlineExternalLinkTextParam
     return fragment;
 }
 
-export function createInlineActionLinkText(params: InlineActionLinkTextParams): DocumentFragment {
+export function createExternalLinkText(params: ExternalLinkTextParams): DocumentFragment {
     const fragment = createFragment();
-    const linkEl = createEl('a');
-    linkEl.textContent = params.linkText;
-    linkEl.href = '#';
-    linkEl.addEventListener('click', event => {
-        event.preventDefault();
-        params.onClick();
-    });
-    fragment.append(params.prefix, linkEl, params.suffix);
+    const linkIndex = params.text.indexOf(params.link.text);
+
+    if (linkIndex === -1) {
+        fragment.append(params.text);
+        return fragment;
+    }
+
+    const prefix = params.text.slice(0, linkIndex);
+    const suffix = params.text.slice(linkIndex + params.link.text.length);
+    fragment.append(prefix, createExternalLinkElement(params.link), suffix);
     return fragment;
 }

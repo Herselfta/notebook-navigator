@@ -18,7 +18,7 @@
 
 import { TFile } from 'obsidian';
 import { hasExcalidrawFrontmatterFlag, isExcalidrawFile } from './fileNameUtils';
-import { isImageExtension } from './fileTypeUtils';
+import { isRasterImageExtension } from './fileTypeUtils';
 import type { IconId } from '../services/icons/types';
 import { deserializeIconFromFrontmatter } from './iconizeFormat';
 import { casefoldPreservingWhitespace } from './recordUtils';
@@ -142,7 +142,7 @@ export function resolveFileTypeIconId(fileTypeIconKey: string, iconMap: Record<s
         return deserialized ?? resolved;
     }
 
-    if (isImageExtension(fileTypeIconKey)) {
+    if (isRasterImageExtension(fileTypeIconKey)) {
         return 'image';
     }
 

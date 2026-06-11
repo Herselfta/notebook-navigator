@@ -22,7 +22,7 @@ import type { NotebookNavigatorSettings } from '../settings';
 
 interface ResolveFolderDisplayNameParams {
     app: App;
-    metadataService: MetadataService;
+    metadataService: Pick<MetadataService, 'getFolderDisplayData'>;
     settings: Pick<NotebookNavigatorSettings, 'customVaultName'>;
     folderPath: string;
     fallbackName: string;
@@ -34,10 +34,6 @@ interface ResolveFolderDisplayNameParams {
 export function resolveFolderDisplayName(params: ResolveFolderDisplayNameParams): string {
     const { app, metadataService, settings, folderPath, fallbackName } = params;
 
-    if (folderPath === '/') {
-        return settings.customVaultName || app.vault.getName();
-    }
-
     const metadataDisplayName = metadataService.getFolderDisplayData(folderPath, {
         includeDisplayName: true,
         includeColor: false,
@@ -46,6 +42,10 @@ export function resolveFolderDisplayName(params: ResolveFolderDisplayNameParams)
     }).displayName;
     if (metadataDisplayName && metadataDisplayName.length > 0) {
         return metadataDisplayName;
+    }
+
+    if (folderPath === '/') {
+        return settings.customVaultName || app.vault.getName();
     }
 
     return fallbackName;

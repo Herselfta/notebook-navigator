@@ -28,10 +28,10 @@
  * - Page navigation
  */
 
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { TFile, FileView } from 'obsidian';
 import { Virtualizer } from '@tanstack/react-virtual';
-import { useSelectionState, useSelectionDispatch, resolvePrimarySelectedFile } from '../context/SelectionContext';
+import { useFileSelection, useNavigationSelection, useSelectionDispatch, resolvePrimarySelectedFile } from '../context/SelectionContext';
 import { useServices, useFileSystemOps } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
@@ -39,7 +39,7 @@ import { useUIState, useUIDispatch } from '../context/UIStateContext';
 import { getSupportedLeaves, ListPaneItemType } from '../types';
 import type { ListPaneItem } from '../types/virtualization';
 import { deleteSelectedFiles } from '../utils/deleteOperations';
-import { getFilesInRange } from '../utils/selectionUtils';
+import { getFilesInRange, mergeFilesIntoSelection } from '../utils/selectionUtils';
 import { useKeyboardNavigation, KeyboardNavigationHelpers } from './useKeyboardNavigation';
 import { useMultiSelection } from './useMultiSelection';
 import { useFileOpener } from './useFileOpener';
@@ -111,21 +111,27 @@ export function useListPaneKeyboard({
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
-    const selectionState = useSelectionState();
+    const fileSelection = useFileSelection();
+    const fileSelectionRef = useRef(fileSelection);
+    fileSelectionRef.current = fileSelection;
+    const navigationSelection = useNavigationSelection();
+    const navigationSelectionRef = useRef(navigationSelection);
+    navigationSelectionRef.current = navigationSelection;
     const selectionDispatch = useSelectionDispatch();
     const uiState = useUIState();
     const uiDispatch = useUIDispatch();
-    const multiSelection = useMultiSelection();
+    const { handleShiftArrowSelection, selectAll } = useMultiSelection();
 
     /**
      * Get current selection index
      */
     const getCurrentIndex = useCallback(() => {
-        if (selectionState.selectedFile?.path) {
-            return pathToIndex.get(selectionState.selectedFile.path) ?? -1;
+        const selectedFile = fileSelectionRef.current.selectedFile;
+        if (selectedFile?.path) {
+            return pathToIndex.get(selectedFile.path) ?? -1;
         }
         return -1;
-    }, [selectionState.selectedFile, pathToIndex]);
+    }, [pathToIndex]);
 
     /**
      * Select item at given index
@@ -162,15 +168,16 @@ export function useListPaneKeyboard({
                 direction === 'home' ? currentFileIndex : orderedFiles.length - 1
             );
 
-            // Select all files in range that aren't already selected
-            filesInRange.forEach(f => {
-                if (!selectionState.selectedFiles.has(f.path)) {
-                    selectionDispatch({ type: 'TOGGLE_FILE_SELECTION', file: f });
-                }
-            });
+            const currentFileSelection = fileSelectionRef.current;
+            const { selectedFiles, changed: selectionChanged } = mergeFilesIntoSelection(currentFileSelection.selectedFiles, filesInRange);
 
             // Move cursor to target position
-            selectionDispatch({ type: 'UPDATE_CURRENT_FILE', file: targetFile });
+            selectionDispatch({
+                type: 'APPLY_FILE_SELECTION',
+                selectedFiles,
+                selectedFile: targetFile,
+                lastMovementDirection: selectionChanged ? null : currentFileSelection.lastMovementDirection
+            });
 
             // Open the file without changing focus
             if (!settings.enterToOpenFiles) {
@@ -187,16 +194,7 @@ export function useListPaneKeyboard({
                 scrollToIndexSafely(targetListIndex, 'auto');
             }
         },
-        [
-            orderedFiles,
-            selectionState.selectedFiles,
-            selectionDispatch,
-            settings.enterToOpenFiles,
-            openFileInWorkspace,
-            virtualizer,
-            pathToIndex,
-            scrollToIndexSafely
-        ]
+        [orderedFiles, selectionDispatch, settings.enterToOpenFiles, openFileInWorkspace, virtualizer, pathToIndex, scrollToIndexSafely]
     );
 
     /**
@@ -209,6 +207,7 @@ export function useListPaneKeyboard({
             }
 
             const currentIndex = getCurrentIndex();
+            const currentFileSelection = fileSelectionRef.current;
             const shortcuts = settings.keyboardShortcuts;
             const isRTL = helpers.isRTL();
             let targetIndex = -1;
@@ -280,7 +279,7 @@ export function useListPaneKeyboard({
             };
 
             if (settings.enterToOpenFiles && isEnterKey(e)) {
-                const selectedFile = resolvePrimarySelectedFile(app, selectionState);
+                const selectedFile = resolvePrimarySelectedFile(app, currentFileSelection);
                 if (!selectedFile) {
                     return;
                 }
@@ -324,12 +323,12 @@ export function useListPaneKeyboard({
 
             if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_EXTEND_SELECTION_DOWN)) {
                 e.preventDefault();
-                if (!isMobile && selectionState.selectedFile?.path) {
-                    const currentFileIndex = orderedFileIndexMap.get(selectionState.selectedFile.path);
+                if (!isMobile && currentFileSelection.selectedFile?.path) {
+                    const currentFileIndex = orderedFileIndexMap.get(currentFileSelection.selectedFile.path);
                     if (currentFileIndex !== undefined && currentFileIndex !== -1) {
                         // Only debounce workspace opens for physical arrow keys so keyup can commit the final selection.
                         const shouldDebounceOpen = e.key === 'ArrowDown';
-                        const finalFileIndex = multiSelection.handleShiftArrowSelection('down', currentFileIndex, orderedFiles, {
+                        const finalFileIndex = handleShiftArrowSelection('down', currentFileIndex, orderedFiles, {
                             openFile: file => openFileFromShiftSelection(file, shouldDebounceOpen)
                         });
                         if (finalFileIndex === -1 && shouldDebounceOpen) {
@@ -350,12 +349,12 @@ export function useListPaneKeyboard({
 
             if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_EXTEND_SELECTION_UP)) {
                 e.preventDefault();
-                if (!isMobile && selectionState.selectedFile?.path) {
-                    const currentFileIndex = orderedFileIndexMap.get(selectionState.selectedFile.path);
+                if (!isMobile && currentFileSelection.selectedFile?.path) {
+                    const currentFileIndex = orderedFileIndexMap.get(currentFileSelection.selectedFile.path);
                     if (currentFileIndex !== undefined && currentFileIndex !== -1) {
                         // Only debounce workspace opens for physical arrow keys so keyup can commit the final selection.
                         const shouldDebounceOpen = e.key === 'ArrowUp';
-                        const finalFileIndex = multiSelection.handleShiftArrowSelection('up', currentFileIndex, orderedFiles, {
+                        const finalFileIndex = handleShiftArrowSelection('up', currentFileIndex, orderedFiles, {
                             openFile: file => openFileFromShiftSelection(file, shouldDebounceOpen)
                         });
                         if (finalFileIndex === -1 && shouldDebounceOpen) {
@@ -439,12 +438,12 @@ export function useListPaneKeyboard({
                     directional: 'horizontal'
                 })
             ) {
-                if (selectionState.selectedFile) {
+                if (currentFileSelection.selectedFile) {
                     e.preventDefault();
                     const leaves = getSupportedLeaves(app);
                     const targetLeaf = leaves.find(leaf => {
                         const view = leaf.view;
-                        return view instanceof FileView && view.file?.path === selectionState.selectedFile?.path;
+                        return view instanceof FileView && view.file?.path === currentFileSelection.selectedFile?.path;
                     });
                     if (targetLeaf) {
                         app.workspace.setActiveLeaf(targetLeaf, { focus: true });
@@ -464,8 +463,13 @@ export function useListPaneKeyboard({
                     uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
                 }
             } else if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.DELETE_SELECTED)) {
-                if (selectionState.selectedFile || selectionState.selectedFiles.size > 0) {
+                if (currentFileSelection.selectedFile || currentFileSelection.selectedFiles.size > 0) {
                     e.preventDefault();
+                    const selectionStateForDelete = {
+                        ...navigationSelectionRef.current,
+                        selectedFiles: currentFileSelection.selectedFiles,
+                        selectedFile: currentFileSelection.selectedFile
+                    };
                     // Delete selected files
                     runAsyncAction(() =>
                         deleteSelectedFiles({
@@ -473,10 +477,11 @@ export function useListPaneKeyboard({
                             fileSystemOps,
                             settings,
                             visibility: { includeDescendantNotes, showHiddenItems },
-                            selectionState,
+                            selectionState: selectionStateForDelete,
                             selectionDispatch,
                             tagTreeService,
-                            propertyTreeService
+                            propertyTreeService,
+                            orderedFiles
                         })
                     );
                 }
@@ -490,11 +495,11 @@ export function useListPaneKeyboard({
                     })
                     .filter((file): file is TFile => file !== null);
 
-                multiSelection.selectAll(allFiles);
+                selectAll(allFiles);
             } else if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_RANGE_TO_START)) {
                 e.preventDefault();
-                if (!isMobile && selectionState.selectedFile?.path) {
-                    const currentFileIndex = orderedFileIndexMap.get(selectionState.selectedFile.path);
+                if (!isMobile && currentFileSelection.selectedFile?.path) {
+                    const currentFileIndex = orderedFileIndexMap.get(currentFileSelection.selectedFile.path);
                     if (currentFileIndex !== undefined && currentFileIndex !== -1) {
                         handleRangeSelection('home', currentFileIndex);
                     }
@@ -502,8 +507,8 @@ export function useListPaneKeyboard({
                 return;
             } else if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_RANGE_TO_END)) {
                 e.preventDefault();
-                if (!isMobile && selectionState.selectedFile?.path) {
-                    const currentFileIndex = orderedFileIndexMap.get(selectionState.selectedFile.path);
+                if (!isMobile && currentFileSelection.selectedFile?.path) {
+                    const currentFileIndex = orderedFileIndexMap.get(currentFileSelection.selectedFile.path);
                     if (currentFileIndex !== undefined && currentFileIndex !== -1) {
                         handleRangeSelection('end', currentFileIndex);
                     }
@@ -546,9 +551,8 @@ export function useListPaneKeyboard({
             enabled,
             settings,
             isMobile,
-            selectionState,
             orderedFileIndexMap,
-            multiSelection,
+            handleShiftArrowSelection,
             orderedFiles,
             pathToIndex,
             app,
@@ -559,6 +563,7 @@ export function useListPaneKeyboard({
             tagTreeService,
             propertyTreeService,
             selectionDispatch,
+            selectAll,
             selectItemAtIndex,
             handleRangeSelection,
             items,

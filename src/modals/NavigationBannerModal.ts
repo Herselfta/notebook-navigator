@@ -20,7 +20,7 @@ import { App, TFile } from 'obsidian';
 import { BaseSuggestModal } from './BaseSuggestModal';
 import { strings } from '../i18n';
 import { naturalCompare } from '../utils/sortUtils';
-import { isImageFile } from '../utils/fileTypeUtils';
+import { isRasterImageFile } from '../utils/fileTypeUtils';
 
 /**
  * Modal for selecting the navigation banner image.
@@ -39,7 +39,7 @@ export class NavigationBannerModal extends BaseSuggestModal<TFile> {
      * Get all image files available in the vault, sorted by path.
      */
     getItems(): TFile[] {
-        const files = this.app.vault.getFiles().filter(file => isImageFile(file));
+        const files = this.app.vault.getFiles().filter(file => isRasterImageFile(file));
         files.sort((first, second) => naturalCompare(first.path, second.path));
         return files;
     }

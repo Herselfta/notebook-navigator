@@ -18,7 +18,7 @@
 
 import { normalizePath, type App, type FrontMatterCache, TFile } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../../settings';
-import { isImageExtension, isImageFile, isPdfFile } from '../../utils/fileTypeUtils';
+import { isPdfFile, isRasterImageExtension, isRasterImageFile, isSvgExtension } from '../../utils/fileTypeUtils';
 import { getMatchingRecordValue } from '../../utils/recordUtils';
 import { getYoutubeVideoId } from '../../utils/youtubeUtils';
 
@@ -49,6 +49,25 @@ function isHttpUrl(value: string): boolean {
     return value.trim().toLowerCase().startsWith('http://');
 }
 
+function getPathExtension(target: string): string | null {
+    const withoutSuffix = target.split(/[?#]/, 1)[0];
+    const lastDot = withoutSuffix.lastIndexOf('.');
+    if (lastDot === -1 || lastDot === withoutSuffix.length - 1) {
+        return null;
+    }
+
+    const extension = withoutSuffix.slice(lastDot + 1);
+    return extension.length > 0 ? extension : null;
+}
+
+function hasSvgUrlPathExtension(url: string): boolean {
+    try {
+        return isSvgExtension(getPathExtension(new URL(url).pathname) ?? '');
+    } catch {
+        return false;
+    }
+}
+
 export function isValidHttpsUrl(value: string): boolean {
     const trimmed = value.trim();
     if (trimmed.length < 8 || trimmed.slice(0, 8).toLowerCase() !== 'https://') {
@@ -69,6 +88,10 @@ function createExternalReference(url: string, settings: NotebookNavigatorSetting
     }
 
     const normalized = normalizeExternalUrl(url.trim());
+    if (hasSvgUrlPathExtension(normalized)) {
+        return null;
+    }
+
     const videoId = getYoutubeVideoId(normalized);
     if (videoId) {
         return { kind: 'youtube', videoId };
@@ -110,26 +133,24 @@ function safeDecodeLinkComponent(value: string): string {
 }
 
 function hasUnsupportedEmbedExtension(target: string): boolean {
-    const withoutSuffix = target.split(/[?#]/, 1)[0];
-    const lastDot = withoutSuffix.lastIndexOf('.');
-    if (lastDot === -1 || lastDot === withoutSuffix.length - 1) {
+    const extension = getPathExtension(target);
+    if (!extension) {
         return false;
     }
 
-    const extension = withoutSuffix.slice(lastDot + 1);
-    return extension.length > 0 && !isImageExtension(extension) && extension.toLowerCase() !== 'pdf';
+    return extension.length > 0 && !isRasterImageExtension(extension) && extension.toLowerCase() !== 'pdf';
 }
 
 function resolveLocalFeatureFile(app: App, imagePath: string, contextFile: TFile): TFile | null {
     const trimmedPath = imagePath.trim();
     const resolvedFromCache = app.metadataCache.getFirstLinkpathDest(trimmedPath, contextFile.path);
-    if (resolvedFromCache instanceof TFile && (isImageFile(resolvedFromCache) || isPdfFile(resolvedFromCache))) {
+    if (resolvedFromCache instanceof TFile && (isRasterImageFile(resolvedFromCache) || isPdfFile(resolvedFromCache))) {
         return resolvedFromCache;
     }
 
     const normalizedPath = normalizePath(trimmedPath);
     const abstractFile = app.vault.getAbstractFileByPath(normalizedPath);
-    if (abstractFile instanceof TFile && (isImageFile(abstractFile) || isPdfFile(abstractFile))) {
+    if (abstractFile instanceof TFile && (isRasterImageFile(abstractFile) || isPdfFile(abstractFile))) {
         return abstractFile;
     }
 

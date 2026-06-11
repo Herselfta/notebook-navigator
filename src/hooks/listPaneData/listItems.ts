@@ -42,6 +42,7 @@ import type { SearchResultMeta } from '../../types/search';
 import type { IndexedDBStorage } from '../../storage/IndexedDBStorage';
 import type { ListNoteGroupingOption } from '../../settings/types';
 import type { PropertySelectionNodeId } from '../../utils/propertyTree';
+import type { ListPaneFolderPathSegment } from '../../types/virtualization';
 
 export interface ListPaneConfig {
     filterPinnedByFolder: boolean;
@@ -49,6 +50,8 @@ export interface ListPaneConfig {
     groupBy: ListNoteGroupingOption;
     pinnedGroupExpanded: boolean;
     pinnedNotes: NotebookNavigatorSettings['pinnedNotes'];
+    showCurrentFolderFilesAtBottom: boolean;
+    showFolderGroupPaths: boolean;
     showFileTags: boolean;
     showTags: boolean;
 }
@@ -75,6 +78,29 @@ interface BuildListItemsArgs {
     isManualSortActive?: boolean;
     manualSortGroupHeaderPropertyKey?: string | null;
     wordCountTargetProperty?: string;
+}
+
+function splitFolderPath(path: string): string[] {
+    return path.split('/').filter(Boolean);
+}
+
+function getLastFolderPathSegment(path: string, fallback: string): string {
+    const segments = splitFolderPath(path);
+    return segments.length > 0 ? segments[segments.length - 1] : fallback;
+}
+
+function buildFolderGroupHeaderSegments(folderPath: string, visiblePath: string): ListPaneFolderPathSegment[] {
+    const folderSegments = splitFolderPath(folderPath);
+    const visibleSegments = splitFolderPath(visiblePath);
+    if (folderSegments.length === 0 || visibleSegments.length === 0) {
+        return [];
+    }
+
+    const firstVisibleFolderSegmentIndex = Math.max(0, folderSegments.length - visibleSegments.length);
+    return visibleSegments.map((label, index) => ({
+        label,
+        path: folderSegments.slice(0, firstVisibleFolderSegmentIndex + index + 1).join('/')
+    }));
 }
 
 export function buildListItems({
@@ -148,6 +174,7 @@ export function buildListItems({
 
     let activeListGroupCollapsed = false;
     let activeCollapsedHeaderKind: ListPaneItem['headerKind'] | null = null;
+    let activeGroupHeaderItem: ListPaneItem | null = null;
     let fileIndexCounter = 0;
     const getFileWordCount = (file: TFile): number => {
         return normalizeManualSortGroupHeaderWordCount(db.getFile(file.path)?.wordCount);
@@ -193,6 +220,8 @@ export function buildListItems({
     };
     type FileItemOverrides = Partial<Omit<ListPaneItem, 'type' | 'data' | 'fileIndex' | 'hasTags' | 'isHidden' | 'key' | 'searchMeta'>>;
     const pushFileItem = (file: TFile, overrides: FileItemOverrides = {}) => {
+        activeGroupHeaderItem?.groupFilePaths?.push(file.path);
+
         if (activeManualSortHeader && shouldShowManualSortGroupHeaderWordCount(activeManualSortHeader.header) && file.extension === 'md') {
             activeManualSortHeader.wordCount += getFileWordCount(file);
             if (activeManualSortHeader.header.targetWordCount === null) {
@@ -225,12 +254,18 @@ export function buildListItems({
         data,
         key,
         headerFolderPath,
+        headerFolderSegments,
         headerKind,
         collapseKey,
         manualSortHeader,
-        manualSortHeaderFilePath
-    }: Pick<ListPaneItem, 'data' | 'key' | 'headerFolderPath' | 'headerKind' | 'collapseKey' | 'manualSortHeaderFilePath'> & {
+        manualSortHeaderFilePath,
+        groupFiles
+    }: Pick<
+        ListPaneItem,
+        'data' | 'key' | 'headerFolderPath' | 'headerFolderSegments' | 'headerKind' | 'collapseKey' | 'manualSortHeaderFilePath'
+    > & {
         manualSortHeader?: ManualSortGroupHeaderData;
+        groupFiles?: readonly TFile[];
     }) => {
         if (activeListGroupCollapsed && activeCollapsedHeaderKind !== 'manual-sort-custom' && headerKind === 'manual-sort-custom') {
             return;
@@ -252,7 +287,9 @@ export function buildListItems({
             type: ListPaneItemType.HEADER,
             data,
             headerFolderPath,
+            headerFolderSegments,
             manualSortHeaderFilePath,
+            groupFilePaths: groupFiles ? groupFiles.map(file => file.path) : [],
             manualSortHeaderShowsWordCount: manualSortHeader ? shouldShowManualSortGroupHeaderWordCount(manualSortHeader) : undefined,
             manualSortHeader,
             manualSortHeaderWordCount: manualSortHeader ? 0 : undefined,
@@ -263,6 +300,7 @@ export function buildListItems({
             key
         };
         items.push(headerItem);
+        activeGroupHeaderItem = groupFiles ? null : headerItem;
         activeManualSortHeader = null;
         if (headerKind === 'manual-sort-custom' && manualSortHeader) {
             activeManualSortHeader = {
@@ -298,7 +336,8 @@ export function buildListItems({
         pushHeaderItem({
             data: strings.listPane.pinnedSection,
             key: PINNED_SECTION_HEADER_KEY,
-            headerKind: 'pinned'
+            headerKind: 'pinned',
+            groupFiles: pinnedFiles
         });
 
         if (listConfig.pinnedGroupExpanded) {
@@ -335,7 +374,8 @@ export function buildListItems({
             pushHeaderItem({
                 data: label,
                 key: `header-${label}`,
-                headerKind: 'section'
+                headerKind: 'section',
+                groupFiles: sortedFiles
             });
         }
 
@@ -348,7 +388,8 @@ export function buildListItems({
                 data: strings.listPane.unsortedSection,
                 collapseKey: createCollapseKey('section:unsorted'),
                 key: 'header-unsorted',
-                headerKind: 'section'
+                headerKind: 'section',
+                groupFiles: unsortedFiles
             });
             unsortedFiles.forEach(file => {
                 pushManualSortAwareFileItem(file);
@@ -379,47 +420,88 @@ export function buildListItems({
     } else {
         const baseFolderPath = selectedFolder?.path ?? null;
         const baseFolderName = selectedFolder?.name ?? null;
-        const basePrefix = baseFolderPath ? `${baseFolderPath}/` : null;
+        const basePrefix = baseFolderPath && baseFolderPath !== '/' ? `${baseFolderPath}/` : null;
         const vaultRootLabel = strings.navigationPane.vaultRootLabel;
         const folderGroupSortOrder = listConfig.folderGroupSortOrder;
+        const showFolderGroupPaths = listConfig.showFolderGroupPaths;
 
         const folderGroups = new Map<
             string,
             {
                 label: string;
+                sortLabel: string;
                 files: TFile[];
                 isCurrentFolder: boolean;
                 folderPath: string | null;
+                folderSegments?: ListPaneFolderPathSegment[];
             }
         >();
 
-        const resolveFolderGroup = (file: TFile): { key: string; label: string; isCurrentFolder: boolean; folderPath: string | null } => {
+        const createFolderGroupHeader = (
+            folderPath: string,
+            visiblePath: string,
+            fallbackName: string
+        ): { label: string; sortLabel: string; folderPath: string; folderSegments?: ListPaneFolderPathSegment[] } => {
+            const normalizedFolderPath = normalizePath(folderPath);
+            const label = showFolderGroupPaths ? visiblePath : getLastFolderPathSegment(visiblePath, fallbackName);
+            return {
+                label,
+                sortLabel: visiblePath,
+                folderPath: normalizedFolderPath,
+                folderSegments: showFolderGroupPaths ? buildFolderGroupHeaderSegments(normalizedFolderPath, visiblePath) : undefined
+            };
+        };
+
+        const resolveFolderGroup = (
+            file: TFile
+        ): {
+            key: string;
+            label: string;
+            sortLabel: string;
+            isCurrentFolder: boolean;
+            folderPath: string | null;
+            folderSegments?: ListPaneFolderPathSegment[];
+        } => {
             const parent = file.parent;
             if (!(parent instanceof TFolder)) {
-                return { key: 'folder:/', label: vaultRootLabel, isCurrentFolder: false, folderPath: null };
+                return { key: 'folder:/', label: vaultRootLabel, sortLabel: vaultRootLabel, isCurrentFolder: false, folderPath: null };
             }
 
             if (selectionType === ItemType.FOLDER && baseFolderPath) {
                 if (parent.path === baseFolderPath) {
+                    const label = baseFolderName ?? parent.name;
                     return {
                         key: `folder:${baseFolderPath}`,
-                        label: baseFolderName ?? parent.name,
+                        label,
+                        sortLabel: label,
                         isCurrentFolder: true,
                         folderPath: baseFolderPath === '/' ? null : baseFolderPath
                     };
                 }
 
+                if (baseFolderPath === '/' && parent.path !== '/') {
+                    const header = createFolderGroupHeader(parent.path, parent.path, parent.name);
+                    return {
+                        key: `folder:/${parent.path}`,
+                        label: header.label,
+                        sortLabel: header.sortLabel,
+                        isCurrentFolder: false,
+                        folderPath: header.folderPath,
+                        folderSegments: header.folderSegments
+                    };
+                }
+
                 if (basePrefix && parent.path.startsWith(basePrefix)) {
                     const relativePath = parent.path.slice(basePrefix.length);
-                    const [firstSegment] = relativePath.split('/');
-                    if (firstSegment && firstSegment.length > 0) {
+                    if (relativePath.length > 0) {
+                        const header = createFolderGroupHeader(parent.path, relativePath, parent.name);
                         return {
-                            key: `folder:${baseFolderPath}/${firstSegment}`,
-                            label: firstSegment,
+                            key: `folder:${parent.path}`,
+                            label: header.label,
+                            sortLabel: header.sortLabel,
                             isCurrentFolder: false,
-                            folderPath: normalizePath(
-                                !baseFolderPath || baseFolderPath === '/' ? firstSegment : `${baseFolderPath}/${firstSegment}`
-                            )
+                            folderPath: header.folderPath,
+                            folderSegments: header.folderSegments
                         };
                     }
                 }
@@ -430,13 +512,15 @@ export function buildListItems({
             if (topLevel && topLevel.length > 0) {
                 return {
                     key: `folder:/${topLevel}`,
-                    label: topLevel,
+                    label: showFolderGroupPaths ? topLevel : getLastFolderPathSegment(topLevel, topLevel),
+                    sortLabel: topLevel,
                     isCurrentFolder: false,
-                    folderPath: topLevel
+                    folderPath: topLevel,
+                    folderSegments: showFolderGroupPaths ? buildFolderGroupHeaderSegments(topLevel, topLevel) : undefined
                 };
             }
 
-            return { key: 'folder:/', label: vaultRootLabel, isCurrentFolder: false, folderPath: null };
+            return { key: 'folder:/', label: vaultRootLabel, sortLabel: vaultRootLabel, isCurrentFolder: false, folderPath: null };
         };
 
         unpinnedFiles.forEach(file => {
@@ -449,20 +533,18 @@ export function buildListItems({
 
             folderGroups.set(groupInfo.key, {
                 label: groupInfo.label,
+                sortLabel: groupInfo.sortLabel,
                 files: [file],
                 isCurrentFolder: groupInfo.isCurrentFolder,
-                folderPath: groupInfo.folderPath
+                folderPath: groupInfo.folderPath,
+                folderSegments: groupInfo.folderSegments
             });
         });
 
         const orderedGroups = Array.from(folderGroups.entries())
             .map(([key, group]) => ({ key, ...group }))
             .sort((left, right) => {
-                if (left.isCurrentFolder !== right.isCurrentFolder) {
-                    return left.isCurrentFolder ? -1 : 1;
-                }
-
-                const labelCompare = compareByAlphaSortOrder(left.label, right.label, folderGroupSortOrder);
+                const labelCompare = compareByAlphaSortOrder(left.sortLabel, right.sortLabel, folderGroupSortOrder);
                 if (labelCompare !== 0) {
                     return labelCompare;
                 }
@@ -474,25 +556,50 @@ export function buildListItems({
                 return left.key < right.key ? -1 : 1;
             });
 
-        orderedGroups.forEach(group => {
+        const currentFolderGroup = orderedGroups.find(group => group.isCurrentFolder) ?? null;
+        const childFolderGroups = orderedGroups.filter(group => !group.isCurrentFolder);
+        const shouldAddCurrentFolderBoundary =
+            currentFolderGroup !== null &&
+            ((listConfig.showCurrentFolderFilesAtBottom && (pinnedFiles.length > 0 || childFolderGroups.length > 0)) ||
+                (!listConfig.showCurrentFolderFilesAtBottom && pinnedFiles.length > 0));
+        const renderFolderGroup = (group: (typeof orderedGroups)[number]): void => {
             if (group.files.length === 0) {
                 return;
             }
 
-            if (!group.isCurrentFolder || pinnedFiles.length > 0) {
+            if (!group.isCurrentFolder) {
                 pushHeaderItem({
                     data: group.label,
                     collapseKey: createCollapseKey(group.key),
                     headerFolderPath: group.folderPath,
+                    headerFolderSegments: group.folderSegments,
                     key: `header-${group.key}`,
-                    headerKind: 'folder'
+                    headerKind: 'folder',
+                    groupFiles: group.files
+                });
+            } else if (shouldAddCurrentFolderBoundary) {
+                pushHeaderItem({
+                    data: '',
+                    key: `header-${group.key}-current-folder-boundary`,
+                    headerKind: 'section',
+                    groupFiles: group.files
                 });
             }
 
             group.files.forEach(file => {
                 pushFileItem(file);
             });
-        });
+        };
+
+        if (currentFolderGroup && !listConfig.showCurrentFolderFilesAtBottom) {
+            renderFolderGroup(currentFolderGroup);
+        }
+
+        childFolderGroups.forEach(renderFolderGroup);
+
+        if (currentFolderGroup && listConfig.showCurrentFolderFilesAtBottom) {
+            renderFolderGroup(currentFolderGroup);
+        }
     }
 
     items.push({

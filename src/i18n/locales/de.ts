@@ -298,6 +298,8 @@ export const STRINGS_DE = {
             moveFileToFolder: 'Datei verschieben nach...',
             moveMultipleNotesToFolder: '{count} Notizen verschieben nach...',
             moveMultipleFilesToFolder: '{count} Dateien verschieben nach...',
+            mergeNotes: '{count} Notizen zusammenführen...',
+            mergeNotesInGroup: 'Notizen in Gruppe zusammenführen...',
             setManualSortGroupHeader: 'Gruppenüberschrift festlegen',
             changeManualSortGroupHeader: 'Gruppenüberschrift ändern',
             manualSortGroupHeader: {
@@ -434,8 +436,28 @@ export const STRINGS_DE = {
             wordCountTarget: 'Zielwortzahl',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Wenn dieses Feld leer ist, verwendet das Gruppenziel die Zieleigenschaft aus Einstellungen > Notizen > Wortzahl. Überschreiben Sie sie, indem Sie einen Zielwert für diese Gruppe festlegen.',
+                'Wenn dieses Feld leer ist, verwendet das Gruppenziel die Zieleigenschaft aus Einstellungen > Notizen > Wort- und Zeichenanzahl. Überschreiben Sie sie, indem Sie einen Zielwert für diese Gruppe festlegen.',
             description: 'Passen Sie die Gruppenüberschrift für diese Notiz an. Lassen Sie den Titel leer, um die Überschrift zu entfernen.'
+        },
+        mergeNotes: {
+            title: 'Notizen zusammenführen',
+            summary: 'Eine Notiz aus {count} Notizen in {folder} erstellen.',
+            frontmatterRule: 'Frontmatter der ersten Notiz bleibt erhalten. Frontmatter der anderen Notizen wird entfernt.',
+            crossFolderWarning:
+                'Quellnotizen befinden sich in verschiedenen Ordnern. Relative Links und Einbettungen funktionieren in der zusammengeführten Notiz möglicherweise nicht mehr.',
+            outputName: 'Ausgabename',
+            outputNameDesc: 'Die zusammengeführte Notiz wird im oben angezeigten Ordner erstellt.',
+            outputNamePlaceholder: 'Zusammengeführte Notizen',
+            separator: 'Trennzeichen',
+            separatorDesc: 'Wird zwischen Notizen eingefügt.',
+            separatorOptions: {
+                none: 'Keine',
+                blankLine: 'Leerzeile',
+                horizontalRule: 'Horizontale Linie',
+                heading: 'Überschrift mit Notiztitel'
+            },
+            moveSourcesToTrash: 'Quellnotizen nach dem Zusammenführen in den Papierkorb verschieben',
+            mergeButton: 'Zusammenführen'
         },
         navRainbowSection: {
             title: (section: string) => `Regenbogenfarben: ${section}`
@@ -482,6 +504,7 @@ export const STRINGS_DE = {
                 'list-sort-property': 'Nach Eigenschaft sortieren',
                 'list-appearance': 'Darstellung ändern',
                 'list-new-note': 'Neue Notiz',
+                'list-pinned': 'Angeheftete Notizen',
                 'nav-folder-open': 'Ordner geöffnet',
                 'nav-folder-closed': 'Ordner geschlossen',
                 'nav-tags': 'Tags',
@@ -490,7 +513,8 @@ export const STRINGS_DE = {
                 'nav-property': 'Eigenschaft',
                 'nav-property-value': 'Wert',
                 'file-unfinished-task': 'Unerledigte Aufgaben',
-                'file-word-count': 'Wortanzahl'
+                'file-word-count': 'Wortanzahl',
+                'file-character-count': 'Zeichenanzahl'
             }
         },
         colorPicker: {
@@ -697,6 +721,12 @@ export const STRINGS_DE = {
             deleteFolder: 'Ordner konnte nicht gelöscht werden: {error}',
             deleteFile: 'Datei konnte nicht gelöscht werden: {error}',
             deleteAttachments: 'Anhänge konnten nicht gelöscht werden: {error}',
+            mergeNotes: 'Notizen konnten nicht zusammengeführt werden: {error}',
+            mergeNotesOpenOutput:
+                'Zusammengeführte Notiz wurde als {name} erstellt, konnte aber nicht geöffnet werden: {error}. Quellnotizen wurden nicht verändert.',
+            mergeNotesOpenSkipped: 'Eine andere Dateiöffnungsanfrage hatte Vorrang.',
+            mergeNotesTrashSources:
+                'Zusammengeführte Notiz erstellt. {count} Quellnotizen konnten nicht in den Papierkorb verschoben werden.',
             duplicateNote: 'Notiz konnte nicht dupliziert werden: {error}',
             duplicateFolder: 'Ordner konnte nicht dupliziert werden: {error}',
             openVersionHistory: 'Versionsverlauf konnte nicht geöffnet werden: {error}',
@@ -730,7 +760,8 @@ export const STRINGS_DE = {
         },
         notices: {
             hideFolder: 'Ordner ausgeblendet: {name}',
-            showFolder: 'Ordner eingeblendet: {name}'
+            showFolder: 'Ordner eingeblendet: {name}',
+            mergeNotes: '{count} Notizen in {name} zusammengeführt'
         },
         notifications: {
             deletedMultipleFiles: '{count} Dateien gelöscht',
@@ -748,6 +779,7 @@ export const STRINGS_DE = {
             tagsClearedFromNotes: 'Alle Tags von {count} Notizen entfernt',
             noTagsToRemove: 'Keine Tags zum Entfernen',
             noFilesSelected: 'Keine Dateien ausgewählt',
+            mergeNotesRequireMultipleMarkdown: 'Wählen Sie mindestens zwei Markdown-Notizen zum Zusammenführen aus',
             tagOperationsNotAvailable: 'Tag-Operationen nicht verfügbar',
             propertyOperationsNotAvailable: 'Eigenschafts-Operationen nicht verfügbar',
             tagsRequireMarkdown: 'Tags werden nur in Markdown-Notizen unterstützt',
@@ -825,6 +857,7 @@ export const STRINGS_DE = {
         createNewNote: 'Neue Notiz erstellen', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
         createNewNoteFromTemplate: 'Neue Notiz aus Vorlage', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Dateien verschieben', // Command palette: Move selected files to another folder (English: Move files)
+        mergeNotes: 'Notizen zusammenführen', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Nächste Datei auswählen', // Command palette: Selects the next file in the current view (English: Select next file)
         selectPreviousFile: 'Vorherige Datei auswählen', // Command palette: Selects the previous file in the current view (English: Select previous file)
         navigateBack: 'Zurück navigieren',
@@ -846,6 +879,7 @@ export const STRINGS_DE = {
         toggleCompactMode: 'Kompaktmodus umschalten', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Angepinnten Bereich umschalten',
         collapseExpand: 'Alle Elemente ein-/ausklappen', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpandSelectedItem: 'Ausgewähltes Element ein-/ausklappen',
         addTag: 'Tag zu ausgewählten Dateien hinzufügen', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Eigenschaft für ausgewählte Dateien setzen', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'Tag von ausgewählten Dateien entfernen', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
@@ -858,6 +892,7 @@ export const STRINGS_DE = {
     plugin: {
         viewName: 'Notebook Navigator', // Name shown in the view header/tab (English: Notebook Navigator)
         calendarViewName: 'Kalender', // Name shown in the view header/tab (English: Calendar)
+        folderNoteSidebarViewName: 'Ordnernotiz', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
         revealInNavigator: 'In Notebook Navigator anzeigen' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
     },
@@ -873,6 +908,12 @@ export const STRINGS_DE = {
         wordCount: 'Wortanzahl'
     },
 
+    fileCounts: {
+        words: '{count} Wörter',
+        characters: '{count} Zeichen',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'Standardeinstellungen ändern',
@@ -882,23 +923,48 @@ export const STRINGS_DE = {
         },
         sections: {
             general: 'Allgemein',
-            notes: 'Notizen',
-            navigationPane: 'Navigation',
+            vaultFilters: 'Anzeigefilter',
+            appearanceBehavior: 'Darstellung & Verhalten',
+            navigationPane: 'Navigationsbereich',
             calendar: 'Kalender',
-            files: 'Dateien',
+            fileOperations: 'Dateioperationen',
             icons: 'Icon-Pakete',
-            tags: 'Tags',
             folders: 'Ordner',
             folderNotes: 'Ordnernotizen',
-            foldersAndTags: 'Ordner',
+            folderNoteFiles: 'Ordnernotiz-Dateien',
+            foldersAndFolderNotes: 'Ordner & Ordnernotizen',
             tagsAndProperties: 'Tags & Eigenschaften',
-            listPane: 'Liste',
+            tags: 'Tags',
+            listPane: 'Listenbereich',
+            notes: 'Dateianzeige',
+            shortcutsAndRecentFiles: 'Verknüpfungen & zuletzt verwendete Dateien',
             advanced: 'Erweitert'
+        },
+        pageGroups: {
+            configuration: 'Konfiguration',
+            navigationAndContent: 'Navigationsbereich',
+            notesAndLists: 'Listenbereich',
+            calendarAndTools: 'Kalender und Werkzeuge'
+        },
+        pageDescriptions: {
+            general: 'Versionshinweise, Support, Tresorprofil, Dateitypen und Eigenschaftsschlüssel.',
+            vaultFilters: 'Versteckte Ordner, Tags, Dateien, Datei-Tags und Eigenschaftsregeln.',
+            appearanceBehavior: 'Verhalten, Tastaturnavigation, Maustasten, Darstellung und Formatierung.',
+            navigationPane: 'Layout, Darstellung, Notizenanzahl, Einklappverhalten und Regenbogenfarben.',
+            shortcuts: 'Verknüpfungssichtbarkeit, Abzeichen, zuletzt verwendete Dateien und angeheftete Elemente.',
+            calendar: 'Kalenderanzeige, Datumsnotizen, Vorlagen, Sprachumgebung und Seitenleistenposition.',
+            fileOperations: 'Vorlagen, Löschbestätigungen, Anhänge und Verhalten bei Dateikonflikten beim Verschieben.',
+            foldersAndFolderNotes: 'Ordneranzeige, Ordnernotizen, Ordnernotiz-Vorlagen und Ordnernotiz-Verhalten.',
+            tagsProperties: 'Tag- und Eigenschaftsbereiche, Symbole, Sortierung, Geltungsbereich und Vererbung.',
+            listPane: 'Sortierung, Gruppierung, Listenmodi, angeheftete Notizen und Zeichnungsvorschauen.',
+            frontmatter: 'Frontmatter-Felder für Anzeigenamen, Zeitstempel, Symbole und Farben.',
+            notes: 'Titel, Vorschautext, Hauptbilder, Tags, Eigenschaften, Daten, Wortanzahlen und Zeichenanzahlen.',
+            iconPacks: 'Oberflächensymbole, Dateisymbole und Icon-Paket-Verwaltung.',
+            advanced: 'Diagnose, Metadatenbereinigung, Import/Export und Zurücksetzen.'
         },
         groups: {
             general: {
-                vaultProfiles: 'Tresorprofile',
-                filtering: 'Filterung',
+                vaultConfiguration: 'Tresor-Einrichtung',
                 templates: 'Vorlagen',
                 behavior: 'Verhalten',
                 keyboardNavigation: 'Tastaturnavigation',
@@ -909,6 +975,10 @@ export const STRINGS_DE = {
                 mobileAppearance: 'Mobile Darstellung',
                 formatting: 'Formatierung'
             },
+            advanced: {
+                maintenance: 'Wartung',
+                resetSettings: 'Einstellungen zurücksetzen'
+            },
             navigation: {
                 appearance: 'Darstellung',
                 rainbowColors: 'Regenbogenfarben',
@@ -917,7 +987,6 @@ export const STRINGS_DE = {
             },
             list: {
                 display: 'Darstellung',
-                organization: 'Organisation',
                 groupHeaders: 'Gruppenüberschriften',
                 propertySort: 'Eigenschaftssortierung',
                 manualSort: 'Manuelle Sortierung',
@@ -925,7 +994,7 @@ export const STRINGS_DE = {
                 drawingPreviews: 'Zeichnungsvorschauen'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'Frontmatter-Felder',
                 tasks: 'Aufgaben',
                 icon: 'Symbol',
                 title: 'Titel',
@@ -935,12 +1004,11 @@ export const STRINGS_DE = {
                 properties: 'Eigenschaften',
                 date: 'Datum',
                 parentFolder: 'Übergeordneter Ordner',
-                wordCount: 'Wortanzahl'
+                wordCount: 'Wort- und Zeichenanzahl'
             }
         },
         syncMode: {
             notSynced: '(nicht synchronisiert)',
-            disabled: '(deaktiviert)',
             switchToSynced: 'Synchronisierung aktivieren',
             switchToLocal: 'Synchronisierung deaktivieren'
         },
@@ -1040,15 +1108,15 @@ export const STRINGS_DE = {
             },
             includeDescendantNotes: {
                 name: 'Notizen aus Unterordnern / Nachkommen anzeigen',
-                desc: 'Beim Anzeigen eines Ordners oder Tags Notizen aus Unterordnern und Tag-Nachkommen einbeziehen.'
+                desc: 'Beim Anzeigen eines Ordners, Tags oder einer Eigenschaft Notizen aus Unterordnern sowie Tag- und Eigenschafts-Nachkommen einbeziehen.'
             },
             limitPinnedToCurrentFolder: {
                 name: 'Notizen nur in ihrem Ordner anheften',
                 desc: 'Angeheftete Notizen erscheinen nur in ihrem eigenen Ordner als angeheftet. Nützlich für Ordnernotizen oder bei vielen angehefteten Notizen. Hat keinen Einfluss auf Tag- oder Eigenschaftsansichten.'
             },
             separateNoteCounts: {
-                name: 'Aktuelle und Nachkommen-Anzahl getrennt anzeigen',
-                desc: 'Zeigt Notizanzahl als "aktuell ▾ Nachkommen" Format in Ordnern und Tags.'
+                name: 'Aktuelle und Nachkommen-Notizanzahl getrennt anzeigen',
+                desc: 'Zeigt Notizanzahlen als "aktuell ▾ Nachkommen" für Ordner, Tags und Eigenschaften.'
             },
             groupNotes: {
                 name: 'Standardgruppierung',
@@ -1066,6 +1134,14 @@ export const STRINGS_DE = {
             stickyGroupHeaders: {
                 name: 'Gruppenüberschriften fixieren',
                 desc: 'Hält die aktuelle Datums-, Ordner- oder Anheftbereichsüberschrift beim Scrollen sichtbar.'
+            },
+            showFolderGroupPaths: {
+                name: 'Unterordnerpfade anzeigen',
+                desc: 'Beim Gruppieren nach Ordner im Listenbereich Unterordnerpfade statt nur Ordnernamen anzeigen.'
+            },
+            showCurrentFolderFilesAtBottom: {
+                name: 'Ordnergruppierung: Dateien des aktuellen Ordners unten',
+                desc: 'Wenn die Standardgruppierung „Ordner“ ist, Dateien direkt im ausgewählten Ordner unter den Unterordnergruppen anzeigen.'
             },
             defaultListMode: {
                 name: 'Standardmodus für Listen',
@@ -1092,7 +1168,7 @@ export const STRINGS_DE = {
                 desc: 'Eine Hintergrundfarbe anwenden, wenn eine Notiz unerledigte Aufgaben enthält.'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'Hintergrundfarbe',
+                name: 'Hintergrundfarbe für unerledigte Aufgaben',
                 desc: 'Die Hintergrundfarbe festlegen, die verwendet wird, wenn eine Notiz unerledigte Aufgaben enthält.'
             },
             showFilenameMatchIcons: {
@@ -1117,7 +1193,7 @@ export const STRINGS_DE = {
             },
             compactItemHeight: {
                 name: 'Höhe schlanker Elemente',
-                desc: 'Legt die Höhe schlanker Listenelemente auf Desktop und Mobilgeräten fest.',
+                desc: 'Legt die Höhe schlanker Listenelemente auf Desktop und Mobilgeräten fest (Pixel).',
                 resetTooltip: 'Auf Standard zurücksetzen (28px)'
             },
             compactItemHeightScaleText: {
@@ -1126,7 +1202,7 @@ export const STRINGS_DE = {
             },
             showParentFolder: {
                 name: 'Übergeordneten Ordner anzeigen',
-                desc: 'Den übergeordneten Ordnernamen für Notizen in Unterordnern oder Tags anzeigen.'
+                desc: 'Den übergeordneten Ordnernamen für Notizen in Unterordnern, Tags oder Eigenschaften anzeigen.'
             },
             showParentFolderFullPath: {
                 name: 'Vollständigen Pfad anzeigen',
@@ -1171,7 +1247,7 @@ export const STRINGS_DE = {
             },
             appearanceScale: {
                 name: 'Zoomstufe',
-                desc: 'Steuert die gesamte Zoomstufe von Notebook Navigator.'
+                desc: 'Steuert die gesamte Zoomstufe von Notebook Navigator (Prozent).'
             },
             useFloatingToolbars: {
                 name: 'Schwebende Symbolleisten auf iOS/iPadOS verwenden',
@@ -1200,15 +1276,15 @@ export const STRINGS_DE = {
                 desc: 'Notizen automatisch anzeigen, wenn sie über Schnellauswahl, Links oder Suche geöffnet werden.'
             },
             autoRevealShortestPath: {
-                name: 'Kürzesten Pfad verwenden',
+                name: 'Automatisches Anzeigen: Kürzesten Pfad verwenden',
                 desc: 'Aktiviert: Automatisches Anzeigen wählt den nächsten sichtbaren übergeordneten Ordner oder Tag. Deaktiviert: Automatisches Anzeigen wählt den tatsächlichen Ordner der Datei und den genauen Tag.'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'Ereignisse von rechter Seitenleiste ignorieren',
+                name: 'Automatisches Anzeigen: Ereignisse von rechter Seitenleiste ignorieren',
                 desc: 'Aktive Notiz nicht ändern, wenn in der rechten Seitenleiste auf Notizen geklickt oder diese gewechselt werden.'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'Ereignisse von anderen Fenstern ignorieren',
+                name: 'Automatisches Anzeigen: Ereignisse von anderen Fenstern ignorieren',
                 desc: 'Aktive Notiz nicht ändern, wenn mit Notizen in einem anderen Fenster gearbeitet wird.'
             },
             paneTransitionDuration: {
@@ -1218,7 +1294,7 @@ export const STRINGS_DE = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'Erste Notiz automatisch auswählen',
-                desc: 'Die erste Notiz automatisch öffnen, wenn Sie den Ordner oder Tag wechseln.'
+                desc: 'Die erste Notiz automatisch öffnen, wenn Sie Ordner, Tags oder Eigenschaften wechseln.'
             },
             skipAutoScroll: {
                 name: 'Auto-Scroll für Verknüpfungen deaktivieren',
@@ -1233,11 +1309,11 @@ export const STRINGS_DE = {
                 desc: 'Ordner und Tags beim Überfahren während des Ziehens erweitern.'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'Verzögerung beim ersten Erweitern',
+                name: 'Beim Ziehen erweitern: Verzögerung beim ersten Erweitern',
                 desc: 'Verzögerung, bevor der erste Ordner oder Tag während eines Ziehvorgangs erweitert wird (Sekunden).'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'Verzögerung bei weiteren Erweiterungen',
+                name: 'Beim Ziehen erweitern: Verzögerung bei weiteren Erweiterungen',
                 desc: 'Verzögerung, bevor weitere Ordner oder Tags während desselben Ziehvorgangs erweitert werden (Sekunden).'
             },
             navigationBanner: {
@@ -1268,7 +1344,7 @@ export const STRINGS_DE = {
                 desc: 'Den Bereich für neueste Dateien im Navigationsbereich anzeigen.'
             },
             hideRecentNotes: {
-                name: 'Dateitypen ausblenden',
+                name: 'Dateitypen aus neuesten Dateien ausblenden',
                 desc: 'Wähle aus, welche Dateitypen im Bereich der neuesten Dateien ausgeblendet werden sollen.',
                 options: {
                     none: 'Keine',
@@ -1395,15 +1471,18 @@ export const STRINGS_DE = {
             calendarTemplateFolder: {
                 name: 'Vorlagenordner',
                 desc: 'Die Vorlagenauswahl zeigt Notizen aus diesem Ordner.',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'Wird von Kalendernotizen und Ordnernotizen verwendet. Vorlagen unter Kalender > Kalenderintegration und Ordner & Ordnernotizen > Ordnernotiz-Dateien konfigurieren.'
             },
             calendarCustomFilePattern: {
                 name: 'Tägliche Notizen',
-                desc: 'Pfad mit Moment-Datumsformat formatieren. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Allgemein > Vorlagen festlegen.',
+                desc: 'Pfad mit Moment-Datumsformat formatieren. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.',
                 momentDescPrefix: 'Pfad formatieren mit ',
                 momentLinkText: 'Moment-Datumsformat',
                 momentDescSuffix:
-                    '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Allgemein > Vorlagen festlegen.',
+                    '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicken Sie auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.',
+                templaterSupportInstalled: '✅ Das Templater-Plugin ist mit voller Vorlagenunterstützung installiert.',
+                templaterSupportMissing: '⚠️ Installieren Sie das Templater-Plugin für volle Vorlagenunterstützung.',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'Aktuelle Syntax: {path}',
                 parsingError: 'Das Muster muss als vollständiges Datum (Jahr, Monat, Tag) formatiert und wieder geparst werden können.'
@@ -1437,11 +1516,11 @@ export const STRINGS_DE = {
                 desc: 'Zeige Hover-Tooltips mit zusätzlichen Informationen für Notizen und Ordner an.'
             },
             showTooltipPath: {
-                name: 'Pfad anzeigen',
+                name: 'Pfad in Tooltips anzeigen',
                 desc: 'Zeigt den Ordnerpfad unter den Notiznamen in Tooltips an.'
             },
             showTooltipWordCount: {
-                name: 'Wortanzahl anzeigen',
+                name: 'Wortanzahl in Tooltips anzeigen',
                 desc: 'Zeigt die Wortanzahl von Notizen in Tooltips an.'
             },
             resetPaneSeparator: {
@@ -1537,7 +1616,7 @@ export const STRINGS_DE = {
             },
             vaultProfiles: {
                 name: 'Tresorprofil',
-                desc: 'Profile speichern Dateityp-Sichtbarkeit, versteckte Dateien, versteckte Ordner, versteckte Tags, versteckte Notizen, Verknüpfungen und Navigationsbanner. Profile können über die Kopfzeile des Navigationsbereichs gewechselt werden.',
+                desc: 'Profile speichern Dateityp-Sichtbarkeit, versteckte Dateien, versteckte Ordner, versteckte Tags, Eigenschaftsregeln für versteckte Notizen, Verknüpfungen und Navigationsbanner. Profile können über die Kopfzeile des Navigationsbereichs gewechselt werden.',
                 defaultName: 'Standard',
                 addButton: 'Profil hinzufügen',
                 editProfilesButton: 'Profile bearbeiten',
@@ -1548,7 +1627,8 @@ export const STRINGS_DE = {
                 editProfilesModalTitle: 'Profile bearbeiten',
                 addModalPlaceholder: 'Profilname',
                 deleteModalTitle: '{name} löschen',
-                deleteModalMessage: '{name} entfernen? Versteckte Datei-, Ordner-, Tag- und Notizfilter in diesem Profil werden gelöscht.',
+                deleteModalMessage:
+                    '{name} entfernen? Versteckte Datei-, Ordner-, Tag- und eigenschaftsbasierte Notizfilter in diesem Profil werden gelöscht.',
                 moveUp: 'Nach oben',
                 moveDown: 'Nach unten',
                 errors: {
@@ -1593,11 +1673,11 @@ export const STRINGS_DE = {
                     yearlyNote: 'Jahresnotiz'
                 },
                 file: {
-                    name: 'Startdatei',
+                    name: 'Startseite: Startdatei',
                     empty: 'Keine Datei ausgewählt'
                 },
                 createMissing: {
-                    name: 'Notiz erstellen, falls nicht vorhanden',
+                    name: 'Startseite: Notiz erstellen, falls nicht vorhanden',
                     desc: 'Erstellt die periodische Notiz beim Start oder per Befehl, falls sie nicht existiert.'
                 }
             },
@@ -1649,16 +1729,30 @@ export const STRINGS_DE = {
                 name: 'Eigenschaften im Kompaktmodus anzeigen',
                 desc: 'Eigenschaften anzeigen, wenn der Kompaktmodus aktiv ist.'
             },
-            showWordCount: {
-                name: 'Wortanzahl anzeigen',
-                desc: 'Wortanzahlen von Notizen in Dateielementen anzeigen.'
+            textCountDisplay: {
+                name: 'Zähltyp',
+                desc: 'Wählen Sie, welche Notizzählungen in Dateielementen angezeigt werden.',
+                options: {
+                    none: 'Keine',
+                    words: 'Wortanzahl',
+                    characters: 'Zeichenanzahl',
+                    both: 'Wort- und Zeichenanzahl'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'Platzierung',
-                desc: 'Wählen Sie, wo Wortanzahlen angezeigt werden.',
+                desc: 'Wählen Sie, wo Notizzählungen angezeigt werden.',
                 options: {
                     title: 'Im Titel',
                     property: 'Als Eigenschaft'
+                }
+            },
+            characterCountSpaces: {
+                name: 'Zeichenanzahl',
+                desc: 'Wählen Sie, ob Leerzeichen in der Zeichenanzahl enthalten sind.',
+                options: {
+                    include: 'Mit Leerzeichen',
+                    exclude: 'Ohne Leerzeichen'
                 }
             },
             wordCountTargetProperty: {
@@ -1833,7 +1927,7 @@ export const STRINGS_DE = {
             },
             showNoteCount: {
                 name: 'Notizenzahl anzeigen',
-                desc: 'Die Anzahl der Notizen neben jedem Ordner und Tag anzeigen.'
+                desc: 'Notizanzahlen neben Ordnern, Tags und Eigenschaften anzeigen.'
             },
             showSectionIcons: {
                 name: 'Icons für Shortcuts und kürzliche Elemente anzeigen',
@@ -1841,7 +1935,7 @@ export const STRINGS_DE = {
             },
             interfaceIcons: {
                 name: 'Oberflächensymbole',
-                desc: 'Symbole für Symbolleiste, Ordner, Tags, angeheftete Elemente, Suche und Sortierung bearbeiten.',
+                desc: 'Symbole für Symbolleiste, Ordner, Tags, Eigenschaften, angeheftete Elemente, Suche und Sortierung bearbeiten.',
                 buttonText: 'Symbole bearbeiten'
             },
             showIconsColorOnly: {
@@ -1945,11 +2039,11 @@ export const STRINGS_DE = {
             },
             navIndent: {
                 name: 'Baum-Einrückung',
-                desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner und Tags an.'
+                desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner, Tags und Eigenschaften an (Pixel).'
             },
             navItemHeight: {
                 name: 'Zeilenhöhe',
-                desc: 'Passen Sie die Höhe von Ordnern und Tags im Navigationsbereich an.'
+                desc: 'Passen Sie die Höhe von Ordnern, Tags und Eigenschaften im Navigationsbereich an (Pixel).'
             },
             navItemHeightScaleText: {
                 name: 'Text mit Zeilenhöhe skalieren',
@@ -1957,11 +2051,21 @@ export const STRINGS_DE = {
             },
             showIndentGuides: {
                 name: 'Einrückungslinien anzeigen',
-                desc: 'Einrückungslinien für verschachtelte Ordner und Tags anzeigen.'
+                desc: 'Einrückungslinien für verschachtelte Ordner, Tags und Eigenschaften anzeigen.'
+            },
+            navCountLeaderStyle: {
+                name: 'Führungszeichen anzeigen',
+                desc: 'Punkte, Striche oder eine Linie zwischen Elementnamen und Notizanzahl anzeigen.',
+                options: {
+                    none: 'Keine',
+                    dots: 'Punkte (...)',
+                    dashes: 'Striche (---)',
+                    line: 'Linie'
+                }
             },
             navRootSpacing: {
                 name: 'Abstand für Wurzelelemente',
-                desc: 'Abstand zwischen Ordnern und Tags auf der obersten Ebene.'
+                desc: 'Abstand zwischen Ordnern, Tags und Eigenschaften auf der obersten Ebene (Pixel).'
             },
             showTags: {
                 name: 'Tags anzeigen',
@@ -2006,7 +2110,7 @@ export const STRINGS_DE = {
                 name: 'Eigenschaften anzeigen',
                 desc: 'Eigenschaftsbereich im Navigator anzeigen.',
                 propertyKeysInfoPrefix: 'Eigenschaften konfigurieren unter ',
-                propertyKeysInfoLinkText: 'Allgemein > Eigenschaftsschlüssel',
+                propertyKeysInfoLinkText: 'Start > Eigenschaftsschlüssel',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2071,11 +2175,11 @@ export const STRINGS_DE = {
             },
             folderNoteTemplate: {
                 name: 'Ordnernotiz-Vorlage',
-                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Allgemein > Vorlagen festlegen.'
+                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.'
             },
             enableFolderNoteLinks: {
-                name: 'Ordnernotiz-Links aktivieren',
-                desc: 'Ordnerbeschriftungen werden als Links dargestellt und öffnen Ordnernotizen beim Klicken. Wenn deaktiviert, liefern Ordnernotizen weiterhin Name-, Symbol- und Farbmetadaten.'
+                name: 'Ordnernamen öffnen Ordnernotizen',
+                desc: 'Ein Klick auf einen Ordnernamen öffnet seine Ordnernotiz. Wenn deaktiviert, liefern Ordnernotizen nur Ordnermetadaten wie Name, Symbol und Farbe.'
             },
             hideFolderNoteInList: {
                 name: 'Ordnernotizen in Liste ausblenden',
@@ -2085,9 +2189,18 @@ export const STRINGS_DE = {
                 name: 'Erstellte Ordnernotizen anheften',
                 desc: 'Ordnernotizen anheften, wenn sie über das Kontextmenü erstellt werden.'
             },
-            openFolderNotesInNewTab: {
-                name: 'Ordnernotizen in neuem Tab öffnen',
-                desc: 'Ordnernotizen beim Klicken auf einen Ordner in einem neuen Tab öffnen.'
+            folderNoteOpenLocation: {
+                name: 'Ordnernotizen öffnen in',
+                desc: 'Wähle, wo Ordnernotizen beim Klicken auf Ordnernotiz-Links geöffnet werden.',
+                options: {
+                    currentTab: 'Aktueller Tab',
+                    newTab: 'Neuer Tab',
+                    rightSidebar: 'Rechte Seitenleiste'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'Rechte Seitenleiste: Nächste Ordnernotiz anzeigen',
+                desc: 'Wenn ein Ordner ausgewählt wird, zeigt die rechte Seitenleiste automatisch die nächstgelegene übergeordnete Ordnernotiz an.'
             },
             confirmBeforeDelete: {
                 name: 'Vor dem Löschen bestätigen',
@@ -2112,7 +2225,7 @@ export const STRINGS_DE = {
             },
             metadataCleanup: {
                 name: 'Metadaten bereinigen',
-                desc: 'Entfernt verwaiste Metadaten, die zurückbleiben, wenn Dateien, Ordner oder Tags außerhalb von Obsidian gelöscht, verschoben oder umbenannt werden. Dies betrifft nur die Notebook Navigator Einstellungsdatei.',
+                desc: 'Entfernt verwaiste Metadaten, die zurückbleiben, wenn Dateien, Ordner, Tags oder Eigenschaften außerhalb von Obsidian gelöscht, verschoben oder umbenannt werden. Dies betrifft nur die Notebook Navigator Einstellungsdatei.',
                 buttonText: 'Metadaten bereinigen',
                 error: 'Einstellungen-Bereinigung fehlgeschlagen',
                 loading: 'Metadaten werden überprüft...',
@@ -2202,6 +2315,10 @@ export const STRINGS_DE = {
                 desc: 'Prüft beim Start auf neue Plugin-Versionen und zeigt eine Benachrichtigung an, wenn ein Update verfügbar ist. Überprüfungen erfolgen höchstens einmal täglich.',
                 status: 'Neue Version verfügbar: {version}'
             },
+            debugLogging: {
+                name: 'Start-Debugprotokollierung',
+                desc: 'Schreibt Startdiagnosen in eine Markdown-Datei mit Zeitstempel im Stammverzeichnis des Vaults und stoppt, nachdem der Start abgeschlossen ist. Die Datei kann synchronisiert werden und Dateipfade enthalten.'
+            },
             whatsNew: {
                 name: 'Neuigkeiten in Notebook Navigator {version}',
                 desc: 'Letzte Updates und Verbesserungen anzeigen',
@@ -2236,6 +2353,7 @@ export const STRINGS_DE = {
     },
     whatsNew: {
         title: 'Neuigkeiten in Notebook Navigator',
+        openBannerImage: 'Release-Bannerbild öffnen',
         supportMessage: 'Wenn Sie Notebook Navigator hilfreich finden, erwägen Sie bitte, die Entwicklung zu unterstützen.',
         supportButton: 'Kauf mir einen Kaffee',
         thanksButton: 'Danke!'

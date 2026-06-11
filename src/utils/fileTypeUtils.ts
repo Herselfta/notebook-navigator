@@ -94,17 +94,24 @@ function getSupportedExtensions(app: App): Set<string> {
 }
 
 /**
- * Common image extensions that can be displayed as feature images.
- * Used by the feature image pipeline.
+ * Common raster image extensions that can be displayed as generated thumbnails or direct previews.
+ * SVG files are excluded from thumbnail/direct-preview image helpers.
  */
-const SUPPORTED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif', 'heic', 'heif', 'bmp'] as const;
-const IMAGE_EXTENSIONS = new Set<string>(SUPPORTED_IMAGE_EXTENSIONS);
+const SUPPORTED_RASTER_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'heic', 'heif', 'bmp'] as const;
+const RASTER_IMAGE_EXTENSIONS = new Set<string>(SUPPORTED_RASTER_IMAGE_EXTENSIONS);
 
-export function isImageExtension(extension: string): boolean {
+export function isSvgExtension(extension: string): boolean {
     if (!extension) {
         return false;
     }
-    return IMAGE_EXTENSIONS.has(extension.toLowerCase());
+    return extension.toLowerCase() === 'svg';
+}
+
+export function isRasterImageExtension(extension: string): boolean {
+    if (!extension) {
+        return false;
+    }
+    return RASTER_IMAGE_EXTENSIONS.has(extension.toLowerCase());
 }
 
 // Checks if a file extension is PDF (case-insensitive)
@@ -159,13 +166,13 @@ export function shouldDisplayFile(file: TFile, visibility: FileVisibility, app: 
 }
 
 /**
- * Check if a file is an image that can be displayed as a feature image
+ * Check if a file is a raster image that can be displayed as a generated thumbnail or direct preview.
  */
-export function isImageFile(file: TFile): boolean {
+export function isRasterImageFile(file: TFile): boolean {
     if (!file?.extension) {
         return false;
     }
-    return isImageExtension(file.extension);
+    return isRasterImageExtension(file.extension);
 }
 
 // Checks if a TFile is a PDF document

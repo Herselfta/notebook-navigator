@@ -203,6 +203,9 @@ export class SettingGroup {
 export class ButtonComponent {}
 export class SliderComponent {}
 export class WorkspaceLeaf {}
+export class FileView {
+    file: TFile | null = null;
+}
 
 export const Platform = {
     isDesktopApp: true,

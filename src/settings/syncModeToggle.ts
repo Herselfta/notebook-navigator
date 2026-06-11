@@ -30,9 +30,20 @@ interface SettingSyncModeToggleOptions {
     onToggle?: () => void;
 }
 
+export function getNotSyncedSettingName(name: string): string {
+    const suffix = ` ${strings.settings.syncMode.notSynced}`;
+    return name.endsWith(suffix) ? name : `${name}${suffix}`;
+}
+
+function getBaseSettingName(setting: Setting): string {
+    const name = setting.nameEl.textContent?.trim() ?? '';
+    const suffix = ` ${strings.settings.syncMode.notSynced}`;
+    return name.endsWith(suffix) ? name.slice(0, -suffix.length) : name;
+}
+
 export function addSettingSyncModeToggle(options: SettingSyncModeToggleOptions): void {
     const { setting, plugin, settingId, onToggle } = options;
-    const marker = strings.settings.syncMode.notSynced;
+    const baseName = getBaseSettingName(setting);
 
     setting.addExtraButton(button => {
         button.extraSettingsEl.addClass('nn-setting-sync-toggle');
@@ -44,13 +55,8 @@ export function addSettingSyncModeToggle(options: SettingSyncModeToggleOptions):
             button.setTooltip(tooltip);
             button.extraSettingsEl.setAttr('aria-label', tooltip);
 
-            if (setting.nameEl) {
-                setting.nameEl.setAttr('data-nn-setting-marker', marker);
-                if (isLocal) {
-                    setting.nameEl.addClass('nn-setting-name-marker');
-                } else {
-                    setting.nameEl.removeClass('nn-setting-name-marker');
-                }
+            if (baseName.length > 0) {
+                setting.setName(isLocal ? getNotSyncedSettingName(baseName) : baseName);
             }
         };
 

@@ -29,7 +29,7 @@ export type ShortcutContextMenuTarget =
     | { type: 'note'; key: string; file: TFile }
     | { type: 'tag'; key: string; tagPath: string }
     | { type: 'property'; key: string; propertyNodeId: string }
-    | { type: 'search'; key: string }
+    | { type: 'search'; key: string; searchShortcut: SearchShortcut }
     | { type: 'missing'; key: string; kind: 'folder' | 'note' | 'tag' | 'property' };
 
 export interface NavigationPaneShortcutRenderState {

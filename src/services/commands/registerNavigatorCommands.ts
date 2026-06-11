@@ -20,7 +20,7 @@
  * Notebook Navigator - Plugin for Obsidian
  */
 
-import { TFile, TFolder, type WorkspaceLeaf } from 'obsidian';
+import { FileView, TFile, TFolder, type WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
 import { getCurrentLanguage, strings } from '../../i18n';
 import {
@@ -86,12 +86,62 @@ async function focusNavigatorVisiblePane(plugin: NotebookNavigatorPlugin, existi
     const navigatorLeaves = existingLeaves ?? plugin.getNavigatorLeaves();
     if (navigatorLeaves.length > 0) {
         const leaf = navigatorLeaves[0];
+        const previousActiveLeaf = getLeafToRestoreAfterNavigatorFocus(plugin, leaf);
         await plugin.app.workspace.revealLeaf(leaf);
         const view = leaf.view;
         if (view instanceof NotebookNavigatorView) {
             view.focusVisiblePane();
+            if (previousActiveLeaf) {
+                plugin.app.workspace.setActiveLeaf(previousActiveLeaf, { focus: false });
+            }
         }
     }
+}
+
+function getLeafViewType(leaf: WorkspaceLeaf): string | null {
+    try {
+        return leaf.view.getViewType();
+    } catch {
+        return null;
+    }
+}
+
+function isNavigatorLeaf(leaf: WorkspaceLeaf): boolean {
+    const view = leaf.view;
+    return view instanceof NotebookNavigatorView || getLeafViewType(leaf) === NOTEBOOK_NAVIGATOR_VIEW;
+}
+
+function isRestorableMainLeaf(
+    plugin: NotebookNavigatorPlugin,
+    leaf: WorkspaceLeaf | null,
+    navigatorLeaf: WorkspaceLeaf
+): leaf is WorkspaceLeaf {
+    if (!leaf || leaf === navigatorLeaf || isNavigatorLeaf(leaf)) {
+        return false;
+    }
+
+    return getLeafSplitLocation(plugin.app, leaf) === 'main';
+}
+
+function getLeafToRestoreAfterNavigatorFocus(plugin: NotebookNavigatorPlugin, navigatorLeaf: WorkspaceLeaf): WorkspaceLeaf | null {
+    const activeFileLeaf = plugin.app.workspace.getActiveViewOfType(FileView)?.leaf ?? null;
+    if (activeFileLeaf && activeFileLeaf !== navigatorLeaf && !isNavigatorLeaf(activeFileLeaf)) {
+        return activeFileLeaf;
+    }
+
+    const recentMainLeaf = plugin.app.workspace.getMostRecentLeaf(plugin.app.workspace.rootSplit);
+    if (isRestorableMainLeaf(plugin, recentMainLeaf, navigatorLeaf)) {
+        return recentMainLeaf;
+    }
+
+    let fallbackMainLeaf: WorkspaceLeaf | null = null;
+    plugin.app.workspace.iterateAllLeaves((candidateLeaf: WorkspaceLeaf) => {
+        if (!fallbackMainLeaf && isRestorableMainLeaf(plugin, candidateLeaf, navigatorLeaf)) {
+            fallbackMainLeaf = candidateLeaf;
+        }
+    });
+
+    return fallbackMainLeaf;
 }
 
 /**
@@ -939,6 +989,23 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
         }
     });
 
+    // Command to collapse or expand the selected item in the navigation pane
+    plugin.addCommand({
+        id: 'collapse-expand-selected-item',
+        name: strings.commands.collapseExpandSelectedItem,
+        callback: () => {
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (!view) {
+                    return;
+                }
+
+                await view.whenReady();
+                view.triggerSelectedItemCollapse();
+            });
+        }
+    });
+
     // Command to create a new note in the currently selected folder
     plugin.addCommand({
         id: 'new-note',
@@ -989,6 +1056,20 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
                 const view = await ensureNavigatorOpen(plugin);
                 if (view) {
                     await view.moveSelectedFiles();
+                }
+            });
+        }
+    });
+
+    // Command to merge selected Markdown notes
+    plugin.addCommand({
+        id: 'merge-notes',
+        name: strings.commands.mergeNotes,
+        callback: () => {
+            runAsyncAction(async () => {
+                const view = await ensureNavigatorOpen(plugin);
+                if (view) {
+                    await view.mergeSelectedFiles();
                 }
             });
         }
@@ -1118,10 +1199,6 @@ export default function registerNavigatorCommands(plugin: NotebookNavigatorPlugi
 
             const parent = activeFile.parent;
             if (!parent || !(parent instanceof TFolder)) {
-                return false;
-            }
-
-            if (parent.path === '/') {
                 return false;
             }
 

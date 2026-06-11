@@ -326,7 +326,7 @@ export const TagTreeItem = React.memo(
                     <span className={tagNameClassName} style={applyColorToName ? { color: tagColor } : undefined}>
                         {tagNode.name}
                     </span>
-                    <span className="nn-navitem-spacer" />
+                    <span className="nn-navitem-spacer nn-navitem-spacer--leader" />
                     {shouldDisplayOperatorIndicator ? (
                         <span className="nn-navitem-count nn-navitem-operator-indicator" data-operator={inclusionOperator}>
                             <ObsidianIcon name={operatorIconName} className="nn-navitem-operator-icon" aria-hidden={true} />

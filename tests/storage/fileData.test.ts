@@ -17,7 +17,12 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { applyFileMetadataPatch, hasMetadataHiddenChanged, hasMetadataNameChanged } from '../../src/storage/indexeddb/fileData';
+import {
+    applyFileMetadataPatch,
+    hasMetadataDecorationChanged,
+    hasMetadataHiddenChanged,
+    hasMetadataNameChanged
+} from '../../src/storage/indexeddb/fileData';
 
 describe('hasMetadataNameChanged', () => {
     it('treats trimmed-equivalent names as unchanged', () => {
@@ -44,6 +49,22 @@ describe('hasMetadataHiddenChanged', () => {
     it('detects frontmatter visibility changes', () => {
         expect(hasMetadataHiddenChanged({ hidden: false }, { hidden: true })).toBe(true);
         expect(hasMetadataHiddenChanged({ hidden: true }, null)).toBe(true);
+    });
+});
+
+describe('hasMetadataDecorationChanged', () => {
+    it('ignores date-only metadata changes', () => {
+        expect(hasMetadataDecorationChanged({ created: 1, modified: 2 }, { created: 3, modified: 4 })).toBe(false);
+    });
+
+    it('detects navigation decoration changes', () => {
+        expect(hasMetadataDecorationChanged({ icon: 'lucide-star' }, { icon: 'lucide-folder' })).toBe(true);
+        expect(hasMetadataDecorationChanged({ color: '#ff0000' }, { color: '#00ff00' })).toBe(true);
+        expect(hasMetadataDecorationChanged({ background: '#ff0000' }, { background: '#00ff00' })).toBe(true);
+    });
+
+    it('detects display-name changes', () => {
+        expect(hasMetadataDecorationChanged({ name: 'Alpha' }, { name: 'Beta' })).toBe(true);
     });
 });
 

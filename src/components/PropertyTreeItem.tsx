@@ -260,7 +260,7 @@ export const PropertyTreeItem = React.memo(
                     <span className={propertyNameClassName} style={applyColorToName ? { color } : undefined}>
                         {propertyNode.name}
                     </span>
-                    <span className="nn-navitem-spacer" />
+                    <span className="nn-navitem-spacer nn-navitem-spacer--leader" />
                     {shouldDisplayOperatorIndicator ? (
                         <span className="nn-navitem-count nn-navitem-operator-indicator" data-operator={inclusionOperator}>
                             <ObsidianIcon name={operatorIconName} className="nn-navitem-operator-icon" aria-hidden={true} />

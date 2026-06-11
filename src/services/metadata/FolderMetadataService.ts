@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { EventRef, TFile } from 'obsidian';
+import { EventRef, TFile, type TFolder } from 'obsidian';
 import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../../settings';
 import { getDBInstanceOrNull } from '../../storage/fileOperations';
 import { ItemType } from '../../types';
@@ -380,7 +380,11 @@ export class FolderMetadataService extends BaseMetadataService {
     }
 
     private validateFolder(folderPath: string): boolean {
-        return this.app.vault.getFolderByPath(folderPath) !== null;
+        return this.getFolderByPath(folderPath) !== null;
+    }
+
+    private getFolderByPath(folderPath: string): TFolder | null {
+        return folderPath === '/' ? this.app.vault.getRoot() : this.app.vault.getFolderByPath(folderPath);
     }
 
     private getFolderStyleFromSettings(folderPath: string): FolderStyleValues {
@@ -787,7 +791,7 @@ export class FolderMetadataService extends BaseMetadataService {
 
     async cleanupFolderMetadata(targetSettings: NotebookNavigatorSettings = this.settingsProvider.settings): Promise<boolean> {
         this.folderDisplayCache.clear();
-        const validator = (path: string) => this.app.vault.getFolderByPath(path) !== null;
+        const validator = (path: string) => this.getFolderByPath(path) !== null;
         const collapsedPinnedContextChanges = cleanupCollapsedPinnedContextKeys(
             targetSettings.collapsedPinnedContexts,
             ItemType.FOLDER,

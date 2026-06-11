@@ -312,6 +312,8 @@ export const STRINGS_TH = {
             moveFileToFolder: 'ย้ายไฟล์ไปยัง...',
             moveMultipleNotesToFolder: 'ย้าย {count} โน้ตไปยัง...',
             moveMultipleFilesToFolder: 'ย้าย {count} ไฟล์ไปยัง...',
+            mergeNotes: 'รวม {count} โน้ต...',
+            mergeNotesInGroup: 'รวมโน้ตในกลุ่ม...',
             setManualSortGroupHeader: 'ตั้งค่าส่วนหัวกลุ่ม',
             changeManualSortGroupHeader: 'เปลี่ยนส่วนหัวกลุ่ม',
             manualSortGroupHeader: {
@@ -432,8 +434,27 @@ export const STRINGS_TH = {
             wordCountTarget: 'จำนวนคำเป้าหมาย',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'เมื่อช่องนี้ว่าง เป้าหมายของกลุ่มจะใช้คุณสมบัติเป้าหมายที่ตั้งไว้ใน การตั้งค่า > โน้ต > จำนวนคำ แทนที่ได้โดยตั้งค่าเป้าหมายสำหรับกลุ่มนี้',
+                'เมื่อฟิลด์นี้ว่าง เป้าหมายกลุ่มจะใช้คุณสมบัติเป้าหมายที่ตั้งไว้ใน การตั้งค่า > โน้ต > จำนวนคำและอักขระ แทนที่ได้โดยตั้งค่าเป้าหมายสำหรับกลุ่มนี้',
             description: 'ปรับแต่งส่วนหัวกลุ่มสำหรับโน้ตนี้ เว้นชื่อเรื่องว่างเพื่อนำส่วนหัวออก'
+        },
+        mergeNotes: {
+            title: 'รวมโน้ต',
+            summary: 'สร้างโน้ตหนึ่งรายการจาก {count} โน้ตใน {folder}',
+            frontmatterRule: 'Frontmatter จากโน้ตแรกจะถูกเก็บไว้ Frontmatter จากโน้ตอื่นจะถูกลบออก',
+            crossFolderWarning: 'โน้ตต้นทางอยู่ในโฟลเดอร์ต่างกัน ลิงก์สัมพัทธ์และการฝังอาจหยุดทำงานในโน้ตที่รวมแล้ว',
+            outputName: 'ชื่อผลลัพธ์',
+            outputNameDesc: 'โน้ตที่รวมแล้วจะถูกสร้างในโฟลเดอร์ที่แสดงด้านบน',
+            outputNamePlaceholder: 'โน้ตที่รวมแล้ว',
+            separator: 'ตัวคั่น',
+            separatorDesc: 'แทรกระหว่างโน้ต',
+            separatorOptions: {
+                none: 'ไม่มี',
+                blankLine: 'บรรทัดว่าง',
+                horizontalRule: 'เส้นแนวนอน',
+                heading: 'หัวเรื่องพร้อมชื่อโน้ต'
+            },
+            moveSourcesToTrash: 'ย้ายโน้ตต้นทางไปที่ถังขยะหลังจากรวม',
+            mergeButton: 'รวม'
         },
         navRainbowSection: {
             title: (section: string) => `สีรุ้ง: ${section}`
@@ -480,6 +501,7 @@ export const STRINGS_TH = {
                 'list-sort-property': 'จัดเรียงตามคุณสมบัติ',
                 'list-appearance': 'เปลี่ยนรูปลักษณ์',
                 'list-new-note': 'โน้ตใหม่',
+                'list-pinned': 'โน้ตที่ปักหมุด',
                 'nav-folder-open': 'โฟลเดอร์เปิด',
                 'nav-folder-closed': 'โฟลเดอร์ปิด',
                 'nav-tags': 'แท็ก',
@@ -488,7 +510,8 @@ export const STRINGS_TH = {
                 'nav-property': 'คุณสมบัติ',
                 'nav-property-value': 'ค่า',
                 'file-unfinished-task': 'งานที่ยังไม่เสร็จ',
-                'file-word-count': 'จำนวนคำ'
+                'file-word-count': 'จำนวนคำ',
+                'file-character-count': 'จำนวนอักขระ'
             }
         },
         colorPicker: {
@@ -691,6 +714,10 @@ export const STRINGS_TH = {
             deleteFolder: 'ลบโฟลเดอร์ล้มเหลว: {error}',
             deleteFile: 'ลบไฟล์ล้มเหลว: {error}',
             deleteAttachments: 'ไม่สามารถลบไฟล์แนบได้: {error}',
+            mergeNotes: 'รวมโน้ตไม่สำเร็จ: {error}',
+            mergeNotesOpenOutput: 'สร้างโน้ตที่รวมแล้วเป็น {name} แล้ว แต่ไม่สามารถเปิดได้: {error} โน้ตต้นทางไม่ได้ถูกเปลี่ยนแปลง',
+            mergeNotesOpenSkipped: 'คำขอเปิดไฟล์อื่นมีความสำคัญกว่า',
+            mergeNotesTrashSources: 'สร้างโน้ตที่รวมแล้วแล้ว ไม่สามารถย้ายโน้ตต้นทาง {count} รายการไปที่ถังขยะได้',
             duplicateNote: 'ทำซ้ำโน้ตล้มเหลว: {error}',
             duplicateFolder: 'ทำซ้ำโฟลเดอร์ล้มเหลว: {error}',
             openVersionHistory: 'เปิดประวัติเวอร์ชันล้มเหลว: {error}',
@@ -724,7 +751,8 @@ export const STRINGS_TH = {
         },
         notices: {
             hideFolder: 'ซ่อนโฟลเดอร์แล้ว: {name}',
-            showFolder: 'แสดงโฟลเดอร์แล้ว: {name}'
+            showFolder: 'แสดงโฟลเดอร์แล้ว: {name}',
+            mergeNotes: 'รวม {count} โน้ตเป็น {name} แล้ว'
         },
         notifications: {
             deletedMultipleFiles: 'ลบ {count} ไฟล์แล้ว',
@@ -742,6 +770,7 @@ export const STRINGS_TH = {
             tagsClearedFromNotes: 'ล้างแท็กทั้งหมดจาก {count} โน้ตแล้ว',
             noTagsToRemove: 'ไม่มีแท็กให้นำออก',
             noFilesSelected: 'ไม่ได้เลือกไฟล์',
+            mergeNotesRequireMultipleMarkdown: 'เลือกโน้ต Markdown อย่างน้อยสองรายการเพื่อรวม',
             tagOperationsNotAvailable: 'การดำเนินการแท็กไม่พร้อมใช้งาน',
             propertyOperationsNotAvailable: 'การดำเนินการคุณสมบัติไม่พร้อมใช้งาน',
             tagsRequireMarkdown: 'แท็กรองรับเฉพาะโน้ต Markdown',
@@ -819,6 +848,7 @@ export const STRINGS_TH = {
         createNewNote: 'สร้างโน้ตใหม่',
         createNewNoteFromTemplate: 'โน้ตใหม่จากเทมเพลต',
         moveFiles: 'ย้ายไฟล์',
+        mergeNotes: 'รวมโน้ต', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'เลือกไฟล์ถัดไป',
         selectPreviousFile: 'เลือกไฟล์ก่อนหน้า',
         navigateBack: 'นำทางย้อนกลับ',
@@ -840,6 +870,7 @@ export const STRINGS_TH = {
         toggleCompactMode: 'สลับโหมดกะทัดรัด', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'สลับส่วนที่ปักหมุด',
         collapseExpand: 'ยุบ / ขยายรายการทั้งหมด',
+        collapseExpandSelectedItem: 'ยุบ / ขยายรายการที่เลือก',
         addTag: 'เพิ่มแท็กในไฟล์ที่เลือก',
         setProperty: 'ตั้งค่าคุณสมบัติในไฟล์ที่เลือก', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
         removeTag: 'นำแท็กออกจากไฟล์ที่เลือก',
@@ -852,6 +883,7 @@ export const STRINGS_TH = {
     plugin: {
         viewName: 'Notebook Navigator',
         calendarViewName: 'ปฏิทิน',
+        folderNoteSidebarViewName: 'โน้ตโฟลเดอร์',
         ribbonTooltip: 'Notebook Navigator',
         revealInNavigator: 'แสดงใน Notebook Navigator'
     },
@@ -867,6 +899,12 @@ export const STRINGS_TH = {
         wordCount: 'จำนวนคำ'
     },
 
+    fileCounts: {
+        words: '{count} คำ',
+        characters: '{count} อักขระ',
+        separator: ' · '
+    },
+
     // Settings
     settings: {
         changeDefaultSettings: 'เปลี่ยนการตั้งค่าเริ่มต้น',
@@ -876,23 +914,48 @@ export const STRINGS_TH = {
         },
         sections: {
             general: 'ทั่วไป',
-            navigationPane: 'นำทาง',
+            vaultFilters: 'ตัวกรองการแสดงผล',
+            appearanceBehavior: 'ลักษณะและพฤติกรรม',
+            navigationPane: 'แผงนำทาง',
             calendar: 'ปฏิทิน',
-            files: 'ไฟล์',
+            fileOperations: 'การดำเนินการกับไฟล์',
             icons: 'ชุดไอคอน',
             folders: 'โฟลเดอร์',
             folderNotes: 'โน้ตโฟลเดอร์',
-            foldersAndTags: 'โฟลเดอร์',
+            folderNoteFiles: 'ไฟล์โน้ตโฟลเดอร์',
+            foldersAndFolderNotes: 'โฟลเดอร์และโน้ตโฟลเดอร์',
             tagsAndProperties: 'แท็กและคุณสมบัติ',
             tags: 'แท็ก',
-            listPane: 'รายการ',
-            notes: 'โน้ต',
+            listPane: 'แผงรายการ',
+            notes: 'การแสดงไฟล์',
+            shortcutsAndRecentFiles: 'ทางลัดและไฟล์ล่าสุด',
             advanced: 'ขั้นสูง'
+        },
+        pageGroups: {
+            configuration: 'การกำหนดค่า',
+            navigationAndContent: 'แผงนำทาง',
+            notesAndLists: 'แผงรายการ',
+            calendarAndTools: 'ปฏิทินและเครื่องมือ'
+        },
+        pageDescriptions: {
+            general: 'บันทึกการเผยแพร่ การสนับสนุน โปรไฟล์ห้องนิรภัย ประเภทไฟล์ และคีย์คุณสมบัติ',
+            vaultFilters: 'โฟลเดอร์ที่ซ่อน แท็ก ไฟล์ แท็กไฟล์ และกฎคุณสมบัติ',
+            appearanceBehavior: 'พฤติกรรม การนำทางด้วยแป้นพิมพ์ ปุ่มเมาส์ ลักษณะ และการจัดรูปแบบ',
+            navigationPane: 'เค้าโครง ลักษณะ จำนวนโน้ต พฤติกรรมการยุบ และสีรุ้ง',
+            shortcuts: 'การมองเห็นทางลัด เครื่องหมาย ไฟล์ล่าสุด และรายการที่ปักหมุด',
+            calendar: 'การแสดงปฏิทิน โน้ตวันที่ เทมเพลต โลแคล และตำแหน่งแถบด้านข้าง',
+            fileOperations: 'เทมเพลต การยืนยันการลบ ไฟล์แนบ และพฤติกรรมความขัดแย้งเมื่อย้ายไฟล์',
+            foldersAndFolderNotes: 'การแสดงโฟลเดอร์ โน้ตโฟลเดอร์ เทมเพลตโน้ตโฟลเดอร์ และพฤติกรรมโน้ตโฟลเดอร์',
+            tagsProperties: 'ส่วนแท็กและคุณสมบัติ ไอคอน การจัดเรียง ขอบเขต และการสืบทอด',
+            listPane: 'การจัดเรียง การจัดกลุ่ม โหมดรายการ โน้ตที่ปักหมุด และตัวอย่างภาพวาด',
+            frontmatter: 'ฟิลด์ frontmatter สำหรับชื่อที่แสดง การประทับเวลา ไอคอน และสี',
+            notes: 'ชื่อเรื่อง ข้อความตัวอย่าง รูปภาพเด่น แท็ก คุณสมบัติ วันที่ จำนวนคำ และจำนวนอักขระ',
+            iconPacks: 'ไอคอนอินเทอร์เฟซ ไอคอนไฟล์ และการจัดการชุดไอคอน',
+            advanced: 'การวินิจฉัย การล้างข้อมูลเมตา การนำเข้า/ส่งออก และการรีเซ็ต'
         },
         groups: {
             general: {
-                vaultProfiles: 'โปรไฟล์ห้องนิรภัย',
-                filtering: 'การกรอง',
+                vaultConfiguration: 'การตั้งค่าห้องนิรภัย',
                 templates: 'เทมเพลต',
                 behavior: 'พฤติกรรม',
                 keyboardNavigation: 'การนำทางด้วยแป้นพิมพ์',
@@ -903,6 +966,10 @@ export const STRINGS_TH = {
                 mobileAppearance: 'รูปลักษณ์บนมือถือ',
                 formatting: 'การจัดรูปแบบ'
             },
+            advanced: {
+                maintenance: 'การบำรุงรักษา',
+                resetSettings: 'รีเซ็ตการตั้งค่า'
+            },
             navigation: {
                 appearance: 'ลักษณะ',
                 rainbowColors: 'สีรุ้ง',
@@ -911,7 +978,6 @@ export const STRINGS_TH = {
             },
             list: {
                 display: 'ลักษณะ',
-                organization: 'การจัดระเบียบ',
                 groupHeaders: 'ส่วนหัวกลุ่ม',
                 propertySort: 'การจัดเรียงตามคุณสมบัติ',
                 manualSort: 'การจัดเรียงด้วยตนเอง',
@@ -919,7 +985,7 @@ export const STRINGS_TH = {
                 drawingPreviews: 'ตัวอย่างภาพวาด'
             },
             notes: {
-                frontmatter: 'Frontmatter',
+                frontmatter: 'ฟิลด์ Frontmatter',
                 tasks: 'งาน',
                 icon: 'ไอคอน',
                 title: 'ชื่อเรื่อง',
@@ -929,12 +995,11 @@ export const STRINGS_TH = {
                 properties: 'คุณสมบัติ',
                 date: 'วันที่',
                 parentFolder: 'โฟลเดอร์หลัก',
-                wordCount: 'จำนวนคำ'
+                wordCount: 'จำนวนคำและอักขระ'
             }
         },
         syncMode: {
             notSynced: '(ไม่ซิงค์)',
-            disabled: '(ปิดใช้งาน)',
             switchToSynced: 'เปิดใช้งานการซิงค์',
             switchToLocal: 'ปิดใช้งานการซิงค์'
         },
@@ -1034,15 +1099,15 @@ export const STRINGS_TH = {
             },
             includeDescendantNotes: {
                 name: 'แสดงโน้ตจากโฟลเดอร์ย่อย / ลูกหลาน',
-                desc: 'รวมโน้ตจากโฟลเดอร์ย่อยที่ซ้อนกันและลูกหลานแท็กเมื่อดูโฟลเดอร์หรือแท็ก'
+                desc: 'รวมโน้ตจากโฟลเดอร์ย่อยที่ซ้อนกันและลูกหลานแท็กและคุณสมบัติเมื่อดูโฟลเดอร์ แท็ก หรือคุณสมบัติ'
             },
             limitPinnedToCurrentFolder: {
                 name: 'ปักหมุดโน้ตเฉพาะในโฟลเดอร์ของมัน',
                 desc: 'โน้ตที่ปักหมุดจะแสดงว่าปักหมุดเฉพาะในโฟลเดอร์ของตัวเองเท่านั้น มีประโยชน์สำหรับโน้ตโฟลเดอร์หรือหากคุณมีโน้ตที่ปักหมุดจำนวนมาก ไม่มีผลต่อมุมมองแท็กหรือคุณสมบัติ'
             },
             separateNoteCounts: {
-                name: 'แสดงจำนวนปัจจุบันและลูกหลานแยกกัน',
-                desc: 'แสดงจำนวนโน้ตเป็นรูปแบบ "ปัจจุบัน ▾ ลูกหลาน" ในโฟลเดอร์และแท็ก'
+                name: 'แสดงจำนวนโน้ตปัจจุบันและลูกหลานแยกกัน',
+                desc: 'แสดงจำนวนโน้ตเป็นรูปแบบ "ปัจจุบัน ▾ ลูกหลาน" สำหรับโฟลเดอร์ แท็ก และคุณสมบัติ'
             },
             groupNotes: {
                 name: 'การจัดกลุ่มเริ่มต้น',
@@ -1060,6 +1125,14 @@ export const STRINGS_TH = {
             stickyGroupHeaders: {
                 name: 'ส่วนหัวกลุ่มแบบติดด้านบน',
                 desc: 'แสดงส่วนหัวของวันที่ โฟลเดอร์ หรือส่วนที่ปักหมุดในปัจจุบันให้เห็นอยู่เสมอขณะเลื่อน'
+            },
+            showFolderGroupPaths: {
+                name: 'แสดงเส้นทางโฟลเดอร์ย่อย',
+                desc: 'เมื่อจัดกลุ่มตามโฟลเดอร์ในแผงรายการ ให้แสดงเส้นทางโฟลเดอร์ย่อยแทนการแสดงเฉพาะชื่อโฟลเดอร์'
+            },
+            showCurrentFolderFilesAtBottom: {
+                name: 'การจัดกลุ่มตามโฟลเดอร์: ไฟล์ในโฟลเดอร์ปัจจุบันอยู่ด้านล่าง',
+                desc: 'เมื่อการจัดกลุ่มเริ่มต้นเป็นโฟลเดอร์ ให้ย้ายไฟล์ที่อยู่ในโฟลเดอร์ที่เลือกโดยตรงไปไว้ใต้กลุ่มโฟลเดอร์ย่อย'
             },
             defaultListMode: {
                 name: 'โหมดรายการเริ่มต้น',
@@ -1086,7 +1159,7 @@ export const STRINGS_TH = {
                 desc: 'ใช้สีพื้นหลังเมื่อโน้ตมีงานที่ยังไม่เสร็จ'
             },
             unfinishedTaskBackgroundColor: {
-                name: 'สีพื้นหลัง',
+                name: 'สีพื้นหลังงานที่ยังไม่เสร็จ',
                 desc: 'ตั้งค่าสีพื้นหลังที่ใช้เมื่อโน้ตมีงานที่ยังไม่เสร็จ'
             },
             showFilenameMatchIcons: {
@@ -1111,7 +1184,7 @@ export const STRINGS_TH = {
             },
             compactItemHeight: {
                 name: 'ความสูงรายการกะทัดรัด',
-                desc: 'กำหนดความสูงของรายการกะทัดรัดบนเดสก์ท็อปและมือถือ',
+                desc: 'กำหนดความสูงของรายการกะทัดรัดบนเดสก์ท็อปและมือถือ (พิกเซล)',
                 resetTooltip: 'รีเซ็ตเป็นค่าเริ่มต้น (28px)'
             },
             compactItemHeightScaleText: {
@@ -1120,7 +1193,7 @@ export const STRINGS_TH = {
             },
             showParentFolder: {
                 name: 'แสดงโฟลเดอร์หลัก',
-                desc: 'แสดงชื่อโฟลเดอร์หลักสำหรับโน้ตในโฟลเดอร์ย่อยหรือแท็ก'
+                desc: 'แสดงชื่อโฟลเดอร์หลักสำหรับโน้ตในโฟลเดอร์ย่อย แท็ก หรือคุณสมบัติ'
             },
             showParentFolderFullPath: {
                 name: 'แสดงเส้นทางเต็ม',
@@ -1165,7 +1238,7 @@ export const STRINGS_TH = {
             },
             appearanceScale: {
                 name: 'ระดับการซูม',
-                desc: 'ควบคุมระดับการซูมโดยรวมของ Notebook Navigator'
+                desc: 'ควบคุมระดับการซูมโดยรวมของ Notebook Navigator (เปอร์เซ็นต์)'
             },
             useFloatingToolbars: {
                 name: 'ใช้แถบเครื่องมือลอยบน iOS/iPadOS',
@@ -1194,15 +1267,15 @@ export const STRINGS_TH = {
                 desc: 'แสดงโน้ตอัตโนมัติเมื่อเปิดจาก Quick Switcher, ลิงก์, หรือการค้นหา'
             },
             autoRevealShortestPath: {
-                name: 'ใช้เส้นทางสั้นที่สุด',
+                name: 'เปิดเผยอัตโนมัติ: ใช้เส้นทางสั้นที่สุด',
                 desc: 'เปิด: การเปิดเผยอัตโนมัติจะเลือกโฟลเดอร์หรือแท็กบรรพบุรุษที่ใกล้ที่สุดที่มองเห็นได้ ปิด: การเปิดเผยอัตโนมัติจะเลือกโฟลเดอร์จริงและแท็กที่ตรงกันของไฟล์'
             },
             autoRevealIgnoreRightSidebar: {
-                name: 'ละเว้นเหตุการณ์จากแถบด้านขวา',
+                name: 'เปิดเผยอัตโนมัติ: ละเว้นเหตุการณ์จากแถบด้านขวา',
                 desc: 'อย่าเปลี่ยนโน้ตที่ใช้งานเมื่อคลิกหรือเปลี่ยนโน้ตในแถบด้านขวา'
             },
             autoRevealIgnoreOtherWindows: {
-                name: 'ละเว้นเหตุการณ์จากหน้าต่างอื่น',
+                name: 'เปิดเผยอัตโนมัติ: ละเว้นเหตุการณ์จากหน้าต่างอื่น',
                 desc: 'อย่าเปลี่ยนโน้ตที่ใช้งานเมื่อทำงานกับโน้ตในหน้าต่างอื่น'
             },
             paneTransitionDuration: {
@@ -1212,7 +1285,7 @@ export const STRINGS_TH = {
             },
             autoSelectFirstFileOnFocusChange: {
                 name: 'เลือกโน้ตแรกอัตโนมัติ',
-                desc: 'เปิดโน้ตแรกอัตโนมัติเมื่อสลับโฟลเดอร์หรือแท็ก'
+                desc: 'เปิดโน้ตแรกอัตโนมัติเมื่อสลับโฟลเดอร์ แท็ก หรือคุณสมบัติ'
             },
             skipAutoScroll: {
                 name: 'ปิดการเลื่อนอัตโนมัติสำหรับทางลัด',
@@ -1227,11 +1300,11 @@ export const STRINGS_TH = {
                 desc: 'ขยายโฟลเดอร์และแท็กเมื่อวางเมาส์ระหว่างการลาก'
             },
             springLoadedFoldersInitialDelay: {
-                name: 'หน่วงเวลาการขยายครั้งแรก',
+                name: 'ขยายระหว่างลาก: หน่วงเวลาการขยายครั้งแรก',
                 desc: 'หน่วงเวลาก่อนขยายโฟลเดอร์หรือแท็กครั้งแรกระหว่างการลาก (วินาที)'
             },
             springLoadedFoldersSubsequentDelay: {
-                name: 'หน่วงเวลาการขยายครั้งถัดไป',
+                name: 'ขยายระหว่างลาก: หน่วงเวลาการขยายครั้งถัดไป',
                 desc: 'หน่วงเวลาก่อนขยายโฟลเดอร์หรือแท็กเพิ่มเติมระหว่างการลากเดียวกัน (วินาที)'
             },
             navigationBanner: {
@@ -1262,7 +1335,7 @@ export const STRINGS_TH = {
                 desc: 'แสดงส่วนไฟล์ล่าสุดในแผงนำทาง'
             },
             hideRecentNotes: {
-                name: 'ซ่อนประเภทไฟล์',
+                name: 'ซ่อนประเภทไฟล์จากไฟล์ล่าสุด',
                 desc: 'เลือกประเภทไฟล์ที่ต้องการซ่อนในส่วนไฟล์ล่าสุด',
                 options: {
                     none: 'ไม่มี',
@@ -1389,15 +1462,18 @@ export const STRINGS_TH = {
             calendarTemplateFolder: {
                 name: 'ตำแหน่งโฟลเดอร์เทมเพลต',
                 desc: 'ตัวเลือกไฟล์เทมเพลตแสดงโน้ตจากโฟลเดอร์นี้',
-                placeholder: 'Templates'
+                placeholder: 'Templates',
+                usage: 'ใช้โดยโน้ตปฏิทินและโน้ตโฟลเดอร์ กำหนดค่าเทมเพลตใน ปฏิทิน > การรวมปฏิทิน และ โฟลเดอร์และโน้ตโฟลเดอร์ > ไฟล์โน้ตโฟลเดอร์'
             },
             calendarCustomFilePattern: {
                 name: 'โน้ตรายวัน',
-                desc: 'กำหนดเส้นทางโดยใช้รูปแบบวันที่ Moment ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต',
+                desc: 'กำหนดเส้นทางโดยใช้รูปแบบวันที่ Moment ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในการดำเนินการกับไฟล์ > เทมเพลต',
                 momentDescPrefix: 'กำหนดเส้นทางโดยใช้ ',
                 momentLinkText: 'รูปแบบวันที่ Moment',
                 momentDescSuffix:
-                    ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต',
+                    ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในการดำเนินการกับไฟล์ > เทมเพลต',
+                templaterSupportInstalled: '✅ ติดตั้งปลั๊กอิน Templater พร้อมการรองรับเทมเพลตเต็มรูปแบบแล้ว',
+                templaterSupportMissing: '⚠️ ติดตั้งปลั๊กอิน Templater เพื่อใช้การรองรับเทมเพลตเต็มรูปแบบ',
                 placeholder: 'YYYY/YYYYMMDD',
                 example: 'รูปแบบปัจจุบัน: {path}',
                 parsingError: 'แพทเทิร์นต้องสามารถฟอร์แมตและพาร์สกลับเป็นวันที่แบบเต็ม (ปี เดือน วัน) ได้'
@@ -1430,11 +1506,11 @@ export const STRINGS_TH = {
                 desc: 'แสดง tooltips เมื่อวางเมาส์พร้อมข้อมูลเพิ่มเติมสำหรับโน้ตและโฟลเดอร์'
             },
             showTooltipPath: {
-                name: 'แสดงเส้นทาง',
+                name: 'แสดงเส้นทางใน tooltips',
                 desc: 'แสดงเส้นทางโฟลเดอร์ใต้ชื่อโน้ตใน tooltips'
             },
             showTooltipWordCount: {
-                name: 'แสดงจำนวนคำ',
+                name: 'แสดงจำนวนคำใน tooltips',
                 desc: 'แสดงจำนวนคำของโน้ตใน tooltips'
             },
             resetPaneSeparator: {
@@ -1540,11 +1616,11 @@ export const STRINGS_TH = {
                     yearlyNote: 'บันทึกรายปี'
                 },
                 file: {
-                    name: 'ไฟล์เริ่มต้น',
+                    name: 'หน้าแรก: ไฟล์เริ่มต้น',
                     empty: 'ไม่ได้เลือกไฟล์'
                 },
                 createMissing: {
-                    name: 'สร้างบันทึกหากไม่มี',
+                    name: 'หน้าแรก: สร้างบันทึกหากไม่มี',
                     desc: 'สร้างบันทึกเป็นระยะเมื่อเริ่มต้นหรือเมื่อใช้คำสั่ง หากยังไม่มี'
                 }
             },
@@ -1560,7 +1636,7 @@ export const STRINGS_TH = {
             },
             vaultProfiles: {
                 name: 'โปรไฟล์ห้องนิรภัย',
-                desc: 'โปรไฟล์เก็บการมองเห็นประเภทไฟล์ ไฟล์ที่ซ่อน โฟลเดอร์ที่ซ่อน แท็กที่ซ่อน โน้ตที่ซ่อน ทางลัด และแบนเนอร์นำทาง สลับโปรไฟล์จากส่วนหัวแผงนำทาง',
+                desc: 'โปรไฟล์เก็บการมองเห็นประเภทไฟล์ ไฟล์ที่ซ่อน โฟลเดอร์ที่ซ่อน แท็กที่ซ่อน กฎคุณสมบัติสำหรับโน้ตที่ซ่อน ทางลัด และแบนเนอร์นำทาง สลับโปรไฟล์จากส่วนหัวแผงนำทาง',
                 defaultName: 'ค่าเริ่มต้น',
                 addButton: 'เพิ่มโปรไฟล์',
                 editProfilesButton: 'แก้ไขโปรไฟล์',
@@ -1571,7 +1647,7 @@ export const STRINGS_TH = {
                 editProfilesModalTitle: 'แก้ไขโปรไฟล์',
                 addModalPlaceholder: 'ชื่อโปรไฟล์',
                 deleteModalTitle: 'ลบ {name}',
-                deleteModalMessage: 'ลบ {name}? ตัวกรองไฟล์ โฟลเดอร์ แท็ก และโน้ตที่ซ่อนที่บันทึกในโปรไฟล์นี้จะถูกลบ',
+                deleteModalMessage: 'ลบ {name}? ตัวกรองไฟล์ โฟลเดอร์ แท็ก และโน้ตตามคุณสมบัติที่บันทึกในโปรไฟล์นี้จะถูกลบ',
                 moveUp: 'ย้ายขึ้น',
                 moveDown: 'ย้ายลง',
                 errors: {
@@ -1640,16 +1716,30 @@ export const STRINGS_TH = {
                 name: 'แสดงคุณสมบัติในโหมดกะทัดรัด',
                 desc: 'แสดงคุณสมบัติเมื่อโหมดกะทัดรัดเปิดใช้งาน'
             },
-            showWordCount: {
-                name: 'แสดงจำนวนคำ',
-                desc: 'แสดงจำนวนคำของโน้ตในรายการไฟล์'
+            textCountDisplay: {
+                name: 'ประเภทการนับ',
+                desc: 'เลือกจำนวนของโน้ตที่จะแสดงในรายการไฟล์',
+                options: {
+                    none: 'ไม่มี',
+                    words: 'จำนวนคำ',
+                    characters: 'จำนวนอักขระ',
+                    both: 'จำนวนคำและอักขระ'
+                }
             },
-            wordCountPlacement: {
+            textCountPlacement: {
                 name: 'ตำแหน่ง',
-                desc: 'เลือกตำแหน่งที่จำนวนคำจะแสดง',
+                desc: 'เลือกตำแหน่งที่จะแสดงจำนวนของโน้ต',
                 options: {
                     title: 'ในชื่อเรื่อง',
                     property: 'เป็นคุณสมบัติ'
+                }
+            },
+            characterCountSpaces: {
+                name: 'จำนวนอักขระ',
+                desc: 'เลือกว่าจะนับช่องว่างรวมในจำนวนอักขระหรือไม่',
+                options: {
+                    include: 'รวมช่องว่าง',
+                    exclude: 'ไม่รวมช่องว่าง'
                 }
             },
             wordCountTargetProperty: {
@@ -1825,7 +1915,7 @@ export const STRINGS_TH = {
             },
             showNoteCount: {
                 name: 'แสดงจำนวนโน้ต',
-                desc: 'แสดงจำนวนโน้ตข้างแต่ละโฟลเดอร์และแท็ก'
+                desc: 'แสดงจำนวนโน้ตข้างโฟลเดอร์ แท็ก และคุณสมบัติ'
             },
             showSectionIcons: {
                 name: 'แสดงไอคอนสำหรับทางลัดและรายการล่าสุด',
@@ -1833,7 +1923,7 @@ export const STRINGS_TH = {
             },
             interfaceIcons: {
                 name: 'ไอคอนอินเทอร์เฟซ',
-                desc: 'แก้ไขไอคอนแถบเครื่องมือ โฟลเดอร์ แท็ก ปักหมุด ค้นหา และเรียงลำดับ',
+                desc: 'แก้ไขไอคอนแถบเครื่องมือ โฟลเดอร์ แท็ก คุณสมบัติ ปักหมุด ค้นหา และเรียงลำดับ',
                 buttonText: 'แก้ไขไอคอน'
             },
             showIconsColorOnly: {
@@ -1937,11 +2027,11 @@ export const STRINGS_TH = {
             },
             navIndent: {
                 name: 'การเยื้องต้นไม้',
-                desc: 'ปรับความกว้างการเยื้องสำหรับโฟลเดอร์และแท็กที่ซ้อนกัน'
+                desc: 'ปรับความกว้างการเยื้องสำหรับโฟลเดอร์ แท็ก และคุณสมบัติที่ซ้อนกัน (พิกเซล)'
             },
             navItemHeight: {
                 name: 'ความสูงรายการ',
-                desc: 'ปรับความสูงของโฟลเดอร์และแท็กในแผงนำทาง'
+                desc: 'ปรับความสูงของโฟลเดอร์ แท็ก และคุณสมบัติในแผงนำทาง (พิกเซล)'
             },
             navItemHeightScaleText: {
                 name: 'ปรับขนาดข้อความตามความสูงรายการ',
@@ -1949,11 +2039,21 @@ export const STRINGS_TH = {
             },
             showIndentGuides: {
                 name: 'แสดงเส้นนำการเยื้อง',
-                desc: 'แสดงเส้นนำการเยื้องสำหรับโฟลเดอร์และแท็กที่ซ้อนกัน'
+                desc: 'แสดงเส้นนำการเยื้องสำหรับโฟลเดอร์ แท็ก และคุณสมบัติที่ซ้อนกัน'
+            },
+            navCountLeaderStyle: {
+                name: 'แสดงตัวนำสายตา',
+                desc: 'แสดงจุด ขีด หรือเส้นระหว่างชื่อรายการกับจำนวนโน้ต',
+                options: {
+                    none: 'ไม่มี',
+                    dots: 'จุด (...)',
+                    dashes: 'ขีด (---)',
+                    line: 'เส้น'
+                }
             },
             navRootSpacing: {
                 name: 'ระยะห่างรายการหลัก',
-                desc: 'ระยะห่างระหว่างโฟลเดอร์และแท็กระดับหลัก'
+                desc: 'ระยะห่างระหว่างโฟลเดอร์ แท็ก และคุณสมบัติระดับหลัก (พิกเซล)'
             },
             showTags: {
                 name: 'แสดงแท็ก',
@@ -1998,7 +2098,7 @@ export const STRINGS_TH = {
                 name: 'แสดงคุณสมบัติ',
                 desc: 'แสดงส่วนคุณสมบัติในตัวนำทาง',
                 propertyKeysInfoPrefix: 'กำหนดค่าคุณสมบัติใน ',
-                propertyKeysInfoLinkText: 'ทั่วไป > คีย์คุณสมบัติ',
+                propertyKeysInfoLinkText: 'เริ่มต้น > คีย์คุณสมบัติ',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
@@ -2063,11 +2163,11 @@ export const STRINGS_TH = {
             },
             folderNoteTemplate: {
                 name: 'เทมเพลตโน้ตโฟลเดอร์',
-                desc: 'ไฟล์เทมเพลตสำหรับโน้ตโฟลเดอร์ Markdown ใหม่ ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในทั่วไป > เทมเพลต'
+                desc: 'ไฟล์เทมเพลตสำหรับโน้ตโฟลเดอร์ Markdown ใหม่ ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในการดำเนินการกับไฟล์ > เทมเพลต'
             },
             enableFolderNoteLinks: {
-                name: 'เปิดใช้งานลิงก์โน้ตโฟลเดอร์',
-                desc: 'ป้ายกำกับโฟลเดอร์จะแสดงเป็นลิงก์และเปิดโน้ตโฟลเดอร์เมื่อคลิก เมื่อปิด โน้ตโฟลเดอร์ยังคงให้ข้อมูลชื่อ ไอคอน และสี'
+                name: 'ชื่อโฟลเดอร์เปิดโน้ตโฟลเดอร์',
+                desc: 'การคลิกชื่อโฟลเดอร์จะเปิดโน้ตโฟลเดอร์ของโฟลเดอร์นั้น เมื่อปิด โน้ตโฟลเดอร์จะให้เฉพาะข้อมูลเมตาของโฟลเดอร์ เช่น ชื่อ ไอคอน และสี'
             },
             hideFolderNoteInList: {
                 name: 'ซ่อนโน้ตโฟลเดอร์ในรายการ',
@@ -2077,9 +2177,18 @@ export const STRINGS_TH = {
                 name: 'ปักหมุดโน้ตโฟลเดอร์ที่สร้าง',
                 desc: 'ปักหมุดโน้ตโฟลเดอร์เมื่อสร้างจากเมนูบริบท'
             },
-            openFolderNotesInNewTab: {
-                name: 'เปิดโน้ตโฟลเดอร์ในแท็บใหม่',
-                desc: 'เปิดโน้ตโฟลเดอร์ในแท็บใหม่เมื่อคลิกที่โฟลเดอร์'
+            folderNoteOpenLocation: {
+                name: 'เปิดโน้ตโฟลเดอร์ใน',
+                desc: 'เลือกตำแหน่งที่เปิดโน้ตโฟลเดอร์เมื่อคลิกลิงก์โน้ตโฟลเดอร์',
+                options: {
+                    currentTab: 'แท็บปัจจุบัน',
+                    newTab: 'แท็บใหม่',
+                    rightSidebar: 'แถบด้านขวา'
+                }
+            },
+            showNearestFolderNoteInSidebar: {
+                name: 'แถบด้านขวา: แสดงโน้ตโฟลเดอร์ที่ใกล้ที่สุด',
+                desc: 'เมื่อเลือกโฟลเดอร์ แถบด้านขวาจะแสดงโน้ตโฟลเดอร์บรรพบุรุษที่ใกล้ที่สุดโดยอัตโนมัติ'
             },
             confirmBeforeDelete: {
                 name: 'ยืนยันก่อนลบ',
@@ -2104,7 +2213,7 @@ export const STRINGS_TH = {
             },
             metadataCleanup: {
                 name: 'ล้างเมตาดาต้า',
-                desc: 'ลบเมตาดาต้ากำพร้าที่เหลืออยู่เมื่อไฟล์ โฟลเดอร์ หรือแท็กถูกลบ ย้าย หรือเปลี่ยนชื่อนอก Obsidian มีผลเฉพาะไฟล์การตั้งค่า Notebook Navigator',
+                desc: 'ลบเมตาดาต้ากำพร้าที่เหลืออยู่เมื่อไฟล์ โฟลเดอร์ แท็ก หรือคุณสมบัติถูกลบ ย้าย หรือเปลี่ยนชื่อนอก Obsidian มีผลเฉพาะไฟล์การตั้งค่า Notebook Navigator',
                 buttonText: 'ล้างเมตาดาต้า',
                 error: 'ล้างการตั้งค่าล้มเหลว',
                 loading: 'กำลังตรวจสอบเมตาดาต้า...',
@@ -2194,6 +2303,10 @@ export const STRINGS_TH = {
                 desc: 'ตรวจสอบรุ่นปลั๊กอินใหม่เมื่อเริ่มงานและแสดงการแจ้งเตือนเมื่อมีการอัปเดต การตรวจสอบจะเกิดขึ้นอย่างมากวันละครั้ง',
                 status: 'มีเวอร์ชันใหม่: {version}'
             },
+            debugLogging: {
+                name: 'บันทึกดีบักตอนเริ่มต้น',
+                desc: 'เขียนข้อมูลวินิจฉัยการเริ่มต้นลงในไฟล์ Markdown ที่มีเวลาประทับในรากของคลัง แล้วหยุดหลังจากการเริ่มต้นคงที่ ไฟล์อาจถูกซิงก์และอาจมีเส้นทางไฟล์'
+            },
             whatsNew: {
                 name: 'มีอะไรใหม่ใน Notebook Navigator {version}',
                 desc: 'ดูการอัปเดตและการปรับปรุงล่าสุด',
@@ -2228,6 +2341,7 @@ export const STRINGS_TH = {
     },
     whatsNew: {
         title: 'มีอะไรใหม่ใน Notebook Navigator',
+        openBannerImage: 'เปิดภาพแบนเนอร์รุ่นเผยแพร่',
         supportMessage: 'หากคุณพบว่า Notebook Navigator มีประโยชน์ โปรดพิจารณาสนับสนุนการพัฒนา',
         supportButton: 'เลี้ยงกาแฟ',
         thanksButton: 'ขอบคุณ!'

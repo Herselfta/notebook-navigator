@@ -73,6 +73,7 @@ interface NavigationListRowProps {
     dragHandlers?: ListReorderHandlers;
     isDragSource?: boolean;
     showCount?: boolean;
+    showCountLeader?: boolean;
     count?: number | string;
     countSlot?: React.ReactNode;
     dragHandleConfig?: DragHandleConfig;
@@ -113,6 +114,7 @@ export function NavigationListRow({
     dragHandlers,
     isDragSource,
     showCount,
+    showCountLeader,
     count,
     countSlot,
     dragHandleConfig,
@@ -227,6 +229,7 @@ export function NavigationListRow({
     const hasCountSlot = countSlot !== undefined && countSlot !== null;
     // Determine if count badge should be displayed based on settings and valid count content
     const shouldShowCount = Boolean(showCount && (hasCountValue || hasCountSlot));
+    const shouldShowCountLeader = showCountLeader ?? Boolean(showCount);
 
     // Handles click events on the label element, preventing event propagation to parent row
     const handleLabelClick = useCallback(
@@ -371,7 +374,7 @@ export function NavigationListRow({
                     </span>
                     {description ? <span className="nn-shortcut-description">{description}</span> : null}
                 </span>
-                <span className="nn-navitem-spacer" />
+                <span className={`nn-navitem-spacer${shouldShowCountLeader ? ' nn-navitem-spacer--leader' : ''}`} />
                 {shouldShowCount ? (countSlot ?? <span className="nn-navitem-count">{count}</span>) : null}
                 {trailingAccessory ? <div className="nn-navitem-accessory">{trailingAccessory}</div> : null}
                 {handleVisible ? (

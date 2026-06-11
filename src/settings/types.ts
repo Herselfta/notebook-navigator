@@ -304,11 +304,25 @@ export function isShortcutBadgeDisplayMode(value: unknown): value is ShortcutBad
     return value === 'index' || value === 'count' || value === 'none';
 }
 
+/** Leader marks shown between navigation item names and note counts */
+export type NavCountLeaderStyle = 'none' | 'dots' | 'dashes' | 'line';
+
+export function isNavCountLeaderStyle(value: unknown): value is NavCountLeaderStyle {
+    return value === 'none' || value === 'dots' || value === 'dashes' || value === 'line';
+}
+
 /** Filter options for hidden items in the recent notes section */
 export type RecentNotesHideMode = 'none' | 'folder-notes';
 
 export function isRecentNotesHideMode(value: unknown): value is RecentNotesHideMode {
     return value === 'none' || value === 'folder-notes';
+}
+
+/** Where folder notes open when folder-note links are activated. */
+export type FolderNoteOpenLocation = 'current-tab' | 'new-tab' | 'right-sidebar';
+
+export function isFolderNoteOpenLocation(value: unknown): value is FolderNoteOpenLocation {
+    return value === 'current-tab' || value === 'new-tab' || value === 'right-sidebar';
 }
 
 /** Number of calendar week rows shown in the navigation pane */
@@ -392,12 +406,36 @@ export function normalizeAppearanceGroupBy<T extends AppearanceGroupingValue>(ap
 /** Date source to display when alphabetical sorting is active */
 export type AlphabeticalDateMode = 'created' | 'modified';
 
-/** Placement options for note word counts */
-export type WordCountPlacement = 'title' | 'property';
+/** Placement options for note text counts */
+export type TextCountPlacement = 'title' | 'property';
 
-/** Type guard for validating word count placement values */
-export function isWordCountPlacement(value: unknown): value is WordCountPlacement {
+/** Type guard for validating text count placement values */
+export function isTextCountPlacement(value: unknown): value is TextCountPlacement {
     return value === 'title' || value === 'property';
+}
+
+/** Display modes for note word and character counts */
+export type TextCountDisplay = 'none' | 'words' | 'characters' | 'both';
+
+/** Type guard for validating word and character count display modes */
+export function isTextCountDisplay(value: unknown): value is TextCountDisplay {
+    return value === 'none' || value === 'words' || value === 'characters' || value === 'both';
+}
+
+/** Whether spaces are included in note character counts */
+export type CharacterCountSpaces = 'include' | 'exclude';
+
+/** Type guard for validating character count space handling */
+export function isCharacterCountSpaces(value: unknown): value is CharacterCountSpaces {
+    return value === 'include' || value === 'exclude';
+}
+
+export function showsWordCount(display: TextCountDisplay): boolean {
+    return display === 'words' || display === 'both';
+}
+
+export function showsCharacterCount(display: TextCountDisplay): boolean {
+    return display === 'characters' || display === 'both';
 }
 
 /** Buttons available in the navigation toolbar */
@@ -512,6 +550,7 @@ export interface NotebookNavigatorSettings {
     showNoteCount: boolean;
     separateNoteCounts: boolean;
     showIndentGuides: boolean;
+    navCountLeaderStyle: NavCountLeaderStyle;
     rootLevelSpacing: number;
     navIndent: number;
     navItemHeight: number;
@@ -549,7 +588,8 @@ export interface NotebookNavigatorSettings {
     enableFolderNoteLinks: boolean;
     hideFolderNoteInList: boolean;
     pinCreatedFolderNote: boolean;
-    openFolderNotesInNewTab: boolean;
+    folderNoteOpenLocation: FolderNoteOpenLocation;
+    showNearestFolderNoteInSidebar: boolean;
 
     // Tags tab
     showTags: boolean;
@@ -584,6 +624,8 @@ export interface NotebookNavigatorSettings {
     noteGrouping: ListNoteGroupingOption;
     showSelectedNavigationPills: boolean;
     stickyGroupHeaders: boolean;
+    showFolderGroupPaths: boolean;
+    showCurrentFolderFilesAtBottom: boolean;
     filterPinnedByFolder: boolean;
     compactItemHeight: number;
     compactItemHeightScaleText: boolean;
@@ -644,8 +686,9 @@ export interface NotebookNavigatorSettings {
     showPropertiesOnSeparateRows: boolean;
     enablePropertyInternalLinks: boolean;
     enablePropertyExternalLinks: boolean;
-    showWordCount: boolean;
-    wordCountPlacement: WordCountPlacement;
+    textCountDisplay: TextCountDisplay;
+    textCountPlacement: TextCountPlacement;
+    characterCountSpaces: CharacterCountSpaces;
     wordCountTargetProperty: string;
     showWordCountPercentage: boolean;
     showFileDate: boolean;

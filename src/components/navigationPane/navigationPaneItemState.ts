@@ -17,7 +17,7 @@
  */
 
 import { ItemType, NavigationPaneItemType } from '../../types';
-import type { SelectionState } from '../../context/SelectionContext';
+import type { NavigationSelectionState } from '../../context/SelectionContext';
 import type { NavigationSearchHighlightsResult } from '../../hooks/navigationPane/useNavigationSearchHighlights';
 import type { CombinedNavigationItem } from '../../types/virtualization';
 
@@ -25,7 +25,7 @@ type NavigationItemSearchMatch = 'include' | 'exclude';
 
 interface NavigationItemFilledParams {
     item: CombinedNavigationItem;
-    selectionState: SelectionState;
+    selectionState: NavigationSelectionState;
     searchHighlights: NavigationSearchHighlightsResult;
     getSolidBackground: (color?: string | null) => string | undefined;
 }
@@ -51,7 +51,7 @@ export function getNavigationItemSearchMatch(
     }
 }
 
-export function isNavigationItemSelected(item: CombinedNavigationItem, selectionState: SelectionState): boolean {
+export function isNavigationItemSelected(item: CombinedNavigationItem, selectionState: NavigationSelectionState): boolean {
     switch (item.type) {
         case NavigationPaneItemType.FOLDER:
             return selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder?.path === item.data.path;

@@ -31,7 +31,7 @@ export type ContentProviderType = 'fileThumbnails' | 'metadata' | 'tags' | 'mark
  *
  * These values identify content fields in storage (preview text, feature images, tags, etc).
  */
-export type FileContentType = 'preview' | 'featureImage' | 'metadata' | 'tags' | 'wordCount' | 'tasks' | 'properties';
+export type FileContentType = 'preview' | 'featureImage' | 'metadata' | 'tags' | 'wordCount' | 'characterCount' | 'tasks' | 'properties';
 
 export type ContentProviderClearContext = {
     oldSettings: NotebookNavigatorSettings;

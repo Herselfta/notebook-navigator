@@ -8,10 +8,15 @@
 .modal.nn-whats-new-modal {
     width: 600px;
     max-width: calc(100vw - 40px);
+    overflow: hidden;
 }
 
 /* What's new content layout */
 .modal.nn-whats-new-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     padding: 16px;
 }
 
@@ -20,13 +25,10 @@
     pointer-events: auto;
 }
 
-/* What's new header */
-.nn-whats-new-header {
-    margin-bottom: 16px;
-}
-
 /* What's new scrollable container */
 .nn-whats-new-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: min(70vh, 520px);
     overflow-y: auto;
     margin-bottom: 0;
@@ -87,6 +89,7 @@
 /* Release banner image */
 .nn-whats-new-banner {
     position: relative;
+    display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
@@ -94,6 +97,12 @@
     background: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
     margin-bottom: 12px;
+    text-decoration: none;
+}
+
+.nn-whats-new-banner:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
 }
 
 .nn-whats-new-banner-image {
@@ -259,11 +268,6 @@
         line-height: 1.6;
     }
 
-    /* Mobile header size for the modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Version header size on mobile */
     .nn-whats-new-version h3 {
         font-size: 15px;
@@ -272,11 +276,6 @@
 
 /* Obsidian mobile app adjustments */
 .is-mobile {
-    /* Modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Body text and labels */
     .nn-whats-new-info,
     .nn-whats-new-version li,

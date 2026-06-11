@@ -919,8 +919,12 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             const activeViewFile = view?.file instanceof TFile ? view.file : null;
             const activeLeaf = options?.activeLeaf ?? view?.leaf ?? null;
             // Prefer the file from the event payload (file-open), falling back to the active view file.
+            // Background opens are ignored so preview and companion-sidebar opens do not become active reveals.
             // This handles cases where the active view is not updated yet when events fire.
-            const file = candidateFile instanceof TFile ? candidateFile : activeViewFile;
+            if (ignoreNavigatorPreviewOpen && candidateFile instanceof TFile && activeViewFile?.path === candidateFile.path) {
+                return;
+            }
+            const file = !ignoreNavigatorPreviewOpen && candidateFile instanceof TFile ? candidateFile : activeViewFile;
             if (!file) {
                 return;
             }

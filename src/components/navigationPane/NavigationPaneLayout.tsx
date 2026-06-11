@@ -20,6 +20,7 @@ import React from 'react';
 import type { Virtualizer } from '@tanstack/react-virtual';
 import type { CombinedNavigationItem } from '../../types/virtualization';
 import type { CSSPropertiesWithVars } from '../../types';
+import { getNavigationItemRenderKey } from '../../utils/navigationIndex';
 import { NavigationPaneHeader } from '../NavigationPaneHeader';
 import { VaultTitleArea } from '../VaultTitleArea';
 
@@ -163,7 +164,7 @@ export function NavigationPaneLayout({
                         <div className="nn-shortcut-pinned-scroll" ref={pinnedShortcutsScrollRefCallback}>
                             <div className="nn-shortcut-pinned-inner">
                                 {pinnedNavigationItems.map((pinnedItem, index) => (
-                                    <React.Fragment key={pinnedItem.key}>
+                                    <React.Fragment key={getNavigationItemRenderKey(pinnedItem)}>
                                         {renderNavigationItem(
                                             pinnedItem,
                                             getAdjacentFilledClassName(pinnedItem, index, pinnedNavigationItems, isNavigationItemFilled)

@@ -23,11 +23,13 @@ describe('resolveUXIcon', () => {
         expect(resolveUXIcon(undefined, 'list-search')).toBe('search');
         expect(resolveUXIcon(undefined, 'nav-tags')).toBe('tags');
         expect(resolveUXIcon(undefined, 'nav-tag')).toBe('tag');
+        expect(resolveUXIcon(undefined, 'list-pinned')).toBe('');
         expect(resolveUXIcon(undefined, 'file-unfinished-task')).toBe('circle-alert');
     });
 
     it('deserializes Iconize formatted overrides', () => {
         expect(resolveUXIcon({ 'list-search': 'LiStar' }, 'list-search')).toBe('star');
+        expect(resolveUXIcon({ 'list-pinned': 'LiPin' }, 'list-pinned')).toBe('pin');
     });
 });
 

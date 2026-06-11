@@ -49,6 +49,13 @@ interface FileDeletionServiceOptions {
     folderPathSettingsSync: FolderPathSettingsSync;
 }
 
+export interface FileTrashResult {
+    trashedCount: number;
+    failedCount: number;
+    trashedSourcePaths: string[];
+    errors: { file: TFile; error: unknown }[];
+}
+
 export class FileDeletionService {
     private readonly app: App;
     private readonly settingsProvider: ISettingsProvider;
@@ -165,22 +172,25 @@ export class FileDeletionService {
         settings: ISettingsProvider['settings'],
         selectionContext: SelectionContext,
         selectionDispatch: SelectionDispatch,
-        confirmBeforeDelete: boolean
+        confirmBeforeDelete: boolean,
+        currentFilesOverride?: readonly TFile[]
     ): Promise<void> {
-        const visibility = this.getVisibilityPreferences();
-        const currentFiles = getFilesForNavigationSelection(
-            {
-                selectionType: selectionContext.selectionType,
-                selectedFolder: selectionContext.selectedFolder ?? null,
-                selectedTag: selectionContext.selectedTag ?? null,
-                selectedProperty: selectionContext.selectedProperty ?? null
-            },
-            settings,
-            visibility,
-            this.app,
-            this.getTagTreeService(),
-            this.getPropertyTreeService()
-        );
+        const currentFiles =
+            currentFilesOverride?.some(currentFile => currentFile.path === file.path) === true
+                ? currentFilesOverride
+                : getFilesForNavigationSelection(
+                      {
+                          selectionType: selectionContext.selectionType,
+                          selectedFolder: selectionContext.selectedFolder ?? null,
+                          selectedTag: selectionContext.selectedTag ?? null,
+                          selectedProperty: selectionContext.selectedProperty ?? null
+                      },
+                      settings,
+                      this.getVisibilityPreferences(),
+                      this.app,
+                      this.getTagTreeService(),
+                      this.getPropertyTreeService()
+                  );
 
         let nextFileToSelect: TFile | null = null;
         const currentIndex = currentFiles.findIndex(currentFile => currentFile.path === file.path);
@@ -224,7 +234,6 @@ export class FileDeletionService {
         }
 
         const performDeleteCore = async () => {
-            const sourcePaths = files.map(file => file.path);
             const attachmentDeletion = this.prepareAttachmentDeletionState(files);
 
             if (preDeleteAction) {
@@ -235,67 +244,10 @@ export class FileDeletionService {
                 }
             }
 
-            const errors: { file: TFile; error: unknown }[] = [];
-            let deletedCount = 0;
-            const deletedSourcePaths = new Set<string>();
-
-            const targetPathSet = new Set(sourcePaths);
-            let hasOpenLeaf: boolean;
-
-            try {
-                hasOpenLeaf = getSupportedLeaves(this.app).some(leaf => {
-                    const { view } = leaf;
-                    if (!(view instanceof FileView)) {
-                        return false;
-                    }
-
-                    const currentFile = view.file;
-                    if (!currentFile) {
-                        return false;
-                    }
-
-                    return targetPathSet.has(currentFile.path);
-                });
-            } catch {
-                hasOpenLeaf = false;
-            }
-
-            if (hasOpenLeaf) {
-                for (let index = 0; index < files.length; index += 1) {
-                    const file = files[index];
-                    const sourcePath = sourcePaths[index] ?? file.path;
-
-                    try {
-                        await this.clearOpenLeavesForFileDelete(file);
-                        await this.app.fileManager.trashFile(file);
-                        deletedCount += 1;
-                        deletedSourcePaths.add(sourcePath);
-
-                        if (index < files.length - 1) {
-                            await new Promise<void>(resolve => window.setTimeout(resolve, 0));
-                        }
-                    } catch (error) {
-                        errors.push({ file, error });
-                        console.error('Error deleting file:', sourcePath, error);
-                    }
-                }
-            } else {
-                const results = await Promise.allSettled(files.map(file => this.app.fileManager.trashFile(file)));
-
-                results.forEach((result, index) => {
-                    const file = files[index];
-                    const sourcePath = sourcePaths[index] ?? file.path;
-
-                    if (result.status === 'fulfilled') {
-                        deletedCount += 1;
-                        deletedSourcePaths.add(sourcePath);
-                        return;
-                    }
-
-                    errors.push({ file, error: result.reason });
-                    console.error('Error deleting file:', sourcePath, result.reason);
-                });
-            }
+            const trashResult = await this.trashFilesWithOpenLeafCleanupCore(files);
+            const deletedSourcePaths = new Set(trashResult.trashedSourcePaths);
+            const deletedCount = trashResult.trashedCount;
+            const { errors } = trashResult;
 
             await this.maybeDeleteAttachmentsAfterFileDelete(
                 attachmentDeletion.candidatesBySourcePath,
@@ -346,9 +298,52 @@ export class FileDeletionService {
         }
     }
 
+    public async trashFilesWithOpenLeafCleanup(files: readonly TFile[]): Promise<FileTrashResult> {
+        const filesToTrash = [...files];
+        if (filesToTrash.length === 0) {
+            return {
+                trashedCount: 0,
+                failedCount: 0,
+                trashedSourcePaths: [],
+                errors: []
+            };
+        }
+
+        const commandQueue = this.getCommandQueue();
+        if (!commandQueue) {
+            return this.trashFilesWithOpenLeafCleanupCore(filesToTrash);
+        }
+
+        let trashResult: FileTrashResult = {
+            trashedCount: 0,
+            failedCount: 0,
+            trashedSourcePaths: [],
+            errors: []
+        };
+        let hasTrashResult = false;
+        const commandResult = await commandQueue.executeDeleteFiles(filesToTrash, async () => {
+            trashResult = await this.trashFilesWithOpenLeafCleanupCore(filesToTrash);
+            hasTrashResult = true;
+        });
+
+        if (commandResult.success && hasTrashResult) {
+            return trashResult;
+        }
+
+        const error = commandResult.error ?? new Error('Failed to move files to trash.');
+        console.error('Error moving files to trash:', error);
+        const trashedSourcePathSet = new Set(trashResult.trashedSourcePaths);
+        return {
+            trashedCount: trashResult.trashedCount,
+            failedCount: filesToTrash.length - trashResult.trashedCount,
+            trashedSourcePaths: trashResult.trashedSourcePaths,
+            errors: filesToTrash.filter(file => !trashedSourcePathSet.has(file.path)).map(file => ({ file, error }))
+        };
+    }
+
     public async deleteFilesWithSmartSelection(
         selectedFiles: Set<string>,
-        allFiles: TFile[],
+        allFiles: readonly TFile[],
         selectionDispatch: SelectionDispatch,
         confirmBeforeDelete: boolean
     ): Promise<void> {
@@ -382,6 +377,76 @@ export class FileDeletionService {
                 }
             }, TIMEOUTS.FILE_OPERATION_DELAY);
         });
+    }
+
+    private hasOpenLeafForFiles(files: readonly TFile[]): boolean {
+        const targetPathSet = new Set(files.map(file => file.path));
+
+        try {
+            return getSupportedLeaves(this.app).some(leaf => {
+                const { view } = leaf;
+                if (!(view instanceof FileView)) {
+                    return false;
+                }
+
+                const currentFile = view.file;
+                if (!currentFile) {
+                    return false;
+                }
+
+                return targetPathSet.has(currentFile.path);
+            });
+        } catch {
+            return false;
+        }
+    }
+
+    private async trashFilesWithOpenLeafCleanupCore(files: readonly TFile[]): Promise<FileTrashResult> {
+        const sourcePaths = files.map(file => file.path);
+        const errors: { file: TFile; error: unknown }[] = [];
+        const trashedSourcePaths: string[] = [];
+
+        if (this.hasOpenLeafForFiles(files)) {
+            for (let index = 0; index < files.length; index += 1) {
+                const file = files[index];
+                const sourcePath = sourcePaths[index] ?? file.path;
+
+                try {
+                    await this.clearOpenLeavesForFileDelete(file);
+                    await this.app.fileManager.trashFile(file);
+                    trashedSourcePaths.push(sourcePath);
+
+                    if (index < files.length - 1) {
+                        await new Promise<void>(resolve => window.setTimeout(resolve, 0));
+                    }
+                } catch (error) {
+                    errors.push({ file, error });
+                    console.error('Error deleting file:', sourcePath, error);
+                }
+            }
+        } else {
+            const results = await Promise.allSettled(files.map(file => this.app.fileManager.trashFile(file)));
+
+            results.forEach((result, index) => {
+                const file = files[index];
+                const sourcePath = sourcePaths[index] ?? file.path;
+
+                if (result.status === 'fulfilled') {
+                    trashedSourcePaths.push(sourcePath);
+                    return;
+                }
+
+                errors.push({ file, error: result.reason });
+                console.error('Error deleting file:', sourcePath, result.reason);
+            });
+        }
+
+        return {
+            trashedCount: trashedSourcePaths.length,
+            failedCount: errors.length,
+            trashedSourcePaths,
+            errors
+        };
     }
 
     private isAttachmentFile(file: TFile): boolean {

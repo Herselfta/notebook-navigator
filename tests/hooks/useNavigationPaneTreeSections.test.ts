@@ -173,11 +173,13 @@ function createSourceState(params?: {
         missingRootPropertyKeys: [],
         visiblePropertyNavigationKeySet: params?.visiblePropertyNavigationKeySet ?? new Set<string>(),
         metadataDecorationVersion: 0,
+        metadataVisibilityVersion: 0,
+        tagDataVersion: 0,
+        propertyDataVersion: 0,
         getFolderSortName: folder => folder.name,
         folderExclusionByFolderNote: undefined,
         recentNotesHiddenFileMatcher: () => false,
-        fileChangeVersion: 0,
-        bumpVaultChangeVersion: () => {}
+        fileChangeVersion: 0
     };
 }
 

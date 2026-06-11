@@ -28,6 +28,22 @@
     margin-top: 12px;
 }
 
+.nn-merge-notes-summary {
+    margin-bottom: 8px;
+}
+
+.nn-merge-notes-details {
+    color: var(--nn-theme-foreground-muted);
+    font-size: var(--font-ui-small);
+    unicode-bidi: plaintext;
+}
+
+.nn-merge-notes-warning {
+    color: var(--text-error);
+    font-weight: 700;
+    unicode-bidi: plaintext;
+}
+
 .nn-input-checkbox-row {
     display: flex;
     align-items: center;

@@ -16,14 +16,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
-import { App, TFolder } from 'obsidian';
+import { App, TFile, TFolder } from 'obsidian';
 import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';
 import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { CommandQueueService } from '../../services/CommandQueueService';
 import type { ExpansionAction } from '../../context/ExpansionContext';
-import type { SelectionAction, SelectionState } from '../../context/SelectionContext';
+import type { NavigationSelectionState, SelectionAction } from '../../context/SelectionContext';
 import type { UIAction } from '../../context/UIStateContext';
 import { localStorage } from '../../utils/localStorage';
 import {
@@ -38,9 +38,9 @@ import {
 } from '../../types';
 import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 import type { InclusionOperator } from '../../utils/filterSearch';
-import { getFolderNote, openFolderNoteFile } from '../../utils/folderNotes';
+import { getFolderNote, openFolderNoteFile, type FolderNoteOpenContext } from '../../utils/folderNotes';
 import { runAsyncAction } from '../../utils/async';
-import { resolveFolderNoteClickOpenContext } from '../../utils/keyboardOpenContext';
+import { resolveFolderNoteClickOpenContext, resolveFolderNoteDefaultOpenContext } from '../../utils/keyboardOpenContext';
 import { findTagNode } from '../../utils/tagTree';
 import { resolveCanonicalTagPath } from '../../utils/tagUtils';
 import { getTagSearchModifierOperator } from '../../utils/tagUtils';
@@ -65,7 +65,7 @@ interface UseNavigationPaneTreeInteractionsProps {
     uiState: UIStateLike;
     expansionState: ExpansionStateLike;
     expansionDispatch: Dispatch<ExpansionAction>;
-    selectionState: SelectionState;
+    selectionState: NavigationSelectionState;
     selectionDispatch: Dispatch<SelectionAction>;
     uiDispatch: Dispatch<UIAction>;
     propertyTreeService: IPropertyTreeProvider | null;
@@ -75,6 +75,7 @@ interface UseNavigationPaneTreeInteractionsProps {
     setShortcutsExpanded: Dispatch<SetStateAction<boolean>>;
     setRecentNotesExpanded: Dispatch<SetStateAction<boolean>>;
     clearActiveShortcut: () => void;
+    openFolderNoteInRightSidebar: (folderNote: TFile) => Promise<void>;
     onModifySearchWithTag: (tag: string, operator: InclusionOperator) => void;
     onModifySearchWithProperty: (key: string, value: string | null, operator: InclusionOperator) => void;
 }
@@ -116,9 +117,22 @@ export function useNavigationPaneTreeInteractions({
     setShortcutsExpanded,
     setRecentNotesExpanded,
     clearActiveShortcut,
+    openFolderNoteInRightSidebar,
     onModifySearchWithTag,
     onModifySearchWithProperty
 }: UseNavigationPaneTreeInteractionsProps): NavigationPaneTreeInteractionsResult {
+    const focusListPaneAfterRightSidebarFolderNoteSelection = useCallback(
+        (openContext: FolderNoteOpenContext) => {
+            if (!uiState.singlePane || openContext !== 'right-sidebar') {
+                return;
+            }
+
+            uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
+            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+        },
+        [uiDispatch, uiState.singlePane]
+    );
+
     const handleFolderToggle = useCallback(
         (path: string) => {
             expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: path });
@@ -169,7 +183,8 @@ export function useNavigationPaneTreeInteractions({
             expansionDispatch,
             expansionState.expandedFolders,
             selectionDispatch,
-            selectionState,
+            selectionState.selectedFolder,
+            selectionState.selectionType,
             settings,
             uiDispatch,
             uiState.singlePane
@@ -189,17 +204,42 @@ export function useNavigationPaneTreeInteractions({
                 return;
             }
 
+            const wasSelectedFolder =
+                selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder?.path === folder.path;
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
 
             const openContext = event
-                ? resolveFolderNoteClickOpenContext(event, settings.openFolderNotesInNewTab, settings.multiSelectModifier, isMobile)
-                : settings.openFolderNotesInNewTab
-                  ? 'tab'
-                  : null;
+                ? resolveFolderNoteClickOpenContext(event, settings.folderNoteOpenLocation, settings.multiSelectModifier, isMobile)
+                : resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
+            focusListPaneAfterRightSidebarFolderNoteSelection(openContext);
 
-            runAsyncAction(() => openFolderNoteFile({ app, commandQueue, folder, folderNote, context: openContext }));
+            if (openContext === 'right-sidebar' && settings.showNearestFolderNoteInSidebar && !wasSelectedFolder) {
+                return;
+            }
+
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder,
+                    folderNote,
+                    context: openContext,
+                    openInRightSidebar: openFolderNoteInRightSidebar
+                })
+            );
         },
-        [app, commandQueue, handleFolderClick, isMobile, selectionDispatch, settings]
+        [
+            app,
+            commandQueue,
+            focusListPaneAfterRightSidebarFolderNoteSelection,
+            handleFolderClick,
+            isMobile,
+            openFolderNoteInRightSidebar,
+            selectionDispatch,
+            selectionState.selectedFolder,
+            selectionState.selectionType,
+            settings
+        ]
     );
 
     const handleFolderNameMouseDown = useCallback(
@@ -550,22 +590,42 @@ export function useNavigationPaneTreeInteractions({
         ]
     );
 
-    return {
-        handleFolderToggle,
-        handleFolderClick,
-        handleFolderNameClick,
-        handleFolderNameMouseDown,
-        handleTagToggle,
-        handlePropertyToggle,
-        handleVirtualFolderToggle,
-        getAllDescendantFolders,
-        getAllTagPaths,
-        getAllDescendantTags,
-        getAllPropertyNodeIds,
-        getAllDescendantPropertyNodeIds,
-        handleTagClick,
-        handleTagCollectionClick,
-        handlePropertyCollectionClick,
-        handlePropertyClick
-    };
+    return useMemo(
+        () => ({
+            handleFolderToggle,
+            handleFolderClick,
+            handleFolderNameClick,
+            handleFolderNameMouseDown,
+            handleTagToggle,
+            handlePropertyToggle,
+            handleVirtualFolderToggle,
+            getAllDescendantFolders,
+            getAllTagPaths,
+            getAllDescendantTags,
+            getAllPropertyNodeIds,
+            getAllDescendantPropertyNodeIds,
+            handleTagClick,
+            handleTagCollectionClick,
+            handlePropertyCollectionClick,
+            handlePropertyClick
+        }),
+        [
+            getAllDescendantFolders,
+            getAllDescendantPropertyNodeIds,
+            getAllDescendantTags,
+            getAllPropertyNodeIds,
+            getAllTagPaths,
+            handleFolderClick,
+            handleFolderNameClick,
+            handleFolderNameMouseDown,
+            handleFolderToggle,
+            handlePropertyClick,
+            handlePropertyCollectionClick,
+            handlePropertyToggle,
+            handleTagClick,
+            handleTagCollectionClick,
+            handleTagToggle,
+            handleVirtualFolderToggle
+        ]
+    );
 }

@@ -96,9 +96,18 @@ export function filterFilesRequiringMetadataSources(
             }
             const needsProperties = propertiesEnabled && record.properties === null;
             const needsWordCount = record.wordCount === null;
+            const needsCharacterCount = record.characterCountWithSpaces === null || record.characterCountWithoutSpaces === null;
             const needsTasks = record.taskTotal === null || record.taskUnfinished === null;
             const needsRefresh = record.markdownPipelineMtime !== file.stat.mtime;
-            if (needsRefresh || needsPreview || needsFeatureImage || needsProperties || needsWordCount || needsTasks) {
+            if (
+                needsRefresh ||
+                needsPreview ||
+                needsFeatureImage ||
+                needsProperties ||
+                needsWordCount ||
+                needsCharacterCount ||
+                needsTasks
+            ) {
                 return true;
             }
         }

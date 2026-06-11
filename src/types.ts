@@ -37,6 +37,12 @@ export const NOTEBOOK_NAVIGATOR_VIEW = 'notebook-navigator';
 export const NOTEBOOK_NAVIGATOR_CALENDAR_VIEW = 'notebook-navigator-calendar';
 
 /**
+ * Unique identifier for the folder note sidebar placeholder view.
+ * Used to keep a stable right sidebar slot when no folder note is open.
+ */
+export const NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW = 'notebook-navigator-folder-note-sidebar';
+
+/**
  * Virtual tag collection id for notes without tags.
  * Stored in tag selection state and used as a tag filter token.
  */
@@ -275,6 +281,7 @@ export interface LocalStorageKeys {
     databaseSchemaVersionKey: string;
     databaseContentVersionKey: string;
     cacheRebuildNoticeKey: string;
+    debugLoggingEnabledKey: string;
     // PDF_CRASH_DIAGNOSTICS: vault-scoped key used by the PDF crash diagnostic flow.
     pdfProcessingDiagnosticKey: string;
     localStorageVersionKey: string;
@@ -301,6 +308,8 @@ export interface LocalStorageKeys {
     featureImageSizeKey: string;
     featureImagePixelSizeKey: string;
     collapsedListGroupsKey: string;
+    mergeNotesSeparatorKey: string;
+    mergeNotesMoveSourcesToTrashKey: string;
 }
 
 /**
@@ -333,6 +342,7 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     databaseSchemaVersionKey: 'notebook-navigator-db-schema-version',
     databaseContentVersionKey: 'notebook-navigator-db-content-version',
     cacheRebuildNoticeKey: 'notebook-navigator-cache-rebuild-notice',
+    debugLoggingEnabledKey: 'notebook-navigator-debug-logging-enabled',
     // PDF_CRASH_DIAGNOSTICS: persists the last PDF path being processed on mobile support builds.
     pdfProcessingDiagnosticKey: 'notebook-navigator-pdf-processing-diagnostic',
     localStorageVersionKey: 'notebook-navigator-localstorage-version',
@@ -358,7 +368,9 @@ export const STORAGE_KEYS: LocalStorageKeys = {
     compactItemHeightScaleTextKey: 'notebook-navigator-compact-item-height-scale-text',
     featureImageSizeKey: 'notebook-navigator-feature-image-size',
     featureImagePixelSizeKey: 'notebook-navigator-feature-image-pixel-size',
-    collapsedListGroupsKey: 'notebook-navigator-collapsed-list-groups'
+    collapsedListGroupsKey: 'notebook-navigator-collapsed-list-groups',
+    mergeNotesSeparatorKey: 'notebook-navigator-merge-notes-separator',
+    mergeNotesMoveSourcesToTrashKey: 'notebook-navigator-merge-notes-move-sources-to-trash'
 };
 
 export interface UXPreferences {

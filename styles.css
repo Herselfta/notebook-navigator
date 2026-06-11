@@ -183,6 +183,8 @@ body {
     );
     --nn-theme-nav-separator-height: 1px;
     --nn-theme-nav-separator-opacity: 0.3;
+    --nn-theme-nav-indent-guide-color: var(--nn-theme-foreground-faded);
+    --nn-theme-nav-leader-color: var(--nn-theme-foreground-faded);
     --nn-theme-pinned-shortcut-shadow-color: rgba(0, 0, 0, 0.03);
 
     /* -- Navigation Calendar -- */
@@ -709,7 +711,7 @@ body {
     left: 0;
     top: 0;
     bottom: 0;
-    z-index: 10;
+    z-index: 300;
     touch-action: none;
     -webkit-tap-highlight-color: transparent;
 }
@@ -1890,7 +1892,7 @@ button.nn-icon-button.nn-icon-button-active svg:not(.nn-vault-icon-svg) {
     );
     width: var(--nn-indent-guide-line-width);
     transform: translateX(-50%);
-    background-color: var(--nn-theme-foreground-faint);
+    background-color: var(--nn-theme-nav-indent-guide-color);
     pointer-events: none;
     z-index: 0;
 }
@@ -2059,8 +2061,57 @@ button.nn-icon-button.nn-icon-button-active svg:not(.nn-vault-icon-svg) {
 
 /* Spacer element to push count to the end */
 .nn-navitem-spacer {
+    --nn-nav-leader-color: var(--nn-theme-nav-leader-color);
+    --nn-nav-count-leader-bottom-offset: calc((var(--nn-setting-nav-item-height) - var(--nn-nav-line-height)) / 2 + 4px);
     flex: 1;
     min-width: 8px; /* Minimum space between name and count */
+}
+
+.notebook-navigator-mobile .nn-navitem-spacer {
+    --nn-nav-count-leader-bottom-offset: calc((var(--nn-setting-nav-item-height-mobile) - var(--nn-nav-line-height)) / 2 + 5px);
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader,
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader,
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader {
+    position: relative;
+    align-self: stretch;
+    margin-inline: 8px;
+    min-width: 16px;
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader::after,
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader::after,
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: var(--nn-nav-count-leader-bottom-offset);
+    pointer-events: none;
+}
+
+[data-nav-count-leader-style='dots'] .nn-navitem-spacer--leader::after {
+    height: 2px;
+    background-image: radial-gradient(circle, var(--nn-nav-leader-color) 0, var(--nn-nav-leader-color) 1px, transparent 1px);
+    background-repeat: repeat-x;
+    background-position: center;
+    background-size: 6px 2px;
+}
+
+[data-nav-count-leader-style='dashes'] .nn-navitem-spacer--leader::after {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+        to right,
+        var(--nn-nav-leader-color) 0,
+        var(--nn-nav-leader-color) 6px,
+        transparent 6px,
+        transparent 10px
+    );
+}
+
+[data-nav-count-leader-style='line'] .nn-navitem-spacer--leader::after {
+    height: 1px;
+    background-color: var(--nn-nav-leader-color);
 }
 
 /* Folder file count - shows number of files in folder */
@@ -2569,8 +2620,7 @@ button.nn-icon-button.nn-navitem-hover-action-button {
     flex: 0 0 auto;
 }
 
-.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button,
-.nn-navigation-calendar-month .nn-navigation-calendar-quarter-label {
+.nn-navigation-calendar-month .nn-navigation-calendar-quarter-button {
     flex: 0 0 auto;
 }
 
@@ -2621,16 +2671,7 @@ button.nn-navigation-calendar-period-button {
     justify-content: center;
 }
 
-.nn-navigation-calendar-period-label {
-    display: inline-flex;
-    align-items: center;
-    padding: 2px 1px;
-    border-radius: 6px;
-    background-color: var(--nn-calendar-header-chip-bg);
-    line-height: 1;
-}
-
-.nn-navigation-calendar-period-button.has-period-note:not(.nn-navigation-calendar-quarter-button)::after {
+.nn-navigation-calendar-period-button.has-period-note::after {
     content: '';
     position: absolute;
     left: 3px;
@@ -2640,15 +2681,6 @@ button.nn-navigation-calendar-period-button {
     background-color: currentColor;
     pointer-events: none;
     z-index: 1;
-}
-
-.nn-navigation-calendar-quarter-button.has-period-note {
-    box-shadow: none;
-}
-
-.nn-navigation-calendar-quarter-button.has-period-note .nn-navigation-calendar-quarter-value {
-    border-bottom: 1px solid currentColor;
-    padding-bottom: 1px;
 }
 
 .nn-navigation-calendar-period-button.is-active-editor-file .nn-navigation-calendar-active-outline,
@@ -4369,7 +4401,7 @@ button.nn-navigation-calendar-day {
 /* Source: src/styles/sections/list-compact-mode.css */
 
 /* ========================================================================
-   Compact Mode Styles - When date, preview, and image are all disabled
+   Compact Mode Styles
    ======================================================================== */
 
 /* Compact file item - more compact list appearance */
@@ -4773,6 +4805,22 @@ button.nn-navigation-calendar-day {
 
 .nn-list-group-header-text--custom-color {
     font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
+}
+
+.nn-list-group-header-path {
+    display: inline-flex;
+    align-items: center;
+}
+
+.nn-list-group-header-folder-segment {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.nn-list-group-header-path-separator {
+    flex: 0 0 auto;
+    padding-inline: 4px;
 }
 
 button.nn-list-group-header-collapse-button {
@@ -5284,6 +5332,22 @@ body.nn-resizing {
     margin-top: 12px;
 }
 
+.nn-merge-notes-summary {
+    margin-bottom: 8px;
+}
+
+.nn-merge-notes-details {
+    color: var(--nn-theme-foreground-muted);
+    font-size: var(--font-ui-small);
+    unicode-bidi: plaintext;
+}
+
+.nn-merge-notes-warning {
+    color: var(--text-error);
+    font-weight: 700;
+    unicode-bidi: plaintext;
+}
+
 .nn-input-checkbox-row {
     display: flex;
     align-items: center;
@@ -5784,10 +5848,15 @@ body.nn-resizing {
 .modal.nn-whats-new-modal {
     width: 600px;
     max-width: calc(100vw - 40px);
+    overflow: hidden;
 }
 
 /* What's new content layout */
 .modal.nn-whats-new-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow: hidden;
     padding: 16px;
 }
 
@@ -5796,13 +5865,10 @@ body.nn-resizing {
     pointer-events: auto;
 }
 
-/* What's new header */
-.nn-whats-new-header {
-    margin-bottom: 16px;
-}
-
 /* What's new scrollable container */
 .nn-whats-new-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: min(70vh, 520px);
     overflow-y: auto;
     margin-bottom: 0;
@@ -5863,6 +5929,7 @@ body.nn-resizing {
 /* Release banner image */
 .nn-whats-new-banner {
     position: relative;
+    display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
     overflow: hidden;
@@ -5870,6 +5937,12 @@ body.nn-resizing {
     background: var(--background-secondary);
     border: 1px solid var(--background-modifier-border);
     margin-bottom: 12px;
+    text-decoration: none;
+}
+
+.nn-whats-new-banner:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
 }
 
 .nn-whats-new-banner-image {
@@ -6035,11 +6108,6 @@ body.nn-resizing {
         line-height: 1.6;
     }
 
-    /* Mobile header size for the modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Version header size on mobile */
     .nn-whats-new-version h3 {
         font-size: 15px;
@@ -6048,11 +6116,6 @@ body.nn-resizing {
 
 /* Obsidian mobile app adjustments */
 .is-mobile {
-    /* Modal title */
-    .nn-whats-new-header {
-        font-size: 16px;
-    }
-
     /* Body text and labels */
     .nn-whats-new-info,
     .nn-whats-new-version li,
@@ -6698,129 +6761,45 @@ body.nn-resizing {
    Settings Page Styles
    ======================================================================== */
 
-/* Settings page indentation for sub-settings */
-.nn-sub-settings {
-    margin-inline-start: 20px;
-    padding-left: 1em;
-}
-
-/* Restore bottom padding on last setting inside sub-settings containers
-   (Obsidian's .setting-item:last-child removes it, but nested containers need it) */
-.nn-sub-settings > .setting-item:last-child {
-    padding-bottom: var(--size-4-4);
-}
-
 /* Settings layout root */
 .nn-settings-tab-root {
     display: block;
     min-height: 0;
 }
 
-/* Settings tabs layout and navigation */
-.nn-settings-tabs {
-    display: block;
-    min-height: 0;
-}
-
-.nn-settings-tabs-nav {
-    display: flex;
-    flex-direction: column;
-    gap: var(--size-2-3);
-    flex-shrink: 0;
-    margin-bottom: var(--size-4-4);
-}
-
-.nn-settings-tabs-nav-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--size-2-3);
-}
-
-.nn-settings-tabs-nav-row.is-hidden {
+.nn-settings-tab-root .setting-group.nn-settings-lifecycle-group {
     display: none;
 }
 
-.nn-settings-tabs-nav-row.is-icons-hidden .nn-settings-tab-icon {
-    display: none;
-}
-
-/* Separator between primary and secondary tab rows */
-.nn-settings-tabs-nav-secondary {
-    gap: var(--size-2-2);
-    border-top: 1px solid var(--background-modifier-border);
-    padding-top: var(--size-2-3);
-}
-
-.nn-settings-tab-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--size-2-2);
-    padding: 6px 12px;
-    font-size: var(--font-ui-small);
-}
-
-/* Icon inside settings tab buttons */
-.nn-settings-tab-icon {
-    display: inline-flex;
-    align-items: center;
-}
-
-.nn-settings-tab-icon svg {
-    width: 16px;
-    height: 16px;
-    stroke-width: 2;
-}
-
-.nn-settings-tab-button.is-hidden {
-    display: none;
-}
-
-.nn-settings-tab-button-primary.is-group-active {
-    background-color: transparent;
-    color: var(--interactive-accent);
-    opacity: 0.85;
-}
-
-.nn-settings-tab-button-primary.is-group-active:hover {
-    background-color: var(--background-modifier-hover);
-    opacity: 1;
-}
-
-.nn-settings-tab-button-secondary {
-    padding: 5px 10px;
-}
-
-.nn-settings-tab-button-secondary.is-active {
-    background-color: var(--background-modifier-hover);
-    color: var(--text-normal);
-}
-
-.nn-settings-tabs-content {
-    position: static;
-    min-height: 0;
-    overflow: visible;
-    box-sizing: border-box;
-    padding-inline-end: 0;
-}
-
-/* Hide tabs by default, show only active tab */
-.nn-settings-tab {
-    display: none;
-}
-
-.nn-settings-tab.is-active {
-    display: block;
+.nn-settings-tab-root .setting-group.nn-settings-lifecycle-group + .setting-group {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
 }
 
 /* Settings section header spacing */
-.setting-item-heading {
+.nn-settings-tab-root .setting-item-heading {
     margin-top: 30px;
 }
 
 /* First settings header - no top margin */
-.setting-item-heading:first-child {
+.nn-settings-tab-root .setting-item-heading:first-child {
     margin-top: 0;
+}
+
+.nn-settings-legacy-titlebar {
+    padding-inline: 0;
+}
+
+.nn-settings-legacy-titlebar .setting-item-name {
+    display: flex;
+    align-items: center;
+    gap: var(--size-2-2);
+}
+
+.nn-settings-legacy-page-link:focus-visible {
+    outline: 2px solid var(--background-modifier-border-focus);
+    outline-offset: -2px;
 }
 
 /* Utility class for conditionally hidden settings */
@@ -6858,49 +6837,10 @@ body.nn-resizing {
     opacity: 1;
 }
 
-/* Setting name marker appended to setting names */
-.nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
-    content: ' ' attr(data-nn-setting-marker);
-    color: var(--text-muted);
-    font-weight: normal;
-}
-
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::after {
-    content: '';
-}
-
-.mod-rtl .nn-settings-tab-root .setting-item-name.nn-setting-name-marker::before {
-    content: attr(data-nn-setting-marker) ' ';
-    color: var(--text-muted);
-    font-weight: normal;
-}
-
-/* Dim disabled calendar pattern text inputs */
-.nn-settings-tab-root .setting-item.nn-setting-disabled input[type='text']:disabled {
-    opacity: 0.6;
-    pointer-events: none;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
 /* Container for additional info below settings */
 .nn-setting-info-container {
     margin-top: 8px;
     margin-bottom: 8px;
-}
-
-.nn-setting-info-container.nn-setting-info-centered.setting-item {
-    justify-content: center;
-}
-
-.nn-setting-info-container.nn-setting-info-centered .setting-item-info,
-.nn-setting-info-container.nn-setting-info-centered .setting-item-description {
-    text-align: center;
-}
-
-.nn-setting-info-container.nn-setting-info-list .setting-item-info,
-.nn-setting-info-container.nn-setting-info-list .setting-item-description {
-    text-align: left;
 }
 
 .nn-setting-info-list ol {
@@ -6910,10 +6850,6 @@ body.nn-resizing {
 
 .nn-setting-info-list li + li {
     margin-top: 4px;
-}
-
-.nn-sub-settings > .setting-item.nn-setting-property-keys-info:last-child {
-    padding-bottom: 0;
 }
 
 /* Wider text inputs for settings that benefit from more space */
@@ -7171,11 +7107,20 @@ button.nn-youtube-button svg {
     max-width: none;
 }
 
+.nn-slider-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nn-slider-control input[type='range'] {
+    flex: 0 0 100px;
+}
+
 .nn-slider-value {
-    margin-left: 12px;
+    flex: 0 0 48px;
     font-size: var(--font-ui-smaller);
     color: var(--nn-theme-foreground-muted);
-    min-width: 48px;
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
@@ -7217,7 +7162,6 @@ button.nn-youtube-button svg {
 .nn-stats-text {
     font-size: var(--font-ui-smaller);
     color: var(--nn-theme-foreground-muted);
-    text-align: center;
     line-height: 1.5;
 }
 
@@ -7226,19 +7170,6 @@ button.nn-youtube-button svg {
     border: none;
     padding: 0;
     margin-top: 0;
-}
-
-/* Advanced > Local cache: center text by removing the empty control column */
-.nn-local-cache-stats-setting .setting-item-control {
-    display: none;
-}
-
-.nn-local-cache-stats-setting .setting-item-info {
-    width: 100%;
-}
-
-.nn-local-cache-stats-setting .nn-stats-text {
-    text-align: center;
 }
 /* Source: src/styles/sections/modal-color-picker.css */
 
@@ -8518,28 +8449,10 @@ button.nn-mobile-toolbar-button {
    Metadata Info Styles
    ======================================================================== */
 
-/* Container for metadata parsing info - flex row layout */
-.nn-metadata-info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-}
-
-/* Text container - takes up available space */
-.nn-metadata-info-text {
-    flex: 1;
-}
-
 /* Error text styling */
 .nn-metadata-error-text {
     color: var(--text-error);
     font-weight: bold;
-}
-
-/* Export button - stays on the right */
-.nn-metadata-export-button {
-    flex-shrink: 0;
 }
 /* Source: src/styles/sections/settings-style-settings.css */
 
@@ -8980,6 +8893,24 @@ settings:
         description: Line color for separators rendered inside navigation spacers.
         type: variable-themed-color
         format: hex
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-nav-indent-guide-color
+        title: Indent guide color
+        description: Line color for navigation indent guides.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
+        default-light: '#'
+        default-dark: '#'
+    -
+        id: nn-theme-nav-leader-color
+        title: Leader color
+        description: Color for leaders between item names and trailing values.
+        type: variable-themed-color
+        opacity: true
+        format: rgb
         default-light: '#'
         default-dark: '#'
     -

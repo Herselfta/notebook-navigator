@@ -33,6 +33,11 @@ export interface VirtualItem<T> {
 
 export type ListPaneHeaderKind = 'date' | 'folder' | 'pinned' | 'section' | 'manual-sort-custom';
 
+export interface ListPaneFolderPathSegment {
+    label: string;
+    path: string;
+}
+
 export interface ListPaneItem {
     type: ListPaneItemType;
     data: TFile | string; // File, header text, or spacer payload
@@ -40,9 +45,13 @@ export interface ListPaneItem {
     // Folder path associated with a folder-group header.
     // Present only when grouping by folder in the list pane.
     headerFolderPath?: string | null;
+    // Visible path segments for a folder-group header when folder group paths are shown.
+    headerFolderSegments?: ListPaneFolderPathSegment[];
     // Markdown file path that owns a manual sort custom header.
     // Present only on manual-sort-custom headers.
     manualSortHeaderFilePath?: string | null;
+    // File paths belonging to this rendered group. Used by group-header actions even when the group is collapsed.
+    groupFilePaths?: string[];
     // Whether a manual sort custom header label depends on stored word counts.
     manualSortHeaderShowsWordCount?: boolean;
     // Parsed manual sort custom header display data.

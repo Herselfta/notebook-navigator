@@ -61,6 +61,7 @@ export type MenuConfig =
     | {
           type: typeof EMPTY_LIST_MENU_TYPE;
           item: TFolder | null;
+          options?: EmptyListMenuOptions;
       };
 
 /**
@@ -125,6 +126,11 @@ export interface PropertyMenuOptions {
 
 export interface FileMenuOptions {
     source?: 'list-pane';
+    orderedFiles?: readonly TFile[];
+}
+
+export interface EmptyListMenuOptions {
+    orderedFiles?: readonly TFile[];
 }
 
 /**
