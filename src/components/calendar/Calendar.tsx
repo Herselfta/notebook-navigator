@@ -79,6 +79,7 @@ export interface CalendarProps {
     weeksToShowOverride?: CalendarWeeksToShow;
     onAddDateFilter?: (dateToken: string) => void;
     onMissingFeatureImage?: (target: CalendarFeatureImageTarget) => void;
+    onVisibleCalendarNoteFilesChange?: (files: TFile[]) => void;
     isRightSidebar?: boolean;
 }
 
@@ -166,6 +167,7 @@ export function Calendar({
     weeksToShowOverride,
     onAddDateFilter,
     onMissingFeatureImage,
+    onVisibleCalendarNoteFilesChange,
     isRightSidebar = false
 }: CalendarProps) {
     const { app, commandQueue, fileSystemOps, isMobile, plugin } = useServices();
@@ -1534,23 +1536,43 @@ export function Calendar({
         return counts;
     }, [db, taskIndicatorVersion, weekNoteFilesByKey]);
 
-    const visibleIndicatorNotePaths = useMemo(() => {
-        const paths = new Set<string>(visibleDayNotePaths);
+    const visibleCalendarNoteFiles = useMemo(() => {
+        const files = new Map<string, TFile>();
+
+        for (const week of weeks) {
+            for (const day of week.days) {
+                if (day.file) {
+                    files.set(day.file.path, day.file);
+                }
+            }
+        }
 
         weekNoteFilesByKey.forEach(file => {
             if (file) {
-                paths.add(file.path);
+                files.set(file.path, file);
             }
         });
 
         for (const entry of yearMonthBaseEntries) {
             for (const file of entry.dayFiles) {
-                paths.add(file.path);
+                files.set(file.path, file);
             }
         }
 
+        return Array.from(files.values()).filter(file => file.extension === 'md');
+    }, [weekNoteFilesByKey, weeks, yearMonthBaseEntries]);
+
+    useEffect(() => {
+        onVisibleCalendarNoteFilesChange?.(visibleCalendarNoteFiles);
+    }, [onVisibleCalendarNoteFilesChange, visibleCalendarNoteFiles]);
+
+    const visibleIndicatorNotePaths = useMemo(() => {
+        const paths = new Set<string>();
+        visibleCalendarNoteFiles.forEach(file => {
+            paths.add(file.path);
+        });
         return paths;
-    }, [visibleDayNotePaths, weekNoteFilesByKey, yearMonthBaseEntries]);
+    }, [visibleCalendarNoteFiles]);
     visibleIndicatorNotePathsRef.current = visibleIndicatorNotePaths;
     const visibleFeatureImageNotePaths = useMemo(() => {
         const paths = new Set<string>(visibleDayNotePaths);

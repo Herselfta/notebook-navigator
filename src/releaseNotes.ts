@@ -110,7 +110,8 @@ const RELEASE_NOTES: ReleaseNote[] = [
             '**Startup speed.** Non-English languages now load their translation directly instead of loading English first and then merging.',
             '**Startup speed.** The version check no longer loads the full release notes during startup.',
             'Navigate to folder, Navigate to tag, and Navigate to property now keep the current single-pane view after selection.'
-        ]
+        ],
+        fixed: ['**Calendar.** Fixed stale task indicators in the right-sidebar calendar when the main Notebook Navigator view was closed.']
     },
     {
         version: '3.1.4',

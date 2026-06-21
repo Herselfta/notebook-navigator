@@ -578,7 +578,7 @@ export function buildListItems({
                 });
             } else if (shouldAddCurrentFolderBoundary) {
                 pushHeaderItem({
-                    data: '',
+                    data: strings.listPane.filesSection,
                     key: `header-${group.key}-current-folder-boundary`,
                     headerKind: 'section',
                     groupFiles: group.files

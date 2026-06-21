@@ -87,6 +87,62 @@ type MarkdownPipelineProcessor = {
     run: (context: MarkdownPipelineContext) => Promise<MarkdownPipelineUpdate | null>;
 };
 
+export type MarkdownPipelineClearFlags = {
+    shouldClearPreview: boolean;
+    shouldClearProperties: boolean;
+    shouldClearFeatureImage: boolean;
+    shouldClearCharacterCounts: boolean;
+};
+
+export function getMarkdownPipelineClearFlags(
+    context: { oldSettings: NotebookNavigatorSettings; newSettings: NotebookNavigatorSettings } | undefined
+): MarkdownPipelineClearFlags {
+    if (!context) {
+        return {
+            shouldClearPreview: true,
+            shouldClearProperties: true,
+            shouldClearFeatureImage: true,
+            shouldClearCharacterCounts: true
+        };
+    }
+
+    const { oldSettings, newSettings } = context;
+
+    const previewExtractionSettingsChanged =
+        oldSettings.skipHeadingsInPreview !== newSettings.skipHeadingsInPreview ||
+        oldSettings.skipCodeBlocksInPreview !== newSettings.skipCodeBlocksInPreview ||
+        oldSettings.stripHtmlInPreview !== newSettings.stripHtmlInPreview ||
+        oldSettings.stripLatexInPreview !== newSettings.stripLatexInPreview ||
+        !areStringArraysEqual(oldSettings.previewProperties, newSettings.previewProperties) ||
+        oldSettings.previewPropertiesFallback !== newSettings.previewPropertiesFallback;
+    const shouldClearPreview =
+        previewExtractionSettingsChanged ||
+        // Toggling preview clears stale text while the disabled state hides the intermediate empty rows.
+        oldSettings.showFilePreview !== newSettings.showFilePreview;
+
+    const shouldClearProperties = getPropertyFrontmatterFieldSignature(oldSettings) !== getPropertyFrontmatterFieldSignature(newSettings);
+
+    const featureImagePropertiesChanged = !areStringArraysEqual(oldSettings.featureImageProperties, newSettings.featureImageProperties);
+    const featureImageExcludePropertiesChanged = !areStringArraysEqual(
+        oldSettings.featureImageExcludeProperties,
+        newSettings.featureImageExcludeProperties
+    );
+
+    const shouldClearFeatureImage =
+        featureImageExcludePropertiesChanged ||
+        oldSettings.featureImagePixelSize !== newSettings.featureImagePixelSize ||
+        (oldSettings.showFeatureImage && !newSettings.showFeatureImage) ||
+        (newSettings.showFeatureImage &&
+            (featureImagePropertiesChanged || oldSettings.downloadExternalFeatureImages !== newSettings.downloadExternalFeatureImages));
+
+    return {
+        shouldClearPreview,
+        shouldClearProperties,
+        shouldClearFeatureImage,
+        shouldClearCharacterCounts: false
+    };
+}
+
 function resolveMarkdownBodyStartIndex(metadata: CachedMetadata, content: string): number {
     const rawOffset = metadata.frontmatterPosition?.end?.offset;
     if (typeof rawOffset !== 'number' || rawOffset <= 0) {
@@ -467,61 +523,8 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
         this.readFailureAttemptsByPath.delete(path);
     }
 
-    private getClearFlags(context: { oldSettings: NotebookNavigatorSettings; newSettings: NotebookNavigatorSettings } | undefined): {
-        shouldClearPreview: boolean;
-        shouldClearProperties: boolean;
-        shouldClearFeatureImage: boolean;
-        shouldClearCharacterCounts: boolean;
-    } {
-        if (!context) {
-            return {
-                shouldClearPreview: true,
-                shouldClearProperties: true,
-                shouldClearFeatureImage: true,
-                shouldClearCharacterCounts: true
-            };
-        }
-
-        const { oldSettings, newSettings } = context;
-
-        const previewExtractionSettingsChanged =
-            oldSettings.skipHeadingsInPreview !== newSettings.skipHeadingsInPreview ||
-            oldSettings.skipCodeBlocksInPreview !== newSettings.skipCodeBlocksInPreview ||
-            oldSettings.stripHtmlInPreview !== newSettings.stripHtmlInPreview ||
-            oldSettings.stripLatexInPreview !== newSettings.stripLatexInPreview ||
-            !areStringArraysEqual(oldSettings.previewProperties, newSettings.previewProperties) ||
-            oldSettings.previewPropertiesFallback !== newSettings.previewPropertiesFallback;
-        const shouldClearPreview =
-            previewExtractionSettingsChanged ||
-            // Toggling preview clears stale text while the disabled state hides the intermediate empty rows.
-            oldSettings.showFilePreview !== newSettings.showFilePreview;
-
-        const shouldClearProperties =
-            getPropertyFrontmatterFieldSignature(oldSettings) !== getPropertyFrontmatterFieldSignature(newSettings);
-
-        const featureImagePropertiesChanged = !areStringArraysEqual(oldSettings.featureImageProperties, newSettings.featureImageProperties);
-        const featureImageExcludePropertiesChanged = !areStringArraysEqual(
-            oldSettings.featureImageExcludeProperties,
-            newSettings.featureImageExcludeProperties
-        );
-
-        const shouldClearFeatureImage =
-            featureImageExcludePropertiesChanged ||
-            oldSettings.featureImagePixelSize !== newSettings.featureImagePixelSize ||
-            (oldSettings.showFeatureImage && !newSettings.showFeatureImage) ||
-            (newSettings.showFeatureImage &&
-                (featureImagePropertiesChanged || oldSettings.downloadExternalFeatureImages !== newSettings.downloadExternalFeatureImages));
-
-        return {
-            shouldClearPreview,
-            shouldClearProperties,
-            shouldClearFeatureImage,
-            shouldClearCharacterCounts: false
-        };
-    }
-
     shouldRegenerate(oldSettings: NotebookNavigatorSettings, newSettings: NotebookNavigatorSettings): boolean {
-        const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage } = this.getClearFlags({
+        const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage } = getMarkdownPipelineClearFlags({
             oldSettings,
             newSettings
         });
@@ -530,7 +533,7 @@ export class MarkdownPipelineContentProvider extends FeatureImageContentProvider
 
     async clearContent(context?: { oldSettings: NotebookNavigatorSettings; newSettings: NotebookNavigatorSettings }): Promise<void> {
         const { shouldClearPreview, shouldClearProperties, shouldClearFeatureImage, shouldClearCharacterCounts } =
-            this.getClearFlags(context);
+            getMarkdownPipelineClearFlags(context);
 
         if (!shouldClearPreview && !shouldClearProperties && !shouldClearFeatureImage && !shouldClearCharacterCounts) {
             return;

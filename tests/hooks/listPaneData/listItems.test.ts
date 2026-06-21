@@ -283,7 +283,7 @@ describe('buildListItems pinned display scope', () => {
         ]);
     });
 
-    it('uses a blank selected folder boundary at top when pinned files are present', () => {
+    it('uses a files section boundary at top when pinned files are present', () => {
         const app = createApp();
         const pinnedFile = assignParent(createTestTFile('Projects/Pinned.md'), 'Projects');
         const directFile = assignParent(createTestTFile('Projects/Direct.md'), 'Projects');
@@ -319,7 +319,7 @@ describe('buildListItems pinned display scope', () => {
 
         expect(getHeaderItems(items)).toEqual([
             { data: 'Pinned', kind: 'pinned' },
-            { data: '', kind: 'section' },
+            { data: 'Files', kind: 'section' },
             { data: 'Child', kind: 'folder' }
         ]);
         expect(getFolderHeaderItems(items)).toEqual([
@@ -337,7 +337,7 @@ describe('buildListItems pinned display scope', () => {
                 groupFilePaths: [childFile.path]
             }
         ]);
-        const currentFolderBoundary = items.find(item => item.type === ListPaneItemType.HEADER && item.data === '');
+        const currentFolderBoundary = items.find(item => item.type === ListPaneItemType.HEADER && item.data === 'Files');
         expect(currentFolderBoundary?.collapseKey).toBeUndefined();
         expect(currentFolderBoundary?.groupFilePaths).toEqual([directFile.path]);
         expect(getFileItems(items)).toEqual([
@@ -376,7 +376,7 @@ describe('buildListItems pinned display scope', () => {
 
         expect(getHeaderItems(items)).toEqual([
             { data: 'Child', kind: 'folder' },
-            { data: '', kind: 'section' }
+            { data: 'Files', kind: 'section' }
         ]);
         expect(getFolderHeaderItems(items)).toEqual([
             {
@@ -393,7 +393,7 @@ describe('buildListItems pinned display scope', () => {
                 groupFilePaths: [childFile.path]
             }
         ]);
-        const currentFolderBoundary = items.find(item => item.type === ListPaneItemType.HEADER && item.data === '');
+        const currentFolderBoundary = items.find(item => item.type === ListPaneItemType.HEADER && item.data === 'Files');
         expect(currentFolderBoundary?.collapseKey).toBeUndefined();
         expect(currentFolderBoundary?.groupFilePaths).toEqual([directFile.path]);
         expect(getFileItems(items)).toEqual([
@@ -440,12 +440,12 @@ describe('buildListItems pinned display scope', () => {
 
         expect(getHeaderItems(items)).toEqual([
             { data: 'Child', kind: 'folder' },
-            { data: '', kind: 'section' }
+            { data: 'Files', kind: 'section' }
         ]);
         expect(getFileItems(items)).toEqual([{ path: directFile.path, isPinned: false }]);
     });
 
-    it('uses a blank selected folder boundary at bottom even when pinned files are present', () => {
+    it('uses a files section boundary at bottom even when pinned files are present', () => {
         const app = createApp();
         const pinnedFile = assignParent(createTestTFile('Projects/Pinned.md'), 'Projects');
         const directFile = assignParent(createTestTFile('Projects/Direct.md'), 'Projects');
@@ -483,7 +483,7 @@ describe('buildListItems pinned display scope', () => {
         expect(getHeaderItems(items)).toEqual([
             { data: 'Pinned', kind: 'pinned' },
             { data: 'Child', kind: 'folder' },
-            { data: '', kind: 'section' }
+            { data: 'Files', kind: 'section' }
         ]);
         expect(getFolderHeaderItems(items)).toEqual([
             {

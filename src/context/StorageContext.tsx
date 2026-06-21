@@ -100,6 +100,38 @@ interface StorageContextValue {
 
 const StorageContext = createContext<StorageContextValue | null>(null);
 
+type StorageRuntimeActiveListener = (active: boolean) => void;
+
+let activeStorageRuntimeCount = 0;
+const storageRuntimeActiveListeners = new Set<StorageRuntimeActiveListener>();
+
+function notifyStorageRuntimeActiveListeners(): void {
+    const active = activeStorageRuntimeCount > 0;
+    storageRuntimeActiveListeners.forEach(listener => {
+        listener(active);
+    });
+}
+
+function updateActiveStorageRuntimeCount(delta: 1 | -1): void {
+    const wasActive = activeStorageRuntimeCount > 0;
+    activeStorageRuntimeCount = Math.max(0, activeStorageRuntimeCount + delta);
+    if (wasActive !== activeStorageRuntimeCount > 0) {
+        notifyStorageRuntimeActiveListeners();
+    }
+}
+
+export function isStorageRuntimeActive(): boolean {
+    return activeStorageRuntimeCount > 0;
+}
+
+export function subscribeStorageRuntimeActive(listener: StorageRuntimeActiveListener): () => void {
+    storageRuntimeActiveListeners.add(listener);
+    listener(isStorageRuntimeActive());
+    return () => {
+        storageRuntimeActiveListeners.delete(listener);
+    };
+}
+
 interface StorageProviderProps {
     app: App;
     api: NotebookNavigatorAPI | null;
@@ -174,6 +206,13 @@ export function StorageProvider({ app, api, children }: StorageProviderProps) {
     });
     // Run rebuild notice restoration once after storage initialization completes.
     const hasRestoredCacheRebuildNoticeRef = useRef(false);
+
+    useEffect(() => {
+        updateActiveStorageRuntimeCount(1);
+        return () => {
+            updateActiveStorageRuntimeCount(-1);
+        };
+    }, []);
 
     const { getVisibleMarkdownFiles, getIndexableFiles } = useStorageFileQueries({ app, latestSettingsRef, showHiddenItems });
 
