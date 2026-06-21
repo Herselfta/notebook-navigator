@@ -51,14 +51,10 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
                 name: strings.settings.items.smartCollapse.name,
                 desc: strings.settings.items.smartCollapse.desc
             }),
-            ...(Platform.isMobile
-                ? []
-                : [
-                      createToggleDefinition('autoSelectFirstFileOnFocusChange', {
-                          name: strings.settings.items.autoSelectFirstFileOnFocusChange.name,
-                          desc: strings.settings.items.autoSelectFirstFileOnFocusChange.desc
-                      })
-                  ]),
+            createToggleDefinition('collapseOtherBranchesOnExpand', {
+                name: strings.settings.items.collapseOtherBranchesOnExpand.name,
+                desc: strings.settings.items.collapseOtherBranchesOnExpand.desc
+            }),
             createToggleDefinition('autoExpandNavItems', {
                 name: strings.settings.items.autoExpandNavItems.name,
                 desc: strings.settings.items.autoExpandNavItems.desc
@@ -66,6 +62,16 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
             ...(Platform.isMobile
                 ? []
                 : [
+                      createToggleDefinition('autoSelectFirstFileOnFocusChange', {
+                          name: strings.settings.items.autoSelectFirstFileOnFocusChange.name,
+                          desc: strings.settings.items.autoSelectFirstFileOnFocusChange.desc
+                      })
+                  ])
+        ]),
+        ...(Platform.isMobile
+            ? []
+            : [
+                  createGroupDefinition(strings.settings.groups.navigation.dragAndDrop, [
                       createToggleDefinition('springLoadedFolders', {
                           name: strings.settings.items.springLoadedFolders.name,
                           desc: strings.settings.items.springLoadedFolders.desc
@@ -83,7 +89,7 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
                           render: setting => renderSpringLoadedFoldersSubsequentDelaySetting(setting, context)
                       })
                   ])
-        ]),
+              ]),
         createGroupDefinition(strings.settings.groups.navigation.rainbowColors, [
             createRenderDefinition({
                 name: strings.settings.items.navRainbowMode.name,
@@ -134,7 +140,18 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
                 render: setting => renderNavRainbowToggleSetting(setting, context, 'separateThemeColors')
             })
         ]),
-        createGroupDefinition(strings.settings.groups.navigation.appearance, [
+        createGroupDefinition(strings.settings.groups.navigation.noteCounts, [
+            createToggleDefinition('showNoteCount', {
+                name: strings.settings.items.showNoteCount.name,
+                desc: strings.settings.items.showNoteCount.desc
+            }),
+            createToggleDefinition('separateNoteCounts', {
+                name: strings.settings.items.separateNoteCounts.name,
+                desc: strings.settings.items.separateNoteCounts.desc,
+                visible: () => plugin.settings.showNoteCount
+            })
+        ]),
+        createGroupDefinition(strings.settings.groups.navigation.banner, [
             createRenderDefinition({
                 name: strings.settings.items.navigationBanner.name,
                 desc: strings.settings.items.navigationBanner.desc,
@@ -145,16 +162,9 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
                 name: strings.settings.items.pinNavigationBanner.name,
                 desc: strings.settings.items.pinNavigationBanner.desc,
                 render: setting => renderPinNavigationBannerSetting(setting, context)
-            }),
-            createToggleDefinition('showNoteCount', {
-                name: strings.settings.items.showNoteCount.name,
-                desc: strings.settings.items.showNoteCount.desc
-            }),
-            createToggleDefinition('separateNoteCounts', {
-                name: strings.settings.items.separateNoteCounts.name,
-                desc: strings.settings.items.separateNoteCounts.desc,
-                visible: () => plugin.settings.showNoteCount
-            }),
+            })
+        ]),
+        createGroupDefinition(strings.settings.groups.navigation.appearance, [
             createToggleDefinition('showIndentGuides', {
                 name: strings.settings.items.showIndentGuides.name,
                 desc: strings.settings.items.showIndentGuides.desc

@@ -19,8 +19,7 @@
 import { useMemo } from 'react';
 import { useSettingsState } from '../context/SettingsContext';
 import { useNavigationSelection } from '../context/SelectionContext';
-import type { ListDisplayMode, ListNoteGroupingOption } from '../settings/types';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { ListDisplayMode, ListNoteGroupingOption, NotebookNavigatorSettings } from '../settings/types';
 import { ItemType } from '../types';
 import { resolveListGroupingOverride } from '../utils/listGrouping';
 

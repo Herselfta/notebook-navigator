@@ -304,8 +304,8 @@ graph TD
 
 **Location**: `src/components/ListPaneHeader.tsx`
 
-- Desktop header showing breadcrumb title (with optional icon), search toggle, descendant toggle, sort menu, appearance
-  menu, and new note button.
+- Desktop header showing breadcrumb title (with optional icon), search toggle, reveal file, descendant toggle, sort menu,
+  appearance menu, and new note button.
 - Mobile variant shows a back button to the navigation pane and renders breadcrumb segments horizontally scrollable with
   fade indicators.
 - Uses `useListPaneTitle` to build the breadcrumb segments and `useListActions` for button handlers.
@@ -314,7 +314,7 @@ graph TD
 
 **Location**: `src/components/ListToolbar.tsx`
 
-- Mobile toolbar (top on Android, bottom on iOS) exposing search, descendant toggle, sort, appearance, and new note
+- Mobile toolbar (top on Android, bottom on iOS) exposing search, reveal file, descendant toggle, sort, appearance, and new note
   actions.
 - Shares command logic with the header through `useListActions`.
 

@@ -20,7 +20,7 @@ import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } 
 import { App, EventRef, TAbstractFile, TFile, debounce } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API, type NotebookNavigatorAPI } from '../../api/NotebookNavigatorAPI';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';

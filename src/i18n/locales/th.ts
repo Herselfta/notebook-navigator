@@ -157,6 +157,8 @@ export const STRINGS_TH = {
         hideExcludedItems: 'ซ่อนโฟลเดอร์ แท็ก และโน้ตที่ซ่อน',
         showDualPane: 'แสดงแผงคู่',
         showSinglePane: 'แสดงแผงเดียว',
+        dualPaneAutoFallbackNotice:
+            'ไม่สามารถใช้สองแผงได้เมื่อแถบด้านข้างแคบเกินไป หากต้องการเปลี่ยน ให้ตั้ง "เมื่อแถบด้านข้างแคบเกินไป" เป็น "ไม่ต้องทำอะไร" ในการตั้งค่า > ลักษณะและพฤติกรรม',
         changeAppearance: 'เปลี่ยนลักษณะ',
         showNotesFromSubfolders: 'แสดงโน้ตจากโฟลเดอร์ย่อย',
         showFilesFromSubfolders: 'แสดงไฟล์จากโฟลเดอร์ย่อย',
@@ -491,6 +493,7 @@ export const STRINGS_TH = {
                 'nav-show-dual-pane': 'แสดงแผงคู่',
                 'nav-profile-chevron': 'ลูกศรเมนูโปรไฟล์',
                 'list-search': 'ค้นหา',
+                'list-reveal-file': 'แสดงไฟล์',
                 'list-descendants': 'โน้ตจากโฟลเดอร์ย่อย',
                 'list-sort-ascending': 'ลำดับ: น้อยไปมาก',
                 'list-sort-descending': 'ลำดับ: มากไปน้อย',
@@ -532,8 +535,22 @@ export const STRINGS_TH = {
             clearRecentColors: 'ล้างสีล่าสุด',
             removeRecentColor: 'นำสีออก',
             apply: 'นำไปใช้',
+            pickerLabel: 'ตัวเลือก',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'ค่าสี HEX',
+            saturationValueArea: 'ความอิ่มตัวและความสว่าง',
+            hueSlider: 'เฉดสี',
+            alphaSlider: 'ความโปร่งใส'
+        },
+        appearance: {
+            tabIcon: 'ไอคอน',
+            tabColor: 'สี',
+            tabBackground: 'พื้นหลัง',
+            resetIcon: 'ลบไอคอน',
+            resetColor: 'ลบสี',
+            resetBackground: 'ลบพื้นหลัง',
+            clear: 'ล้างสไตล์',
+            apply: 'นำไปใช้'
         },
         selectVaultProfile: {
             title: 'เลือกโปรไฟล์ห้องนิรภัย',
@@ -972,6 +989,9 @@ export const STRINGS_TH = {
             },
             navigation: {
                 appearance: 'ลักษณะ',
+                banner: 'แบนเนอร์',
+                dragAndDrop: 'ลากและวาง',
+                noteCounts: 'จำนวนโน้ต',
                 rainbowColors: 'สีรุ้ง',
                 leftSidebar: 'แถบด้านซ้าย',
                 calendarIntegration: 'การรวมปฏิทิน'
@@ -1227,6 +1247,28 @@ export const STRINGS_TH = {
                     vertical: 'แบ่งแนวตั้ง'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'เมื่อแถบด้านข้างแคบเกินไป',
+                desc: 'เลือกสิ่งที่จะเกิดขึ้นเมื่อแผงนำทางและแผงรายการไม่พอดีแบบวางเคียงกัน',
+                options: {
+                    none: 'ไม่ต้องทำอะไร',
+                    singlePane: 'สลับเป็นแผงเดียว',
+                    vertical: 'สลับเป็นการแบ่งแนวตั้ง'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'เกณฑ์แถบด้านข้างแคบ',
+                desc: 'เลือกวิธีคำนวณเกณฑ์ความกว้างของแถบด้านข้าง',
+                options: {
+                    fitPanes: 'ปรับให้พอดีกับแผง',
+                    customWidth: 'ความกว้างกำหนดเอง'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'ความกว้างเกณฑ์แถบด้านข้างแคบ',
+                desc: 'สลับเมื่อแถบด้านข้างแคบกว่าความกว้างนี้',
+                resetTooltip: 'รีเซ็ตเป็นความกว้างเริ่มต้น'
+            },
             appearanceBackground: {
                 name: 'สีพื้นหลัง',
                 desc: 'เลือกสีพื้นหลังสำหรับแผงนำทางและรายการ',
@@ -1294,6 +1336,10 @@ export const STRINGS_TH = {
             autoExpandNavItems: {
                 name: 'ขยายเมื่อเลือก',
                 desc: 'ขยายโฟลเดอร์และแท็กเมื่อเลือก ในโหมดแผงเดียว การเลือกครั้งแรกจะขยาย การเลือกครั้งที่สองจะแสดงไฟล์'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'ขยายเพียงสาขาเดียว',
+                desc: 'ยุบสาขาอื่นในต้นไม้เดียวกันเมื่อขยายโฟลเดอร์ แท็ก หรือคุณสมบัติ'
             },
             springLoadedFolders: {
                 name: 'ขยายระหว่างลาก',
@@ -2163,7 +2209,8 @@ export const STRINGS_TH = {
             },
             folderNoteTemplate: {
                 name: 'เทมเพลตโน้ตโฟลเดอร์',
-                desc: 'ไฟล์เทมเพลตสำหรับโน้ตโฟลเดอร์ Markdown ใหม่ ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในการดำเนินการกับไฟล์ > เทมเพลต'
+                desc: 'ไฟล์เทมเพลตที่ใช้เมื่อสร้างโน้ตโฟลเดอร์ เทมเพลต Markdown สามารถใช้ Templater ได้ เทมเพลต Canvas และ Base จะถูกคัดลอกเป็นเนื้อหาไฟล์ ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในการดำเนินการกับไฟล์ > เทมเพลต',
+                formatWarning: 'รูปแบบเทมเพลตต้องตรงกับประเภทโน้ตโฟลเดอร์ที่เลือก: .md, .canvas หรือ .base'
             },
             enableFolderNoteLinks: {
                 name: 'ชื่อโฟลเดอร์เปิดโน้ตโฟลเดอร์',

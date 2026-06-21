@@ -17,7 +17,7 @@
  */
 
 import type { TFile } from 'obsidian';
-import { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
 import { hasPropertyFrontmatterFields } from '../../utils/propertyUtils';
 import { isMarkdownPath } from '../../utils/fileTypeUtils';

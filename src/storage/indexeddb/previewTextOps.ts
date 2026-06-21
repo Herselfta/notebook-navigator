@@ -117,10 +117,6 @@ export class PreviewTextCoordinator {
         return loadPromise;
     }
 
-    startPreviewTextWarmup(): void {
-        this.enablePreviewTextWarmup();
-    }
-
     beginMove(oldPath: string, newPath: string): void {
         if (oldPath === newPath) {
             return;

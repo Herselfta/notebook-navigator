@@ -18,7 +18,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { App, TFile } from 'obsidian';
-import { IndexedDBStorage, type FeatureImageStatus, type FileContentChange, type PropertyItem } from '../../storage/IndexedDBStorage';
+import type { FeatureImageStatus, FileContentChange, IndexedDBStorage, PropertyItem } from '../../storage/IndexedDBStorage';
 import { getCachedFileTags } from '../../utils/tagUtils';
 import { isRasterImageFile } from '../../utils/fileTypeUtils';
 import { arePropertyItemsEqual, clonePropertyItems } from '../../utils/propertyUtils';

@@ -37,6 +37,7 @@ import { runAsyncAction } from '../utils/async';
 import { extractFilePathsFromDataTransfer } from '../utils/dragData';
 import { FolderMoveError } from '../services/FileSystemService';
 import { getFilesForNavigationSelection } from '../utils/selectionUtils';
+import { expandNavigationTreeItems, getFolderAncestorPaths, getTagAncestorPaths } from '../utils/navigationExpansion';
 
 /**
  * Enables drag and drop for files and folders using event delegation.
@@ -484,10 +485,19 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                         hasChildren: folder.children.some(child => child instanceof TFolder)
                     };
                 },
-                expand: () => expansionDispatch({ type: 'EXPAND_FOLDERS', folderPaths: [targetPath] })
+                expand: () => {
+                    const folder = settings.collapseOtherBranchesOnExpand ? app.vault.getFolderByPath(targetPath) : null;
+                    const folderPaths = folder ? [...getFolderAncestorPaths(folder), targetPath] : [targetPath];
+                    expandNavigationTreeItems({
+                        type: 'folder',
+                        ids: folderPaths,
+                        collapseOtherBranches: settings.collapseOtherBranchesOnExpand,
+                        dispatch: expansionDispatch
+                    });
+                }
             });
         },
-        [app, expansionDispatch, scheduleAutoExpand]
+        [app, expansionDispatch, scheduleAutoExpand, settings.collapseOtherBranchesOnExpand]
     );
 
     /**
@@ -513,10 +523,20 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                     }
                     return { isValid: true, hasChildren: node.children.size > 0 };
                 },
-                expand: () => expansionDispatch({ type: 'EXPAND_TAGS', tagPaths: [targetPath] })
+                expand: () => {
+                    const tagPaths = settings.collapseOtherBranchesOnExpand
+                        ? [...getTagAncestorPaths(targetPath), targetPath]
+                        : [targetPath];
+                    expandNavigationTreeItems({
+                        type: 'tag',
+                        ids: tagPaths,
+                        collapseOtherBranches: settings.collapseOtherBranchesOnExpand,
+                        dispatch: expansionDispatch
+                    });
+                }
             });
         },
-        [tagTreeService, expansionDispatch, scheduleAutoExpand]
+        [tagTreeService, expansionDispatch, scheduleAutoExpand, settings.collapseOtherBranchesOnExpand]
     );
 
     const maybeScheduleAutoExpand = useCallback(

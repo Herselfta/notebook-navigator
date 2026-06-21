@@ -24,8 +24,7 @@ import { useSettingsState, useSettingsUpdate } from '../context/SettingsContext'
 import { useUXPreferenceActions, useUXPreferences } from '../context/UXPreferencesContext';
 import { strings } from '../i18n';
 import { ConfirmModal } from '../modals/ConfirmModal';
-import type { ListSortOverrideValue, NotebookNavigatorSettings, SortOption } from '../settings';
-import type { ListNoteGroupingOption } from '../settings/types';
+import type { ListNoteGroupingOption, ListSortOverrideValue, NotebookNavigatorSettings, SortOption } from '../settings/types';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import {
     areListSortOverridesEqual,
@@ -71,6 +70,7 @@ import { casefold, ensureRecord, sanitizeRecord } from '../utils/recordUtils';
 import { resolveEffectiveListGroupingForSort, resolveListGrouping } from '../utils/listGrouping';
 import { getErrorMessage } from '../utils/errorUtils';
 import { showNotice } from '../utils/noticeUtils';
+import { registerActiveFileWorkspaceListeners } from '../utils/workspaceActiveFileEvents';
 
 type SelectionSortTarget =
     | { type: typeof ItemType.FOLDER; key: string }
@@ -96,6 +96,7 @@ type ManualSortPropertyStats = {
 interface UseListActionsOptions {
     onManualSortStart?: (propertyKey: string) => void;
     getManualSortNewFileContext?: () => ManualSortNewFilePlacementContext | null;
+    trackRevealFileAvailability?: boolean;
 }
 
 const BIDI_ISOLATE_START = '\u2068'; // First Strong Isolate
@@ -451,7 +452,11 @@ function collectAllPropertyNodeIds(propertyTreeService: NonNullable<ReturnType<t
  *
  * @returns Object containing action handlers and computed values for list pane operations
  */
-export function useListActions({ onManualSortStart, getManualSortNewFileContext }: UseListActionsOptions = {}) {
+export function useListActions({
+    onManualSortStart,
+    getManualSortNewFileContext,
+    trackRevealFileAvailability = false
+}: UseListActionsOptions = {}) {
     const { app, plugin, tagTreeService, propertyTreeService } = useServices();
     const settings = useSettingsState();
     const vaultProfileId = settings.vaultProfile;
@@ -481,6 +486,11 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
         plugin.openSettings();
     }, [plugin]);
     const canCreateNewFile = Boolean(selectionState.selectedFolder) || hasCreatableTagSelection || hasCreatablePropertySelection;
+    const getRevealableActiveFile = useCallback((): TFile | null => {
+        const activeFile = app.workspace.getActiveFile();
+        return activeFile?.parent ? activeFile : null;
+    }, [app.workspace]);
+    const [canRevealFile, setCanRevealFile] = useState(() => (trackRevealFileAvailability ? Boolean(getRevealableActiveFile()) : false));
 
     const getSelectionSortTarget = useCallback((): SelectionSortTarget | null => {
         if (selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder) {
@@ -538,6 +548,15 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
         fileSystemOps,
         app
     ]);
+
+    const handleRevealFile = useCallback(async () => {
+        const activeFile = getRevealableActiveFile();
+        if (!activeFile) {
+            return;
+        }
+
+        await plugin.revealFileInActualFolder(activeFile, { showHiddenFileNotice: true });
+    }, [getRevealableActiveFile, plugin]);
 
     const getSelectionSortOverride = useCallback((): ListSortOverrideValue | undefined => {
         return getListSortOverrideForSelection(
@@ -744,6 +763,24 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
             setPropertyTreeVersion(current => current + 1);
         });
     }, [propertyTreeService]);
+
+    useEffect(() => {
+        if (!trackRevealFileAvailability) {
+            setCanRevealFile(false);
+            return;
+        }
+
+        const updateCanRevealFile = () => {
+            setCanRevealFile(Boolean(getRevealableActiveFile()));
+        };
+
+        updateCanRevealFile();
+
+        return registerActiveFileWorkspaceListeners({
+            workspace: app.workspace,
+            onChange: updateCanRevealFile
+        });
+    }, [app.workspace, getRevealableActiveFile, trackRevealFileAvailability]);
 
     // The descendant action follows a strict two-phase contract.
     // Phase 1 is menu construction: decide enabled/disabled from descendantCount plus
@@ -1877,6 +1914,8 @@ export function useListActions({ onManualSortStart, getManualSortNewFileContext 
     return {
         handleNewFile,
         canCreateNewFile,
+        handleRevealFile,
+        canRevealFile,
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,

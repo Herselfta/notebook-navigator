@@ -17,7 +17,7 @@
  */
 
 import { App, TFile, CachedMetadata } from 'obsidian';
-import { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import { METADATA_SENTINEL } from '../storage/IndexedDBStorage';
 import { DateUtils } from './dateUtils';
 import { getCachedCommaSeparatedList } from './commaSeparatedListUtils';

@@ -25,7 +25,7 @@ import {
     type PinnedSectionCollapseKey,
     type VisibilityPreferences
 } from '../types';
-import { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import type { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
 import { getFilesForFolder, getFilesForProperty, getFilesForTag } from './fileFinder';

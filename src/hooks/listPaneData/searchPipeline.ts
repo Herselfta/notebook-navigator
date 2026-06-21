@@ -19,7 +19,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { TFile, TFolder } from 'obsidian';
 import type { App } from 'obsidian';
-import type { NotebookNavigatorSettings, SortOption } from '../../settings';
+import type { NotebookNavigatorSettings, SortOption } from '../../settings/types';
 import type { FilterSearchMatchOptions, FilterSearchTokens } from '../../utils/filterSearch';
 import {
     fileMatchesDateFilterTokens,

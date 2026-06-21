@@ -156,6 +156,8 @@ export const STRINGS_KO = {
         hideExcludedItems: '숨긴 폴더, 태그, 노트 숨기기', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: '이중 창 표시', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: '단일 창 표시', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            '사이드바가 너무 좁으면 이중 창을 사용할 수 없습니다. 이를 변경하려면 설정 > 모양 및 동작에서 "사이드바가 너무 좁을 때"를 "아무것도 하지 않음"으로 설정하세요.',
         changeAppearance: '모양 변경', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: '하위 폴더 노트 표시',
         showFilesFromSubfolders: '하위 폴더 파일 표시',
@@ -491,6 +493,7 @@ export const STRINGS_KO = {
                 'nav-show-dual-pane': '이중 창 표시',
                 'nav-profile-chevron': '프로필 메뉴 화살표',
                 'list-search': '검색',
+                'list-reveal-file': '파일 표시',
                 'list-descendants': '하위 폴더의 노트',
                 'list-sort-ascending': '정렬 순서: 오름차순',
                 'list-sort-descending': '정렬 순서: 내림차순',
@@ -532,8 +535,22 @@ export const STRINGS_KO = {
             clearRecentColors: '최근 색상 지우기',
             removeRecentColor: '색상 제거',
             apply: '적용',
+            pickerLabel: '선택기',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'HEX 색상 값',
+            saturationValueArea: '채도 및 밝기',
+            hueSlider: '색조',
+            alphaSlider: '투명도'
+        },
+        appearance: {
+            tabIcon: '아이콘',
+            tabColor: '색상',
+            tabBackground: '배경',
+            resetIcon: '아이콘 제거',
+            resetColor: '색상 제거',
+            resetBackground: '배경 제거',
+            clear: '스타일 지우기',
+            apply: '적용'
         },
         selectVaultProfile: {
             title: '보관소 프로필 변경',
@@ -976,6 +993,9 @@ export const STRINGS_KO = {
             },
             navigation: {
                 appearance: '모양',
+                banner: '배너',
+                dragAndDrop: '끌어서 놓기',
+                noteCounts: '노트 수',
                 rainbowColors: '무지개 색상',
                 leftSidebar: '왼쪽 사이드바',
                 calendarIntegration: '캘린더 연동'
@@ -1231,6 +1251,28 @@ export const STRINGS_KO = {
                     vertical: '세로 분할'
                 }
             },
+            narrowSidebarLayout: {
+                name: '사이드바가 너무 좁을 때',
+                desc: '탐색 창과 목록 창이 나란히 맞지 않을 때의 동작을 선택합니다.',
+                options: {
+                    none: '아무것도 하지 않음',
+                    singlePane: '단일 창으로 전환',
+                    vertical: '세로 분할로 전환'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: '좁은 사이드바 임계값',
+                desc: '사이드바 너비 임계값 계산 방법을 선택합니다.',
+                options: {
+                    fitPanes: '창에 맞춤',
+                    customWidth: '사용자 지정 너비'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: '좁은 사이드바 임계값 너비',
+                desc: '사이드바가 이 너비보다 좁으면 전환합니다.',
+                resetTooltip: '기본 너비로 재설정'
+            },
             appearanceBackground: {
                 name: '배경색',
                 desc: '탐색 및 목록 패널의 배경색을 선택합니다.',
@@ -1298,6 +1340,10 @@ export const STRINGS_KO = {
             autoExpandNavItems: {
                 name: '선택 시 확장',
                 desc: '선택 시 폴더와 태그를 확장합니다. 단일 창 모드에서는 첫 번째 선택이 확장하고 두 번째 선택이 파일을 표시합니다.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: '하나의 펼친 분기',
+                desc: '폴더, 태그 또는 속성을 펼칠 때 같은 트리의 다른 분기를 접습니다.'
             },
             springLoadedFolders: {
                 name: '드래그 중 확장',
@@ -2167,7 +2213,8 @@ export const STRINGS_KO = {
             },
             folderNoteTemplate: {
                 name: '폴더 노트 템플릿',
-                desc: '새 마크다운 폴더 노트용 템플릿 파일. 템플릿 폴더 위치는 파일 작업 > 템플릿에서 설정하세요.'
+                desc: '폴더 노트를 만들 때 사용하는 템플릿 파일입니다. Markdown 템플릿은 Templater를 사용할 수 있습니다. Canvas 및 Base 템플릿은 파일 내용으로 복사됩니다. 템플릿 폴더 위치는 파일 작업 > 템플릿에서 설정하세요.',
+                formatWarning: '템플릿 형식은 선택한 폴더 노트 유형과 일치해야 합니다: .md, .canvas 또는 .base.'
             },
             enableFolderNoteLinks: {
                 name: '폴더 이름으로 폴더 노트 열기',

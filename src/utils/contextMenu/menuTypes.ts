@@ -19,7 +19,7 @@
 import { Menu, TFile, TFolder, App } from 'obsidian';
 import { ItemType } from '../../types';
 import type { VisibilityPreferences } from '../../types';
-import { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { FileSystemOperations } from '../../services/FileSystemService';
 import { MetadataService } from '../../services/MetadataService';
 import { PropertyOperations } from '../../services/PropertyOperations';

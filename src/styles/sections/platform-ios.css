@@ -204,3 +204,15 @@
 .notebook-navigator-ios .nn-list-pane .nn-virtual-item {
     transform: translateZ(0);
 }
+
+/*
+ * iOS/iPadOS: WebKit paint workaround for pinned navigation shortcuts.
+ *
+ * Pinned shortcuts can remain mounted and measurable while their row contents stop repainting after the mobile
+ * single-pane transform finishes. Keep the pinned shortcut surface and its rows on composited layers.
+ */
+.notebook-navigator-ios .nn-shortcut-pinned,
+.notebook-navigator-ios .nn-shortcut-pinned-scroll,
+.notebook-navigator-ios .nn-shortcut-pinned .nn-navitem {
+    transform: translateZ(0);
+}

@@ -160,6 +160,7 @@ const BOOLEAN_SETTING_KEYS = [
     'separateNoteCounts',
     'showIndentGuides',
     'smartCollapse',
+    'collapseOtherBranchesOnExpand',
     'autoSelectFirstFileOnFocusChange',
     'autoExpandNavItems',
     'springLoadedFolders'

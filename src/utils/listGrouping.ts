@@ -17,8 +17,7 @@
  */
 
 import { ItemType } from '../types';
-import type { NotebookNavigatorSettings } from '../settings';
-import type { ListNoteGroupingOption, SortOption } from '../settings/types';
+import type { ListNoteGroupingOption, NotebookNavigatorSettings, SortOption } from '../settings/types';
 import { getSortField, isDateSortOption } from './sortUtils';
 
 interface ResolveListGroupingParams {

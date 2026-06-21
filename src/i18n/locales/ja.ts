@@ -156,6 +156,8 @@ export const STRINGS_JA = {
         hideExcludedItems: '非表示のフォルダ・タグ・ノートを非表示', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'デュアルペインを表示', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'シングルペインを表示', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'サイドバーが狭すぎる場合、デュアルペインは使用できません。変更するには、設定 > 外観と動作で「サイドバーが狭すぎる場合」を「何もしない」に設定してください。',
         changeAppearance: '外観を変更', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'サブフォルダのノートを表示',
         showFilesFromSubfolders: 'サブフォルダのファイルを表示',
@@ -493,6 +495,7 @@ export const STRINGS_JA = {
                 'nav-show-dual-pane': 'デュアルペインを表示',
                 'nav-profile-chevron': 'プロファイルメニュー矢印',
                 'list-search': '検索',
+                'list-reveal-file': 'ファイルを表示',
                 'list-descendants': 'サブフォルダからのノート',
                 'list-sort-ascending': '並べ替え: 昇順',
                 'list-sort-descending': '並べ替え: 降順',
@@ -534,8 +537,22 @@ export const STRINGS_JA = {
             clearRecentColors: '最近使用した色をクリア',
             removeRecentColor: '色を削除',
             apply: '適用',
+            pickerLabel: 'ピッカー',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'HEXカラー値',
+            saturationValueArea: '彩度と明度',
+            hueSlider: '色相',
+            alphaSlider: '透明度'
+        },
+        appearance: {
+            tabIcon: 'アイコン',
+            tabColor: '色',
+            tabBackground: '背景',
+            resetIcon: 'アイコンを削除',
+            resetColor: '色を削除',
+            resetBackground: '背景を削除',
+            clear: 'スタイルをクリア',
+            apply: '適用'
         },
         selectVaultProfile: {
             title: '保管庫のプロファイルを変更',
@@ -978,6 +995,9 @@ export const STRINGS_JA = {
             },
             navigation: {
                 appearance: '外観',
+                banner: 'バナー',
+                dragAndDrop: 'ドラッグ＆ドロップ',
+                noteCounts: 'ノート数',
                 rainbowColors: 'レインボーカラー',
                 leftSidebar: '左サイドバー',
                 calendarIntegration: 'カレンダー連携'
@@ -1233,6 +1253,28 @@ export const STRINGS_JA = {
                     vertical: '垂直分割'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'サイドバーが狭すぎる場合',
+                desc: 'ナビゲーションペインとリストペインを横に並べられない場合の動作を選択します。',
+                options: {
+                    none: '何もしない',
+                    singlePane: 'シングルペインに切り替え',
+                    vertical: '縦分割に切り替え'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: '狭いサイドバーのしきい値',
+                desc: 'サイドバー幅のしきい値の計算方法を選択します。',
+                options: {
+                    fitPanes: 'ペインに合わせる',
+                    customWidth: 'カスタム幅'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: '狭いサイドバーのしきい値幅',
+                desc: 'サイドバーがこの幅より狭い場合に切り替えます。',
+                resetTooltip: '既定の幅に戻す'
+            },
             appearanceBackground: {
                 name: '背景色',
                 desc: 'ナビゲーションペインとリストペインの背景色を選択します。',
@@ -1300,6 +1342,10 @@ export const STRINGS_JA = {
             autoExpandNavItems: {
                 name: '選択時に展開',
                 desc: '選択時にフォルダとタグを展開します。シングルペインモードでは、最初の選択で展開、2回目の選択でファイルを表示します。'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: '展開するブランチを1つにする',
+                desc: 'フォルダ、タグ、またはプロパティを展開するとき、同じツリー内の他のブランチを折りたたみます。'
             },
             springLoadedFolders: {
                 name: 'ドラッグ時に展開',
@@ -2169,7 +2215,8 @@ export const STRINGS_JA = {
             },
             folderNoteTemplate: {
                 name: 'フォルダノートテンプレート',
-                desc: '新しいMarkdownフォルダノート用のテンプレートファイル。テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。'
+                desc: 'フォルダノート作成時に使用するテンプレートファイル。MarkdownテンプレートではTemplaterを使用できます。CanvasとBaseテンプレートはファイル内容としてコピーされます。テンプレートフォルダの場所はファイル操作 > テンプレートで設定してください。',
+                formatWarning: 'テンプレート形式は選択したフォルダノートの種類と一致している必要があります: .md、.canvas、.base。'
             },
             enableFolderNoteLinks: {
                 name: 'フォルダ名でフォルダノートを開く',

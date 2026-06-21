@@ -16,8 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, Modal, Platform } from 'obsidian';
-import { getReleaseBannerUrl, SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
+import { App, Modal, Platform, setIcon } from 'obsidian';
+import { getReleaseBannerUrl, getReleaseVideoOpenUrl, getReleaseVideoUrl, SUPPORT_BUY_ME_A_COFFEE_URL } from '../constants/urls';
 import { getCurrentLanguage, strings } from '../i18n';
 import { ReleaseNote } from '../releaseNotes';
 import { addAsyncEventListener } from '../utils/domEventListeners';
@@ -143,6 +143,38 @@ export class WhatsNewModal extends Modal {
         image.src = imageUrl;
     }
 
+    private renderReleaseVideo(container: HTMLElement, videoUrl: string, openUrl: string | null): void {
+        const frame = container.createDiv({ cls: 'nn-whats-new-video-frame' });
+        const video = frame.createEl('video', { cls: 'nn-whats-new-video' });
+
+        video.autoplay = true;
+        video.defaultMuted = true;
+        video.loop = true;
+        video.muted = true;
+        video.playsInline = true;
+        video.preload = 'auto';
+        video.setAttr('autoplay', '');
+        video.setAttr('loop', '');
+        video.setAttr('muted', '');
+        video.setAttr('playsinline', '');
+        video.setAttr('webkit-playsinline', '');
+
+        video.addEventListener('error', () => {
+            frame.remove();
+        });
+
+        video.src = videoUrl;
+
+        if (openUrl) {
+            const openLink = frame.createEl('a', { cls: 'nn-whats-new-video-open' });
+            openLink.setAttr('href', openUrl);
+            openLink.setAttr('rel', 'noopener noreferrer');
+            openLink.setAttr('target', '_blank');
+            openLink.setAttr('aria-label', strings.modals.welcome.openVideoButton);
+            setIcon(openLink, 'external-link');
+        }
+    }
+
     private renderYoutubeLink(container: HTMLElement, youtubeUrl: string): void {
         const link = container.createEl('a', { cls: 'nn-whats-new-youtube-link' });
         link.setAttr('href', youtubeUrl);
@@ -211,6 +243,12 @@ export class WhatsNewModal extends Modal {
             const bannerUrl = getReleaseBannerUrl(note.bannerUrl, note.version);
             if (bannerUrl) {
                 this.renderReleaseBanner(versionContainer, bannerUrl, note.bannerClickable === true);
+            }
+
+            const videoUrl = getReleaseVideoUrl(note.videoUrl, note.version);
+            if (videoUrl) {
+                const openUrl = note.videoClickable === true ? getReleaseVideoOpenUrl(note.videoUrl, note.version) : null;
+                this.renderReleaseVideo(versionContainer, videoUrl, openUrl);
             }
 
             if (note.youtubeUrl) {

@@ -17,7 +17,7 @@
  */
 
 import { TFile } from 'obsidian';
-import { createDefaultFileData, IndexedDBStorage, FileData } from './IndexedDBStorage';
+import { createDefaultFileData, IndexedDBStorage, type FileData } from './IndexedDBStorage';
 import { recordStartupDiagnostic } from '../services/diagnostics/DebugLoggingService';
 
 /**
@@ -143,7 +143,6 @@ export async function initializeDatabase(
     }
     const existing = dbInstance;
     if (existing && existing.isInitialized()) {
-        existing.startPreviewTextWarmup();
         return;
     }
 
@@ -170,7 +169,6 @@ export async function initializeDatabase(
             if (isShutdownInProgress() || dbInstance !== db) {
                 return;
             }
-            db.startPreviewTextWarmup();
             recordStartupDiagnostic('fileOperations.initializeDatabase.complete', {
                 elapsedMs: Math.round(performance.now() - initStartMs)
             });
@@ -232,7 +230,6 @@ export async function waitForDatabaseInitialization(): Promise<IndexedDBStorage 
             if (isShutdownInProgress() || dbInstance !== db) {
                 return null;
             }
-            db.startPreviewTextWarmup();
         } catch (error) {
             console.error('Failed to initialize database while waiting:', error);
             return null;

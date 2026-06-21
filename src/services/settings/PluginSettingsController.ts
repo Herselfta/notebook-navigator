@@ -40,6 +40,8 @@ import {
     type CalendarWeeksToShow,
     type HomepageSetting,
     type ListSortOverrideValue,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_MAX,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_MIN,
     SYNC_MODE_SETTING_IDS,
     type SettingSyncMode,
     type SyncModeSettingId,
@@ -58,6 +60,8 @@ import {
     isMouseBackForwardAction,
     isManualSortNewNotePlacement,
     isPropertySortSecondaryOption,
+    isNarrowSidebarTriggerMode,
+    normalizeNarrowSidebarLayout,
     isRecentNotesHideMode,
     isSettingSyncMode,
     isSortOption,
@@ -65,9 +69,9 @@ import {
     normalizeAppearanceGroupBy,
     normalizeListSortOverride,
     resolveDeleteAttachmentsSetting,
+    type NotebookNavigatorSettings,
     resolveMoveFileConflictsSetting
 } from '../../settings/types';
-import type { NotebookNavigatorSettings } from '../../settings/types';
 import { LOCALSTORAGE_VERSION, localStorage } from '../../utils/localStorage';
 import { clearHiddenFileNameMatcherCache } from '../../utils/fileFilters';
 import {
@@ -782,6 +786,22 @@ export class PluginSettingsController {
         return parsed ?? DEFAULT_SETTINGS.dualPaneOrientation;
     }
 
+    private sanitizeNarrowSidebarLayoutSetting(value: unknown) {
+        return normalizeNarrowSidebarLayout(value) ?? DEFAULT_SETTINGS.narrowSidebarLayout;
+    }
+
+    private sanitizeNarrowSidebarTriggerModeSetting(value: unknown) {
+        return isNarrowSidebarTriggerMode(value) ? value : DEFAULT_SETTINGS.narrowSidebarTriggerMode;
+    }
+
+    private sanitizeNarrowSidebarCustomWidthSetting(value: unknown): number {
+        return this.sanitizeBoundedIntegerSetting(value, {
+            min: NARROW_SIDEBAR_CUSTOM_WIDTH_MIN,
+            max: NARROW_SIDEBAR_CUSTOM_WIDTH_MAX,
+            fallback: DEFAULT_SETTINGS.narrowSidebarCustomWidth
+        });
+    }
+
     private sanitizePaneTransitionDurationSetting(value: unknown): number {
         return this.sanitizeBoundedIntegerSetting(value, {
             min: MIN_PANE_TRANSITION_DURATION_MS,
@@ -950,6 +970,9 @@ export class PluginSettingsController {
             sanitizeBooleanSetting: (value, fallback) => this.sanitizeBooleanSetting(value, fallback),
             sanitizeHomepageSetting: value => this.sanitizeHomepageSetting(value),
             sanitizeDualPaneOrientationSetting: value => this.sanitizeDualPaneOrientationSetting(value),
+            sanitizeNarrowSidebarLayoutSetting: value => this.sanitizeNarrowSidebarLayoutSetting(value),
+            sanitizeNarrowSidebarTriggerModeSetting: value => this.sanitizeNarrowSidebarTriggerModeSetting(value),
+            sanitizeNarrowSidebarCustomWidthSetting: value => this.sanitizeNarrowSidebarCustomWidthSetting(value),
             sanitizeTagSortOrderSetting: value => this.sanitizeTagSortOrderSetting(value),
             sanitizeFolderSortOrderSetting: value => this.sanitizeFolderSortOrderSetting(value),
             sanitizePaneTransitionDurationSetting: value => this.sanitizePaneTransitionDurationSetting(value),

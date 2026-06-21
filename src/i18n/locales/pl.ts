@@ -157,6 +157,8 @@ export const STRINGS_PL = {
         hideExcludedItems: 'Ukryj ukryte foldery, tagi i notatki', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Pokaż oba panele', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Pokaż jeden panel', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Podwójne panele są niedostępne, gdy pasek boczny jest zbyt wąski. Aby to zmienić, ustaw „Gdy pasek boczny jest zbyt wąski” na „Nic nie rób” w Ustawienia > Wygląd i zachowanie.',
         changeAppearance: 'Zmień wygląd', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Pokaż notatki z podfolderów',
         showFilesFromSubfolders: 'Pokaż pliki z podfolderów',
@@ -496,6 +498,7 @@ export const STRINGS_PL = {
                 'nav-show-dual-pane': 'Pokaż oba panele',
                 'nav-profile-chevron': 'Strzałka menu profilu',
                 'list-search': 'Szukaj',
+                'list-reveal-file': 'Pokaż plik',
                 'list-descendants': 'Notatki z podfolderów',
                 'list-sort-ascending': 'Kolejność: rosnąco',
                 'list-sort-descending': 'Kolejność: malejąco',
@@ -537,8 +540,22 @@ export const STRINGS_PL = {
             clearRecentColors: 'Wyczyść ostatnie kolory',
             removeRecentColor: 'Usuń kolor',
             apply: 'Zastosuj',
+            pickerLabel: 'Selektor',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Wartość koloru HEX',
+            saturationValueArea: 'Nasycenie i jasność',
+            hueSlider: 'Odcień',
+            alphaSlider: 'Przezroczystość'
+        },
+        appearance: {
+            tabIcon: 'Ikona',
+            tabColor: 'Kolor',
+            tabBackground: 'Tło',
+            resetIcon: 'Usuń ikonkę',
+            resetColor: 'Usuń kolor',
+            resetBackground: 'Usuń tło',
+            clear: 'Wyczyść styl',
+            apply: 'Zastosuj'
         },
         selectVaultProfile: {
             title: 'Zmień profil sejfu',
@@ -982,6 +999,9 @@ export const STRINGS_PL = {
             },
             navigation: {
                 appearance: 'Wygląd',
+                banner: 'Baner',
+                dragAndDrop: 'Przeciągnij i upuść',
+                noteCounts: 'Liczba notatek',
                 rainbowColors: 'Kolory tęczy',
                 leftSidebar: 'Lewy panel boczny',
                 calendarIntegration: 'Integracja z kalendarzem'
@@ -1237,6 +1257,28 @@ export const STRINGS_PL = {
                     vertical: 'Podział pionowy'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Gdy pasek boczny jest zbyt wąski',
+                desc: 'Wybierz, co się dzieje, gdy panel nawigacji i panel listy nie mieszczą się obok siebie.',
+                options: {
+                    none: 'Nic nie rób',
+                    singlePane: 'Przełącz na jeden panel',
+                    vertical: 'Przełącz na podział pionowy'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Próg wąskiego paska bocznego',
+                desc: 'Wybierz sposób obliczania progu szerokości paska bocznego.',
+                options: {
+                    fitPanes: 'Dopasuj panele',
+                    customWidth: 'Niestandardowa szerokość'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Szerokość progu wąskiego paska bocznego',
+                desc: 'Przełączaj, gdy pasek boczny jest węższy niż ta szerokość.',
+                resetTooltip: 'Przywróć domyślną szerokość'
+            },
             appearanceBackground: {
                 name: 'Kolor tła',
                 desc: 'Wybierz kolory tła dla panelu nawigacji i listy.',
@@ -1304,6 +1346,10 @@ export const STRINGS_PL = {
             autoExpandNavItems: {
                 name: 'Rozwiń podczas zaznaczania',
                 desc: 'Rozwija foldery, tagi i atrybuty po zaznaczeniu. W trybie pojedynczego panelu pierwsze zaznaczenie powoduje rozwinięcie, drugie zaznaczenie powoduje wyświetlenie plików.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Jedna rozwinięta gałąź',
+                desc: 'Zwijaj inne gałęzie w tym samym drzewie podczas rozwijania folderu, tagu lub atrybutu.'
             },
             springLoadedFolders: {
                 name: 'Rozwiń podczas przeciągania',
@@ -2175,7 +2221,8 @@ export const STRINGS_PL = {
             },
             folderNoteTemplate: {
                 name: 'Szablon notatki folderu',
-                desc: 'Plik szablonu dla nowych notatek folderów Markdown. Ustaw lokalizację folderu szablonów w Operacje na plikach > Szablony.'
+                desc: 'Plik szablonu używany podczas tworzenia notatek folderów. Szablony Markdown mogą używać Templatera. Szablony Canvas i Base są kopiowane jako zawartość pliku. Ustaw lokalizację folderu szablonów w Operacje na plikach > Szablony.',
+                formatWarning: 'Format szablonu musi odpowiadać wybranemu typowi notatki folderu: .md, .canvas lub .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Nazwy folderów otwierają notatki folderów',

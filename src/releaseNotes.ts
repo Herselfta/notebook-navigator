@@ -31,6 +31,9 @@
  * The lastShownVersion is stored in plugin settings to track what the user has seen.
  */
 
+import { compareVersions } from './utils/versionUtils';
+export { compareVersions } from './utils/versionUtils';
+
 /**
  * Formatting in release notes
  *
@@ -65,6 +68,10 @@ export interface ReleaseNote {
     bannerUrl?: boolean | string;
     /** When true, the banner opens the full image in a new tab */
     bannerClickable?: boolean;
+    /** Optional autoplay video source. true uses version as video id, string uses explicit URL or video id */
+    videoUrl?: boolean | string;
+    /** When true, the video can be opened in a new tab */
+    videoClickable?: boolean;
     /** Optional YouTube video URL shown above the release notes for this version */
     youtubeUrl?: string;
     info?: string; // General information about the release, shown at top without bullets
@@ -82,6 +89,46 @@ export interface ReleaseNote {
  * 2. Categorize features into: new, improved, changed, or fixed arrays
  */
 const RELEASE_NOTES: ReleaseNote[] = [
+    {
+        version: '3.2.0',
+        date: '2026-06-21',
+        showOnUpdate: true,
+        bannerUrl: true,
+        info: '**This release makes Notebook Navigator start MUCH faster!** Most feature code now loads the first time you use a feature instead of while Obsidian starts up, and several background tasks no longer run during plugin load. Many users will see almost a tenfold improvement to startup time.',
+        new: [
+            '==New icon and color picker!== Redesigned and merged the icon and color pickers into a unified panel with preview, saturation/value rectangle and a new hue slider.',
+            'Added a ==Reveal file== button in the list pane toolbar. Default disabled, enable it with Settings > Appearance & behavior > Toolbar buttons.'
+        ],
+        improved: [
+            '**Startup speed.** The code that runs commands now loads the first time you run a command instead of during startup.',
+            '**Startup speed.** The navigator and calendar views now load their code when Obsidian opens them instead of during startup.',
+            '**Startup speed.** The settings screen now loads when you open settings instead of during startup.',
+            '**Startup speed.** Detecting folder notes no longer loads the full folder note creation and opening code during startup.',
+            '**Startup speed.** The emoji keyword database now loads when you search emoji or show emoji icon names instead of during startup.',
+            '**Startup speed.** External icon packs now initialize only when you have enabled or are managing them instead of during startup.',
+            '**Startup speed.** Preview text now fills in when it is first shown instead of running a background scan during startup.',
+            '**Startup speed.** Non-English languages now load their translation directly instead of loading English first and then merging.',
+            '**Startup speed.** The version check no longer loads the full release notes during startup.',
+            'Navigate to folder, Navigate to tag, and Navigate to property now keep the current single-pane view after selection.'
+        ]
+    },
+    {
+        version: '3.1.4',
+        date: '2026-06-15',
+        showOnUpdate: true,
+        videoUrl: true,
+        videoClickable: true,
+        new: [
+            'When resizing the sidebar, Notebook Navigator can now automatically switch between dual pane, vertical split, and single pane. Configure this with ==When sidebar is too narrow== in Settings > Appearance & behavior > Desktop appearance.',
+            'New setting ==One expanded branch== in Settings > Navigation pane. Enable to automatically collapse other branches in the same tree when expanding a folder, tag, or property.'
+        ],
+        improved: ['**Folder notes.** You can now use Canvas and Base files as templates for folder notes.'],
+        fixed: [
+            '**Navigation pane.** Pinned shortcuts disappeared on iOS/iPadOS because of a WebKit paint bug.',
+            '**List pane.** Notes embedded in Canvas files were opening in a separate notes tab while typing.',
+            '**List pane.** When grouping by subfolders, folder groups incorrectly got truncated to "MyF... / SubF..." instead of "MyFolder / Su...".'
+        ]
+    },
     {
         version: '3.1.2',
         date: '2026-06-07',
@@ -233,28 +280,6 @@ export function getReleaseNotesBetweenVersions(fromVersion: string, toVersion: s
  */
 export function getLatestReleaseNotes(count: number = 5): ReleaseNote[] {
     return RELEASE_NOTES.slice(0, count);
-}
-
-/**
- * Compares two semantic version strings.
- *
- * @param v1 - First version string (e.g., "1.2.3")
- * @param v2 - Second version string (e.g., "1.2.4")
- * @returns 1 if v1 > v2, -1 if v1 < v2, 0 if equal
- */
-export function compareVersions(v1: string, v2: string): number {
-    const parts1 = v1.split('.').map(Number);
-    const parts2 = v2.split('.').map(Number);
-
-    for (let i = 0; i < Math.max(parts1.length, parts2.length); i++) {
-        const part1 = parts1[i] || 0;
-        const part2 = parts2[i] || 0;
-
-        if (part1 > part2) return 1;
-        if (part1 < part2) return -1;
-    }
-
-    return 0;
 }
 
 /**

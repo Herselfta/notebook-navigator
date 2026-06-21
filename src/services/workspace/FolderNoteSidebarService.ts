@@ -20,7 +20,7 @@ import { FileView, Platform, TFile, TFolder, type ViewState, type WorkspaceLeaf 
 import type NotebookNavigatorPlugin from '../../main';
 import { NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW } from '../../types';
 import { runAsyncAction } from '../../utils/async';
-import { getFolderNote } from '../../utils/folderNotes';
+import { getFolderNote } from '../../utils/folderNoteLookup';
 import { getLeafSplitLocation } from '../../utils/workspaceSplit';
 
 const SETTINGS_LISTENER_ID = 'folder-note-sidebar-service';
@@ -62,11 +62,13 @@ export class FolderNoteSidebarService {
         this.clearSidebarOpenSuppression();
     }
 
-    handleWorkspaceReady(): void {
+    handleWorkspaceReady(): void | Promise<void> {
         this.workspaceReady = true;
         const selectedFolder = this.selectedFolder;
         if (selectedFolder !== undefined) {
-            runAsyncAction(() => this.syncToSelectedFolder(selectedFolder));
+            const syncPromise = this.syncToSelectedFolder(selectedFolder);
+            runAsyncAction(() => syncPromise);
+            return syncPromise;
         }
     }
 

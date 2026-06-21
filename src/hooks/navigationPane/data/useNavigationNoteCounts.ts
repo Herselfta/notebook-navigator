@@ -27,7 +27,7 @@ import { createTagNoteCountInfo } from '../../../utils/tagTree';
 import { createFrontmatterPropertyExclusionMatcher, type HiddenFileNameMatcher } from '../../../utils/fileFilters';
 import { createHiddenTagVisibility } from '../../../utils/tagPrefixMatcher';
 import { getDBInstanceOrNull } from '../../../storage/fileOperations';
-import { getFolderNoteDetectionSettings } from '../../../utils/folderNotes';
+import { getFolderNoteDetectionSettings } from '../../../utils/folderNoteLookup';
 import { calculateFolderNoteCounts } from '../../../utils/noteCountUtils';
 import type { PropertyTreeNode } from '../../../types/storage';
 import { getDirectPropertyKeyNoteCount, getTotalPropertyNoteCount } from '../../../utils/propertyTree';

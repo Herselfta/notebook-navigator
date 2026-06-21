@@ -24,7 +24,7 @@ import type { ShortcutContextMenuTarget } from '../../hooks/navigationPane/navig
 import { isFolderShortcut, isNoteShortcut, isPropertyShortcut, isTagShortcut } from '../../types/shortcuts';
 import { runAsyncAction } from '../../utils/async';
 import { resolveUXIcon } from '../../utils/uxIcons';
-import { getFolderNote } from '../../utils/folderNotes';
+import { getFolderNote } from '../../utils/folderNoteLookup';
 import { getExtensionSuffix, shouldShowExtensionSuffix } from '../../utils/fileTypeUtils';
 import { getPathBaseName } from '../../utils/pathUtils';
 import { buildFileTooltip, buildFolderTooltip } from '../../utils/navigationTooltipUtils';

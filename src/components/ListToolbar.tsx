@@ -46,11 +46,14 @@ export function ListToolbar({
     const selectionState = useSelectionState();
     const settings = useSettingsState();
     const listVisibility = settings.toolbarVisibility.list;
+    const showRevealButton = listVisibility.reveal;
 
     // Use the shared actions hook
     const {
         handleNewFile,
         canCreateNewFile,
+        handleRevealFile,
+        canRevealFile,
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,
@@ -59,7 +62,7 @@ export function ListToolbar({
         hasAppearanceOrSortSelection,
         hasCustomSortOrGroup,
         hasCustomAppearance
-    } = useListActions({ onManualSortStart, getManualSortNewFileContext });
+    } = useListActions({ onManualSortStart, getManualSortNewFileContext, trackRevealFileAvailability: showRevealButton });
 
     const showSearchButton = listVisibility.search;
     const showDescendantsButton = listVisibility.descendants;
@@ -68,7 +71,9 @@ export function ListToolbar({
     const showNewNoteButton = listVisibility.newNote;
     const hasNavigationSelection = Boolean(selectionState.selectedFolder || selectionState.selectedTag || selectionState.selectedProperty);
 
-    const leftButtonCount = [showSearchButton, showDescendantsButton, showSortButton, showAppearanceButton].filter(Boolean).length;
+    const leftButtonCount = [showSearchButton, showRevealButton, showDescendantsButton, showSortButton, showAppearanceButton].filter(
+        Boolean
+    ).length;
     const totalButtonCount = leftButtonCount + (showNewNoteButton ? 1 : 0);
     const leftGroupClassName = leftButtonCount === 1 ? 'nn-mobile-toolbar-circle' : 'nn-mobile-toolbar-pill';
     const leftButtonBaseClassName =
@@ -89,6 +94,20 @@ export function ListToolbar({
                 tabIndex={-1}
             >
                 <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-search')} />
+            </button>
+        ) : null,
+        showRevealButton ? (
+            <button
+                key="reveal"
+                className={leftButtonBaseClassName}
+                aria-label={strings.commands.revealFile}
+                onClick={() => {
+                    runAsyncAction(() => handleRevealFile());
+                }}
+                disabled={!canRevealFile}
+                tabIndex={-1}
+            >
+                <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-reveal-file')} />
             </button>
         ) : null,
         showDescendantsButton ? (

@@ -233,9 +233,18 @@
 }
 
 .nn-list-group-header-folder-segment {
+    flex: 0 1 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.nn-list-group-header-folder-segment:not(:last-child) {
+    flex-shrink: 0;
+}
+
+.nn-list-group-header-folder-segment:last-child {
+    flex: 1 1 auto;
 }
 
 .nn-list-group-header-path-separator {

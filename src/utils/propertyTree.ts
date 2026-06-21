@@ -19,7 +19,7 @@
 import type { FileData } from '../storage/IndexedDBStorage';
 import type { PropertyTreeNode, PropertyTreeNodeId } from '../types/storage';
 import { PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../types';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';
 import { isPathInExcludedFolder } from './fileFilters';
 import { getCachedCommaSeparatedList } from './commaSeparatedListUtils';

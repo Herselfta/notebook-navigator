@@ -29,6 +29,7 @@ import { PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, TAGS_ROOT_VIRTUAL_FOL
 import type { PropertyTreeNode } from '../types/storage';
 import { getPropertyKeyNodeIdFromNodeId } from '../utils/propertyTree';
 import { collectAllTagPaths } from '../utils/tagTree';
+import { expandNavigationTreeItems, getFolderAncestorPaths } from '../utils/navigationExpansion';
 
 interface CollapseBehaviorScope {
     affectFolders: boolean;
@@ -428,13 +429,27 @@ export function useNavigationActions() {
         try {
             await fileSystemOps.createNewFolder(selectionState.selectedFolder, () => {
                 if (selectionState.selectedFolder && !expansionState.expandedFolders.has(selectionState.selectedFolder.path)) {
-                    expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: selectionState.selectedFolder.path });
+                    const folderPaths = settings.collapseOtherBranchesOnExpand
+                        ? [...getFolderAncestorPaths(selectionState.selectedFolder), selectionState.selectedFolder.path]
+                        : [selectionState.selectedFolder.path];
+                    expandNavigationTreeItems({
+                        type: 'folder',
+                        ids: folderPaths,
+                        collapseOtherBranches: settings.collapseOtherBranchesOnExpand,
+                        dispatch: expansionDispatch
+                    });
                 }
             });
         } catch {
             // Error is handled by FileSystemOperations with user notification
         }
-    }, [selectionState.selectedFolder, expansionState.expandedFolders, fileSystemOps, expansionDispatch]);
+    }, [
+        selectionState.selectedFolder,
+        expansionState.expandedFolders,
+        fileSystemOps,
+        expansionDispatch,
+        settings.collapseOtherBranchesOnExpand
+    ]);
 
     const handleToggleShowExcludedFolders = useCallback(() => {
         setShowHiddenItems(!showHiddenItems);

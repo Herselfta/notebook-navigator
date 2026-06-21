@@ -17,9 +17,9 @@
  */
 
 import { App, Modal, TFile } from 'obsidian';
-import * as emojilib from 'emojilib';
 import { strings } from '../i18n';
 import { getIconService, IconDefinition, IconProvider, RECENT_ICONS_PER_PROVIDER_LIMIT } from '../services/icons';
+import { getEmojiDisplayName } from '../services/icons/emojiCatalog';
 import { getProviderCatalogUrl } from '../services/icons/providerCatalogLinks';
 import { isVaultIconFile } from '../services/icons/providers/VaultIconProvider';
 import { MetadataService } from '../services/MetadataService';
@@ -29,7 +29,6 @@ import { ISettingsProvider } from '../interfaces/ISettingsProvider';
 import { runAsyncAction } from '../utils/async';
 import { addAsyncEventListener } from '../utils/domEventListeners';
 import { parsePropertyNodeId } from '../utils/propertyTree';
-import { isRecord } from '../utils/typeGuards';
 
 // Constants
 const GRID_COLUMNS = 5;
@@ -52,11 +51,6 @@ interface IconPickerModalOptions {
     showRemoveButton?: boolean;
     /** When true, icon selection does not persist to metadata service */
     disableMetadataUpdates?: boolean;
-}
-
-// Type guard to validate emoji keywords from emojilib are strings
-function isStringArray(value: unknown): value is string[] {
-    return Array.isArray(value) && value.every(item => typeof item === 'string');
 }
 
 /**
@@ -495,20 +489,9 @@ export class IconPickerModal extends Modal {
 
             // Special handling for emoji provider - create icon definition on the fly
             if (provider.id === 'emoji') {
-                let displayName = '';
-                // Look up emoji keywords from emojilib with type safety
-                const emojiLibValue: unknown = emojilib;
-                const emojiEntries = isRecord(emojiLibValue) ? Object.entries(emojiLibValue) : [];
-                for (const [emoji, keywords] of emojiEntries) {
-                    if (emoji === parsed.identifier && isStringArray(keywords)) {
-                        displayName = keywords[0] ?? '';
-                        break;
-                    }
-                }
-
                 const iconDef = {
                     id: parsed.identifier,
-                    displayName,
+                    displayName: getEmojiDisplayName(parsed.identifier),
                     preview: parsed.identifier
                 };
                 const iconItem = this.createIconItem(iconDef, grid, provider);

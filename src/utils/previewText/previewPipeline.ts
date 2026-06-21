@@ -17,7 +17,7 @@
  */
 
 import type { FrontMatterCache } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { collectVisibleTextSkippingFencedCodeBlocks, findFencedCodeBlockRanges, findInlineCodeRanges } from '../codeRangeUtils';
 import { hasExcalidrawFrontmatterFlag, isExcalidrawFileName } from '../fileNameUtils';
 import { getMatchingRecordValue } from '../recordUtils';

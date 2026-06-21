@@ -156,6 +156,8 @@ export const STRINGS_DE = {
         hideExcludedItems: 'Versteckte Ordner, Tags und Notizen ausblenden', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Zweispaltige Ansicht anzeigen', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Einspaltige Ansicht anzeigen', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Doppelbereiche sind nicht verfügbar, wenn die Seitenleiste zu schmal ist. Um dies zu ändern, setzen Sie „Wenn Seitenleiste zu schmal ist“ in Einstellungen > Erscheinungsbild & Verhalten auf „Nichts tun“.',
         changeAppearance: 'Erscheinungsbild ändern', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Notizen aus Unterordnern anzeigen',
         showFilesFromSubfolders: 'Dateien aus Unterordnern anzeigen',
@@ -494,6 +496,7 @@ export const STRINGS_DE = {
                 'nav-show-dual-pane': 'Zweispaltige Ansicht anzeigen',
                 'nav-profile-chevron': 'Profilmenü-Pfeil',
                 'list-search': 'Suche',
+                'list-reveal-file': 'Datei anzeigen',
                 'list-descendants': 'Notizen aus Unterordnern',
                 'list-sort-ascending': 'Sortierung: aufsteigend',
                 'list-sort-descending': 'Sortierung: absteigend',
@@ -535,8 +538,22 @@ export const STRINGS_DE = {
             clearRecentColors: 'Zuletzt verwendete Farben löschen',
             removeRecentColor: 'Farbe entfernen',
             apply: 'Anwenden',
+            pickerLabel: 'Auswahl',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Hex-Farbwert',
+            saturationValueArea: 'Sättigung und Helligkeit',
+            hueSlider: 'Farbton',
+            alphaSlider: 'Transparenz'
+        },
+        appearance: {
+            tabIcon: 'Symbol',
+            tabColor: 'Farbe',
+            tabBackground: 'Hintergrund',
+            resetIcon: 'Symbol entfernen',
+            resetColor: 'Farbe entfernen',
+            resetBackground: 'Hintergrund entfernen',
+            clear: 'Stil löschen',
+            apply: 'Anwenden'
         },
         selectVaultProfile: {
             title: 'Tresorprofil wechseln',
@@ -981,6 +998,9 @@ export const STRINGS_DE = {
             },
             navigation: {
                 appearance: 'Darstellung',
+                banner: 'Banner',
+                dragAndDrop: 'Drag-and-drop',
+                noteCounts: 'Notizanzahlen',
                 rainbowColors: 'Regenbogenfarben',
                 leftSidebar: 'Linke Seitenleiste',
                 calendarIntegration: 'Kalenderintegration'
@@ -1236,6 +1256,28 @@ export const STRINGS_DE = {
                     vertical: 'Vertikale Aufteilung'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Wenn Seitenleiste zu schmal ist',
+                desc: 'Wählen Sie, was passiert, wenn Navigationsbereich und Listenbereich nicht nebeneinander passen.',
+                options: {
+                    none: 'Nichts tun',
+                    singlePane: 'Zur einspaltigen Ansicht wechseln',
+                    vertical: 'Zur vertikalen Aufteilung wechseln'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Schwellenwert für schmale Seitenleiste',
+                desc: 'Wählen Sie, wie der Breiten-Schwellenwert der Seitenleiste berechnet wird.',
+                options: {
+                    fitPanes: 'Bereiche einpassen',
+                    customWidth: 'Benutzerdefinierte Breite'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Breiten-Schwellenwert für schmale Seitenleiste',
+                desc: 'Wechseln, wenn die Seitenleiste schmaler als diese Breite ist.',
+                resetTooltip: 'Auf Standardbreite zurücksetzen'
+            },
             appearanceBackground: {
                 name: 'Hintergrundfarbe',
                 desc: 'Wählen Sie Hintergrundfarben für Navigations- und Listenbereich.',
@@ -1303,6 +1345,10 @@ export const STRINGS_DE = {
             autoExpandNavItems: {
                 name: 'Bei Auswahl erweitern',
                 desc: 'Ordner und Tags bei Auswahl erweitern. Im Einzelfenster-Modus: erste Auswahl erweitert, zweite Auswahl zeigt Dateien.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Ein erweiterter Zweig',
+                desc: 'Andere Zweige im selben Baum einklappen, wenn ein Ordner, Tag oder eine Eigenschaft erweitert wird.'
             },
             springLoadedFolders: {
                 name: 'Beim Ziehen erweitern',
@@ -2175,7 +2221,8 @@ export const STRINGS_DE = {
             },
             folderNoteTemplate: {
                 name: 'Ordnernotiz-Vorlage',
-                desc: 'Vorlagendatei für neue Markdown-Ordnernotizen. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.'
+                desc: 'Vorlagendatei, die beim Erstellen von Ordnernotizen verwendet wird. Markdown-Vorlagen können Templater verwenden. Canvas- und Base-Vorlagen werden als Dateiinhalt kopiert. Vorlagenordner unter Dateioperationen > Vorlagen festlegen.',
+                formatWarning: 'Das Vorlagenformat muss dem ausgewählten Ordnernotiztyp entsprechen: .md, .canvas oder .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Ordnernamen öffnen Ordnernotizen',

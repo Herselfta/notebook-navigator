@@ -156,6 +156,8 @@ export const STRINGS_ES = {
         hideExcludedItems: 'Ocultar carpetas, etiquetas y notas ocultas', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Mostrar paneles dobles', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Mostrar panel único', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Los paneles dobles no están disponibles cuando la barra lateral es demasiado estrecha. Para cambiarlo, establece "Cuando la barra lateral es demasiado estrecha" en "No hacer nada" en Ajustes > Apariencia y comportamiento.',
         changeAppearance: 'Cambiar apariencia', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Mostrar notas de subcarpetas',
         showFilesFromSubfolders: 'Mostrar archivos de subcarpetas',
@@ -494,6 +496,7 @@ export const STRINGS_ES = {
                 'nav-show-dual-pane': 'Mostrar paneles dobles',
                 'nav-profile-chevron': 'Flecha del menú de perfil',
                 'list-search': 'Buscar',
+                'list-reveal-file': 'Revelar archivo',
                 'list-descendants': 'Notas de subcarpetas',
                 'list-sort-ascending': 'Orden: ascendente',
                 'list-sort-descending': 'Orden: descendente',
@@ -535,8 +538,22 @@ export const STRINGS_ES = {
             clearRecentColors: 'Limpiar colores recientes',
             removeRecentColor: 'Eliminar color',
             apply: 'Aplicar',
+            pickerLabel: 'Selector',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Valor de color hexadecimal',
+            saturationValueArea: 'Saturación y brillo',
+            hueSlider: 'Tono',
+            alphaSlider: 'Transparencia'
+        },
+        appearance: {
+            tabIcon: 'Icono',
+            tabColor: 'Color',
+            tabBackground: 'Fondo',
+            resetIcon: 'Quitar icono',
+            resetColor: 'Quitar color',
+            resetBackground: 'Quitar fondo',
+            clear: 'Limpiar estilo',
+            apply: 'Aplicar'
         },
         selectVaultProfile: {
             title: 'Cambiar perfil de bóveda',
@@ -980,6 +997,9 @@ export const STRINGS_ES = {
             },
             navigation: {
                 appearance: 'Apariencia',
+                banner: 'Banner',
+                dragAndDrop: 'Arrastrar y soltar',
+                noteCounts: 'Conteos de notas',
                 rainbowColors: 'Colores arcoíris',
                 leftSidebar: 'Barra lateral izquierda',
                 calendarIntegration: 'Integración de calendario'
@@ -1235,6 +1255,28 @@ export const STRINGS_ES = {
                     vertical: 'División vertical'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Cuando la barra lateral es demasiado estrecha',
+                desc: 'Elige qué ocurre cuando el panel de navegación y el panel de lista no caben lado a lado.',
+                options: {
+                    none: 'No hacer nada',
+                    singlePane: 'Cambiar a panel único',
+                    vertical: 'Cambiar a división vertical'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Umbral de barra lateral estrecha',
+                desc: 'Elige cómo se calcula el umbral de ancho de la barra lateral.',
+                options: {
+                    fitPanes: 'Ajustar paneles',
+                    customWidth: 'Ancho personalizado'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Ancho del umbral de barra lateral estrecha',
+                desc: 'Cambia cuando la barra lateral es más estrecha que este ancho.',
+                resetTooltip: 'Restablecer al ancho predeterminado'
+            },
             appearanceBackground: {
                 name: 'Color de fondo',
                 desc: 'Elige colores de fondo para los paneles de navegación y lista.',
@@ -1302,6 +1344,10 @@ export const STRINGS_ES = {
             autoExpandNavItems: {
                 name: 'Expandir al seleccionar',
                 desc: 'Expandir carpetas y etiquetas al seleccionar. En modo de panel único, la primera selección expande, la segunda muestra archivos.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Una rama expandida',
+                desc: 'Contraer otras ramas del mismo árbol al expandir una carpeta, etiqueta o propiedad.'
             },
             springLoadedFolders: {
                 name: 'Expandir al arrastrar',
@@ -2174,7 +2220,9 @@ export const STRINGS_ES = {
             },
             folderNoteTemplate: {
                 name: 'Plantilla de nota de carpeta',
-                desc: 'Archivo de plantilla para nuevas notas de carpeta en Markdown. Establecer ubicación de carpeta de plantillas en Operaciones de archivos > Plantillas.'
+                desc: 'Archivo de plantilla usado al crear notas de carpeta. Las plantillas Markdown pueden usar Templater. Las plantillas Canvas y Base se copian como contenido del archivo. Establece la ubicación de la carpeta de plantillas en Operaciones de archivos > Plantillas.',
+                formatWarning:
+                    'El formato de la plantilla debe coincidir con el tipo de nota de carpeta seleccionado: .md, .canvas o .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Los nombres de carpeta abren notas de carpeta',

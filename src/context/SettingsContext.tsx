@@ -17,10 +17,9 @@
  */
 
 import React, { createContext, useContext, useState, useCallback, ReactNode, useEffect, useRef } from 'react';
-import NotebookNavigatorPlugin from '../main';
-import { NotebookNavigatorSettings } from '../settings';
+import type NotebookNavigatorPlugin from '../main';
 import type { DualPaneOrientation } from '../types';
-import type { VaultProfile } from '../settings/types';
+import type { NotebookNavigatorSettings, VaultProfile } from '../settings/types';
 import type { FileVisibility } from '../utils/fileTypeUtils';
 import type { ShortcutEntry } from '../types/shortcuts';
 import {

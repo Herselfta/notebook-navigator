@@ -157,6 +157,8 @@ export const STRINGS_ID = {
         hideExcludedItems: 'Sembunyikan folder, tag, dan catatan tersembunyi',
         showDualPane: 'Tampilkan panel ganda',
         showSinglePane: 'Tampilkan panel tunggal',
+        dualPaneAutoFallbackNotice:
+            'Panel ganda tidak tersedia saat bilah samping terlalu sempit. Untuk mengubahnya, atur "Saat bilah samping terlalu sempit" ke "Jangan lakukan apa pun" di Pengaturan > Tampilan & perilaku.',
         changeAppearance: 'Ubah tampilan',
         showNotesFromSubfolders: 'Tampilkan catatan dari subfolder',
         showFilesFromSubfolders: 'Tampilkan file dari subfolder',
@@ -494,6 +496,7 @@ export const STRINGS_ID = {
                 'nav-show-dual-pane': 'Tampilkan panel ganda',
                 'nav-profile-chevron': 'Panah menu profil',
                 'list-search': 'Cari',
+                'list-reveal-file': 'Tampilkan file',
                 'list-descendants': 'Catatan dari subfolder',
                 'list-sort-ascending': 'Urutan: menaik',
                 'list-sort-descending': 'Urutan: menurun',
@@ -535,8 +538,22 @@ export const STRINGS_ID = {
             clearRecentColors: 'Bersihkan warna terbaru',
             removeRecentColor: 'Hapus warna',
             apply: 'Terapkan',
+            pickerLabel: 'Pemilih',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Nilai warna heksadesimal',
+            saturationValueArea: 'Saturasi dan kecerahan',
+            hueSlider: 'Rona',
+            alphaSlider: 'Transparansi'
+        },
+        appearance: {
+            tabIcon: 'Ikon',
+            tabColor: 'Warna',
+            tabBackground: 'Latar belakang',
+            resetIcon: 'Hapus ikon',
+            resetColor: 'Hapus warna',
+            resetBackground: 'Hapus latar belakang',
+            clear: 'Bersihkan gaya',
+            apply: 'Terapkan'
         },
         selectVaultProfile: {
             title: 'Pilih profil vault',
@@ -979,6 +996,9 @@ export const STRINGS_ID = {
             },
             navigation: {
                 appearance: 'Tampilan',
+                banner: 'Banner',
+                dragAndDrop: 'Seret dan lepas',
+                noteCounts: 'Jumlah catatan',
                 rainbowColors: 'Warna pelangi',
                 leftSidebar: 'Bilah sisi kiri',
                 calendarIntegration: 'Integrasi kalender'
@@ -1234,6 +1254,28 @@ export const STRINGS_ID = {
                     vertical: 'Pembagian vertikal'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Saat bilah samping terlalu sempit',
+                desc: 'Pilih apa yang terjadi saat panel navigasi dan panel daftar tidak muat berdampingan.',
+                options: {
+                    none: 'Jangan lakukan apa pun',
+                    singlePane: 'Beralih ke panel tunggal',
+                    vertical: 'Beralih ke pemisahan vertikal'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Ambang bilah samping sempit',
+                desc: 'Pilih bagaimana ambang lebar bilah samping dihitung.',
+                options: {
+                    fitPanes: 'Muatkan panel',
+                    customWidth: 'Lebar khusus'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Lebar ambang bilah samping sempit',
+                desc: 'Beralih saat bilah samping lebih sempit dari lebar ini.',
+                resetTooltip: 'Reset ke lebar bawaan'
+            },
             appearanceBackground: {
                 name: 'Warna latar belakang',
                 desc: 'Pilih warna latar belakang untuk panel navigasi dan daftar.',
@@ -1301,6 +1343,10 @@ export const STRINGS_ID = {
             autoExpandNavItems: {
                 name: 'Luaskan saat dipilih',
                 desc: 'Luaskan folder dan tag saat dipilih. Dalam mode panel tunggal, pilihan pertama meluaskan, pilihan kedua menampilkan file.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Satu cabang terbuka',
+                desc: 'Ciutkan cabang lain di pohon yang sama saat membuka folder, tag, atau properti.'
             },
             springLoadedFolders: {
                 name: 'Luaskan saat menyeret',
@@ -2171,7 +2217,8 @@ export const STRINGS_ID = {
             },
             folderNoteTemplate: {
                 name: 'Templat catatan folder',
-                desc: 'File templat untuk catatan folder markdown baru. Atur lokasi folder templat di Operasi file > Templat.'
+                desc: 'File templat yang digunakan saat membuat catatan folder. Templat Markdown dapat menggunakan Templater. Templat Canvas dan Base disalin sebagai isi file. Atur lokasi folder templat di Operasi file > Templat.',
+                formatWarning: 'Format templat harus cocok dengan jenis catatan folder yang dipilih: .md, .canvas, atau .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Nama folder membuka catatan folder',

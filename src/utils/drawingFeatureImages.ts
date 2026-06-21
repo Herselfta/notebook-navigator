@@ -24,7 +24,7 @@ import {
     isTruthyFrontmatterFlagValue
 } from './fileNameUtils';
 import { getCurrentThemeMode, type ThemeMode } from './themeMode';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 
 const EXCALIDRAW_COMPANION_IMAGE_EXTENSIONS = ['png', 'dark.png', 'light.png'] as const;
 const DRAWING_DIRECT_FEATURE_IMAGE_KEY_PREFIX = 'd:';

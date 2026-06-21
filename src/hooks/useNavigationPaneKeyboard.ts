@@ -178,7 +178,12 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                 if (settings.autoExpandNavItems && folder.children.some(child => child instanceof TFolder)) {
                     // Only expand if not already expanded
                     if (!expansionState.expandedFolders.has(folder.path)) {
-                        expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: folder.path });
+                        const expansionTarget = getNavigationExpansionTargetForItem(item, { showHiddenItems });
+                        if (expansionTarget) {
+                            toggleNavigationExpansionTarget(expansionTarget, expansionState, expansionDispatch, 'expand', {
+                                collapseOtherBranches: settings.collapseOtherBranchesOnExpand
+                            });
+                        }
                     }
                 }
                 return;
@@ -190,7 +195,12 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                 if (settings.autoExpandNavItems && tagNode.children.size > 0) {
                     // Only expand if not already expanded
                     if (!expansionState.expandedTags.has(tagNode.path)) {
-                        expansionDispatch({ type: 'TOGGLE_TAG_EXPANDED', tagPath: tagNode.path });
+                        const expansionTarget = getNavigationExpansionTargetForItem(item, { showHiddenItems });
+                        if (expansionTarget) {
+                            toggleNavigationExpansionTarget(expansionTarget, expansionState, expansionDispatch, 'expand', {
+                                collapseOtherBranches: settings.collapseOtherBranchesOnExpand
+                            });
+                        }
                     }
                 }
             } else if (item.type === NavigationPaneItemType.PROPERTY_KEY || item.type === NavigationPaneItemType.PROPERTY_VALUE) {
@@ -202,7 +212,12 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
 
                 if (settings.autoExpandNavItems && propertyNode.children.size > 0) {
                     if (!expansionState.expandedProperties.has(propertyNode.id)) {
-                        expansionDispatch({ type: 'TOGGLE_PROPERTY_EXPANDED', propertyNodeId: propertyNode.id });
+                        const expansionTarget = getNavigationExpansionTargetForItem(item, { showHiddenItems });
+                        if (expansionTarget) {
+                            toggleNavigationExpansionTarget(expansionTarget, expansionState, expansionDispatch, 'expand', {
+                                collapseOtherBranches: settings.collapseOtherBranchesOnExpand
+                            });
+                        }
                     }
                 }
             } else if (isVirtualPropertyCollection(item)) {
@@ -216,7 +231,7 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                 selectionDispatch({ type: 'SET_SELECTED_TAG', tag: tagCollectionId });
             }
         },
-        [selectionDispatch, settings, expansionState, expansionDispatch]
+        [selectionDispatch, settings, expansionState, expansionDispatch, showHiddenItems]
     );
 
     /**
@@ -354,7 +369,9 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
 
                     const expansionTarget = getNavigationExpansionTargetForItem(item, { showHiddenItems });
                     const expandedInThisAction = expansionTarget
-                        ? toggleNavigationExpansionTarget(expansionTarget, expansionState, expansionDispatch, 'expand')
+                        ? toggleNavigationExpansionTarget(expansionTarget, expansionState, expansionDispatch, 'expand', {
+                              collapseOtherBranches: settings.collapseOtherBranchesOnExpand
+                          })
                         : false;
                     const shouldSwitchPane = !expandedInThisAction;
 

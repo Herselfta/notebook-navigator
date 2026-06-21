@@ -19,7 +19,7 @@
 import { App, normalizePath } from 'obsidian';
 import { BaseMetadataService } from './BaseMetadataService';
 import type { ISettingsProvider } from '../../interfaces/ISettingsProvider';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { CleanupValidators } from '../MetadataService';
 import type { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';
 import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';

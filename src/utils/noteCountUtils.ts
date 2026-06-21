@@ -22,7 +22,7 @@ import type { NoteCountInfo } from '../types/noteCounts';
 import { shouldDisplayFile, type FileVisibility } from './fileTypeUtils';
 import type { HiddenFileNameMatcher } from './fileFilters';
 import { createFrontmatterPropertyExclusionMatcher, shouldExcludeFileWithMatcher, shouldExcludeFolder } from './fileFilters';
-import { isFolderNote, type FolderNoteDetectionSettings } from './folderNotes';
+import { isFolderNote, type FolderNoteDetectionSettings } from './folderNoteLookup';
 import type { HiddenTagVisibility } from './tagPrefixMatcher';
 import { type CachedFileTagsDB, getCachedFileTags } from './tagUtils';
 

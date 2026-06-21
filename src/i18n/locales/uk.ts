@@ -158,6 +158,8 @@ export const STRINGS_UK = {
         hideExcludedItems: 'Сховати приховані папки, теги та нотатки', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Показати подвійну панель', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Показати одну панель', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Дві панелі недоступні, коли бічна панель занадто вузька. Щоб змінити це, установіть «Коли бічна панель занадто вузька» на «Нічого не робити» в Налаштування > Вигляд і поведінка.',
         changeAppearance: 'Змінити вигляд', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Показати нотатки з підпапок',
         showFilesFromSubfolders: 'Показати файли з підпапок',
@@ -495,6 +497,7 @@ export const STRINGS_UK = {
                 'nav-show-dual-pane': 'Показати подвійну панель',
                 'nav-profile-chevron': 'Стрілка меню профілю',
                 'list-search': 'Пошук',
+                'list-reveal-file': 'Показати файл',
                 'list-descendants': 'Нотатки з підпапок',
                 'list-sort-ascending': 'Порядок сортування: за зростанням',
                 'list-sort-descending': 'Порядок сортування: за спаданням',
@@ -536,8 +539,22 @@ export const STRINGS_UK = {
             clearRecentColors: 'Очистити останні кольори',
             removeRecentColor: 'Вилучити колір',
             apply: 'Застосувати',
+            pickerLabel: 'Вибір',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'HEX-значення кольору',
+            saturationValueArea: 'Насиченість і яскравість',
+            hueSlider: 'Відтінок',
+            alphaSlider: 'Прозорість'
+        },
+        appearance: {
+            tabIcon: 'Значок',
+            tabColor: 'Колір',
+            tabBackground: 'Фон',
+            resetIcon: 'Видалити іконку',
+            resetColor: 'Видалити колір',
+            resetBackground: 'Видалити фон',
+            clear: 'Очистити стиль',
+            apply: 'Застосувати'
         },
         selectVaultProfile: {
             title: 'Вибрати профіль сховища',
@@ -976,6 +993,9 @@ export const STRINGS_UK = {
             },
             navigation: {
                 appearance: 'Вигляд',
+                banner: 'Банер',
+                dragAndDrop: 'Перетягування',
+                noteCounts: 'Кількість нотаток',
                 rainbowColors: 'Кольори веселки',
                 leftSidebar: 'Ліва бічна панель',
                 calendarIntegration: 'Інтеграція з календарем'
@@ -1231,6 +1251,28 @@ export const STRINGS_UK = {
                     vertical: 'Вертикальний поділ'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Коли бічна панель занадто вузька',
+                desc: 'Виберіть, що відбувається, коли панель навігації та панель списку не вміщуються поруч.',
+                options: {
+                    none: 'Нічого не робити',
+                    singlePane: 'Перемкнутися на одну панель',
+                    vertical: 'Перемкнутися на вертикальний поділ'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Поріг вузької бічної панелі',
+                desc: 'Виберіть, як обчислюється поріг ширини бічної панелі.',
+                options: {
+                    fitPanes: 'Умістити панелі',
+                    customWidth: 'Користувацька ширина'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Ширина порога вузької бічної панелі',
+                desc: 'Перемикатися, коли бічна панель вужча за цю ширину.',
+                resetTooltip: 'Скинути до ширини за замовчуванням'
+            },
             appearanceBackground: {
                 name: 'Колір фону',
                 desc: 'Виберіть кольори фону для панелей навігації та списку.',
@@ -1298,6 +1340,10 @@ export const STRINGS_UK = {
             autoExpandNavItems: {
                 name: 'Розгортати при виборі',
                 desc: 'Розгортати папки та теги при виборі. У режимі однієї панелі перший вибір розгортає, другий показує файли.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Одна розгорнута гілка',
+                desc: 'Згортати інші гілки в тому самому дереві під час розгортання папки, тегу або властивості.'
             },
             springLoadedFolders: {
                 name: 'Розгортати під час перетягування',
@@ -2168,7 +2214,8 @@ export const STRINGS_UK = {
             },
             folderNoteTemplate: {
                 name: 'Шаблон нотатки теки',
-                desc: 'Файл шаблону для нових нотаток тек Markdown. Вкажіть розташування теки шаблонів у Операції з файлами > Шаблони.'
+                desc: 'Файл шаблону, який використовується під час створення нотаток тек. Шаблони Markdown можуть використовувати Templater. Шаблони Canvas і Base копіюються як вміст файлу. Вкажіть розташування теки шаблонів у Операції з файлами > Шаблони.',
+                formatWarning: 'Формат шаблону має відповідати вибраному типу нотатки теки: .md, .canvas або .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Назви папок відкривають нотатки папок',

@@ -20,7 +20,7 @@ import { useEffect, useRef } from 'react';
 import { TFile } from 'obsidian';
 import { debounce } from 'obsidian';
 import type { App, TFolder } from 'obsidian';
-import type { NotebookNavigatorSettings, PropertySortSecondaryOption, SortOption } from '../../settings';
+import type { NotebookNavigatorSettings, PropertySortSecondaryOption, SortOption } from '../../settings/types';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { OperationType, type CommandQueueService } from '../../services/CommandQueueService';
 import { shouldExcludeFileWithMatcher } from '../../utils/fileFilters';

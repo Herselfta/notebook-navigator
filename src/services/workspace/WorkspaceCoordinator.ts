@@ -19,7 +19,7 @@
 import { TFile, WorkspaceLeaf } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../main';
 import { NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, NOTEBOOK_NAVIGATOR_VIEW } from '../../types';
-import { NotebookNavigatorView } from '../../view/NotebookNavigatorView';
+import { isNotebookNavigatorView } from '../../view/viewGuards';
 import type { RevealFileOptions } from '../../hooks/useNavigatorReveal';
 
 /**
@@ -128,7 +128,7 @@ export default class WorkspaceCoordinator {
     revealFileInActualFolder(file: TFile, options?: RevealFileOptions): void {
         this.getNavigatorLeaves().forEach(leaf => {
             const { view } = leaf;
-            if (view instanceof NotebookNavigatorView) {
+            if (isNotebookNavigatorView(view)) {
                 view.navigateToFile(file, options);
             }
         });
@@ -141,7 +141,7 @@ export default class WorkspaceCoordinator {
     revealFileInNearestFolder(file: TFile, options?: RevealFileOptions): void {
         this.getNavigatorLeaves().forEach(leaf => {
             const { view } = leaf;
-            if (view instanceof NotebookNavigatorView) {
+            if (isNotebookNavigatorView(view)) {
                 view.revealFileInNearestFolder(file, options);
             }
         });

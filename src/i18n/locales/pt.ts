@@ -157,6 +157,8 @@ export const STRINGS_PT = {
         hideExcludedItems: 'Ocultar pastas, etiquetas e notas ocultas', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Mostrar painéis duplos', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Mostrar painel único', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Os painéis duplos não estão disponíveis quando a barra lateral é demasiado estreita. Para alterar isto, defina "Quando a barra lateral é demasiado estreita" como "Não fazer nada" em Definições > Aparência e comportamento.',
         changeAppearance: 'Alterar aparência', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Mostrar notas de subpastas',
         showFilesFromSubfolders: 'Mostrar ficheiros de subpastas',
@@ -494,6 +496,7 @@ export const STRINGS_PT = {
                 'nav-show-dual-pane': 'Mostrar painéis duplos',
                 'nav-profile-chevron': 'Seta do menu de perfil',
                 'list-search': 'Pesquisar',
+                'list-reveal-file': 'Revelar ficheiro',
                 'list-descendants': 'Notas de subpastas',
                 'list-sort-ascending': 'Ordem: crescente',
                 'list-sort-descending': 'Ordem: decrescente',
@@ -535,8 +538,22 @@ export const STRINGS_PT = {
             clearRecentColors: 'Limpar cores recentes',
             removeRecentColor: 'Remover cor',
             apply: 'Aplicar',
+            pickerLabel: 'Seletor',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Valor de cor hexadecimal',
+            saturationValueArea: 'Saturação e brilho',
+            hueSlider: 'Matiz',
+            alphaSlider: 'Transparência'
+        },
+        appearance: {
+            tabIcon: 'Ícone',
+            tabColor: 'Cor',
+            tabBackground: 'Fundo',
+            resetIcon: 'Remover ícone',
+            resetColor: 'Remover cor',
+            resetBackground: 'Remover fundo',
+            clear: 'Limpar estilo',
+            apply: 'Aplicar'
         },
         selectVaultProfile: {
             title: 'Selecionar perfil do cofre',
@@ -979,6 +996,9 @@ export const STRINGS_PT = {
             },
             navigation: {
                 appearance: 'Aparência',
+                banner: 'Banner',
+                dragAndDrop: 'Arrastar e largar',
+                noteCounts: 'Contagens de notas',
                 rainbowColors: 'Cores arco-íris',
                 leftSidebar: 'Barra lateral esquerda',
                 calendarIntegration: 'Integração do calendário'
@@ -1234,6 +1254,28 @@ export const STRINGS_PT = {
                     vertical: 'Divisão vertical'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Quando a barra lateral é demasiado estreita',
+                desc: 'Escolha o que acontece quando o painel de navegação e o painel de lista não cabem lado a lado.',
+                options: {
+                    none: 'Não fazer nada',
+                    singlePane: 'Mudar para painel único',
+                    vertical: 'Mudar para divisão vertical'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Limite de barra lateral estreita',
+                desc: 'Escolha como o limite de largura da barra lateral é calculado.',
+                options: {
+                    fitPanes: 'Ajustar painéis',
+                    customWidth: 'Largura personalizada'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Largura do limite de barra lateral estreita',
+                desc: 'Mudar quando a barra lateral for mais estreita do que esta largura.',
+                resetTooltip: 'Repor para a largura predefinida'
+            },
             appearanceBackground: {
                 name: 'Cor de fundo',
                 desc: 'Escolha cores de fundo para os painéis de navegação e lista.',
@@ -1301,6 +1343,10 @@ export const STRINGS_PT = {
             autoExpandNavItems: {
                 name: 'Expandir ao selecionar',
                 desc: 'Expandir pastas e etiquetas quando selecionadas. No modo de painel único, a primeira seleção expande, a segunda mostra ficheiros.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Um ramo expandido',
+                desc: 'Recolher outros ramos na mesma árvore ao expandir uma pasta, etiqueta ou propriedade.'
             },
             springLoadedFolders: {
                 name: 'Expandir ao arrastar',
@@ -2173,7 +2219,8 @@ export const STRINGS_PT = {
             },
             folderNoteTemplate: {
                 name: 'Modelo de nota de pasta',
-                desc: 'Ficheiro de modelo para novas notas de pasta Markdown. Definir localização da pasta de modelos em Operações de ficheiros > Modelos.'
+                desc: 'Ficheiro de modelo usado ao criar notas de pasta. Os modelos Markdown podem usar Templater. Os modelos Canvas e Base são copiados como conteúdo do ficheiro. Definir localização da pasta de modelos em Operações de ficheiros > Modelos.',
+                formatWarning: 'O formato do modelo deve corresponder ao tipo de nota de pasta selecionado: .md, .canvas ou .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Nomes de pastas abrem notas de pasta',

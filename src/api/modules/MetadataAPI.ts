@@ -32,7 +32,7 @@ import type {
     PinContext,
     Pinned
 } from '../types';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { PinnedNotes } from '../../types';
 import { deserializeIconFromFrontmatterStrict, serializeIconForFrontmatter } from '../../utils/iconizeFormat';
 import { normalizePropertyNodeId } from '../../utils/propertyTree';

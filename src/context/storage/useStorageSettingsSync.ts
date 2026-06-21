@@ -21,7 +21,7 @@ import type { TFile } from 'obsidian';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { ContentProviderType, FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { calculateFileDiff } from '../../storage/diffCalculator';
 import { type FileData as DBFileData } from '../../storage/IndexedDBStorage';
 import { getDBInstance, recordFileChanges, removeFilesFromCache } from '../../storage/fileOperations';

@@ -53,6 +53,7 @@ import {
     isPropertyTreeNodeId,
     type PropertySelectionNodeId
 } from '../utils/propertyTree';
+import { expandNavigationTreeItems } from '../utils/navigationExpansion';
 
 interface FocusPaneOptions {
     updateSinglePaneView?: boolean;
@@ -237,6 +238,42 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
         [includeDescendantNotes, settings.showRootFolder, expansionState.expandedFolders, app]
     );
 
+    const expandFolderPaths = useCallback(
+        (folderPaths: string[]) => {
+            expandNavigationTreeItems({
+                type: 'folder',
+                ids: folderPaths,
+                collapseOtherBranches: settings.collapseOtherBranchesOnExpand,
+                dispatch: expansionDispatch
+            });
+        },
+        [expansionDispatch, settings.collapseOtherBranchesOnExpand]
+    );
+
+    const expandTagPaths = useCallback(
+        (tagPaths: string[]) => {
+            expandNavigationTreeItems({
+                type: 'tag',
+                ids: tagPaths,
+                collapseOtherBranches: settings.collapseOtherBranchesOnExpand,
+                dispatch: expansionDispatch
+            });
+        },
+        [expansionDispatch, settings.collapseOtherBranchesOnExpand]
+    );
+
+    const expandPropertyNodeIds = useCallback(
+        (propertyNodeIds: string[]) => {
+            expandNavigationTreeItems({
+                type: 'property',
+                ids: propertyNodeIds,
+                collapseOtherBranches: settings.collapseOtherBranchesOnExpand,
+                dispatch: expansionDispatch
+            });
+        },
+        [expansionDispatch, settings.collapseOtherBranchesOnExpand]
+    );
+
     /**
      * Handles manual file reveals triggered from commands or context menus.
      * Selects the file, switches the view to its parent folder (always the real parent when descendant notes are shown),
@@ -279,7 +316,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
 
             if (shouldExpandFolders) {
                 // Expand collapsed ancestors to ensure the folder becomes visible in navigation pane
-                expansionDispatch({ type: 'EXPAND_FOLDERS', folderPaths: foldersToExpand });
+                expandFolderPaths(foldersToExpand);
             }
 
             // Switch selection to the file and its resolved folder so the list pane updates immediately
@@ -313,7 +350,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
         },
         [
             expansionState.expandedFolders,
-            expansionDispatch,
+            expandFolderPaths,
             selectionDispatch,
             uiState,
             uiDispatch,
@@ -338,6 +375,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     showAllTagsFolder: settings.showAllTagsFolder,
                     expandedTags: expansionState.expandedTags,
                     expandedVirtualFolders: expansionState.expandedVirtualFolders,
+                    collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
                     uiState: {
@@ -390,6 +428,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             selectionState.selectedFile,
             navigationPaneRef,
             settings.showAllTagsFolder,
+            settings.collapseOtherBranchesOnExpand,
             settings.showTags
         ]
     );
@@ -409,6 +448,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     propertyTree: getPropertyTree(),
                     expandedProperties: expansionState.expandedProperties,
                     expandedVirtualFolders: expansionState.expandedVirtualFolders,
+                    collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
                     uiState: {
@@ -461,6 +501,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             selectionState.selectedFile,
             navigationPaneRef,
             settings.showAllPropertiesFolder,
+            settings.collapseOtherBranchesOnExpand,
             settings.showProperties,
             getPropertyTree
         ]
@@ -542,7 +583,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                                 }
 
                                 if (tagsToExpand.some(path => !expansionState.expandedTags.has(path))) {
-                                    expansionDispatch({ type: 'EXPAND_TAGS', tagPaths: tagsToExpand });
+                                    expandTagPaths(tagsToExpand);
                                 }
                             }
 
@@ -596,7 +637,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                             }
 
                             if (!includeDescendantNotes && keyCollapsed && keyNodeId) {
-                                expansionDispatch({ type: 'EXPAND_PROPERTIES', propertyNodeIds: [keyNodeId] });
+                                expandPropertyNodeIds([keyNodeId]);
                             }
                         }
                     }
@@ -648,7 +689,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                         }
 
                         if (foldersToExpand.some(path => !expansionState.expandedFolders.has(path))) {
-                            expansionDispatch({ type: 'EXPAND_FOLDERS', folderPaths: foldersToExpand });
+                            expandFolderPaths(foldersToExpand);
                         }
                     }
                 } else {
@@ -664,7 +705,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     }
 
                     if (foldersToExpand.some(path => !expansionState.expandedFolders.has(path))) {
-                        expansionDispatch({ type: 'EXPAND_FOLDERS', folderPaths: foldersToExpand });
+                        expandFolderPaths(foldersToExpand);
                     }
                 }
             }
@@ -715,6 +756,9 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             expansionState.expandedProperties,
             expansionState.expandedVirtualFolders,
             expansionDispatch,
+            expandFolderPaths,
+            expandPropertyNodeIds,
+            expandTagPaths,
             selectionDispatch,
             getDB,
             getRevealTargetFolder,
@@ -749,7 +793,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             // Expand folders if needed
             const needsExpansion = foldersToExpand.some(path => !expansionState.expandedFolders.has(path));
             if (needsExpansion) {
-                expansionDispatch({ type: 'EXPAND_FOLDERS', folderPaths: foldersToExpand });
+                expandFolderPaths(foldersToExpand);
             }
 
             const suppressAutoSelect = Boolean(options?.suppressAutoSelect);
@@ -784,7 +828,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
         [
             app,
             expansionState.expandedFolders,
-            expansionDispatch,
+            expandFolderPaths,
             selectionDispatch,
             uiState,
             navigationPaneRef,
@@ -804,6 +848,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     showAllTagsFolder: settings.showAllTagsFolder,
                     expandedTags: expansionState.expandedTags,
                     expandedVirtualFolders: expansionState.expandedVirtualFolders,
+                    collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
                     uiState: {
@@ -833,6 +878,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             navigationPaneRef,
             selectionDispatch,
             settings.showAllTagsFolder,
+            settings.collapseOtherBranchesOnExpand,
             settings.showTags,
             uiDispatch,
             uiState.currentSinglePaneView,
@@ -853,6 +899,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     propertyTree: getPropertyTree(),
                     expandedProperties: expansionState.expandedProperties,
                     expandedVirtualFolders: expansionState.expandedVirtualFolders,
+                    collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
                     uiState: {
@@ -880,6 +927,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             navigationPaneRef,
             selectionDispatch,
             settings.showAllPropertiesFolder,
+            settings.collapseOtherBranchesOnExpand,
             settings.showProperties,
             uiDispatch,
             uiState.currentSinglePaneView,

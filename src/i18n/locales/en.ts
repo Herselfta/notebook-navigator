@@ -157,6 +157,8 @@ export const STRINGS_EN = {
         hideExcludedItems: 'Hide hidden folders, tags, and notes', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Show dual panes', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Show single pane', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Dual panes are unavailable when the sidebar is too narrow. To change this, set "When sidebar is too narrow" to "Do nothing" in Settings > Appearance & behavior.',
         changeAppearance: 'Change appearance', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Show notes from subfolders',
         showFilesFromSubfolders: 'Show files from subfolders',
@@ -492,6 +494,7 @@ export const STRINGS_EN = {
                 'nav-show-dual-pane': 'Show dual panes',
                 'nav-profile-chevron': 'Profile menu chevron',
                 'list-search': 'Search',
+                'list-reveal-file': 'Reveal file',
                 'list-descendants': 'Notes from subfolders',
                 'list-sort-ascending': 'Sort order: ascending',
                 'list-sort-descending': 'Sort order: descending',
@@ -533,8 +536,22 @@ export const STRINGS_EN = {
             clearRecentColors: 'Clear recent colors',
             removeRecentColor: 'Remove color',
             apply: 'Apply',
+            pickerLabel: 'Picker',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Hex color value',
+            saturationValueArea: 'Saturation and brightness',
+            hueSlider: 'Hue',
+            alphaSlider: 'Transparency'
+        },
+        appearance: {
+            tabIcon: 'Icon',
+            tabColor: 'Color',
+            tabBackground: 'Background',
+            resetIcon: 'Remove icon',
+            resetColor: 'Remove color',
+            resetBackground: 'Remove background',
+            clear: 'Clear style',
+            apply: 'Apply'
         },
         selectVaultProfile: {
             title: 'Select vault profile',
@@ -973,6 +990,9 @@ export const STRINGS_EN = {
             },
             navigation: {
                 appearance: 'Appearance',
+                banner: 'Banner',
+                dragAndDrop: 'Drag and drop',
+                noteCounts: 'Note counts',
                 rainbowColors: 'Rainbow colors',
                 leftSidebar: 'Left sidebar',
                 calendarIntegration: 'Calendar integration'
@@ -1228,6 +1248,28 @@ export const STRINGS_EN = {
                     vertical: 'Vertical split'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'When sidebar is too narrow',
+                desc: 'Choose what happens when the navigation pane and list pane do not fit side by side.',
+                options: {
+                    none: 'Do nothing',
+                    singlePane: 'Switch to single pane',
+                    vertical: 'Switch to vertical split'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Narrow sidebar threshold',
+                desc: 'Choose how the sidebar width threshold is calculated.',
+                options: {
+                    fitPanes: 'Fit panes',
+                    customWidth: 'Custom width'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Narrow sidebar threshold width',
+                desc: 'Switch when the sidebar is narrower than this width.',
+                resetTooltip: 'Reset to default width'
+            },
             appearanceBackground: {
                 name: 'Background color',
                 desc: 'Choose background colors for navigation and list panes.',
@@ -1295,6 +1337,10 @@ export const STRINGS_EN = {
             autoExpandNavItems: {
                 name: 'Expand on selection',
                 desc: 'Expand folders, tags, and properties when selected. In single pane mode, first selection expands, second selection shows files.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'One expanded branch',
+                desc: 'Collapse other branches in the same tree when expanding a folder, tag, or property.'
             },
             springLoadedFolders: {
                 name: 'Spring-loaded folders',
@@ -2163,7 +2209,8 @@ export const STRINGS_EN = {
             },
             folderNoteTemplate: {
                 name: 'Folder note template',
-                desc: 'Template file for new markdown folder notes. Set template folder location in File operations > Templates.'
+                desc: 'Template file used when creating folder notes. Markdown templates can use Templater. Canvas and Base templates are copied as file content. Set template folder location in File operations > Templates.',
+                formatWarning: 'Template format must match the selected folder note type: .md, .canvas, or .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Folder names open folder notes',

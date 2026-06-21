@@ -43,9 +43,17 @@ import { createDependentSettingsSection, setElementVisible, wireToggleSettingWit
 import { createSettingGroupFactory } from '../../settingGroups';
 import { addSettingSyncModeToggle } from '../../syncModeToggle';
 import type { FileOpenContext, MouseBackForwardAction } from '../../types';
-import { isHomepageSource, isMultiSelectModifier, isPeriodicHomepageSource } from '../../types';
+import {
+    isHomepageSource,
+    isMultiSelectModifier,
+    isPeriodicHomepageSource,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_DEFAULT,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_MAX,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_MIN,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_STEP
+} from '../../types';
 import { createSettingDescriptionWithExternalLink } from '../externalLink';
-import { renderSliderSetting } from '../SliderSetting';
+import { formatPixelSliderValue, renderSliderSetting } from '../SliderSetting';
 import type { SettingsTabContext } from '../SettingsTabContext';
 import { renderToolbarButtonsSetting } from '../ToolbarButtonsSetting';
 
@@ -260,11 +268,81 @@ function renderDesktopAppearanceSettings(context: SettingsTabContext, createGrou
                     .onChange(async value => {
                         const nextOrientation = value === 'vertical' ? 'vertical' : 'horizontal';
                         await plugin.setDualPaneOrientation(nextOrientation);
+                        context.refreshSettingsDomState();
                     });
             });
     });
 
     addSettingSyncModeToggle({ setting: dualPaneOrientationSetting, plugin, settingId: 'dualPaneOrientation' });
+
+    const showNarrowSidebarSettings = plugin.getDualPaneOrientation() === 'horizontal';
+
+    if (showNarrowSidebarSettings) {
+        const narrowSidebarLayoutSetting = desktopAppearanceGroup.addSetting(setting => {
+            setting
+                .setName(strings.settings.items.narrowSidebarLayout.name)
+                .setDesc(strings.settings.items.narrowSidebarLayout.desc)
+                .addDropdown(dropdown => {
+                    dropdown
+                        .addOptions({
+                            none: strings.settings.items.narrowSidebarLayout.options.none,
+                            singlePane: strings.settings.items.narrowSidebarLayout.options.singlePane,
+                            vertical: strings.settings.items.narrowSidebarLayout.options.vertical
+                        })
+                        .setValue(plugin.settings.narrowSidebarLayout)
+                        .onChange(value => {
+                            const nextLayout = value === 'vertical' || value === 'singlePane' ? value : 'none';
+                            plugin.setNarrowSidebarLayout(nextLayout);
+                            context.refreshSettingsDomState();
+                        });
+                });
+        });
+
+        addSettingSyncModeToggle({ setting: narrowSidebarLayoutSetting, plugin, settingId: 'narrowSidebarLayout' });
+
+        if (plugin.settings.narrowSidebarLayout !== 'none') {
+            const narrowSidebarTriggerSetting = desktopAppearanceGroup.addSetting(setting => {
+                setting
+                    .setName(strings.settings.items.narrowSidebarTrigger.name)
+                    .setDesc(strings.settings.items.narrowSidebarTrigger.desc)
+                    .addDropdown(dropdown => {
+                        dropdown
+                            .addOptions({
+                                fitPanes: strings.settings.items.narrowSidebarTrigger.options.fitPanes,
+                                customWidth: strings.settings.items.narrowSidebarTrigger.options.customWidth
+                            })
+                            .setValue(plugin.settings.narrowSidebarTriggerMode)
+                            .onChange(value => {
+                                plugin.setNarrowSidebarTriggerMode(value === 'customWidth' ? 'customWidth' : 'fitPanes');
+                                context.refreshSettingsDomState();
+                            });
+                    });
+            });
+
+            addSettingSyncModeToggle({ setting: narrowSidebarTriggerSetting, plugin, settingId: 'narrowSidebarTriggerMode' });
+        }
+
+        if (plugin.settings.narrowSidebarLayout !== 'none' && plugin.settings.narrowSidebarTriggerMode === 'customWidth') {
+            const narrowSidebarCustomWidthSetting = desktopAppearanceGroup.addSetting(setting => {
+                renderSliderSetting(setting, {
+                    name: strings.settings.items.narrowSidebarCustomWidth.name,
+                    desc: strings.settings.items.narrowSidebarCustomWidth.desc,
+                    value: plugin.settings.narrowSidebarCustomWidth,
+                    defaultValue: NARROW_SIDEBAR_CUSTOM_WIDTH_DEFAULT,
+                    min: NARROW_SIDEBAR_CUSTOM_WIDTH_MIN,
+                    max: NARROW_SIDEBAR_CUSTOM_WIDTH_MAX,
+                    step: NARROW_SIDEBAR_CUSTOM_WIDTH_STEP,
+                    resetTooltip: strings.settings.items.narrowSidebarCustomWidth.resetTooltip,
+                    formatValue: formatPixelSliderValue,
+                    onChange: value => {
+                        plugin.setNarrowSidebarCustomWidth(value);
+                    }
+                });
+            });
+
+            addSettingSyncModeToggle({ setting: narrowSidebarCustomWidthSetting, plugin, settingId: 'narrowSidebarCustomWidth' });
+        }
+    }
 
     desktopAppearanceGroup.addSetting(setting => {
         setting
@@ -371,7 +449,7 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
             max: MAX_PANE_TRANSITION_DURATION_MS,
             step: PANE_TRANSITION_DURATION_STEP_MS,
             resetTooltip: strings.settings.items.paneTransitionDuration.resetTooltip,
-            formatValue: value => `${value} ms`,
+            formatValue: value => `${value}ms`,
             onChange: value => {
                 plugin.setPaneTransitionDuration(value);
             }

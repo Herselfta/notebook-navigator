@@ -1434,14 +1434,6 @@ export class IndexedDBStorage {
         return this.previewTexts.ensurePreviewTextLoaded(path);
     }
 
-    /**
-     * Starts warming the preview text LRU cache in the background.
-     * Safe to call multiple times; warmup only runs once per session.
-     */
-    startPreviewTextWarmup(): void {
-        this.previewTexts.startPreviewTextWarmup();
-    }
-
     async deletePreviewText(path: string): Promise<void> {
         await this.previewTexts.deletePreviewText(path);
     }

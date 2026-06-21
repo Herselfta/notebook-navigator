@@ -18,7 +18,7 @@
 
 import { TFile } from 'obsidian';
 import { IContentProvider, type ContentProviderClearContext, type ContentProviderType } from '../../interfaces/IContentProvider';
-import { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 
 /**
  * Registry for managing content providers

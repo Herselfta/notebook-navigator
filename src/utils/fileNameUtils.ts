@@ -17,7 +17,7 @@
  */
 
 import { TFile } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 
 export const EXCALIDRAW_BASENAME_SUFFIX = '.excalidraw';
 const EXCALIDRAW_FRONTMATTER_KEY = 'excalidraw-plugin';

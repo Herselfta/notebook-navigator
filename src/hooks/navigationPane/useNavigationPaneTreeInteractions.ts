@@ -45,6 +45,12 @@ import { findTagNode } from '../../utils/tagTree';
 import { resolveCanonicalTagPath } from '../../utils/tagUtils';
 import { getTagSearchModifierOperator } from '../../utils/tagUtils';
 import { isVirtualTagCollectionId } from '../../utils/virtualTagCollections';
+import {
+    getFolderAncestorPaths,
+    getPropertyAncestorNodeIds,
+    getTagAncestorPaths,
+    toggleNavigationExpansionTarget
+} from '../../utils/navigationExpansion';
 
 interface ExpansionStateLike {
     expandedFolders: Set<string>;
@@ -135,9 +141,28 @@ export function useNavigationPaneTreeInteractions({
 
     const handleFolderToggle = useCallback(
         (path: string) => {
+            if (settings.collapseOtherBranchesOnExpand) {
+                const folder = app.vault.getFolderByPath(path);
+                if (folder) {
+                    toggleNavigationExpansionTarget(
+                        {
+                            type: 'folder',
+                            id: path,
+                            hasChildren: folder.children.some(child => child instanceof TFolder),
+                            ancestorIds: getFolderAncestorPaths(folder)
+                        },
+                        expansionState,
+                        expansionDispatch,
+                        'toggle',
+                        { collapseOtherBranches: true }
+                    );
+                    return;
+                }
+            }
+
             expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: path });
         },
-        [expansionDispatch]
+        [app.vault, expansionDispatch, expansionState, settings.collapseOtherBranchesOnExpand]
     );
 
     const handleFolderClick = useCallback(
@@ -157,13 +182,13 @@ export function useNavigationPaneTreeInteractions({
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder });
 
             if (shouldCollapseOnSelect) {
-                expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: folder.path });
+                handleFolderToggle(folder.path);
                 uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
                 return;
             }
 
             if (settings.autoExpandNavItems && hasChildFolders && !isExpanded) {
-                expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: folder.path });
+                handleFolderToggle(folder.path);
             }
 
             if (uiState.singlePane) {
@@ -180,8 +205,8 @@ export function useNavigationPaneTreeInteractions({
         },
         [
             clearActiveShortcut,
-            expansionDispatch,
             expansionState.expandedFolders,
+            handleFolderToggle,
             selectionDispatch,
             selectionState.selectedFolder,
             selectionState.selectionType,
@@ -265,16 +290,58 @@ export function useNavigationPaneTreeInteractions({
 
     const handleTagToggle = useCallback(
         (path: string) => {
+            if (settings.collapseOtherBranchesOnExpand) {
+                const tagNode = findTagNode(tagTree, path);
+                if (tagNode) {
+                    toggleNavigationExpansionTarget(
+                        {
+                            type: 'tag',
+                            id: tagNode.path,
+                            hasChildren: tagNode.children.size > 0,
+                            ancestorIds: getTagAncestorPaths(tagNode.path)
+                        },
+                        expansionState,
+                        expansionDispatch,
+                        'toggle',
+                        { collapseOtherBranches: true }
+                    );
+                    return;
+                }
+            }
+
             expansionDispatch({ type: 'TOGGLE_TAG_EXPANDED', tagPath: path });
         },
-        [expansionDispatch]
+        [expansionDispatch, expansionState, settings.collapseOtherBranchesOnExpand, tagTree]
     );
 
     const handlePropertyToggle = useCallback(
         (nodeId: string) => {
+            if (settings.collapseOtherBranchesOnExpand) {
+                const propertyNode =
+                    propertyTreeService?.findNode(nodeId) ??
+                    Array.from(propertyTree.values()).find(node => node.id === nodeId || node.children.has(nodeId)) ??
+                    null;
+                const targetNode = propertyNode?.id === nodeId ? propertyNode : propertyNode?.children.get(nodeId);
+                if (targetNode) {
+                    toggleNavigationExpansionTarget(
+                        {
+                            type: 'property',
+                            id: targetNode.id,
+                            hasChildren: targetNode.children.size > 0,
+                            ancestorIds: getPropertyAncestorNodeIds(targetNode.id)
+                        },
+                        expansionState,
+                        expansionDispatch,
+                        'toggle',
+                        { collapseOtherBranches: true }
+                    );
+                    return;
+                }
+            }
+
             expansionDispatch({ type: 'TOGGLE_PROPERTY_EXPANDED', propertyNodeId: nodeId });
         },
-        [expansionDispatch]
+        [expansionDispatch, expansionState, propertyTree, propertyTreeService, settings.collapseOtherBranchesOnExpand]
     );
 
     const handleVirtualFolderToggle = useCallback(
@@ -482,7 +549,7 @@ export function useNavigationPaneTreeInteractions({
                     if (isVirtualTagRoot) {
                         expansionDispatch({ type: 'TOGGLE_VIRTUAL_FOLDER_EXPANDED', folderId: TAGS_ROOT_VIRTUAL_FOLDER_ID });
                     } else if (tagNode) {
-                        expansionDispatch({ type: 'TOGGLE_TAG_EXPANDED', tagPath: tagNode.path });
+                        handleTagToggle(tagNode.path);
                     }
                 }
             });
@@ -492,6 +559,7 @@ export function useNavigationPaneTreeInteractions({
             expansionDispatch,
             expansionState.expandedTags,
             expansionState.expandedVirtualFolders,
+            handleTagToggle,
             isMobile,
             onModifySearchWithTag,
             selectionDispatch,
@@ -573,14 +641,14 @@ export function useNavigationPaneTreeInteractions({
                     });
                 },
                 onToggleExpand: () => {
-                    expansionDispatch({ type: 'TOGGLE_PROPERTY_EXPANDED', propertyNodeId: propertyNode.id });
+                    handlePropertyToggle(propertyNode.id);
                 }
             });
         },
         [
             applyTreeSelection,
-            expansionDispatch,
             expansionState.expandedProperties,
+            handlePropertyToggle,
             isMobile,
             onModifySearchWithProperty,
             selectionDispatch,

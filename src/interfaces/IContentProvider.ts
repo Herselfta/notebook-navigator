@@ -17,7 +17,7 @@
  */
 
 import { TFile } from 'obsidian';
-import { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 
 /**
  * Types of content providers.

@@ -22,7 +22,7 @@ import { App, TFile, TFolder } from 'obsidian';
 import { getFilesForFolder, getFilesForProperty, getFilesForTag } from '../../utils/fileFinder';
 import { localStorage } from '../../utils/localStorage';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API, type NotebookNavigatorAPI } from '../../api/NotebookNavigatorAPI';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, STORAGE_KEYS, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';
 import type { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';

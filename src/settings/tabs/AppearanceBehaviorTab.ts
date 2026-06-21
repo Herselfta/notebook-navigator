@@ -42,11 +42,18 @@ import {
     createToggleControlDefinition
 } from '../nativeSettingControls';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
-import { isHomepageSource, isPeriodicHomepageSource } from '../types';
+import {
+    isHomepageSource,
+    isPeriodicHomepageSource,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_DEFAULT,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_MAX,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_MIN,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_STEP
+} from '../types';
 import type { AppearanceBehaviorDropdownKey, AppearanceBehaviorToggleKey } from './AppearanceBehaviorControlBindings';
 import { createSettingDescriptionWithExternalLink } from './externalLink';
 import type { SettingsTabContext } from './SettingsTabContext';
-import { renderSliderSetting } from './SliderSetting';
+import { formatPixelSliderValue, renderSliderSetting } from './SliderSetting';
 import { renderToolbarButtonsSetting } from './ToolbarButtonsSetting';
 
 interface DefinitionOptions {
@@ -205,10 +212,54 @@ function createDesktopAppearanceDefinitionGroup(context: SettingsTabContext): Se
                             .setValue(plugin.getDualPaneOrientation())
                             .onChange(async value => {
                                 await plugin.setDualPaneOrientation(value === 'vertical' ? 'vertical' : 'horizontal');
+                                context.refreshSettingsDomState();
                             });
                     });
                 addSettingSyncModeToggle({ setting, plugin, settingId: 'dualPaneOrientation' });
             }
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.narrowSidebarLayout.name,
+            desc: strings.settings.items.narrowSidebarLayout.desc,
+            aliases: optionAliases(strings.settings.items.narrowSidebarLayout.options),
+            visible: () => plugin.getDualPaneOrientation() === 'horizontal',
+            render: setting => {
+                setting
+                    .setName(strings.settings.items.narrowSidebarLayout.name)
+                    .setDesc(strings.settings.items.narrowSidebarLayout.desc)
+                    .addDropdown(dropdown => {
+                        dropdown
+                            .addOptions({
+                                none: strings.settings.items.narrowSidebarLayout.options.none,
+                                singlePane: strings.settings.items.narrowSidebarLayout.options.singlePane,
+                                vertical: strings.settings.items.narrowSidebarLayout.options.vertical
+                            })
+                            .setValue(plugin.settings.narrowSidebarLayout)
+                            .onChange(value => {
+                                const nextLayout = value === 'vertical' || value === 'singlePane' ? value : 'none';
+                                plugin.setNarrowSidebarLayout(nextLayout);
+                                context.refreshSettingsDomState();
+                            });
+                    });
+                addSettingSyncModeToggle({ setting, plugin, settingId: 'narrowSidebarLayout' });
+            }
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.narrowSidebarTrigger.name,
+            desc: strings.settings.items.narrowSidebarTrigger.desc,
+            aliases: optionAliases(strings.settings.items.narrowSidebarTrigger.options),
+            visible: () => plugin.getDualPaneOrientation() === 'horizontal' && plugin.settings.narrowSidebarLayout !== 'none',
+            render: setting => renderNarrowSidebarTriggerSetting(setting, context)
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.narrowSidebarCustomWidth.name,
+            desc: strings.settings.items.narrowSidebarCustomWidth.desc,
+            aliases: [NARROW_SIDEBAR_CUSTOM_WIDTH_DEFAULT.toString(), strings.settings.items.narrowSidebarCustomWidth.resetTooltip],
+            visible: () =>
+                plugin.getDualPaneOrientation() === 'horizontal' &&
+                plugin.settings.narrowSidebarLayout !== 'none' &&
+                plugin.settings.narrowSidebarTriggerMode === 'customWidth',
+            render: setting => renderNarrowSidebarCustomWidthSetting(setting, context)
         }),
         createDropdownDefinition('desktopBackground', {
             name: strings.settings.items.appearanceBackground.name,
@@ -326,6 +377,7 @@ function createViewDefinitionGroup(context: SettingsTabContext): SettingDefiniti
                 strings.paneHeader.newFolder,
                 strings.paneHeader.showFolders,
                 strings.paneHeader.search,
+                strings.commands.revealFile,
                 strings.settings.items.includeDescendantNotes.name,
                 strings.paneHeader.changeSortAndGroup,
                 strings.paneHeader.changeAppearance,
@@ -432,13 +484,56 @@ function renderPaneTransitionSetting(setting: Setting, context: SettingsTabConte
         max: MAX_PANE_TRANSITION_DURATION_MS,
         step: PANE_TRANSITION_DURATION_STEP_MS,
         resetTooltip: strings.settings.items.paneTransitionDuration.resetTooltip,
-        formatValue: value => `${value} ms`,
+        formatValue: value => `${value}ms`,
         onChange: value => {
             plugin.setPaneTransitionDuration(value);
         }
     });
 
     addSettingSyncModeToggle({ setting, plugin, settingId: 'paneTransitionDuration' });
+}
+
+function renderNarrowSidebarTriggerSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    setting
+        .setName(strings.settings.items.narrowSidebarTrigger.name)
+        .setDesc(strings.settings.items.narrowSidebarTrigger.desc)
+        .addDropdown(dropdown => {
+            dropdown
+                .addOptions({
+                    fitPanes: strings.settings.items.narrowSidebarTrigger.options.fitPanes,
+                    customWidth: strings.settings.items.narrowSidebarTrigger.options.customWidth
+                })
+                .setValue(plugin.settings.narrowSidebarTriggerMode)
+                .onChange(value => {
+                    plugin.setNarrowSidebarTriggerMode(value === 'customWidth' ? 'customWidth' : 'fitPanes');
+                    context.refreshSettingsDomState();
+                });
+        });
+
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'narrowSidebarTriggerMode' });
+}
+
+function renderNarrowSidebarCustomWidthSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    renderSliderSetting(setting, {
+        name: strings.settings.items.narrowSidebarCustomWidth.name,
+        desc: strings.settings.items.narrowSidebarCustomWidth.desc,
+        value: plugin.settings.narrowSidebarCustomWidth,
+        defaultValue: NARROW_SIDEBAR_CUSTOM_WIDTH_DEFAULT,
+        min: NARROW_SIDEBAR_CUSTOM_WIDTH_MIN,
+        max: NARROW_SIDEBAR_CUSTOM_WIDTH_MAX,
+        step: NARROW_SIDEBAR_CUSTOM_WIDTH_STEP,
+        resetTooltip: strings.settings.items.narrowSidebarCustomWidth.resetTooltip,
+        formatValue: formatPixelSliderValue,
+        onChange: value => {
+            plugin.setNarrowSidebarCustomWidth(value);
+        }
+    });
+
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'narrowSidebarCustomWidth' });
 }
 
 function renderHomepageSetting(setting: Setting, context: SettingsTabContext): void {

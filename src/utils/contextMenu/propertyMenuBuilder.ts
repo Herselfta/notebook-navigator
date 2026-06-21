@@ -190,24 +190,28 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
     });
     menu.addSeparator();
 
-    if (settings.showPropertyIcons) {
-        menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), async () => {
-                const { IconPickerModal } = await import('../../modals/IconPickerModal');
-                const modal = new IconPickerModal(app, metadataService, normalizedNodeId, ItemType.PROPERTY, { titleOverride: label });
-                modal.open();
-            });
-        });
-    }
+    const openAppearanceModal = async (initialTab: 'icon' | 'color' | 'background'): Promise<void> => {
+        const { AppearanceModal } = await import('../../modals/AppearanceModal');
+        const modal = new AppearanceModal(app, {
+            title: label,
+            metadataService,
+            initialTab,
+            icon: settings.showPropertyIcons
+                ? {
+                      initial: metadataService.getPropertyIcon(normalizedNodeId) ?? null,
+                      apply: async iconId => {
+                          if (iconId === null) {
+                              await metadataService.removePropertyIcon(normalizedNodeId);
+                              return;
+                          }
 
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, {
-                title: label,
-                initialColor: metadataService.getPropertyColor(normalizedNodeId) ?? null,
-                settingsProvider: metadataService.getSettingsProvider(),
-                onChooseColor: async color => {
+                          await metadataService.setPropertyIcon(normalizedNodeId, iconId);
+                      }
+                  }
+                : undefined,
+            color: {
+                initial: metadataService.getPropertyColor(normalizedNodeId) ?? null,
+                apply: async color => {
                     if (color === null) {
                         await metadataService.removePropertyColor(normalizedNodeId);
                         return;
@@ -215,19 +219,10 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
 
                     await metadataService.setPropertyColor(normalizedNodeId, color);
                 }
-            });
-            modal.open();
-        });
-    });
-
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, {
-                title: label,
-                initialColor: metadataService.getPropertyBackgroundColor(normalizedNodeId) ?? null,
-                settingsProvider: metadataService.getSettingsProvider(),
-                onChooseColor: async color => {
+            },
+            background: {
+                initial: metadataService.getPropertyBackgroundColor(normalizedNodeId) ?? null,
+                apply: async color => {
                     if (color === null) {
                         await metadataService.removePropertyBackgroundColor(normalizedNodeId);
                         return;
@@ -235,12 +230,73 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
 
                     await metadataService.setPropertyBackgroundColor(normalizedNodeId, color);
                 }
+            }
+        });
+        modal.open();
+    };
+
+    if (settings.showPropertyIcons) {
+        menu.addItem((item: MenuItem) => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeIcon).setIcon('lucide-image'), () => {
+                return openAppearanceModal('icon');
             });
-            modal.open();
+        });
+    }
+
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeColor).setIcon('lucide-palette'), () => {
+            return openAppearanceModal('color');
         });
     });
 
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.tag.changeBackground).setIcon('lucide-paint-bucket'), () => {
+            return openAppearanceModal('background');
+        });
+    });
+
+    const propertyIcon = metadataService.getPropertyIcon(normalizedNodeId);
+    const propertyColorData = metadataService.getPropertyColorData(normalizedNodeId);
+    const propertyColor = propertyColorData.color;
+    const propertyBackgroundColor = propertyColorData.background;
+    const directPropertyIcon = settings.propertyIcons?.[normalizedNodeId];
+    const directPropertyColor = settings.propertyColors?.[normalizedNodeId];
+    const directPropertyBackground = settings.propertyBackgroundColors?.[normalizedNodeId];
+
+    addStyleMenu({
+        menu,
+        styleData: {
+            icon: propertyIcon,
+            color: propertyColor,
+            background: propertyBackgroundColor
+        },
+        hasIcon: settings.showPropertyIcons,
+        hasColor: true,
+        hasBackground: true,
+        applyStyle: async clipboard => {
+            const { icon, color, background } = clipboard;
+            const actions: Promise<void>[] = [];
+
+            if (icon) {
+                actions.push(metadataService.setPropertyIcon(normalizedNodeId, icon));
+            }
+            if (color) {
+                actions.push(metadataService.setPropertyColor(normalizedNodeId, color));
+            }
+            if (background) {
+                actions.push(metadataService.setPropertyBackgroundColor(normalizedNodeId, background));
+            }
+
+            await Promise.all(actions);
+        },
+        removeIcon: directPropertyIcon ? async () => metadataService.removePropertyIcon(normalizedNodeId) : undefined,
+        removeColor: directPropertyColor ? async () => metadataService.removePropertyColor(normalizedNodeId) : undefined,
+        removeBackground: directPropertyBackground ? async () => metadataService.removePropertyBackgroundColor(normalizedNodeId) : undefined
+    });
+
     if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        menu.addSeparator();
+
         menu.addItem((item: MenuItem) => {
             const currentOverride = metadataService.getPropertyChildSortOrderOverride(normalizedNodeId);
             const effectiveOrder = currentOverride ?? settings.propertySortOrder;
@@ -299,45 +355,6 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
             });
         });
     }
-
-    const propertyIcon = metadataService.getPropertyIcon(normalizedNodeId);
-    const propertyColorData = metadataService.getPropertyColorData(normalizedNodeId);
-    const propertyColor = propertyColorData.color;
-    const propertyBackgroundColor = propertyColorData.background;
-    const directPropertyIcon = settings.propertyIcons?.[normalizedNodeId];
-    const directPropertyColor = settings.propertyColors?.[normalizedNodeId];
-    const directPropertyBackground = settings.propertyBackgroundColors?.[normalizedNodeId];
-
-    addStyleMenu({
-        menu,
-        styleData: {
-            icon: propertyIcon,
-            color: propertyColor,
-            background: propertyBackgroundColor
-        },
-        hasIcon: settings.showPropertyIcons,
-        hasColor: true,
-        hasBackground: true,
-        applyStyle: async clipboard => {
-            const { icon, color, background } = clipboard;
-            const actions: Promise<void>[] = [];
-
-            if (icon) {
-                actions.push(metadataService.setPropertyIcon(normalizedNodeId, icon));
-            }
-            if (color) {
-                actions.push(metadataService.setPropertyColor(normalizedNodeId, color));
-            }
-            if (background) {
-                actions.push(metadataService.setPropertyBackgroundColor(normalizedNodeId, background));
-            }
-
-            await Promise.all(actions);
-        },
-        removeIcon: directPropertyIcon ? async () => metadataService.removePropertyIcon(normalizedNodeId) : undefined,
-        removeColor: directPropertyColor ? async () => metadataService.removePropertyColor(normalizedNodeId) : undefined,
-        removeBackground: directPropertyBackground ? async () => metadataService.removePropertyBackgroundColor(normalizedNodeId) : undefined
-    });
 
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
     const shouldAddShortcutSectionSeparator = Boolean(services.shortcuts) || !disableNavigationSeparatorActions;

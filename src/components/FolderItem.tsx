@@ -57,7 +57,7 @@ import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useContextMenu, hideNavigatorContextMenu } from '../hooks/useContextMenu';
 import { getIconService, useIconServiceVersion } from '../services/icons';
 import { getTooltipPlacement } from '../utils/domUtils';
-import { getFolderNote } from '../utils/folderNotes';
+import { getFolderNote } from '../utils/folderNoteLookup';
 import { hasSubfolders } from '../utils/fileFilters';
 import { IndentGuideColumns } from './IndentGuideColumns';
 import type { NoteCountInfo } from '../types/noteCounts';

@@ -23,7 +23,7 @@ import { TIMEOUTS } from '../../types/obsidian-extended';
 import type { PropertyTreeService } from '../../services/PropertyTreeService';
 import { getDBInstance } from '../../storage/fileOperations';
 import type { StorageFileData } from './storageFileData';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { FileVisibility } from '../../utils/fileTypeUtils';
 import {
     buildPropertyKeyNodeId,

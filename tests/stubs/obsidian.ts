@@ -185,6 +185,39 @@ export class Plugin {
     }
 }
 
+export type SettingDefinitionItem = Record<string, unknown>;
+
+export class PluginSettingTab {
+    app: App;
+    plugin: Plugin;
+    icon = '';
+    containerEl = { isConnected: false } as HTMLElement;
+    settingItems: SettingDefinitionItem[] = [];
+
+    constructor(app: App, plugin: Plugin) {
+        this.app = app;
+        this.plugin = plugin;
+    }
+
+    getSettingDefinitions(): SettingDefinitionItem[] {
+        return [];
+    }
+
+    getControlValue(): unknown {
+        return undefined;
+    }
+
+    setControlValue(): void {}
+
+    display(): void {}
+
+    hide(): void {}
+
+    update(): void {
+        this.settingItems = this.getSettingDefinitions();
+    }
+}
+
 export class Menu {}
 export class MenuItem {}
 export class Setting {}
@@ -232,6 +265,7 @@ export const getIconIds = () => [
     'lucide-book-open'
 ];
 export const getLanguage = () => 'en';
+export const requireApiVersion = () => true;
 type RequestUrlResponse = {
     status: number;
     arrayBuffer?: ArrayBuffer;

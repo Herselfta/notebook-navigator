@@ -18,7 +18,7 @@
 
 import { TFile, TFolder, normalizePath } from 'obsidian';
 import type { App } from 'obsidian';
-import type { AlphaSortOrder, NotebookNavigatorSettings, SortOption } from '../../settings';
+import type { AlphaSortOrder, ListNoteGroupingOption, NotebookNavigatorSettings, SortOption } from '../../settings/types';
 import { ListPaneItemType, ItemType, PINNED_SECTION_HEADER_KEY } from '../../types';
 import type { ListPaneItem } from '../../types/virtualization';
 import { strings } from '../../i18n';
@@ -40,7 +40,6 @@ import { DateUtils } from '../../utils/dateUtils';
 import { buildListGroupCollapseKey } from '../../utils/listGroupCollapse';
 import type { SearchResultMeta } from '../../types/search';
 import type { IndexedDBStorage } from '../../storage/IndexedDBStorage';
-import type { ListNoteGroupingOption } from '../../settings/types';
 import type { PropertySelectionNodeId } from '../../utils/propertyTree';
 import type { ListPaneFolderPathSegment } from '../../types/virtualization';
 

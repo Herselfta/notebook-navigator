@@ -24,7 +24,7 @@ import { ServicesProvider } from '../context/ServicesContext';
 import { CalendarRightSidebar } from '../components/CalendarRightSidebar';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
 import { strings } from '../i18n';
-import NotebookNavigatorPlugin from '../main';
+import type NotebookNavigatorPlugin from '../main';
 import { NOTEBOOK_NAVIGATOR_CALENDAR_VIEW } from '../types';
 import {
     IOS_FLOATING_TOOLBARS_CLASS,

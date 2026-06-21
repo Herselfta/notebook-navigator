@@ -22,6 +22,8 @@ import { ItemView, WorkspaceLeaf, TFile, Platform, TFolder } from 'obsidian';
 import { NotebookNavigatorContainer } from '../components/NotebookNavigatorContainer';
 import type { NotebookNavigatorHandle } from '../components/NotebookNavigatorComponent';
 import type { RevealFileOptions, NavigateToFolderOptions } from '../hooks/useNavigatorReveal';
+import type { NavigateToPropertyOptions } from '../utils/propertyNavigation';
+import type { NavigateToTagOptions } from '../utils/tagNavigation';
 import { ExpansionProvider } from '../context/ExpansionContext';
 import { SelectionProvider } from '../context/SelectionContext';
 import { ServicesProvider } from '../context/ServicesContext';
@@ -31,7 +33,7 @@ import { UIStateProvider } from '../context/UIStateContext';
 import { ShortcutsProvider } from '../context/ShortcutsContext';
 import { RecentDataProvider } from '../context/RecentDataContext';
 import { strings } from '../i18n';
-import NotebookNavigatorPlugin from '../main';
+import type NotebookNavigatorPlugin from '../main';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
 import { NOTEBOOK_NAVIGATOR_VIEW } from '../types';
 import { UXPreferencesProvider } from '../context/UXPreferencesContext';
@@ -351,15 +353,15 @@ export class NotebookNavigatorView extends ItemView {
     /**
      * Navigates directly to the provided tag path
      */
-    navigateToTag(tagPath: string) {
-        return this.componentHandle?.navigateToTag(tagPath) ?? null;
+    navigateToTag(tagPath: string, options?: NavigateToTagOptions) {
+        return this.componentHandle?.navigateToTag(tagPath, options) ?? null;
     }
 
     /**
      * Navigates directly to the provided property node id
      */
-    navigateToProperty(propertyNodeId: string) {
-        return this.componentHandle?.navigateToProperty(propertyNodeId) ?? null;
+    navigateToProperty(propertyNodeId: string, options?: NavigateToPropertyOptions) {
+        return this.componentHandle?.navigateToProperty(propertyNodeId, options) ?? null;
     }
 
     /**
@@ -381,6 +383,10 @@ export class NotebookNavigatorView extends ItemView {
      */
     focusNavigationPane() {
         this.componentHandle?.focusNavigationPane();
+    }
+
+    isDualPaneAutoFallbackActive(): boolean {
+        return this.componentHandle?.isDualPaneAutoFallbackActive() ?? false;
     }
 
     /**

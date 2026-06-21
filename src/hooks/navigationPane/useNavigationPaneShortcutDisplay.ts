@@ -22,7 +22,7 @@ import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { NoteCountInfo } from '../../types/noteCounts';
 import { strings } from '../../i18n';
 import type { FileVisibility } from '../../utils/fileTypeUtils';
-import { getFolderNoteDetectionSettings } from '../../utils/folderNotes';
+import { getFolderNoteDetectionSettings } from '../../utils/folderNoteLookup';
 import { calculateFolderNoteCounts } from '../../utils/noteCountUtils';
 import { createTagNoteCountInfo, findTagNode } from '../../utils/tagTree';
 import { PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../../types';

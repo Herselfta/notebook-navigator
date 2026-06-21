@@ -471,17 +471,14 @@ export function useListPaneSelectionCoordinator({
             selectedFile &&
             !isUserSelectionRef.current &&
             settings.autoSelectFirstFileOnFocusChange &&
-            !isMobile
+            !isMobile &&
+            isFolderChangeWithAutoSelect &&
+            !settings.enterToOpenFiles
         ) {
-            const navigatorEl = activeDocument.querySelector('.nn-split-container');
-            const hasNavigatorFocus = navigatorEl instanceof HTMLElement && navigatorEl.contains(activeDocument.activeElement);
-
-            if ((!hasNavigatorFocus || isFolderChangeWithAutoSelect) && !settings.enterToOpenFiles) {
-                if (shouldDebounceFolderAutoOpen) {
-                    scheduleKeyboardOpen(selectedFile);
-                } else {
-                    openFileInWorkspace(selectedFile);
-                }
+            if (shouldDebounceFolderAutoOpen) {
+                scheduleKeyboardOpen(selectedFile);
+            } else {
+                openFileInWorkspace(selectedFile);
             }
         }
 

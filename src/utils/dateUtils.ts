@@ -19,7 +19,7 @@
 import { TFile } from 'obsidian';
 
 import { strings, getCurrentLanguage } from '../i18n';
-import { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import { getMomentApi, resolveMomentLocale, type MomentApi } from './moment';
 
 // Example ISO 8601 moment format string used as a settings placeholder

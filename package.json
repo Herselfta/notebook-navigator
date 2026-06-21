@@ -1,6 +1,6 @@
 {
   "name": "notebook-navigator",
-  "version": "3.1.2",
+  "version": "3.1.4",
   "description": "Replace the default file explorer with a clean two-pane interface featuring folder tree, tag browsing, file previews, keyboard navigation, drag-and-drop, pinned notes, and customizable display options.",
   "main": "main.js",
   "engines": {
@@ -26,24 +26,24 @@
   "devDependencies": {
     "@eslint/compat": "^2.1.0",
     "@eslint/js": "^9.39.4",
-    "@types/node": "^25.9.2",
+    "@types/node": "^25.9.3",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@vitest/coverage-v8": "^4.1.8",
-    "esbuild": "^0.28.0",
+    "esbuild": "^0.28.1",
     "eslint": "^9.39.4",
     "eslint-plugin-obsidianmd": "^0.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.6.0",
     "knip": "^6.16.1",
-    "obsidian": "^1.13.0",
-    "prettier": "^3.8.3",
+    "obsidian": "^1.13.1",
+    "prettier": "^3.8.4",
     "stylelint": "^17.13.0",
     "stylelint-no-unsupported-browser-features": "^8.1.1",
     "tslib": "^2.8.1",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.60.1",
+    "typescript-eslint": "^8.61.0",
     "vitest": "^4.1.5"
   },
   "dependencies": {

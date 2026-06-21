@@ -27,6 +27,7 @@ import {
     type PropertySelectionNodeId
 } from './propertyTree';
 import type { PropertyTreeNode } from '../types/storage';
+import { expandNavigationTreeItems } from './navigationExpansion';
 
 type Dispatch<T> = (action: T) => void;
 
@@ -49,6 +50,7 @@ export interface PropertyNavigationEnvironment {
     propertyTree: ReadonlyMap<string, PropertyTreeNode>;
     expandedProperties: Set<string>;
     expandedVirtualFolders: Set<string>;
+    collapseOtherBranchesOnExpand?: boolean;
     expansionDispatch: Dispatch<ExpansionAction>;
     selectionDispatch: Dispatch<SelectionAction>;
     uiState: {
@@ -168,7 +170,12 @@ export function navigateToProperty(
         keyNodeId !== resolvedNodeId &&
         !env.expandedProperties.has(keyNodeId);
     if (keyNeedsExpansion) {
-        env.expansionDispatch({ type: 'EXPAND_PROPERTIES', propertyNodeIds: [keyNodeId] });
+        expandNavigationTreeItems({
+            type: 'property',
+            ids: [keyNodeId],
+            collapseOtherBranches: Boolean(env.collapseOtherBranchesOnExpand),
+            dispatch: env.expansionDispatch
+        });
     }
 
     selectPropertyAndFocus(env, resolvedNodeId, options);

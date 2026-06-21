@@ -157,6 +157,8 @@ export const STRINGS_TR = {
         hideExcludedItems: 'Gizli klasörleri, etiketleri ve notları gizle', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Çift bölme göster', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Tek bölme göster', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Kenar çubuğu çok dar olduğunda çift bölmeler kullanılamaz. Bunu değiştirmek için Ayarlar > Görünüm ve davranış altında "Kenar çubuğu çok dar olduğunda" ayarını "Hiçbir şey yapma" olarak ayarlayın.',
         changeAppearance: 'Görünümü değiştir', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Alt klasörlerden notları göster',
         showFilesFromSubfolders: 'Alt klasörlerden dosyaları göster',
@@ -493,6 +495,7 @@ export const STRINGS_TR = {
                 'nav-show-dual-pane': 'Çift bölme göster',
                 'nav-profile-chevron': 'Profil menüsü oku',
                 'list-search': 'Ara',
+                'list-reveal-file': 'Dosyayı göster',
                 'list-descendants': 'Alt klasörlerden notlar',
                 'list-sort-ascending': 'Sıralama: artan',
                 'list-sort-descending': 'Sıralama: azalan',
@@ -534,8 +537,22 @@ export const STRINGS_TR = {
             clearRecentColors: 'Son renkleri temizle',
             removeRecentColor: 'Rengi kaldır',
             apply: 'Uygula',
+            pickerLabel: 'Seçici',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'HEX renk değeri',
+            saturationValueArea: 'Doygunluk ve parlaklık',
+            hueSlider: 'Ton',
+            alphaSlider: 'Saydamlık'
+        },
+        appearance: {
+            tabIcon: 'Simge',
+            tabColor: 'Renk',
+            tabBackground: 'Arka plan',
+            resetIcon: 'Simgeyi kaldır',
+            resetColor: 'Rengi kaldır',
+            resetBackground: 'Arka planı kaldır',
+            clear: 'Stili temizle',
+            apply: 'Uygula'
         },
         selectVaultProfile: {
             title: 'Kasa profili seç',
@@ -977,6 +994,9 @@ export const STRINGS_TR = {
             },
             navigation: {
                 appearance: 'Görünüm',
+                banner: 'Afiş',
+                dragAndDrop: 'Sürükle ve bırak',
+                noteCounts: 'Not sayıları',
                 rainbowColors: 'Gökkuşağı renkleri',
                 leftSidebar: 'Sol kenar çubuğu',
                 calendarIntegration: 'Takvim entegrasyonu'
@@ -1232,6 +1252,28 @@ export const STRINGS_TR = {
                     vertical: 'Dikey bölme'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Kenar çubuğu çok dar olduğunda',
+                desc: 'Gezinme bölmesi ve liste bölmesi yan yana sığmadığında ne olacağını seçin.',
+                options: {
+                    none: 'Hiçbir şey yapma',
+                    singlePane: 'Tek bölmeye geç',
+                    vertical: 'Dikey bölmeye geç'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Dar kenar çubuğu eşiği',
+                desc: 'Kenar çubuğu genişlik eşiğinin nasıl hesaplanacağını seçin.',
+                options: {
+                    fitPanes: 'Bölmeleri sığdır',
+                    customWidth: 'Özel genişlik'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Dar kenar çubuğu eşik genişliği',
+                desc: 'Kenar çubuğu bu genişlikten daha darsa geçiş yap.',
+                resetTooltip: 'Varsayılan genişliğe sıfırla'
+            },
             appearanceBackground: {
                 name: 'Arka plan rengi',
                 desc: 'Gezinme ve liste bölmeleri için arka plan renklerini seçin.',
@@ -1299,6 +1341,10 @@ export const STRINGS_TR = {
             autoExpandNavItems: {
                 name: 'Seçimde genişlet',
                 desc: 'Seçildiğinde klasörleri ve etiketleri genişlet. Tek bölme modunda ilk seçim genişletir, ikinci seçim dosyaları gösterir.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Tek genişletilmiş dal',
+                desc: 'Bir klasör, etiket veya özellik genişletildiğinde aynı ağaçtaki diğer dalları daralt.'
             },
             springLoadedFolders: {
                 name: 'Sürüklerken genişlet',
@@ -2169,7 +2215,8 @@ export const STRINGS_TR = {
             },
             folderNoteTemplate: {
                 name: 'Klasör notu şablonu',
-                desc: 'Yeni Markdown klasör notları için şablon dosyası. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.'
+                desc: 'Klasör notları oluşturulurken kullanılan şablon dosyası. Markdown şablonları Templater kullanabilir. Canvas ve Base şablonları dosya içeriği olarak kopyalanır. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.',
+                formatWarning: 'Şablon biçimi seçilen klasör notu türüyle eşleşmelidir: .md, .canvas veya .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Klasör adları klasör notlarını açar',

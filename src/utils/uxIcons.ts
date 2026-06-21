@@ -42,6 +42,7 @@ export type UXIconId =
     | 'nav-property'
     | 'nav-property-value'
     | 'list-search'
+    | 'list-reveal-file'
     | 'list-descendants'
     | 'list-sort-ascending'
     | 'list-sort-descending'
@@ -88,6 +89,7 @@ export const UX_ICON_DEFINITIONS: UXIconDefinition[] = [
     { id: 'nav-property', category: 'properties', defaultIconId: 'align-left' },
     { id: 'nav-property-value', category: 'properties', defaultIconId: 'equal' },
     { id: 'list-search', category: 'listPane', defaultIconId: 'search' },
+    { id: 'list-reveal-file', category: 'listPane', defaultIconId: 'locate-fixed' },
     { id: 'list-descendants', category: 'listPane', defaultIconId: 'layers' },
     { id: 'list-sort-ascending', category: 'listPane', defaultIconId: 'sort-asc' },
     { id: 'list-sort-descending', category: 'listPane', defaultIconId: 'sort-desc' },

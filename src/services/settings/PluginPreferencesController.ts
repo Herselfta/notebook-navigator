@@ -20,16 +20,20 @@ import { Platform } from 'obsidian';
 
 import { MAX_RECENT_COLORS } from '../../constants/colorPalette';
 import { DEFAULT_SETTINGS } from '../../settings/defaultSettings';
-import type {
-    AlphaSortOrder,
-    CalendarLeftPlacement,
-    CalendarPlacement,
-    CalendarWeeksToShow,
-    FeatureImagePixelSizeSetting,
-    FeatureImageSizeSetting,
-    NotebookNavigatorSettings,
-    SyncModeSettingId,
-    TagSortOrder
+import {
+    NARROW_SIDEBAR_CUSTOM_WIDTH_MAX,
+    NARROW_SIDEBAR_CUSTOM_WIDTH_MIN,
+    type AlphaSortOrder,
+    type CalendarLeftPlacement,
+    type CalendarPlacement,
+    type CalendarWeeksToShow,
+    type FeatureImagePixelSizeSetting,
+    type FeatureImageSizeSetting,
+    type NotebookNavigatorSettings,
+    type NarrowSidebarLayout,
+    type NarrowSidebarTriggerMode,
+    type SyncModeSettingId,
+    type TagSortOrder
 } from '../../settings/types';
 import RecentDataManager from '../recent/RecentDataManager';
 import { localStorage } from '../../utils/localStorage';
@@ -209,6 +213,47 @@ export class PluginPreferencesController {
         settings.dualPaneOrientation = normalized;
         localStorage.set(this.options.keys.dualPaneOrientationKey, normalized);
         await this.options.persistSyncModeSettingUpdateAsync('dualPaneOrientation');
+    }
+
+    public setNarrowSidebarLayout(layout: NarrowSidebarLayout): void {
+        const normalized: NarrowSidebarLayout = layout === 'vertical' || layout === 'singlePane' ? layout : 'none';
+        const settings = this.options.getSettings();
+        if (settings.narrowSidebarLayout === normalized) {
+            return;
+        }
+
+        settings.narrowSidebarLayout = normalized;
+        localStorage.set(this.options.keys.narrowSidebarLayoutKey, normalized);
+        this.options.persistSyncModeSettingUpdate('narrowSidebarLayout');
+    }
+
+    public setNarrowSidebarTriggerMode(mode: NarrowSidebarTriggerMode): void {
+        const normalized: NarrowSidebarTriggerMode = mode === 'customWidth' ? 'customWidth' : 'fitPanes';
+        const settings = this.options.getSettings();
+        if (settings.narrowSidebarTriggerMode === normalized) {
+            return;
+        }
+
+        settings.narrowSidebarTriggerMode = normalized;
+        localStorage.set(this.options.keys.narrowSidebarTriggerModeKey, normalized);
+        this.options.persistSyncModeSettingUpdate('narrowSidebarTriggerMode');
+    }
+
+    public setNarrowSidebarCustomWidth(width: number): void {
+        if (!Number.isFinite(width)) {
+            return;
+        }
+
+        const rounded = Math.round(width);
+        const normalized = Math.min(NARROW_SIDEBAR_CUSTOM_WIDTH_MAX, Math.max(NARROW_SIDEBAR_CUSTOM_WIDTH_MIN, rounded));
+        const settings = this.options.getSettings();
+        if (settings.narrowSidebarCustomWidth === normalized) {
+            return;
+        }
+
+        settings.narrowSidebarCustomWidth = normalized;
+        localStorage.set(this.options.keys.narrowSidebarCustomWidthKey, normalized);
+        this.options.persistSyncModeSettingUpdate('narrowSidebarCustomWidth');
     }
 
     public getUIScale(): number {

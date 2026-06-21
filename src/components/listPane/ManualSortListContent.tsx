@@ -24,7 +24,7 @@ import { Menu, TFile, type App } from 'obsidian';
 import { useMetadataService, useServices } from '../../context/ServicesContext';
 import { useSettingsState } from '../../context/SettingsContext';
 import { strings } from '../../i18n';
-import type { SortOption } from '../../settings';
+import type { SortOption } from '../../settings/types';
 import { ListPaneItemType, type NavigationItemType } from '../../types';
 import type { ListPaneItem } from '../../types/virtualization';
 import type { ListPaneAppearanceSettings } from '../../hooks/useListPaneAppearance';

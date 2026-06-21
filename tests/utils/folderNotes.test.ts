@@ -20,11 +20,19 @@ import { App, Plugin, TFile, TFolder } from 'obsidian';
 import { describe, expect, it, vi } from 'vitest';
 import { TEMPLATER_PLUGIN_ID } from '../../src/constants/pluginIds';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
-import { createFolderNote, getFolderNote, isFolderNote, resolveFolderNoteNameForFolder } from '../../src/utils/folderNotes';
+import {
+    createFolderNote,
+    getFolderNote,
+    isFolderNote,
+    isFolderNoteTemplateCompatible,
+    resolveFolderNoteNameForFolder
+} from '../../src/utils/folderNotes';
 import { createTestTFile } from './createTestTFile';
 
 interface TestVaultMethods {
     registerFile(file: TFile): void;
+    create(path: string, content: string): Promise<TFile>;
+    read(file: TFile): Promise<string>;
 }
 
 type TestTemplaterCreateFn = (
@@ -305,5 +313,147 @@ describe('root folder notes', () => {
         expect(read).toHaveBeenCalledWith(templateFile);
         expect(modify).toHaveBeenCalledWith(createdFile, templateContent);
         expect(openFile).toHaveBeenCalledWith(createdFile, { active: true });
+    });
+
+    it('copies canvas folder note template content', async () => {
+        const app = new App();
+        const root = createRootFolder(app, 'Shared Scratch');
+        const templateFile = createTestTFile('Templates/Folder.canvas');
+        const templateContent = '{"nodes":[{"id":"folder-note"}],"edges":[]}';
+        const createdFile = createTestTFile('Shared Scratch.canvas');
+        createdFile.parent = root;
+        createdFile.vault = app.vault;
+        const openFile = vi.fn().mockResolvedValue(undefined);
+        const create = vi.fn(async () => {
+            root.children.push(createdFile);
+            getTestVault(app).registerFile(createdFile);
+            return createdFile;
+        });
+        const read = vi.fn(async () => templateContent);
+
+        getTestVault(app).registerFile(templateFile);
+        getTestVault(app).create = create;
+        getTestVault(app).read = read;
+        app.workspace = {
+            getLeaf: vi.fn(() => ({ openFile }))
+        } as unknown as App['workspace'];
+
+        const created = await createFolderNote(
+            app,
+            root,
+            {
+                folderNoteType: 'canvas',
+                folderNoteName: '',
+                folderNoteNamePattern: '',
+                folderNoteTemplate: templateFile.path
+            },
+            null
+        );
+
+        expect(created).toBe(createdFile);
+        expect(read).toHaveBeenCalledWith(templateFile);
+        expect(create).toHaveBeenCalledWith('Shared Scratch.canvas', templateContent);
+        expect(openFile).toHaveBeenCalledWith(createdFile, { active: true });
+    });
+
+    it('copies base folder note template content', async () => {
+        const app = new App();
+        const root = createRootFolder(app, 'Shared Scratch');
+        const templateFile = createTestTFile('Templates/Folder.base');
+        const templateContent = '{"model":{"version":1,"kind":"Table","columns":[{"name":"Status"}]},"pluginVersion":"1.0.0"}';
+        const createdFile = createTestTFile('Shared Scratch.base');
+        createdFile.parent = root;
+        createdFile.vault = app.vault;
+        const openFile = vi.fn().mockResolvedValue(undefined);
+        const create = vi.fn(async () => {
+            root.children.push(createdFile);
+            getTestVault(app).registerFile(createdFile);
+            return createdFile;
+        });
+        const read = vi.fn(async () => templateContent);
+
+        getTestVault(app).registerFile(templateFile);
+        getTestVault(app).create = create;
+        getTestVault(app).read = read;
+        app.workspace = {
+            getLeaf: vi.fn(() => ({ openFile }))
+        } as unknown as App['workspace'];
+
+        const created = await createFolderNote(
+            app,
+            root,
+            {
+                folderNoteType: 'base',
+                folderNoteName: '',
+                folderNoteNamePattern: '',
+                folderNoteTemplate: templateFile.path
+            },
+            null
+        );
+
+        expect(created).toBe(createdFile);
+        expect(read).toHaveBeenCalledWith(templateFile);
+        expect(create).toHaveBeenCalledWith('Shared Scratch.base', templateContent);
+        expect(openFile).toHaveBeenCalledWith(createdFile, { active: true });
+    });
+
+    it('uses default canvas content when the template extension does not match', async () => {
+        const app = new App();
+        const root = createRootFolder(app, 'Shared Scratch');
+        const templateFile = createTestTFile('Templates/Folder.md');
+        const createdFile = createTestTFile('Shared Scratch.canvas');
+        createdFile.parent = root;
+        createdFile.vault = app.vault;
+        const openFile = vi.fn().mockResolvedValue(undefined);
+        const create = vi.fn(async () => createdFile);
+        const read = vi.fn(async () => '# Template');
+
+        getTestVault(app).registerFile(templateFile);
+        getTestVault(app).create = create;
+        getTestVault(app).read = read;
+        app.workspace = {
+            getLeaf: vi.fn(() => ({ openFile }))
+        } as unknown as App['workspace'];
+
+        const created = await createFolderNote(
+            app,
+            root,
+            {
+                folderNoteType: 'canvas',
+                folderNoteName: '',
+                folderNoteNamePattern: '',
+                folderNoteTemplate: templateFile.path
+            },
+            null
+        );
+
+        expect(created).toBe(createdFile);
+        expect(read).not.toHaveBeenCalled();
+        expect(create).toHaveBeenCalledWith('Shared Scratch.canvas', '{}');
+    });
+});
+
+describe('folder note template compatibility', () => {
+    it('accepts matching supported template extensions', () => {
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.md', 'markdown')).toBe(true);
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.canvas', 'canvas')).toBe(true);
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.base', 'base')).toBe(true);
+    });
+
+    it('rejects mismatched fixed folder note template extensions', () => {
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.md', 'canvas')).toBe(false);
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.canvas', 'base')).toBe(false);
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.base', 'markdown')).toBe(false);
+    });
+
+    it('accepts any supported template extension when folder note type is selected during creation', () => {
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.md', 'ask')).toBe(true);
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.canvas', 'ask')).toBe(true);
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.base', 'ask')).toBe(true);
+    });
+
+    it('rejects unsupported template extensions', () => {
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.txt', 'ask')).toBe(false);
+        expect(isFolderNoteTemplateCompatible('Templates/Folder.txt', 'markdown')).toBe(false);
     });
 });

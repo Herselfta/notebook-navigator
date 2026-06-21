@@ -26,6 +26,7 @@ import { strings } from '../i18n';
 import { ServiceIcon } from './ServiceIcon';
 import { useNavigationActions } from '../hooks/useNavigationActions';
 import { runAsyncAction } from '../utils/async';
+import { showNotice } from '../utils/noticeUtils';
 import { resolveUXIcon } from '../utils/uxIcons';
 
 interface NavigationPaneHeaderProps {
@@ -131,6 +132,9 @@ export function NavigationPaneHeader({
         return null;
     }
 
+    const dualPanePreference = plugin.useDualPane();
+    const dualPaneAutoFallbackActive = dualPanePreference && uiState.singlePane;
+
     return (
         <div className="nn-pane-header">
             <div className="nn-header-actions nn-header-actions--space-between">
@@ -138,9 +142,13 @@ export function NavigationPaneHeader({
                     {showToggleDualPaneButton ? (
                         <button
                             className="nn-icon-button"
-                            aria-label={uiState.dualPane ? strings.paneHeader.showSinglePane : strings.paneHeader.showDualPane}
+                            aria-label={dualPanePreference ? strings.paneHeader.showSinglePane : strings.paneHeader.showDualPane}
                             onClick={() => {
-                                plugin.setDualPanePreference(!plugin.useDualPane());
+                                if (dualPaneAutoFallbackActive) {
+                                    showNotice(strings.paneHeader.dualPaneAutoFallbackNotice, { variant: 'warning' });
+                                    return;
+                                }
+                                plugin.setDualPanePreference(!dualPanePreference);
                             }}
                             tabIndex={-1}
                             type="button"
@@ -148,7 +156,7 @@ export function NavigationPaneHeader({
                             <ServiceIcon
                                 iconId={resolveUXIcon(
                                     settings.interfaceIcons,
-                                    uiState.dualPane ? 'nav-show-single-pane' : 'nav-show-dual-pane'
+                                    dualPanePreference ? 'nav-show-single-pane' : 'nav-show-dual-pane'
                                 )}
                             />
                         </button>

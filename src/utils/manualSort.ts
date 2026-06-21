@@ -18,8 +18,7 @@
 
 import type { App, TFile } from 'obsidian';
 import { strings } from '../i18n';
-import type { NotebookNavigatorSettings } from '../settings';
-import type { ManualSortNewNotePlacement } from '../settings/types';
+import type { ManualSortNewNotePlacement, NotebookNavigatorSettings } from '../settings/types';
 import { getErrorMessage } from './errorUtils';
 import { deserializeIconFromFrontmatterCompat, normalizeCanonicalIconId, serializeIconForFrontmatter } from './iconizeFormat';
 import { casefold, findMatchingRecordKey } from './recordUtils';

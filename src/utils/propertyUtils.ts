@@ -17,8 +17,7 @@
  */
 
 import type { App } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../settings';
-import { showsWordCount } from '../settings/types';
+import { showsWordCount, type NotebookNavigatorSettings } from '../settings/types';
 import type { PropertyItem } from '../storage/IndexedDBStorage';
 import { formatCommaSeparatedList, getCachedCommaSeparatedList } from './commaSeparatedListUtils';
 import { casefold } from './recordUtils';

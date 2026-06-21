@@ -79,7 +79,7 @@ vi.mock('../../src/storage/fileOperations', () => ({
     getDBInstanceOrNull: getDBInstanceOrNullMock
 }));
 
-vi.mock('../../src/utils/folderNotes', () => ({
+vi.mock('../../src/utils/folderNoteLookup', () => ({
     getFolderNote: getFolderNoteMock,
     getFolderNoteDetectionSettings: getFolderNoteDetectionSettingsMock,
     resolveFolderNoteNameForFolder: resolveFolderNoteNameForFolderMock,

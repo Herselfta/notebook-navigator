@@ -22,7 +22,7 @@ import { SelectionState, SelectionAction } from '../context/SelectionContext';
 import { FileSystemOperations } from '../services/FileSystemService';
 import { TagTreeService } from '../services/TagTreeService';
 import type { PropertyTreeService } from '../services/PropertyTreeService';
-import { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import type { VisibilityPreferences } from '../types';
 import { getFilesForNavigationSelection } from './selectionUtils';
 

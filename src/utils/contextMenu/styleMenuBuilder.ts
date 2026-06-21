@@ -18,7 +18,6 @@
 
 import { App, Menu, MenuItem } from 'obsidian';
 import { strings } from '../../i18n';
-import { ItemType } from '../../types';
 import { MetadataService } from '../../services/MetadataService';
 import { setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { copyStyleToClipboard, getStyleClipboard, hasStyleData, type StyleClipboardData } from './styleClipboard';
@@ -72,25 +71,28 @@ interface FolderStyleMenuData {
 export function addFolderStyleChangeActions(params: AddFolderStyleChangeActionsParams): void {
     const { menu, app, metadataService, folderPath, showFolderIcons } = params;
     const folderLabel = folderPath.split('/').pop() || folderPath;
+    const openAppearanceModal = async (initialTab: 'icon' | 'color' | 'background'): Promise<void> => {
+        const { AppearanceModal } = await import('../../modals/AppearanceModal');
+        const modal = new AppearanceModal(app, {
+            title: folderLabel,
+            metadataService,
+            initialTab,
+            icon: showFolderIcons
+                ? {
+                      initial: metadataService.getFolderIcon(folderPath) ?? null,
+                      apply: async iconId => {
+                          if (iconId === null) {
+                              await metadataService.removeFolderIcon(folderPath);
+                              return;
+                          }
 
-    if (showFolderIcons) {
-        menu.addItem((item: MenuItem) => {
-            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeIcon).setIcon('lucide-image'), async () => {
-                const { IconPickerModal } = await import('../../modals/IconPickerModal');
-                const modal = new IconPickerModal(app, metadataService, folderPath, ItemType.FOLDER);
-                modal.open();
-            });
-        });
-    }
-
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeColor).setIcon('lucide-palette'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, {
-                title: folderLabel,
-                initialColor: metadataService.getFolderColor(folderPath) ?? null,
-                settingsProvider: metadataService.getSettingsProvider(),
-                onChooseColor: async color => {
+                          await metadataService.setFolderIcon(folderPath, iconId);
+                      }
+                  }
+                : undefined,
+            color: {
+                initial: metadataService.getFolderColor(folderPath) ?? null,
+                apply: async color => {
                     if (color === null) {
                         await metadataService.removeFolderColor(folderPath);
                         return;
@@ -98,19 +100,10 @@ export function addFolderStyleChangeActions(params: AddFolderStyleChangeActionsP
 
                     await metadataService.setFolderColor(folderPath, color);
                 }
-            });
-            modal.open();
-        });
-    });
-
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeBackground).setIcon('lucide-paint-bucket'), async () => {
-            const { ColorPickerModal } = await import('../../modals/ColorPickerModal');
-            const modal = new ColorPickerModal(app, {
-                title: folderLabel,
-                initialColor: metadataService.getFolderBackgroundColor(folderPath) ?? null,
-                settingsProvider: metadataService.getSettingsProvider(),
-                onChooseColor: async color => {
+            },
+            background: {
+                initial: metadataService.getFolderBackgroundColor(folderPath) ?? null,
+                apply: async color => {
                     if (color === null) {
                         await metadataService.removeFolderBackgroundColor(folderPath);
                         return;
@@ -118,8 +111,28 @@ export function addFolderStyleChangeActions(params: AddFolderStyleChangeActionsP
 
                     await metadataService.setFolderBackgroundColor(folderPath, color);
                 }
+            }
+        });
+        modal.open();
+    };
+
+    if (showFolderIcons) {
+        menu.addItem((item: MenuItem) => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeIcon).setIcon('lucide-image'), () => {
+                return openAppearanceModal('icon');
             });
-            modal.open();
+        });
+    }
+
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeColor).setIcon('lucide-palette'), () => {
+            return openAppearanceModal('color');
+        });
+    });
+
+    menu.addItem((item: MenuItem) => {
+        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.changeBackground).setIcon('lucide-paint-bucket'), () => {
+            return openAppearanceModal('background');
         });
     });
 }

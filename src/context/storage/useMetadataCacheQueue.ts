@@ -20,7 +20,7 @@ import { useCallback, useEffect, useRef, type MutableRefObject } from 'react';
 import { EventRef, TFile, type App } from 'obsidian';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
 import type { ContentProviderType } from '../../interfaces/IContentProvider';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { filterFilesRequiringMetadataSources } from '../storageQueueFilters';
 import { getMetadataDependentTypes, resolveMetadataDependentTypes } from './storageContentTypes';
 

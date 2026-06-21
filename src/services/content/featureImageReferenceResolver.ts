@@ -17,7 +17,7 @@
  */
 
 import { normalizePath, type App, type FrontMatterCache, TFile } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { isPdfFile, isRasterImageExtension, isRasterImageFile, isSvgExtension } from '../../utils/fileTypeUtils';
 import { getMatchingRecordValue } from '../../utils/recordUtils';
 import { getYoutubeVideoId } from '../../utils/youtubeUtils';

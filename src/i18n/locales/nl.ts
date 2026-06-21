@@ -158,6 +158,8 @@ export const STRINGS_NL = {
         hideExcludedItems: 'Verborgen mappen, tags en notities verbergen',
         showDualPane: 'Dubbel paneel tonen',
         showSinglePane: 'Enkel paneel tonen',
+        dualPaneAutoFallbackNotice:
+            'Dubbele panelen zijn niet beschikbaar wanneer de zijbalk te smal is. Stel "Wanneer de zijbalk te smal is" in op "Niets doen" in Instellingen > Uiterlijk & gedrag om dit te wijzigen.',
         changeAppearance: 'Uiterlijk wijzigen',
         showNotesFromSubfolders: 'Notities uit submappen tonen',
         showFilesFromSubfolders: 'Bestanden uit submappen tonen',
@@ -496,6 +498,7 @@ export const STRINGS_NL = {
                 'nav-show-dual-pane': 'Dubbel paneel tonen',
                 'nav-profile-chevron': 'Profielmenu-pijl',
                 'list-search': 'Zoeken',
+                'list-reveal-file': 'Bestand tonen',
                 'list-descendants': 'Notities uit submappen',
                 'list-sort-ascending': 'Sorteervolgorde: oplopend',
                 'list-sort-descending': 'Sorteervolgorde: aflopend',
@@ -537,8 +540,22 @@ export const STRINGS_NL = {
             clearRecentColors: 'Recente kleuren wissen',
             removeRecentColor: 'Kleur verwijderen',
             apply: 'Toepassen',
+            pickerLabel: 'Kiezer',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'Hex-kleurwaarde',
+            saturationValueArea: 'Verzadiging en helderheid',
+            hueSlider: 'Tint',
+            alphaSlider: 'Transparantie'
+        },
+        appearance: {
+            tabIcon: 'Pictogram',
+            tabColor: 'Kleur',
+            tabBackground: 'Achtergrond',
+            resetIcon: 'Pictogram verwijderen',
+            resetColor: 'Kleur verwijderen',
+            resetBackground: 'Achtergrond verwijderen',
+            clear: 'Stijl wissen',
+            apply: 'Toepassen'
         },
         selectVaultProfile: {
             title: 'Kluisprofiel wijzigen',
@@ -981,6 +998,9 @@ export const STRINGS_NL = {
             },
             navigation: {
                 appearance: 'Uiterlijk',
+                banner: 'Banner',
+                dragAndDrop: 'Slepen en neerzetten',
+                noteCounts: 'Notitietellingen',
                 rainbowColors: 'Regenboogkleuren',
                 leftSidebar: 'Linkerzijbalk',
                 calendarIntegration: 'Kalenderintegratie'
@@ -1236,6 +1256,28 @@ export const STRINGS_NL = {
                     vertical: 'Verticale splitsing'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Wanneer de zijbalk te smal is',
+                desc: 'Kies wat er gebeurt wanneer het navigatiepaneel en lijstpaneel niet naast elkaar passen.',
+                options: {
+                    none: 'Niets doen',
+                    singlePane: 'Overschakelen naar enkel paneel',
+                    vertical: 'Overschakelen naar verticale splitsing'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Drempel voor smalle zijbalk',
+                desc: 'Kies hoe de breedtedrempel van de zijbalk wordt berekend.',
+                options: {
+                    fitPanes: 'Panelen laten passen',
+                    customWidth: 'Aangepaste breedte'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Breedtedrempel voor smalle zijbalk',
+                desc: 'Schakel om wanneer de zijbalk smaller is dan deze breedte.',
+                resetTooltip: 'Standaardbreedte herstellen'
+            },
             appearanceBackground: {
                 name: 'Achtergrondkleur',
                 desc: 'Kies achtergrondkleuren voor navigatie- en lijstpanelen.',
@@ -1303,6 +1345,10 @@ export const STRINGS_NL = {
             autoExpandNavItems: {
                 name: 'Uitvouwen bij selectie',
                 desc: 'Mappen en tags uitvouwen bij selectie. In enkelvoudige paneelmodus: eerste selectie vouwt uit, tweede selectie toont bestanden.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Een uitgevouwen tak',
+                desc: 'Vouw andere takken in dezelfde boom samen bij het uitvouwen van een map, tag of eigenschap.'
             },
             springLoadedFolders: {
                 name: 'Uitvouwen bij slepen',
@@ -2174,7 +2220,8 @@ export const STRINGS_NL = {
             },
             folderNoteTemplate: {
                 name: 'Mapnotitiesjabloon',
-                desc: 'Sjabloonbestand voor nieuwe Markdown-mapnotities. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.'
+                desc: 'Sjabloonbestand dat wordt gebruikt bij het maken van mapnotities. Markdown-sjablonen kunnen Templater gebruiken. Canvas- en Base-sjablonen worden als bestandsinhoud gekopieerd. Stel de sjabloonmaplocatie in bij Bestandsbewerkingen > Sjablonen.',
+                formatWarning: 'De sjabloonindeling moet overeenkomen met het geselecteerde type mapnotitie: .md, .canvas of .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Mapnamen openen mapnotities',

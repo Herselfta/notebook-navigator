@@ -17,7 +17,7 @@
  */
 
 import { App, TFolder } from 'obsidian';
-import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../settings';
+import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../settings/types';
 import { ISettingsProvider } from '../interfaces/ISettingsProvider';
 import { ITagTreeProvider } from '../interfaces/ITagTreeProvider';
 import type { IPropertyTreeProvider } from '../interfaces/IPropertyTreeProvider';

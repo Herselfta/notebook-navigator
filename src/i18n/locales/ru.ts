@@ -157,6 +157,8 @@ export const STRINGS_RU = {
         hideExcludedItems: 'Скрыть скрытые папки, теги и заметки', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: 'Показать двойную панель', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: 'Показать одну панель', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            'Две панели недоступны, когда боковая панель слишком узкая. Чтобы изменить это, установите «Когда боковая панель слишком узкая» в значение «Ничего не делать» в Настройки > Внешний вид и поведение.',
         changeAppearance: 'Изменить внешний вид', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: 'Показать заметки из подпапок',
         showFilesFromSubfolders: 'Показать файлы из подпапок',
@@ -494,6 +496,7 @@ export const STRINGS_RU = {
                 'nav-show-dual-pane': 'Показать двойную панель',
                 'nav-profile-chevron': 'Стрелка меню профиля',
                 'list-search': 'Поиск',
+                'list-reveal-file': 'Показать файл',
                 'list-descendants': 'Заметки из подпапок',
                 'list-sort-ascending': 'Порядок сортировки: по возрастанию',
                 'list-sort-descending': 'Порядок сортировки: по убыванию',
@@ -535,8 +538,22 @@ export const STRINGS_RU = {
             clearRecentColors: 'Очистить недавние цвета',
             removeRecentColor: 'Удалить цвет',
             apply: 'Применить',
+            pickerLabel: 'Выбор',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: 'HEX-значение цвета',
+            saturationValueArea: 'Насыщенность и яркость',
+            hueSlider: 'Оттенок',
+            alphaSlider: 'Прозрачность'
+        },
+        appearance: {
+            tabIcon: 'Значок',
+            tabColor: 'Цвет',
+            tabBackground: 'Фон',
+            resetIcon: 'Удалить иконку',
+            resetColor: 'Удалить цвет',
+            resetBackground: 'Удалить фон',
+            clear: 'Очистить стиль',
+            apply: 'Применить'
         },
         selectVaultProfile: {
             title: 'Выбор профиля хранилища',
@@ -976,6 +993,9 @@ export const STRINGS_RU = {
             },
             navigation: {
                 appearance: 'Внешний вид',
+                banner: 'Баннер',
+                dragAndDrop: 'Перетаскивание',
+                noteCounts: 'Количество заметок',
                 rainbowColors: 'Цвета радуги',
                 leftSidebar: 'Левая боковая панель',
                 calendarIntegration: 'Интеграция с календарём'
@@ -1231,6 +1251,28 @@ export const STRINGS_RU = {
                     vertical: 'Вертикальное разделение'
                 }
             },
+            narrowSidebarLayout: {
+                name: 'Когда боковая панель слишком узкая',
+                desc: 'Выберите, что происходит, когда панель навигации и панель списка не помещаются рядом.',
+                options: {
+                    none: 'Ничего не делать',
+                    singlePane: 'Переключиться на одну панель',
+                    vertical: 'Переключиться на вертикальное разделение'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: 'Порог узкой боковой панели',
+                desc: 'Выберите, как рассчитывается порог ширины боковой панели.',
+                options: {
+                    fitPanes: 'Уместить панели',
+                    customWidth: 'Пользовательская ширина'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: 'Ширина порога узкой боковой панели',
+                desc: 'Переключаться, когда боковая панель уже этой ширины.',
+                resetTooltip: 'Сбросить до ширины по умолчанию'
+            },
             appearanceBackground: {
                 name: 'Цвет фона',
                 desc: 'Выберите цвета фона для панелей навигации и списка.',
@@ -1298,6 +1340,10 @@ export const STRINGS_RU = {
             autoExpandNavItems: {
                 name: 'Разворачивать при выборе',
                 desc: 'Разворачивать папки и теги при выборе. В однопанельном режиме первый выбор разворачивает, второй показывает файлы.'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: 'Одна развернутая ветка',
+                desc: 'Сворачивать другие ветки в том же дереве при разворачивании папки, тега или свойства.'
             },
             springLoadedFolders: {
                 name: 'Разворачивать при перетаскивании',
@@ -2168,7 +2214,8 @@ export const STRINGS_RU = {
             },
             folderNoteTemplate: {
                 name: 'Шаблон заметки папки',
-                desc: 'Файл шаблона для новых заметок папок Markdown. Укажите расположение папки шаблонов в Операции с файлами > Шаблоны.'
+                desc: 'Файл шаблона, используемый при создании заметок папок. Шаблоны Markdown могут использовать Templater. Шаблоны Canvas и Base копируются как содержимое файла. Укажите расположение папки шаблонов в Операции с файлами > Шаблоны.',
+                formatWarning: 'Формат шаблона должен соответствовать выбранному типу заметки папки: .md, .canvas или .base.'
             },
             enableFolderNoteLinks: {
                 name: 'Названия папок открывают заметки папок',

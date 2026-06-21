@@ -17,7 +17,7 @@
  */
 
 import { App } from 'obsidian';
-import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../../settings';
+import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../../settings/types';
 import type { ISettingsProvider } from '../../interfaces/ISettingsProvider';
 import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../../types';
 import type { CleanupValidators } from '../MetadataService';

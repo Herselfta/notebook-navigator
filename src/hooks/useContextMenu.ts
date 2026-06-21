@@ -46,7 +46,7 @@ import {
     buildEmptyListMenu,
     EMPTY_LIST_MENU_TYPE
 } from '../utils/contextMenu';
-import { getFolderNote } from '../utils/folderNotes';
+import { getFolderNote } from '../utils/folderNoteLookup';
 
 // Tracks the currently open navigator context menu so it can be closed before opening another
 let activeNavigatorMenu: Menu | null = null;

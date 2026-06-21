@@ -21,6 +21,7 @@ import { strings } from '../../../i18n';
 import { FilePathInputSuggest } from '../../../suggest/FilePathInputSuggest';
 import { isFolderNoteCreationPreference } from '../../../types/folderNote';
 import { FOLDER_NOTE_NAME_PATTERN_PLACEHOLDER } from '../../../utils/folderNoteName';
+import { isFolderNoteTemplateCompatible, isSupportedFolderNoteExtension } from '../../../utils/folderNotes';
 import { normalizeOptionalVaultFilePath } from '../../../utils/pathUtils';
 import { getTemplaterCreateNoteFromTemplate } from '../../../utils/templaterIntegration';
 import { setElementVisible, wireToggleSettingWithDependentSection } from '../../dependentSettings';
@@ -215,6 +216,7 @@ export function renderFoldersTab(context: SettingsTabContext, heading?: string):
         );
     });
 
+    let updateTemplateWarning = () => {};
     const folderNoteTemplateSetting = folderNoteFilesGroup.addSetting(setting => {
         context.configureDebouncedTextSetting(
             setting,
@@ -224,18 +226,33 @@ export function renderFoldersTab(context: SettingsTabContext, heading?: string):
             () => plugin.settings.folderNoteTemplate ?? '',
             value => {
                 plugin.settings.folderNoteTemplate = normalizeOptionalVaultFilePath(value);
-            }
+            },
+            undefined,
+            () => updateTemplateWarning()
         );
     });
     folderNoteTemplateSetting.controlEl.addClass('nn-setting-wide-input');
+    const folderNoteTemplateWarningEl = folderNoteTemplateSetting.descEl.createDiv({
+        cls: 'setting-item-description nn-setting-hidden nn-setting-warning'
+    });
     const folderNoteTemplateInputEl = folderNoteTemplateSetting.controlEl.querySelector<HTMLInputElement>('input');
+    updateTemplateWarning = () => {
+        const templatePath = folderNoteTemplateInputEl?.value ?? plugin.settings.folderNoteTemplate ?? '';
+        const isCompatible = isFolderNoteTemplateCompatible(templatePath, plugin.settings.folderNoteType);
+        folderNoteTemplateWarningEl.setText(isCompatible ? '' : strings.settings.items.folderNoteTemplate.formatWarning);
+        setElementVisible(folderNoteTemplateWarningEl, !isCompatible);
+    };
+
     if (folderNoteTemplateInputEl) {
         const templateSuggest = new FilePathInputSuggest(context.app, folderNoteTemplateInputEl, {
             getBaseFolder: () => plugin.settings.calendarTemplateFolder,
-            includeFile: file => file.extension === 'md'
+            includeFile: file => isSupportedFolderNoteExtension(file.extension)
         });
+        folderNoteTemplateInputEl.addEventListener('input', updateTemplateWarning);
         folderNoteTemplateInputEl.addEventListener('click', () => templateSuggest.open());
     }
+    context.registerSettingsUpdateListener('folders-folder-note-template-warning', updateTemplateWarning);
+    updateTemplateWarning();
 
     folderNoteFilesGroup.addSetting(setting => renderFolderNoteTemplateInfoSetting(setting, context));
 }

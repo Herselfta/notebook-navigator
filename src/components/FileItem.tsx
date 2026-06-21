@@ -45,7 +45,7 @@ import { useSettingsState } from '../context/SettingsContext';
 import type { FolderDecorationModel } from '../utils/folderDecoration';
 import type { ListPaneAppearanceSettings } from '../hooks/useListPaneAppearance';
 import { strings } from '../i18n';
-import { SortOption } from '../settings';
+import type { SortOption } from '../settings/types';
 import { type NavigationItemType } from '../types';
 import { DateUtils } from '../utils/dateUtils';
 import { runAsyncAction } from '../utils/async';

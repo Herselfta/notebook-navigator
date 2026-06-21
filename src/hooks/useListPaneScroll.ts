@@ -52,8 +52,14 @@ import { useFileCache } from '../context/StorageContext';
 import { ListPaneItemType, OVERSCAN } from '../types';
 import { Align, ListScrollIntent, getListAlign, rankListPending } from '../types/scroll';
 import type { ListPaneItem } from '../types/virtualization';
-import type { NotebookNavigatorSettings } from '../settings';
-import { showsCharacterCount, showsWordCount, type ListDisplayMode, type ListNoteGroupingOption, type SortOption } from '../settings/types';
+import {
+    showsCharacterCount,
+    showsWordCount,
+    type ListDisplayMode,
+    type ListNoteGroupingOption,
+    type NotebookNavigatorSettings,
+    type SortOption
+} from '../settings/types';
 import type { FileContentChange, FileData, IndexedDBStorage } from '../storage/IndexedDBStorage';
 import type { SelectionDispatch, SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';

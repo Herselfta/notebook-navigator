@@ -17,7 +17,9 @@
  */
 
 import { App, Platform, Plugin, TFile, FileView, TFolder, WorkspaceLeaf, addIcon } from 'obsidian';
-import { NotebookNavigatorSettingTab, type NotebookNavigatorSettings } from './settings';
+import type { NotebookNavigatorSettings } from './settings/types';
+import { LazyNotebookNavigatorSettingTab } from './settings/LazyNotebookNavigatorSettingTab';
+import type { NarrowSidebarLayout, NarrowSidebarTriggerMode } from './settings/types';
 import {
     LocalStorageKeys,
     NOTEBOOK_NAVIGATOR_CALENDAR_VIEW,
@@ -42,13 +44,11 @@ import { getIconService } from './services/icons';
 import { VaultIconProvider } from './services/icons/providers/VaultIconProvider';
 import { IconizeCompatProvider } from './services/icons/providers/IconizeCompatProvider';
 import { RecentNotesService } from './services/RecentNotesService';
-import { ExternalIconProviderController } from './services/icons/external/ExternalIconProviderController';
-import { ExternalIconProviderId } from './services/icons/external/providerRegistry';
+import type { ExternalIconProviderController } from './services/icons/external/ExternalIconProviderController';
+import type { ExternalIconProviderId } from './services/icons/external/providerRegistry';
 import type { NavigateToFolderOptions } from './hooks/useNavigatorReveal';
 import ReleaseCheckService, { type ReleaseUpdateNotice } from './services/ReleaseCheckService';
-import { NotebookNavigatorView } from './view/NotebookNavigatorView';
-import { NotebookNavigatorCalendarView } from './view/NotebookNavigatorCalendarView';
-import { FolderNoteSidebarPlaceholderView } from './view/FolderNoteSidebarPlaceholderView';
+import { isNotebookNavigatorCalendarView, isNotebookNavigatorView } from './view/viewGuards';
 import { localStorage } from './utils/localStorage';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API, NotebookNavigatorAPI } from './api/NotebookNavigatorAPI';
 import { initializeDatabase, shutdownDatabase } from './storage/fileOperations';
@@ -59,8 +59,8 @@ import { runAsyncAction } from './utils/async';
 import WorkspaceCoordinator from './services/workspace/WorkspaceCoordinator';
 import HomepageController from './services/workspace/HomepageController';
 import { FolderNoteSidebarService } from './services/workspace/FolderNoteSidebarService';
-import registerNavigatorCommands from './services/commands/registerNavigatorCommands';
 import registerWorkspaceEvents from './services/workspace/registerWorkspaceEvents';
+import registerNavigatorCommands from './services/commands/registerNavigatorCommands';
 import type { RevealFileOptions } from './hooks/useNavigatorReveal';
 import {
     type CalendarPlacement,
@@ -141,7 +141,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     // Handles homepage file opening and startup behavior
     private homepageController: HomepageController | null = null;
     private folderNoteSidebarService: FolderNoteSidebarService | null = null;
-    private settingTab: NotebookNavigatorSettingTab | null = null;
+    private settingTab: LazyNotebookNavigatorSettingTab | null = null;
     private pendingUpdateNotice: ReleaseUpdateNotice | null = null;
     private hasWorkspaceLayoutReady = false;
     private lastCalendarPlacement: CalendarPlacement | null = null;
@@ -529,38 +529,33 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 }
             }
         );
-        this.externalIconController = new ExternalIconProviderController(this.app, iconService, this);
-        const iconController = this.externalIconController;
-        if (iconController) {
-            runAsyncAction(
-                async () => {
-                    await iconController.initialize();
-                    await iconController.syncWithSettings();
-                },
-                {
-                    onError: (error: unknown) => {
-                        console.error('External icon controller init failed:', error);
-                    }
-                }
-            );
+        if (this.hasEnabledExternalIconProviders()) {
+            this.syncExternalIconController();
         }
 
         // Re-sync icon settings when settings update
         this.registerSettingsUpdateListener('external-icon-controller', () => {
-            const controller = this.externalIconController;
-            if (controller) {
-                runAsyncAction(() => controller.syncWithSettings());
+            if (this.externalIconController || this.hasEnabledExternalIconProviders()) {
+                this.syncExternalIconController();
             }
         });
 
         // Register view
         this.registerView(NOTEBOOK_NAVIGATOR_VIEW, leaf => {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports -- Obsidian registerView callbacks must construct views synchronously.
+            const { NotebookNavigatorView } = require('./view/NotebookNavigatorView') as typeof import('./view/NotebookNavigatorView');
             return new NotebookNavigatorView(leaf, this);
         });
         this.registerView(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW, leaf => {
+            const { NotebookNavigatorCalendarView } =
+                // eslint-disable-next-line @typescript-eslint/no-require-imports -- Obsidian registerView callbacks must construct views synchronously.
+                require('./view/NotebookNavigatorCalendarView') as typeof import('./view/NotebookNavigatorCalendarView');
             return new NotebookNavigatorCalendarView(leaf, this);
         });
         this.registerView(NOTEBOOK_NAVIGATOR_FOLDER_NOTE_SIDEBAR_VIEW, leaf => {
+            const { FolderNoteSidebarPlaceholderView } =
+                // eslint-disable-next-line @typescript-eslint/no-require-imports -- Obsidian registerView callbacks must construct views synchronously.
+                require('./view/FolderNoteSidebarPlaceholderView') as typeof import('./view/FolderNoteSidebarPlaceholderView');
             return new FolderNoteSidebarPlaceholderView(leaf);
         });
 
@@ -568,7 +563,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         registerNavigatorCommands(this);
 
         // ==== Settings tab ====
-        this.settingTab = new NotebookNavigatorSettingTab(this.app, this);
+        this.settingTab = new LazyNotebookNavigatorSettingTab(this.app, this);
         this.addSettingTab(this.settingTab);
 
         // Register editor context menu
@@ -589,7 +584,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
                 }
 
                 await this.homepageController?.handleWorkspaceReady({ shouldActivateOnStartup });
-                this.folderNoteSidebarService?.handleWorkspaceReady();
+                await this.folderNoteSidebarService?.handleWorkspaceReady();
 
                 if (isFirstLaunch) {
                     const { WelcomeModal } = await import('./modals/WelcomeModal');
@@ -700,6 +695,27 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
      */
     public async setDualPaneOrientation(orientation: DualPaneOrientation): Promise<void> {
         await this.preferencesController.setDualPaneOrientation(orientation);
+    }
+
+    /**
+     * Updates the narrow sidebar fallback layout and persists it.
+     */
+    public setNarrowSidebarLayout(layout: NarrowSidebarLayout): void {
+        this.preferencesController.setNarrowSidebarLayout(layout);
+    }
+
+    /**
+     * Updates how the narrow sidebar switch threshold is calculated.
+     */
+    public setNarrowSidebarTriggerMode(mode: NarrowSidebarTriggerMode): void {
+        this.preferencesController.setNarrowSidebarTriggerMode(mode);
+    }
+
+    /**
+     * Updates the custom narrow sidebar switch width.
+     */
+    public setNarrowSidebarCustomWidth(width: number): void {
+        this.preferencesController.setNarrowSidebarCustomWidth(width);
     }
 
     /**
@@ -993,7 +1009,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         // Get the view instance and delegate the rebuild operation
         const { view } = leaf;
-        if (!(view instanceof NotebookNavigatorView)) {
+        if (!isNotebookNavigatorView(view)) {
             throw new Error('Notebook Navigator view not found');
         }
 
@@ -1017,17 +1033,41 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     public async downloadExternalIconProvider(providerId: ExternalIconProviderId): Promise<void> {
-        if (!this.externalIconController) {
-            throw new Error('External icon controller not initialized');
-        }
-        await this.externalIconController.installProvider(providerId);
+        await this.getExternalIconController().installProvider(providerId);
     }
 
     public async removeExternalIconProvider(providerId: ExternalIconProviderId): Promise<void> {
+        await this.getExternalIconController().removeProvider(providerId);
+    }
+
+    private hasEnabledExternalIconProviders(): boolean {
+        const providers = sanitizeRecord(this.settings.externalIconProviders);
+        return Object.values(providers).some(Boolean);
+    }
+
+    private getExternalIconController(): ExternalIconProviderController {
         if (!this.externalIconController) {
-            throw new Error('External icon controller not initialized');
+            const { ExternalIconProviderController } =
+                // eslint-disable-next-line @typescript-eslint/no-require-imports -- External icon pack controller is only needed when packs are enabled or managed.
+                require('./services/icons/external/ExternalIconProviderController') as typeof import('./services/icons/external/ExternalIconProviderController');
+            this.externalIconController = new ExternalIconProviderController(this.app, getIconService(), this);
         }
-        await this.externalIconController.removeProvider(providerId);
+        return this.externalIconController;
+    }
+
+    private syncExternalIconController(): void {
+        runAsyncAction(
+            async () => {
+                const controller = this.getExternalIconController();
+                await controller.initialize();
+                await controller.syncWithSettings();
+            },
+            {
+                onError: (error: unknown) => {
+                    console.error('External icon controller init failed:', error);
+                }
+            }
+        );
     }
 
     /**
@@ -1093,7 +1133,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             const navigatorLeaves = this.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_VIEW);
             for (const leaf of navigatorLeaves) {
                 const view = leaf.view;
-                if (view instanceof NotebookNavigatorView) {
+                if (isNotebookNavigatorView(view)) {
                     // Halt preview/tag generation loops inside each React view
                     view.stopContentProcessing();
                 }
@@ -1102,7 +1142,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             const calendarLeaves = this.app.workspace.getLeavesOfType(NOTEBOOK_NAVIGATOR_CALENDAR_VIEW);
             for (const leaf of calendarLeaves) {
                 const view = leaf.view;
-                if (view instanceof NotebookNavigatorCalendarView) {
+                if (isNotebookNavigatorCalendarView(view)) {
                     view.stopContentProcessing();
                 }
             }
@@ -1395,7 +1435,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         const leaf = navigatorLeaves[0];
         const view = leaf.view;
-        if (view instanceof NotebookNavigatorView) {
+        if (isNotebookNavigatorView(view)) {
             view.navigateToFolder(folder, options);
         }
     }

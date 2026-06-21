@@ -154,7 +154,7 @@ export const NavigationPane = React.memo(
 
         const showHiddenItems = uxPreferences.showHiddenItems;
         const showCalendar = uxPreferences.showCalendar;
-        const isVerticalDualPane = !uiState.singlePane && settings.dualPaneOrientation === 'vertical';
+        const isVerticalDualPane = !uiState.singlePane && uiState.effectiveDualPaneOrientation === 'vertical';
         const shouldRenderCalendarOverlay =
             settings.calendarEnabled &&
             settings.calendarPlacement === 'left-sidebar' &&
@@ -740,8 +740,12 @@ export const NavigationPane = React.memo(
             }
 
             const target = getNavigationExpansionTargetForItem(item, { showHiddenItems });
-            return target ? toggleNavigationExpansionTarget(target, expansionState, expansionDispatch) : false;
-        }, [expansionDispatch, expansionState, getSelectedRenderedItem, showHiddenItems]);
+            return target
+                ? toggleNavigationExpansionTarget(target, expansionState, expansionDispatch, 'toggle', {
+                      collapseOtherBranches: settings.collapseOtherBranchesOnExpand
+                  })
+                : false;
+        }, [expansionDispatch, expansionState, getSelectedRenderedItem, settings.collapseOtherBranchesOnExpand, showHiddenItems]);
 
         useImperativeHandle(
             ref,

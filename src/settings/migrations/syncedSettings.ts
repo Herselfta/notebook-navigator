@@ -26,11 +26,13 @@ import { cloneShortcuts, createPropertyKeysFromPropertyFields, DEFAULT_VAULT_PRO
 import { ShortcutType, type ShortcutEntry } from '../../types/shortcuts';
 import {
     isCharacterCountSpaces,
+    isNarrowSidebarTriggerMode,
     isNavCountLeaderStyle,
     isRecentNotesHideMode,
     isTagSortOrder,
     isTextCountDisplay,
     isTextCountPlacement,
+    normalizeNarrowSidebarLayout,
     normalizeAppearanceGroupBy,
     normalizeListNoteGroupingOption
 } from '../types';
@@ -516,6 +518,16 @@ export function applyExistingUserDefaults(params: { settings: NotebookNavigatorS
 
     if (!isNavCountLeaderStyle(settings.navCountLeaderStyle)) {
         settings.navCountLeaderStyle = DEFAULT_SETTINGS.navCountLeaderStyle;
+    }
+
+    settings.narrowSidebarLayout = normalizeNarrowSidebarLayout(settings.narrowSidebarLayout) ?? DEFAULT_SETTINGS.narrowSidebarLayout;
+
+    if (!isNarrowSidebarTriggerMode(settings.narrowSidebarTriggerMode)) {
+        settings.narrowSidebarTriggerMode = DEFAULT_SETTINGS.narrowSidebarTriggerMode;
+    }
+
+    if (typeof settings.narrowSidebarCustomWidth !== 'number' || !Number.isFinite(settings.narrowSidebarCustomWidth)) {
+        settings.narrowSidebarCustomWidth = DEFAULT_SETTINGS.narrowSidebarCustomWidth;
     }
 
     if (typeof settings.wordCountTargetProperty !== 'string') {

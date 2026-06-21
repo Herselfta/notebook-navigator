@@ -18,9 +18,8 @@
 
 import { Menu, TFolder } from 'obsidian';
 import { strings } from '../i18n';
-import { FolderAppearance, getDefaultListMode, resolveListMode } from '../hooks/useListPaneAppearance';
-import type { ListDisplayMode } from '../settings/types';
-import { NotebookNavigatorSettings } from '../settings';
+import { getDefaultListMode, resolveListMode, type FolderAppearance } from '../hooks/useListPaneAppearance';
+import type { ListDisplayMode, NotebookNavigatorSettings } from '../settings/types';
 import { ItemType } from '../types';
 import { runAsyncAction } from '../utils/async';
 import { ensureRecord, sanitizeRecord } from '../utils/recordUtils';

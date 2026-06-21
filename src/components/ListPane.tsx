@@ -295,7 +295,7 @@ export const ListPane = React.memo(
         const { noteShortcutKeysByPath, addNoteShortcut, removeShortcut } = useShortcuts();
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
-        const isVerticalDualPane = !uiState.singlePane && settings.dualPaneOrientation === 'vertical';
+        const isVerticalDualPane = !uiState.singlePane && uiState.effectiveDualPaneOrientation === 'vertical';
         const calendarPlacement = settings.calendarPlacement;
         const shouldRenderCalendarOverlay =
             settings.calendarEnabled && calendarPlacement === 'left-sidebar' && showCalendar && isVerticalDualPane;

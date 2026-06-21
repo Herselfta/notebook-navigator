@@ -20,7 +20,7 @@ import { useCallback, type Dispatch, type MutableRefObject, type SetStateAction 
 import { debounce, type TFile } from 'obsidian';
 import type { FileContentType } from '../../interfaces/IContentProvider';
 import type { ContentProviderRegistry } from '../../services/content/ContentProviderRegistry';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { getDBInstance } from '../../storage/fileOperations';
 import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 import { clearNoteCountCache } from '../../utils/tagTree';

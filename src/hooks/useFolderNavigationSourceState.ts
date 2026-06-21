@@ -33,7 +33,7 @@ import {
 } from '../utils/fileFilters';
 import { resolveFolderDisplayName } from '../utils/folderDisplayName';
 import { resolveFolderNoteName } from '../utils/folderNoteName';
-import { getFolderNote, getFolderNoteDetectionSettings } from '../utils/folderNotes';
+import { getFolderNote, getFolderNoteDetectionSettings } from '../utils/folderNoteLookup';
 import { EXCALIDRAW_BASENAME_SUFFIX } from '../utils/fileNameUtils';
 import { getParentFolderPath, getPathBaseName } from '../utils/pathUtils';
 import { getCachedFileTags } from '../utils/tagUtils';

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { FileData } from './IndexedDBStorage';
+import type { FileData } from './IndexedDBStorage';
 import { PreviewTextCache } from './PreviewTextCache';
 import { clonePropertyItems } from '../utils/propertyUtils';
 

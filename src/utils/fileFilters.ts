@@ -17,7 +17,7 @@
  */
 
 import { TFile, TFolder, App } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import { isPdfFile, isPrimaryDocumentFile, shouldDisplayFile } from './fileTypeUtils';
 import {
     getActiveFileVisibility,

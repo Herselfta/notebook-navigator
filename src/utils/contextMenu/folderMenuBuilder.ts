@@ -35,6 +35,7 @@ import { addFolderStyleChangeActions, addFolderStyleMenu } from './styleMenuBuil
 import { getTemplaterCreateNewNoteFromTemplate } from '../templaterIntegration';
 import { resolveFolderDisplayName } from '../folderDisplayName';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
+import { expandNavigationTreeItems, getFolderAncestorPaths } from '../navigationExpansion';
 
 /**
  * Adds folder creation commands (new note/folder/canvas/base/drawing) to a menu.
@@ -105,7 +106,15 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
             ensureFolderSelected();
             await fileSystemOps.createNewFolder(folder, () => {
                 if (!expandedFolders.has(folder.path)) {
-                    expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: folder.path });
+                    const folderPaths = settings.collapseOtherBranchesOnExpand
+                        ? [...getFolderAncestorPaths(folder), folder.path]
+                        : [folder.path];
+                    expandNavigationTreeItems({
+                        type: 'folder',
+                        ids: folderPaths,
+                        collapseOtherBranches: settings.collapseOtherBranchesOnExpand,
+                        dispatch: expansionDispatch
+                    });
                 }
             });
         });
@@ -260,8 +269,18 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
         showFolderIcons: settings.showFolderIcons
     });
 
+    addFolderStyleMenu({
+        menu,
+        metadataService,
+        folderPath: folder.path,
+        inheritFolderColors: settings.inheritFolderColors,
+        showFolderIcons: settings.showFolderIcons
+    });
+
     // Child folder sort order
     if (typeof MenuItem.prototype.setSubmenu === 'function') {
+        menu.addSeparator();
+
         menu.addItem((item: MenuItem) => {
             const currentOverride = metadataService.getFolderChildSortOrderOverride(folder.path);
             const effectiveOrder = currentOverride ?? settings.folderSortOrder;
@@ -315,14 +334,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     const folderSeparatorTarget = { type: 'folder', path: folder.path } as const;
     const hasSeparator = metadataService.hasNavigationSeparator(folderSeparatorTarget);
     const disableNavigationSeparatorActions = Boolean(options?.disableNavigationSeparatorActions);
-
-    addFolderStyleMenu({
-        menu,
-        metadataService,
-        folderPath: folder.path,
-        inheritFolderColors: settings.inheritFolderColors,
-        showFolderIcons: settings.showFolderIcons
-    });
 
     menu.addSeparator();
 

@@ -66,6 +66,9 @@ interface CreateSyncModeRegistryParams {
     sanitizeBooleanSetting: (value: unknown, fallback: boolean) => boolean;
     sanitizeHomepageSetting: (value: unknown) => NotebookNavigatorSettings['homepage'];
     sanitizeDualPaneOrientationSetting: (value: unknown) => DualPaneOrientation;
+    sanitizeNarrowSidebarLayoutSetting: (value: unknown) => NotebookNavigatorSettings['narrowSidebarLayout'];
+    sanitizeNarrowSidebarTriggerModeSetting: (value: unknown) => NotebookNavigatorSettings['narrowSidebarTriggerMode'];
+    sanitizeNarrowSidebarCustomWidthSetting: (value: unknown) => number;
     sanitizeTagSortOrderSetting: (value: unknown) => NotebookNavigatorSettings['tagSortOrder'];
     sanitizeFolderSortOrderSetting: (value: unknown) => NotebookNavigatorSettings['folderSortOrder'];
     sanitizePaneTransitionDurationSetting: (value: unknown) => number;
@@ -371,6 +374,60 @@ export function createSyncModeRegistry(params: CreateSyncModeRegistryParams): Sy
                 return { migrated: false };
             },
             mirrorToLocalStorage: mirrorFromSettings(params.keys.dualPaneOrientationKey, () => params.getSettings().dualPaneOrientation)
+        }),
+        narrowSidebarLayout: createEntry({
+            persistedKeys: ['narrowSidebarLayout'],
+            loadPhase: 'preProfiles',
+            resolveOnLoad: () => {
+                const isLocal = params.isLocal('narrowSidebarLayout');
+                const storedNarrowSidebarLayout = localStorage.get<unknown>(params.keys.narrowSidebarLayoutKey);
+                const settings = params.getSettings();
+                const narrowSidebarLayout = isLocal
+                    ? params.sanitizeNarrowSidebarLayoutSetting(storedNarrowSidebarLayout)
+                    : params.sanitizeNarrowSidebarLayoutSetting(settings.narrowSidebarLayout);
+                settings.narrowSidebarLayout = narrowSidebarLayout;
+                setLocalStorage(params.keys.narrowSidebarLayoutKey, narrowSidebarLayout);
+                return { migrated: false };
+            },
+            mirrorToLocalStorage: mirrorFromSettings(params.keys.narrowSidebarLayoutKey, () => params.getSettings().narrowSidebarLayout)
+        }),
+        narrowSidebarTriggerMode: createEntry({
+            persistedKeys: ['narrowSidebarTriggerMode'],
+            loadPhase: 'preProfiles',
+            resolveOnLoad: () => {
+                const isLocal = params.isLocal('narrowSidebarTriggerMode');
+                const storedTriggerMode = localStorage.get<unknown>(params.keys.narrowSidebarTriggerModeKey);
+                const settings = params.getSettings();
+                const triggerMode = isLocal
+                    ? params.sanitizeNarrowSidebarTriggerModeSetting(storedTriggerMode)
+                    : params.sanitizeNarrowSidebarTriggerModeSetting(settings.narrowSidebarTriggerMode);
+                settings.narrowSidebarTriggerMode = triggerMode;
+                setLocalStorage(params.keys.narrowSidebarTriggerModeKey, triggerMode);
+                return { migrated: false };
+            },
+            mirrorToLocalStorage: mirrorFromSettings(
+                params.keys.narrowSidebarTriggerModeKey,
+                () => params.getSettings().narrowSidebarTriggerMode
+            )
+        }),
+        narrowSidebarCustomWidth: createEntry({
+            persistedKeys: ['narrowSidebarCustomWidth'],
+            loadPhase: 'preProfiles',
+            resolveOnLoad: () => {
+                const isLocal = params.isLocal('narrowSidebarCustomWidth');
+                const storedCustomWidth = localStorage.get<unknown>(params.keys.narrowSidebarCustomWidthKey);
+                const settings = params.getSettings();
+                const customWidth = isLocal
+                    ? params.sanitizeNarrowSidebarCustomWidthSetting(storedCustomWidth)
+                    : params.sanitizeNarrowSidebarCustomWidthSetting(settings.narrowSidebarCustomWidth);
+                settings.narrowSidebarCustomWidth = customWidth;
+                setLocalStorage(params.keys.narrowSidebarCustomWidthKey, customWidth);
+                return { migrated: false };
+            },
+            mirrorToLocalStorage: mirrorFromSettings(
+                params.keys.narrowSidebarCustomWidthKey,
+                () => params.getSettings().narrowSidebarCustomWidth
+            )
         }),
         paneTransitionDuration: createResolvedLocalStorageSettingEntry({
             settingId: 'paneTransitionDuration',

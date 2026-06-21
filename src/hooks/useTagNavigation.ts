@@ -54,6 +54,7 @@ export function useTagNavigation() {
                     showAllTagsFolder: settings.showAllTagsFolder,
                     expandedTags: expansionState.expandedTags,
                     expandedVirtualFolders: expansionState.expandedVirtualFolders,
+                    collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
                     uiState: {
@@ -78,6 +79,7 @@ export function useTagNavigation() {
             expansionState.expandedTags,
             expansionState.expandedVirtualFolders,
             settings.showAllTagsFolder,
+            settings.collapseOtherBranchesOnExpand,
             settings.showTags,
             findTagInTree,
             uiDispatch,
@@ -101,6 +103,7 @@ export function useTagNavigation() {
                     propertyTree: getPropertyTree(),
                     expandedProperties: expansionState.expandedProperties,
                     expandedVirtualFolders: expansionState.expandedVirtualFolders,
+                    collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
                     uiState: {
@@ -125,6 +128,7 @@ export function useTagNavigation() {
             getPropertyTree,
             selectionDispatch,
             settings.showAllPropertiesFolder,
+            settings.collapseOtherBranchesOnExpand,
             settings.showProperties,
             uiDispatch,
             uiState.currentSinglePaneView,

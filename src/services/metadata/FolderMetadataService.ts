@@ -17,7 +17,7 @@
  */
 
 import { EventRef, TFile, type TFolder } from 'obsidian';
-import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../../settings';
+import type { AlphaSortOrder, ListSortOverrideValue, NotebookNavigatorSettings } from '../../settings/types';
 import { getDBInstanceOrNull } from '../../storage/fileOperations';
 import { ItemType } from '../../types';
 import { isFolderShortcut } from '../../types/shortcuts';

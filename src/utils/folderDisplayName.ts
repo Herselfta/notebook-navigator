@@ -18,7 +18,7 @@
 
 import type { App } from 'obsidian';
 import type { MetadataService } from '../services/MetadataService';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 
 interface ResolveFolderDisplayNameParams {
     app: App;

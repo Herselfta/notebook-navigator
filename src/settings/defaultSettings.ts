@@ -22,7 +22,13 @@ import { FILE_VISIBILITY } from '../utils/fileTypeUtils';
 import { LISTPANE_MEASUREMENTS, NAVPANE_MEASUREMENTS, type PinnedNotes } from '../types';
 import { DEFAULT_UI_SCALE } from '../utils/uiScale';
 import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
-import { SYNC_MODE_SETTING_IDS, type NavRainbowSettings, type NotebookNavigatorSettings, type SettingSyncMode } from './types';
+import {
+    NARROW_SIDEBAR_CUSTOM_WIDTH_DEFAULT,
+    SYNC_MODE_SETTING_IDS,
+    type NavRainbowSettings,
+    type NotebookNavigatorSettings,
+    type SettingSyncMode
+} from './types';
 import { sanitizeRecord } from '../utils/recordUtils';
 import {
     DEFAULT_CALENDAR_CUSTOM_FILE_PATTERN,
@@ -168,6 +174,9 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // General tab - Desktop appearance
     dualPane: true,
     dualPaneOrientation: 'horizontal',
+    narrowSidebarLayout: 'singlePane',
+    narrowSidebarTriggerMode: 'fitPanes',
+    narrowSidebarCustomWidth: NARROW_SIDEBAR_CUSTOM_WIDTH_DEFAULT,
     showTooltips: false,
     showTooltipPath: true,
     showTooltipWordCount: false,
@@ -192,6 +201,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
         list: {
             back: true,
             search: true,
+            reveal: false,
             descendants: true,
             sort: true,
             appearance: true,
@@ -233,6 +243,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // Navigation pane tab - Behavior
     collapseBehavior: 'all',
     smartCollapse: true,
+    collapseOtherBranchesOnExpand: false,
     autoSelectFirstFileOnFocusChange: false,
     autoExpandNavItems: false,
     springLoadedFolders: true,

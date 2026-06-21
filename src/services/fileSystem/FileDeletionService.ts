@@ -25,7 +25,7 @@ import { ConfirmModal } from '../../modals/ConfirmModal';
 import { getSupportedLeaves, type VisibilityPreferences } from '../../types';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { getErrorMessage } from '../../utils/errorUtils';
-import { getFolderNoteDetectionSettings, isFolderNote } from '../../utils/folderNotes';
+import { getFolderNoteDetectionSettings, isFolderNote } from '../../utils/folderNoteLookup';
 import { isPrimaryDocumentFile } from '../../utils/fileTypeUtils';
 import { showNotice } from '../../utils/noticeUtils';
 import { findNextFileAfterRemoval, getFilesForNavigationSelection, updateSelectionAfterFileOperation } from '../../utils/selectionUtils';

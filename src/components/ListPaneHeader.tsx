@@ -74,11 +74,15 @@ export function ListPaneHeader({
     const uiDispatch = useUIDispatch();
     const listPaneTitlePreference = settings.listPaneTitle ?? 'header';
     const iconVersion = useIconServiceVersion();
+    const listToolbarVisibility = settings.toolbarVisibility.list;
+    const showRevealButton = listToolbarVisibility.reveal;
 
     // Use the shared actions hook
     const {
         handleNewFile,
         canCreateNewFile,
+        handleRevealFile,
+        canRevealFile,
         handleAppearanceMenu,
         handleSortMenu,
         handleToggleDescendants,
@@ -87,8 +91,11 @@ export function ListPaneHeader({
         hasAppearanceOrSortSelection,
         hasCustomSortOrGroup,
         hasCustomAppearance
-    } = useListActions({ onManualSortStart, getManualSortNewFileContext });
-    const listToolbarVisibility = settings.toolbarVisibility.list;
+    } = useListActions({
+        onManualSortStart,
+        getManualSortNewFileContext,
+        trackRevealFileAvailability: !isMobile && showRevealButton
+    });
     const showBackButton = listToolbarVisibility.back && uiState.singlePane;
     const showSearchButton = listToolbarVisibility.search;
     const showDescendantsButton = listToolbarVisibility.descendants;
@@ -104,6 +111,7 @@ export function ListPaneHeader({
         showBackButton ||
         shouldShowHeaderTitle ||
         showSearchButton ||
+        showRevealButton ||
         showDescendantsButton ||
         showSortButton ||
         showAppearanceButton ||
@@ -397,6 +405,19 @@ export function ListPaneHeader({
                             tabIndex={-1}
                         >
                             <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-search')} />
+                        </button>
+                    ) : null}
+                    {showRevealButton ? (
+                        <button
+                            className="nn-icon-button"
+                            aria-label={strings.commands.revealFile}
+                            onClick={() => {
+                                runAsyncAction(() => handleRevealFile());
+                            }}
+                            disabled={actionsDisabled || !canRevealFile}
+                            tabIndex={-1}
+                        >
+                            <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-reveal-file')} />
                         </button>
                     ) : null}
                     {showDescendantsButton ? (

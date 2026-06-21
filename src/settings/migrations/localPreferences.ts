@@ -17,7 +17,6 @@
  */
 
 import { Platform } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../../settings';
 import { MAX_PANE_TRANSITION_DURATION_MS, MIN_PANE_TRANSITION_DURATION_MS, type LocalStorageKeys } from '../../types';
 import { MAX_RECENT_COLORS } from '../../constants/colorPalette';
 import { localStorage } from '../../utils/localStorage';
@@ -32,6 +31,7 @@ import {
     type CalendarPlacement,
     type CalendarLeftPlacement,
     type CalendarWeeksToShow,
+    type NotebookNavigatorSettings,
     type TagSortOrder
 } from '../types';
 

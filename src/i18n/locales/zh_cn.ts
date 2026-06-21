@@ -156,6 +156,8 @@ export const STRINGS_ZH_CN = {
         hideExcludedItems: '隐藏隐藏的文件夹、标签和笔记', // Tooltip for button to hide hidden items (English: Hide hidden items)
         showDualPane: '显示双窗格', // Tooltip for button to show dual-pane layout (English: Show dual panes)
         showSinglePane: '显示单窗格', // Tooltip for button to show single-pane layout (English: Show single pane)
+        dualPaneAutoFallbackNotice:
+            '侧边栏过窄时无法使用双窗格。若要更改此行为，请在设置 > 外观与行为中将“侧边栏过窄时”设为“不执行任何操作”。',
         changeAppearance: '更改外观', // Tooltip for button to change folder appearance settings (English: Change appearance)
         showNotesFromSubfolders: '显示子文件夹的笔记',
         showFilesFromSubfolders: '显示子文件夹的文件',
@@ -491,6 +493,7 @@ export const STRINGS_ZH_CN = {
                 'nav-show-dual-pane': '显示双窗格',
                 'nav-profile-chevron': '配置菜单箭头',
                 'list-search': '搜索',
+                'list-reveal-file': '定位文件',
                 'list-descendants': '子文件夹中的笔记',
                 'list-sort-ascending': '排序: 升序',
                 'list-sort-descending': '排序: 降序',
@@ -532,8 +535,22 @@ export const STRINGS_ZH_CN = {
             clearRecentColors: '清除最近使用的颜色',
             removeRecentColor: '移除颜色',
             apply: '应用',
+            pickerLabel: '拾色器',
             hexLabel: 'HEX',
-            rgbLabel: 'RGBA'
+            hexInputLabel: '十六进制颜色值',
+            saturationValueArea: '饱和度和亮度',
+            hueSlider: '色相',
+            alphaSlider: '透明度'
+        },
+        appearance: {
+            tabIcon: '图标',
+            tabColor: '颜色',
+            tabBackground: '背景',
+            resetIcon: '移除图标',
+            resetColor: '移除颜色',
+            resetBackground: '移除背景',
+            clear: '清除样式',
+            apply: '应用'
         },
         selectVaultProfile: {
             title: '更改仓库配置文件',
@@ -969,6 +986,9 @@ export const STRINGS_ZH_CN = {
             },
             navigation: {
                 appearance: '外观',
+                banner: '横幅',
+                dragAndDrop: '拖放',
+                noteCounts: '笔记数',
                 rainbowColors: '彩虹颜色',
                 leftSidebar: '左侧边栏',
                 calendarIntegration: '日历集成'
@@ -1221,6 +1241,28 @@ export const STRINGS_ZH_CN = {
                     vertical: '垂直分割'
                 }
             },
+            narrowSidebarLayout: {
+                name: '侧边栏过窄时',
+                desc: '选择导航窗格和列表窗格无法并排显示时的处理方式。',
+                options: {
+                    none: '不执行任何操作',
+                    singlePane: '切换到单窗格',
+                    vertical: '切换到垂直分割'
+                }
+            },
+            narrowSidebarTrigger: {
+                name: '窄侧边栏阈值',
+                desc: '选择侧边栏宽度阈值的计算方式。',
+                options: {
+                    fitPanes: '适配窗格',
+                    customWidth: '自定义宽度'
+                }
+            },
+            narrowSidebarCustomWidth: {
+                name: '窄侧边栏阈值宽度',
+                desc: '当侧边栏窄于此宽度时切换。',
+                resetTooltip: '重置为默认宽度'
+            },
             appearanceBackground: {
                 name: '背景色',
                 desc: '为导航窗格和列表窗格选择背景色。',
@@ -1288,6 +1330,10 @@ export const STRINGS_ZH_CN = {
             autoExpandNavItems: {
                 name: '选中时展开',
                 desc: '选中时展开文件夹和标签。在单窗格模式下，首次选中展开，再次选中显示文件。'
+            },
+            collapseOtherBranchesOnExpand: {
+                name: '仅展开一个分支',
+                desc: '展开文件夹、标签或属性时折叠同一树中的其他分支。'
             },
             springLoadedFolders: {
                 name: '拖动时展开',
@@ -2155,7 +2201,8 @@ export const STRINGS_ZH_CN = {
             },
             folderNoteTemplate: {
                 name: '文件夹笔记模板',
-                desc: '新建 Markdown 文件夹笔记的模板文件。在文件操作 > 模板中设置模板文件夹位置。'
+                desc: '创建文件夹笔记时使用的模板文件。Markdown 模板可以使用 Templater。Canvas 和 Base 模板会作为文件内容复制。在文件操作 > 模板中设置模板文件夹位置。',
+                formatWarning: '模板格式必须与所选文件夹笔记类型匹配：.md、.canvas 或 .base。'
             },
             enableFolderNoteLinks: {
                 name: '文件夹名称打开文件夹笔记',

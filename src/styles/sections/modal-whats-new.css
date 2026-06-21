@@ -113,6 +113,61 @@
     object-fit: cover;
 }
 
+/* Release video */
+.nn-whats-new-video-frame {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    margin-bottom: 12px;
+}
+
+.nn-whats-new-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    background: #000000;
+}
+
+.nn-whats-new-video-open {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    color: var(--text-normal);
+    background: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    opacity: 0.9;
+    text-decoration: none;
+}
+
+.nn-whats-new-video-open:hover {
+    color: var(--text-normal);
+    background: var(--background-secondary);
+}
+
+.nn-whats-new-video-open:focus-visible {
+    outline: 2px solid var(--interactive-accent);
+    outline-offset: 2px;
+}
+
+.nn-whats-new-video-open svg {
+    width: 16px;
+    height: 16px;
+}
+
 /* YouTube link preview */
 .nn-whats-new-youtube-link {
     display: block;

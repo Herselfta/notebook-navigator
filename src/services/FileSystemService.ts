@@ -21,7 +21,7 @@ import type { SelectionDispatch } from '../context/SelectionContext';
 import { strings } from '../i18n';
 import { InputModal } from '../modals/InputModal';
 import { ConfirmModal } from '../modals/ConfirmModal';
-import { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import { PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
 import type { VisibilityPreferences } from '../types';
 import { ExtendedApp, TIMEOUTS, OBSIDIAN_COMMANDS } from '../types/obsidian-extended';
@@ -50,7 +50,7 @@ import {
     isFolderNote,
     isSupportedFolderNoteExtension,
     resolveFolderNoteNameForFolder
-} from '../utils/folderNotes';
+} from '../utils/folderNoteLookup';
 import { executeCommand, isPluginInstalled } from '../utils/typeGuards';
 import { getErrorMessage } from '../utils/errorUtils';
 import { TagTreeService } from './TagTreeService';

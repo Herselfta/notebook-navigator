@@ -17,7 +17,7 @@
  */
 
 import { TFile } from 'obsidian';
-import { FileData } from './IndexedDBStorage';
+import type { FileData } from './IndexedDBStorage';
 import { getDBInstance } from './fileOperations';
 
 /**

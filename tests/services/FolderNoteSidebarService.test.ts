@@ -211,7 +211,7 @@ describe('FolderNoteSidebarService', () => {
         mutableService.companionLeaf = companionLeaf.leaf;
         mutableService.currentFolderNotePath = 'Projects/index.md';
 
-        service.handleWorkspaceReady();
+        void service.handleWorkspaceReady();
         await service.syncToSelectedFolder(null);
 
         expect(companionLeaf.detach).not.toHaveBeenCalled();
@@ -248,7 +248,7 @@ describe('FolderNoteSidebarService', () => {
         } as unknown as NotebookNavigatorPlugin;
         const service = new FolderNoteSidebarService(plugin);
 
-        service.handleWorkspaceReady();
+        void service.handleWorkspaceReady();
         await service.syncToSelectedFolder(null);
 
         expect(workspace.getRightLeaf).not.toHaveBeenCalled();
@@ -485,7 +485,7 @@ describe('FolderNoteSidebarService', () => {
         mutableService.companionLeaf = infoLeaf.leaf;
         mutableService.currentFolderNotePath = folderNote.path;
 
-        service.handleWorkspaceReady();
+        void service.handleWorkspaceReady();
         await service.syncToSelectedFolder(null);
 
         expect(infoLeaf.setViewState).not.toHaveBeenCalled();
@@ -535,7 +535,7 @@ describe('FolderNoteSidebarService', () => {
         mutableService.currentFolderNotePath = folderNote.path;
 
         service.start();
-        service.handleWorkspaceReady();
+        void service.handleWorkspaceReady();
         settingsUpdateListener?.();
 
         expect(registerSettingsUpdateListener).toHaveBeenCalled();
@@ -583,7 +583,7 @@ describe('FolderNoteSidebarService', () => {
         const service = new FolderNoteSidebarService(plugin);
 
         service.start();
-        service.handleWorkspaceReady();
+        void service.handleWorkspaceReady();
         settingsUpdateListener?.();
 
         expect(registerSettingsUpdateListener).toHaveBeenCalled();
@@ -663,7 +663,7 @@ describe('FolderNoteSidebarService', () => {
         } as unknown as NotebookNavigatorPlugin;
         const service = new FolderNoteSidebarService(plugin);
 
-        service.handleWorkspaceReady();
+        await service.handleWorkspaceReady();
         await service.syncToSelectedFolder(child);
 
         expect(companionLeaf.openFile).toHaveBeenCalledWith(projectsFolderNote, { active: false });
@@ -704,8 +704,7 @@ describe('FolderNoteSidebarService', () => {
         await service.syncToSelectedFolder(projects);
         expect(companionLeaf.openFile).not.toHaveBeenCalled();
 
-        service.handleWorkspaceReady();
-        await Promise.resolve();
+        await service.handleWorkspaceReady();
 
         expect(companionLeaf.openFile).toHaveBeenCalledWith(projectsFolderNote, { active: false });
     });

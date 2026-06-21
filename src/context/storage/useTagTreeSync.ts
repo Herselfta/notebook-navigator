@@ -25,7 +25,7 @@ import { getDBInstance } from '../../storage/fileOperations';
 import type { StorageFileData } from './storageFileData';
 import type { TagTreeNode } from '../../types/storage';
 import { buildTagTreeFromDatabase } from '../../utils/tagTree';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { FileVisibility } from '../../utils/fileTypeUtils';
 
 /**

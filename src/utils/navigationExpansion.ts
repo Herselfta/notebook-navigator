@@ -21,6 +21,7 @@ import type { ExpansionAction } from '../context/ExpansionContext';
 import { NavigationPaneItemType } from '../types';
 import type { CombinedNavigationItem } from '../types/virtualization';
 import { hasSubfolders } from './fileFilters';
+import { getPropertyKeyNodeIdFromNodeId } from './propertyTree';
 
 export interface NavigationExpansionSets {
     expandedFolders: ReadonlySet<string>;
@@ -33,6 +34,16 @@ export interface NavigationExpansionTarget {
     type: 'folder' | 'tag' | 'property' | 'virtual-folder';
     id: string;
     hasChildren: boolean;
+    ancestorIds?: readonly string[];
+}
+
+type NavigationExpansionTreeType = Exclude<NavigationExpansionTarget['type'], 'virtual-folder'>;
+
+interface ExpandNavigationTreeItemsOptions {
+    type: NavigationExpansionTreeType;
+    ids: readonly string[];
+    collapseOtherBranches: boolean;
+    dispatch: (action: ExpansionAction) => void;
 }
 
 interface NavigationExpansionTargetState {
@@ -68,6 +79,33 @@ function buildToggleAction(target: NavigationExpansionTarget): ExpansionAction {
     }
 }
 
+function buildExpandItemsAction(
+    type: NavigationExpansionTreeType,
+    ids: readonly string[],
+    collapseOtherBranches: boolean
+): ExpansionAction {
+    switch (type) {
+        case 'folder':
+            return collapseOtherBranches
+                ? { type: 'SET_EXPANDED_FOLDERS', folders: new Set(ids) }
+                : { type: 'EXPAND_FOLDERS', folderPaths: [...ids] };
+        case 'tag':
+            return collapseOtherBranches ? { type: 'SET_EXPANDED_TAGS', tags: new Set(ids) } : { type: 'EXPAND_TAGS', tagPaths: [...ids] };
+        case 'property':
+            return collapseOtherBranches
+                ? { type: 'SET_EXPANDED_PROPERTIES', properties: new Set(ids) }
+                : { type: 'EXPAND_PROPERTIES', propertyNodeIds: [...ids] };
+    }
+}
+
+function buildBranchExpandAction(target: NavigationExpansionTarget): ExpansionAction {
+    if (target.type === 'virtual-folder') {
+        return buildToggleAction(target);
+    }
+
+    return buildExpandItemsAction(target.type, [...(target.ancestorIds ?? []), target.id], true);
+}
+
 function getNavigationExpansionTargetState(
     target: NavigationExpansionTarget,
     expansionState: NavigationExpansionSets
@@ -85,7 +123,8 @@ export function toggleNavigationExpansionTarget(
     target: NavigationExpansionTarget,
     expansionState: NavigationExpansionSets,
     dispatch: (action: ExpansionAction) => void,
-    mode: 'toggle' | 'expand' | 'collapse' = 'toggle'
+    mode: 'toggle' | 'expand' | 'collapse' = 'toggle',
+    options?: { collapseOtherBranches?: boolean }
 ): boolean {
     const targetState = getNavigationExpansionTargetState(target, expansionState);
     const shouldToggle =
@@ -99,8 +138,53 @@ export function toggleNavigationExpansionTarget(
         return false;
     }
 
-    dispatch(buildToggleAction(target));
+    if (options?.collapseOtherBranches && targetState.canExpand) {
+        dispatch(buildBranchExpandAction(target));
+    } else {
+        dispatch(buildToggleAction(target));
+    }
     return true;
+}
+
+export function expandNavigationTreeItems({ type, ids, collapseOtherBranches, dispatch }: ExpandNavigationTreeItemsOptions): void {
+    if (ids.length === 0) {
+        return;
+    }
+
+    dispatch(buildExpandItemsAction(type, ids, collapseOtherBranches));
+}
+
+export function getFolderAncestorPaths(folder: TFolder): string[] {
+    const ancestorPaths: string[] = [];
+    let currentFolder: TFolder | null = folder.parent;
+
+    while (currentFolder) {
+        ancestorPaths.unshift(currentFolder.path);
+        if (currentFolder.path === '/') {
+            break;
+        }
+        currentFolder = currentFolder.parent;
+    }
+
+    return ancestorPaths;
+}
+
+export function getTagAncestorPaths(tagPath: string): string[] {
+    if (!tagPath.includes('/')) {
+        return [];
+    }
+
+    const parts = tagPath.split('/');
+    const ancestorPaths: string[] = [];
+    for (let index = 1; index < parts.length; index += 1) {
+        ancestorPaths.push(parts.slice(0, index).join('/'));
+    }
+    return ancestorPaths;
+}
+
+export function getPropertyAncestorNodeIds(propertyNodeId: string): string[] {
+    const keyNodeId = getPropertyKeyNodeIdFromNodeId(propertyNodeId);
+    return keyNodeId && keyNodeId !== propertyNodeId ? [keyNodeId] : [];
 }
 
 export function getNavigationExpansionTargetForItem(
@@ -115,20 +199,23 @@ export function getNavigationExpansionTargetForItem(
             return {
                 type: 'folder',
                 id: item.data.path,
-                hasChildren: hasSubfolders(item.data, item.parsedExcludedFolders ?? [], options.showHiddenItems)
+                hasChildren: hasSubfolders(item.data, item.parsedExcludedFolders ?? [], options.showHiddenItems),
+                ancestorIds: getFolderAncestorPaths(item.data)
             };
         case NavigationPaneItemType.TAG:
             return {
                 type: 'tag',
                 id: item.data.path,
-                hasChildren: item.data.children.size > 0
+                hasChildren: item.data.children.size > 0,
+                ancestorIds: getTagAncestorPaths(item.data.path)
             };
         case NavigationPaneItemType.PROPERTY_KEY:
         case NavigationPaneItemType.PROPERTY_VALUE:
             return {
                 type: 'property',
                 id: item.data.id,
-                hasChildren: item.data.children.size > 0
+                hasChildren: item.data.children.size > 0,
+                ancestorIds: getPropertyAncestorNodeIds(item.data.id)
             };
         case NavigationPaneItemType.VIRTUAL_FOLDER:
             if (typeof item.tagCollectionId !== 'string' && typeof item.propertyCollectionId !== 'string') {

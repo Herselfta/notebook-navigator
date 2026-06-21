@@ -16,13 +16,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { NotebookNavigatorSettings } from '../settings';
 import { NAV_RAINBOW_DEFAULTS } from '../settings/defaultSettings';
 import {
     isNavRainbowColorMode,
     isNavRainbowScope,
     isNavRainbowTransitionStyle,
     type NavRainbowSettings,
+    type NotebookNavigatorSettings,
     type VaultProfile,
     type VaultProfilePropertyKey
 } from '../settings/types';

@@ -17,7 +17,7 @@
  */
 
 import { App, Modal, Setting, setIcon } from 'obsidian';
-import NotebookNavigatorPlugin from '../main';
+import type NotebookNavigatorPlugin from '../main';
 import { strings } from '../i18n';
 import { runAsyncAction } from '../utils/async';
 import {

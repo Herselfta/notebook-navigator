@@ -18,7 +18,7 @@
 
 import { useCallback, type MutableRefObject } from 'react';
 import type { App, TFile } from 'obsidian';
-import type { NotebookNavigatorSettings } from '../../settings';
+import type { NotebookNavigatorSettings } from '../../settings/types';
 import { getFilteredIndexableFiles, getFilteredMarkdownFiles } from '../../utils/fileFilters';
 
 /**

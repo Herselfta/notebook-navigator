@@ -17,12 +17,13 @@
  */
 
 import React, { createContext, useContext, useReducer, ReactNode, useMemo, useEffect, useCallback, useRef } from 'react';
-import { NAVIGATION_PANE_DIMENSIONS } from '../types';
+import { FILE_PANE_DIMENSIONS, NAVIGATION_PANE_DIMENSIONS, type DualPaneOrientation } from '../types';
 // Storage keys
 import { STORAGE_KEYS } from '../types';
 import { localStorage } from '../utils/localStorage';
 import { useServices } from './ServicesContext';
-import type { NotebookNavigatorSettings } from '../settings';
+import { useSettingsState } from './SettingsContext';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import { useUXPreferenceActions, useUXPreferences } from './UXPreferencesContext';
 
 /**
@@ -38,9 +39,11 @@ interface UIState {
     focusedPane: 'navigation' | 'files' | 'search';
     currentSinglePaneView: 'navigation' | 'files';
     paneWidth: number;
+    containerWidth: number | null;
     dualPanePreference: boolean;
     dualPane: boolean;
     singlePane: boolean;
+    effectiveDualPaneOrientation: DualPaneOrientation;
     /** Whether shortcuts should be pinned at the top of the navigation pane */
     pinShortcuts: boolean;
 }
@@ -50,6 +53,7 @@ export type UIAction =
     | { type: 'SET_FOCUSED_PANE'; pane: 'navigation' | 'files' | 'search' }
     | { type: 'SET_SINGLE_PANE_VIEW'; view: 'navigation' | 'files' }
     | { type: 'SET_PANE_WIDTH'; width: number }
+    | { type: 'SET_CONTAINER_WIDTH'; width: number }
     | { type: 'SET_DUAL_PANE'; value: boolean }
     | { type: 'SET_PIN_SHORTCUTS'; value: boolean }; // Toggle shortcuts pinned state
 
@@ -67,9 +71,21 @@ function uiStateReducer(state: UIState, action: UIAction): UIState {
             return { ...state, currentSinglePaneView: action.view };
 
         case 'SET_PANE_WIDTH':
+            if (state.paneWidth === action.width) {
+                return state;
+            }
             return { ...state, paneWidth: action.width };
 
+        case 'SET_CONTAINER_WIDTH':
+            if (state.containerWidth === action.width) {
+                return state;
+            }
+            return { ...state, containerWidth: action.width };
+
         case 'SET_DUAL_PANE':
+            if (state.dualPanePreference === action.value) {
+                return state;
+            }
             return { ...state, dualPanePreference: action.value };
 
         // Update shortcuts pinned state
@@ -89,6 +105,7 @@ interface UIStateProviderProps {
 
 export function UIStateProvider({ children, isMobile }: UIStateProviderProps) {
     const { plugin } = useServices();
+    const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
     const { setPinShortcuts } = useUXPreferenceActions();
 
@@ -102,9 +119,11 @@ export function UIStateProvider({ children, isMobile }: UIStateProviderProps) {
             focusedPane: startView,
             currentSinglePaneView: startView,
             paneWidth: Math.max(NAVIGATION_PANE_DIMENSIONS.minWidth, paneWidth),
+            containerWidth: null,
             dualPanePreference: plugin.useDualPane(),
             dualPane: false, // Will be computed later
             singlePane: false, // Will be computed later
+            effectiveDualPaneOrientation: plugin.getDualPaneOrientation(),
             pinShortcuts: uxPreferences.pinShortcuts
         };
 
@@ -119,16 +138,47 @@ export function UIStateProvider({ children, isMobile }: UIStateProviderProps) {
         pinShortcutsRef.current = state.pinShortcuts;
     }, [state.pinShortcuts]);
 
-    // Compute dualPane and singlePane based on isMobile and settings
+    // Compute the effective pane layout from user preference and current container width.
     const stateWithPaneMode = useMemo(() => {
-        const dualPane = !isMobile && state.dualPanePreference;
+        let dualPane = !isMobile && state.dualPanePreference;
+        let effectiveDualPaneOrientation: DualPaneOrientation = settings.dualPaneOrientation;
+
+        if (
+            dualPane &&
+            settings.dualPaneOrientation === 'horizontal' &&
+            settings.narrowSidebarLayout !== 'none' &&
+            state.containerWidth !== null
+        ) {
+            const requiredHorizontalWidth =
+                settings.narrowSidebarTriggerMode === 'customWidth'
+                    ? settings.narrowSidebarCustomWidth
+                    : state.paneWidth + FILE_PANE_DIMENSIONS.minWidth;
+            const horizontalFits = state.containerWidth >= requiredHorizontalWidth;
+
+            if (!horizontalFits) {
+                if (settings.narrowSidebarLayout === 'singlePane') {
+                    dualPane = false;
+                } else if (settings.narrowSidebarLayout === 'vertical') {
+                    effectiveDualPaneOrientation = 'vertical';
+                }
+            }
+        }
+
         return {
             ...state,
             dualPane,
             singlePane: !dualPane,
+            effectiveDualPaneOrientation,
             pinShortcuts: state.pinShortcuts
         };
-    }, [state, isMobile]);
+    }, [
+        state,
+        isMobile,
+        settings.dualPaneOrientation,
+        settings.narrowSidebarCustomWidth,
+        settings.narrowSidebarLayout,
+        settings.narrowSidebarTriggerMode
+    ]);
 
     // Wraps reducer dispatch to forward real changes to the plugin while ignoring redundant writes
     const dispatch = useCallback(

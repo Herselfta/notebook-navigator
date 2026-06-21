@@ -106,6 +106,7 @@ Notebook Navigator runs locally, but some features make documented HTTP requests
 | Shift+Click                                 | Select a range of notes                                                                                                                     |
 | Shift+Home/End                              | Select from current position to first/last item                                                                                             |
 | Shift+↑/↓                                   | Extend selection up/down                                                                                                                    |
+| Cmd/Ctrl+↑/↓                                | Rearrange selected files up/down in manual sort mode                                                                                        |
 
 **Note:** All keyboard shortcuts can be customized. See [section 8 - Custom hotkeys](#8-custom-hotkeys) for details on adding VIM-style navigation (h,j,k,l), alternate keys, and modifier combinations.
 
@@ -485,11 +486,13 @@ Notebook Navigator runs locally, but some features make HTTP requests from Obsid
 - **Requests:** `https://raw.githubusercontent.com/johansan/notebook-navigator/main/icon-assets/...` (manifest, font, metadata)
 - **Storage:** Stored locally in IndexedDB
 
-### 11.3 External images and YouTube thumbnails
+### 11.3 External images, videos, and YouTube thumbnails
 
 - **Feature images (Optional):** Controlled by the "Download external images" setting. Downloads remote images and YouTube thumbnails for feature images and stores them locally in IndexedDB.
 - **Welcome modal (First launch):** Loads a static thumbnail from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-thumbnail.jpg`.
 - **What's new modal (On update / when opened):** Loads release banner images from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/version-banners/<id>.jpg` for release notes that include a banner.
+- **What's new modal (On update / when opened):** Loads release videos from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/version-banners/<id>.mp4` for release notes that include a video.
+- **What's new modal (When opening a release video):** Opens release videos from `https://cdn.jsdelivr.net/gh/johansan/notebook-navigator@main/images/version-banners/<id>.mp4` so browsers can play the video directly.
 - **What's new modal (On update / when opened):** Loads YouTube thumbnails from `https://img.youtube.com/vi/<id>/...` for release notes that include a YouTube link.
 
 ### 11.4 Startup debug files (Optional)
@@ -526,6 +529,8 @@ Feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/johansan/
 
 **[Join our Discord](https://discord.gg/6eeSUvzEJr)** for support and discussions, or open an issue on the
 [GitHub repository](https://github.com/johansan/notebook-navigator).
+
+**Pull requests are not accepted.** With the emergence of agentic coding, outside code submissions cannot be quality-controlled to the standard the project maintains, so any pull request is closed automatically. Contribute ideas as feature requests instead — [open an issue](https://github.com/johansan/notebook-navigator/issues). See [CONTRIBUTING.md](https://github.com/johansan/notebook-navigator/blob/main/CONTRIBUTING.md) for details.
 
 <br/>
 

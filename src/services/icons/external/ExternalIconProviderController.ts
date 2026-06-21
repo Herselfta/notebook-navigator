@@ -17,12 +17,17 @@
  */
 
 import { App, requestUrl } from 'obsidian';
-import { IconProvider } from '../types';
+import type { IconProvider } from '../types';
 import { IconService } from '../IconService';
-import { ISettingsProvider } from '../../../interfaces/ISettingsProvider';
-import { NotebookNavigatorSettings } from '../../../settings';
-import { IconAssetDatabase, IconAssetRecord } from './IconAssetDatabase';
-import { EXTERNAL_ICON_PROVIDERS, ExternalIconManifest, ExternalIconProviderConfig, ExternalIconProviderId } from './providerRegistry';
+import type { ISettingsProvider } from '../../../interfaces/ISettingsProvider';
+import type { NotebookNavigatorSettings } from '../../../settings/types';
+import { IconAssetDatabase, type IconAssetRecord } from './IconAssetDatabase';
+import {
+    EXTERNAL_ICON_PROVIDERS,
+    type ExternalIconManifest,
+    type ExternalIconProviderConfig,
+    type ExternalIconProviderId
+} from './providerRegistry';
 import { FontAwesomeIconProvider } from '../providers/FontAwesomeIconProvider';
 import { RpgAwesomeIconProvider } from '../providers/RpgAwesomeIconProvider';
 import { BootstrapIconProvider } from '../providers/BootstrapIconProvider';
@@ -30,7 +35,7 @@ import { MaterialIconProvider } from '../providers/MaterialIconProvider';
 import { PhosphorIconProvider } from '../providers/PhosphorIconProvider';
 import { SimpleIconsProvider } from '../providers/SimpleIconsProvider';
 import { strings } from '../../../i18n';
-import { compareVersions } from '../../../releaseNotes';
+import { compareVersions } from '../../../utils/versionUtils';
 import { BUNDLED_ICON_MANIFESTS } from './bundledManifests';
 import { showNotice } from '../../../utils/noticeUtils';
 import { sanitizeRecord } from '../../../utils/recordUtils';

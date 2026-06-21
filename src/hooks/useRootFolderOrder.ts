@@ -20,7 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 import { TFile, TFolder, debounce } from 'obsidian';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsUpdate } from '../context/SettingsContext';
-import type { NotebookNavigatorSettings } from '../settings';
+import type { NotebookNavigatorSettings } from '../settings/types';
 import { naturalCompare } from '../utils/sortUtils';
 import { areStringArraysEqual, createIndexMap } from '../utils/arrayUtils';
 import { compareFolderOrderWithFallback } from '../utils/treeFlattener';

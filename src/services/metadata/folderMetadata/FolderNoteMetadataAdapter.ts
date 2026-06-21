@@ -28,7 +28,7 @@ import {
     getFolderNoteDetectionSettings,
     resolveFolderNoteNameForFolder,
     resolveRootFolderNoteSourceName
-} from '../../../utils/folderNotes';
+} from '../../../utils/folderNoteLookup';
 import { resolveFolderNoteName } from '../../../utils/folderNoteName';
 import type { FolderFrontmatterFields, FolderNoteMetadata, FolderStyleUpdate, FolderStyleValues, FolderStyleWriteResult } from './types';
 
