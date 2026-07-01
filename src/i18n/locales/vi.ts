@@ -140,7 +140,7 @@ export const STRINGS_VI = {
         mobileBackToNavigation: 'Quay lại điều hướng', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Đổi thứ tự sắp xếp',
         changeSortAndGroup: 'Đổi sắp xếp và nhóm',
-        defaultSort: 'Mặc định', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Đặt lại chế độ xem về mặc định',
         manualSort: 'Sắp xếp thủ công',
         editSortOrder: 'Chỉnh sửa thứ tự sắp xếp...',
         removeSortProperty: 'Xóa thuộc tính sắp xếp',
@@ -398,9 +398,6 @@ export const STRINGS_VI = {
         titleRows: 'Dòng tiêu đề',
         previewRows: 'Dòng xem trước',
         groupBy: 'Nhóm theo',
-        defaultTitleOption: (rows: number) => `Dòng tiêu đề mặc định (${rows})`,
-        defaultPreviewOption: (rows: number) => `Dòng xem trước mặc định (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Nhóm mặc định (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} dòng tiêu đề`,
         previewRowOption: (rows: number) => `${rows} dòng xem trước`
     },
@@ -998,6 +995,7 @@ export const STRINGS_VI = {
             navigation: {
                 appearance: 'Giao diện',
                 banner: 'Banner',
+                collapseItems: 'Thu gọn mục',
                 dragAndDrop: 'Kéo và thả',
                 noteCounts: 'Số lượng ghi chú',
                 rainbowColors: 'Màu cầu vồng',
@@ -1203,6 +1201,14 @@ export const STRINGS_VI = {
             showCategoryIcons: {
                 name: 'Biểu tượng theo loại tệp',
                 desc: 'Gán biểu tượng cho tệp dựa trên phần mở rộng.'
+            },
+            fileTypeIconPreset: {
+                name: 'Cài đặt sẵn biểu tượng tệp',
+                desc: 'Chọn biểu tượng tích hợp hoặc cài đặt sẵn của gói biểu tượng. Quy tắc phần mở rộng tùy chỉnh ghi đè cài đặt sẵn này.',
+                options: {
+                    none: 'Biểu tượng tích hợp'
+                },
+                notInstalledWarning: 'Gói biểu tượng này chưa được cài đặt. Biểu tượng tích hợp sẽ được hiển thị thay thế.'
             },
             fileTypeIconMap: {
                 name: 'Bản đồ biểu tượng loại tệp',
@@ -1623,19 +1629,19 @@ export const STRINGS_VI = {
             },
             enterToOpenFiles: {
                 name: 'Nhấn Enter để mở tệp',
-                desc: 'Chỉ mở tệp khi nhấn Enter trong quá trình điều hướng bằng bàn phím trong danh sách.'
+                desc: 'Chỉ mở tệp khi nhấn Enter trong quá trình điều hướng bằng bàn phím trong danh sách. Trên macOS, thao tác này ngăn Enter đổi tên tệp.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Shift+Enter.'
+                desc: 'Chọn Shift+Enter mở hay đổi tên tệp đã chọn.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Cmd+Enter.'
+                desc: 'Chọn Cmd+Enter mở hay đổi tên tệp đã chọn.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Mở tệp đã chọn trong tab mới, chia đôi hoặc cửa sổ khi nhấn Ctrl+Enter.'
+                desc: 'Chọn Ctrl+Enter mở hay đổi tên tệp đã chọn.'
             },
             mouseBackForwardAction: {
                 name: 'Nút quay lại/tiến lên của chuột',
@@ -2080,6 +2086,10 @@ export const STRINGS_VI = {
                 name: 'Giữ mục đã chọn mở rộng',
                 desc: 'Khi thu gọn, giữ mục đã chọn và cha của nó mở rộng.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Bỏ qua thư mục gốc vault khi thu gọn',
+                desc: 'Khi thu gọn tất cả mục, giữ thư mục gốc vault ở trạng thái hiện tại.'
+            },
             navIndent: {
                 name: 'Thụt lề cây',
                 desc: 'Điều chỉnh độ rộng thụt lề cho thư mục, thẻ và thuộc tính lồng nhau (pixel).'
@@ -2252,7 +2262,7 @@ export const STRINGS_VI = {
             },
             deleteAttachments: {
                 name: 'Xóa tệp đính kèm khi xóa tệp',
-                desc: 'Tự động xóa tệp đính kèm liên kết với tệp đã xóa nếu chúng không được sử dụng ở nơi khác',
+                desc: 'Tự động xóa tệp đính kèm được liên kết và bản xem trước bản vẽ được tạo nếu chúng không được sử dụng ở nơi khác',
                 options: {
                     ask: 'Hỏi mỗi lần',
                     always: 'Luôn luôn',

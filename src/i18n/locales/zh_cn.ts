@@ -139,7 +139,7 @@ export const STRINGS_ZH_CN = {
         mobileBackToNavigation: '返回导航', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '更改排序方式',
         changeSortAndGroup: '更改排序和分组',
-        defaultSort: '默认', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: '将视图重置为默认值',
         manualSort: '手动排序',
         editSortOrder: '编辑排序方式...',
         removeSortProperty: '移除排序属性',
@@ -398,9 +398,6 @@ export const STRINGS_ZH_CN = {
         titleRows: '标题行数',
         previewRows: '预览行数',
         groupBy: '分组依据',
-        defaultTitleOption: (rows: number) => `默认标题行数 (${rows})`,
-        defaultPreviewOption: (rows: number) => `默认预览行数 (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `默认分组 (${groupLabel})`,
         titleRowOption: (rows: number) => `标题${rows}行`,
         previewRowOption: (rows: number) => `预览${rows}行`
     },
@@ -987,6 +984,7 @@ export const STRINGS_ZH_CN = {
             navigation: {
                 appearance: '外观',
                 banner: '横幅',
+                collapseItems: '折叠项目',
                 dragAndDrop: '拖放',
                 noteCounts: '笔记数',
                 rainbowColors: '彩虹颜色',
@@ -1189,6 +1187,14 @@ export const STRINGS_ZH_CN = {
             showCategoryIcons: {
                 name: '按文件类型设置图标',
                 desc: '根据文件扩展名分配图标。'
+            },
+            fileTypeIconPreset: {
+                name: '文件图标预设',
+                desc: '选择内置图标或图标包预设。自定义扩展名规则会覆盖此预设。',
+                options: {
+                    none: '内置图标'
+                },
+                notInstalledWarning: '未安装此图标包。将改为显示内置图标。'
             },
             fileTypeIconMap: {
                 name: '文件类型图标映射',
@@ -1607,19 +1613,19 @@ export const STRINGS_ZH_CN = {
             },
             enterToOpenFiles: {
                 name: '按 Enter 键打开文件',
-                desc: '仅在列表键盘导航时按 Enter 键打开文件。'
+                desc: '仅在列表键盘导航时按 Enter 键打开文件。在 macOS 上，这会阻止 Enter 键重命名文件。'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: '按 Shift+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Shift+Enter 是打开还是重命名所选文件。'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: '按 Cmd+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Cmd+Enter 是打开还是重命名所选文件。'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: '按 Ctrl+Enter 在新标签页、分栏或窗口中打开所选文件。'
+                desc: '选择 Ctrl+Enter 是打开还是重命名所选文件。'
             },
             mouseBackForwardAction: {
                 name: '鼠标后退/前进按钮',
@@ -2063,6 +2069,10 @@ export const STRINGS_ZH_CN = {
                 name: '保持选中项展开',
                 desc: '折叠时，保持选中项及其父级展开。'
             },
+            excludeVaultRootFromCollapse: {
+                name: '折叠时跳过仓库根目录',
+                desc: '折叠所有项目时，保持仓库根文件夹的当前状态。'
+            },
             navIndent: {
                 name: '树形缩进',
                 desc: '调整嵌套文件夹、标签和属性的缩进宽度（像素）。'
@@ -2235,7 +2245,7 @@ export const STRINGS_ZH_CN = {
             },
             deleteAttachments: {
                 name: '删除文件时删除附件',
-                desc: '如果附件未在其他地方使用，则在删除文件时自动删除关联的附件',
+                desc: '如果未在其他地方使用，则自动删除关联的附件和生成的绘图预览',
                 options: {
                     ask: '每次询问',
                     always: '始终',

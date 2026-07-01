@@ -140,7 +140,7 @@ export const STRINGS_EN = {
         mobileBackToNavigation: 'Back to navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Change sort order',
         changeSortAndGroup: 'Change sort and group',
-        defaultSort: 'Default', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Reset view to defaults',
         manualSort: 'Manual sort',
         editSortOrder: 'Edit sort order...',
         removeSortProperty: 'Remove sort property',
@@ -398,9 +398,6 @@ export const STRINGS_EN = {
         titleRows: 'Title rows',
         previewRows: 'Preview rows',
         groupBy: 'Group by',
-        defaultTitleOption: (rows: number) => `Default title rows (${rows})`,
-        defaultPreviewOption: (rows: number) => `Default preview rows (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Default grouping (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} title row${rows === 1 ? '' : 's'}`,
         previewRowOption: (rows: number) => `${rows} preview row${rows === 1 ? '' : 's'}`
     },
@@ -991,6 +988,7 @@ export const STRINGS_EN = {
             navigation: {
                 appearance: 'Appearance',
                 banner: 'Banner',
+                collapseItems: 'Collapse items',
                 dragAndDrop: 'Drag and drop',
                 noteCounts: 'Note counts',
                 rainbowColors: 'Rainbow colors',
@@ -1196,6 +1194,14 @@ export const STRINGS_EN = {
             showCategoryIcons: {
                 name: 'Icons by file type',
                 desc: 'Assign icons to files based on their extension.'
+            },
+            fileTypeIconPreset: {
+                name: 'File icon preset',
+                desc: 'Choose the built-in icons or an icon pack preset. Custom extension rules override this preset.',
+                options: {
+                    none: 'Built-in icons'
+                },
+                notInstalledWarning: 'This icon pack is not installed. Built-in icons are shown instead.'
             },
             fileTypeIconMap: {
                 name: 'File type icon map',
@@ -1615,19 +1621,19 @@ export const STRINGS_EN = {
             },
             enterToOpenFiles: {
                 name: 'Press Enter to open files',
-                desc: 'Open files only when pressing Enter during list keyboard navigation.'
+                desc: 'Open files only when pressing Enter during list keyboard navigation. On macOS, this stops Enter from renaming files.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Shift+Enter.'
+                desc: 'Choose whether Shift+Enter opens or renames the selected file.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Cmd+Enter.'
+                desc: 'Choose whether Cmd+Enter opens or renames the selected file.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Open selected file in a new tab, split, or window when pressing Ctrl+Enter.'
+                desc: 'Choose whether Ctrl+Enter opens or renames the selected file.'
             },
             mouseBackForwardAction: {
                 name: 'Mouse back/forward buttons',
@@ -2071,6 +2077,10 @@ export const STRINGS_EN = {
                 name: 'Keep selected item expanded',
                 desc: 'When collapsing, keep the selected item and its parents expanded.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Skip vault root when collapsing',
+                desc: 'When collapsing all items, leave the vault root folder in its current state.'
+            },
             navIndent: {
                 name: 'Tree indentation',
                 desc: 'Adjust the indentation width for nested folders, tags, and properties (pixels).'
@@ -2243,7 +2253,7 @@ export const STRINGS_EN = {
             },
             deleteAttachments: {
                 name: 'Delete attachments when deleting files',
-                desc: "Automatically remove attachments linked to the deleted file if they're not used elsewhere",
+                desc: "Automatically remove linked attachments and generated drawing previews if they're not used elsewhere",
                 options: {
                     ask: 'Ask each time',
                     always: 'Always',

@@ -140,7 +140,7 @@ export const STRINGS_ID = {
         mobileBackToNavigation: 'Kembali ke navigasi',
         changeChildSortOrder: 'Ubah urutan',
         changeSortAndGroup: 'Ubah urutan dan grup',
-        defaultSort: 'Default',
+        resetViewToDefaults: 'Atur ulang tampilan ke default',
         manualSort: 'Urutan manual',
         editSortOrder: 'Edit urutan...',
         removeSortProperty: 'Hapus properti urutan',
@@ -399,9 +399,6 @@ export const STRINGS_ID = {
         titleRows: 'Baris judul',
         previewRows: 'Baris pratinjau',
         groupBy: 'Kelompokkan berdasarkan',
-        defaultTitleOption: (rows: number) => `Baris judul default (${rows})`,
-        defaultPreviewOption: (rows: number) => `Baris pratinjau default (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Pengelompokan default (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} baris judul`,
         previewRowOption: (rows: number) => `${rows} baris pratinjau`
     },
@@ -997,6 +994,7 @@ export const STRINGS_ID = {
             navigation: {
                 appearance: 'Tampilan',
                 banner: 'Banner',
+                collapseItems: 'Ciutkan item',
                 dragAndDrop: 'Seret dan lepas',
                 noteCounts: 'Jumlah catatan',
                 rainbowColors: 'Warna pelangi',
@@ -1202,6 +1200,14 @@ export const STRINGS_ID = {
             showCategoryIcons: {
                 name: 'Ikon berdasarkan tipe file',
                 desc: 'Tetapkan ikon ke file berdasarkan ekstensinya.'
+            },
+            fileTypeIconPreset: {
+                name: 'Preset ikon file',
+                desc: 'Pilih ikon bawaan atau preset paket ikon. Aturan ekstensi khusus menggantikan preset ini.',
+                options: {
+                    none: 'Ikon bawaan'
+                },
+                notInstalledWarning: 'Paket ikon ini belum terpasang. Ikon bawaan ditampilkan sebagai gantinya.'
             },
             fileTypeIconMap: {
                 name: 'Peta ikon tipe file',
@@ -1622,19 +1628,19 @@ export const STRINGS_ID = {
             },
             enterToOpenFiles: {
                 name: 'Tekan Enter untuk membuka file',
-                desc: 'Buka file hanya saat menekan Enter selama navigasi keyboard di daftar.'
+                desc: 'Buka file hanya saat menekan Enter selama navigasi keyboard di daftar. Di macOS, ini mencegah Enter mengganti nama file.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Buka file yang dipilih di tab baru, split, atau jendela saat menekan Shift+Enter.'
+                desc: 'Pilih apakah Shift+Enter membuka atau mengganti nama file yang dipilih.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Buka file yang dipilih di tab baru, split, atau jendela saat menekan Cmd+Enter.'
+                desc: 'Pilih apakah Cmd+Enter membuka atau mengganti nama file yang dipilih.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Buka file yang dipilih di tab baru, split, atau jendela saat menekan Ctrl+Enter.'
+                desc: 'Pilih apakah Ctrl+Enter membuka atau mengganti nama file yang dipilih.'
             },
             mouseBackForwardAction: {
                 name: 'Tombol mundur/maju mouse',
@@ -2079,6 +2085,10 @@ export const STRINGS_ID = {
                 name: 'Pertahankan item yang dipilih tetap terbuka',
                 desc: 'Saat menciutkan, pertahankan item yang dipilih dan induknya tetap terbuka.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Lewati root vault saat menciutkan',
+                desc: 'Saat menciutkan semua item, biarkan folder root vault tetap dalam keadaan saat ini.'
+            },
             navIndent: {
                 name: 'Indentasi pohon',
                 desc: 'Sesuaikan lebar indentasi untuk folder, tag, dan properti bersarang (piksel).'
@@ -2251,7 +2261,7 @@ export const STRINGS_ID = {
             },
             deleteAttachments: {
                 name: 'Hapus lampiran saat menghapus file',
-                desc: 'Otomatis menghapus lampiran yang terkait dengan file yang dihapus jika tidak digunakan di tempat lain',
+                desc: 'Otomatis menghapus lampiran tertaut dan pratinjau gambar yang dihasilkan jika tidak digunakan di tempat lain',
                 options: {
                     ask: 'Tanya setiap kali',
                     always: 'Selalu',

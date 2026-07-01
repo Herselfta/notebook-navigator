@@ -23,6 +23,7 @@ import type { FolderNoteCreationPreference } from '../types/folderNote';
 import type { KeyboardShortcutConfig } from '../utils/keyboardShortcuts';
 import type { ShortcutEntry } from '../types/shortcuts';
 import type { SearchProvider } from '../types/search';
+import type { FileTypeIconPreset } from '../utils/fileTypeIconPresets';
 
 export type SettingSyncMode = 'local' | 'synced';
 
@@ -279,6 +280,17 @@ export function isMultiSelectModifier(value: unknown): value is MultiSelectModif
 /** Workspace context used when opening a file in a new leaf. */
 export type FileOpenContext = 'tab' | 'split' | 'window';
 
+function isFileOpenContext(value: unknown): value is FileOpenContext {
+    return value === 'tab' || value === 'split' || value === 'window';
+}
+
+/** Action used by Enter modifier key settings in the file list. */
+export type EnterKeyAction = FileOpenContext | 'rename';
+
+export function isEnterKeyAction(value: unknown): value is EnterKeyAction {
+    return isFileOpenContext(value) || value === 'rename';
+}
+
 /** Action triggered by mouse back and forward buttons. */
 export type MouseBackForwardAction = 'none' | 'singlePaneSwitch' | 'history';
 
@@ -526,8 +538,8 @@ export interface NotebookNavigatorSettings {
     // General tab - Keyboard navigation
     multiSelectModifier: MultiSelectModifier;
     enterToOpenFiles: boolean;
-    shiftEnterOpenContext: FileOpenContext;
-    cmdCtrlEnterOpenContext: FileOpenContext;
+    shiftEnterOpenContext: EnterKeyAction;
+    cmdCtrlEnterOpenContext: EnterKeyAction;
 
     // General tab - Mouse buttons
     mouseBackForwardAction: MouseBackForwardAction;
@@ -592,6 +604,7 @@ export interface NotebookNavigatorSettings {
     // Navigation pane tab - Behavior
     collapseBehavior: ItemScope;
     smartCollapse: boolean;
+    excludeVaultRootFromCollapse: boolean;
     collapseOtherBranchesOnExpand: boolean;
     autoSelectFirstFileOnFocusChange: boolean;
     autoExpandNavItems: boolean;
@@ -691,6 +704,7 @@ export interface NotebookNavigatorSettings {
     fileNameIconMap: Record<string, string>;
     showCategoryIcons: boolean;
     fileTypeIconMap: Record<string, string>;
+    fileTypeIconPreset: FileTypeIconPreset;
     fileNameRows: number;
     useFolderColorForTitles: boolean;
     showFilePreview: boolean;

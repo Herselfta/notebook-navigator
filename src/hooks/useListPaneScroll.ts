@@ -44,7 +44,7 @@
  * - Sticky header tracking for date groups
  */
 
-import { useRef, useCallback, useEffect, useState, useMemo } from 'react';
+import { useRef, useCallback, useEffect, useLayoutEffect, useState, useMemo } from 'react';
 import { TFile, TFolder, type App } from 'obsidian';
 import { useVirtualizer, Virtualizer } from '@tanstack/react-virtual';
 import { useServices } from '../context/ServicesContext';
@@ -645,6 +645,7 @@ export function useListPaneScroll({
     const [pendingScrollVersion, setPendingScrollVersion] = useState(0); // Triggers effect re-run
     // Tracks the currently selected file path to detect stale pending scrolls
     const selectedFilePathRef = useRef<string | null>(selectedFile ? selectedFile.path : null);
+    selectedFilePathRef.current = selectedFile?.path ?? null;
 
     // ========== Index Version Tracking ==========
     // Increments when list rebuilds to ensure scrolls execute with correct indices
@@ -871,7 +872,7 @@ export function useListPaneScroll({
      * TanStack Virtual scroll calls should not execute while the container (or parent)
      * is hidden because they will fail internally and emit retry errors.
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         const element = scrollContainerEl;
         if (!enabled) {
             reportContainerVisibility(false, element);
@@ -1081,7 +1082,7 @@ export function useListPaneScroll({
      * Increment indexVersion when list structure changes.
      * Critical for ensuring scrolls execute after list rebuilds.
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         const previousMap = prevIndexMapObjRef.current;
         const mappingChanged = previousMap === null || !areFilePathIndexMapsEqual(previousMap, filePathToIndex);
 
@@ -1134,13 +1135,105 @@ export function useListPaneScroll({
         }
     }, []);
 
-    /**
-     * Keep selectedFilePathRef in sync with the current selected file.
-     * Used to detect and skip stale pending scrolls to previous selections.
-     */
-    useEffect(() => {
-        selectedFilePathRef.current = selectedFile?.path ?? null;
-    }, [selectedFile?.path]);
+    const executePendingScroll = useCallback(
+        (pending: PendingScroll): boolean => {
+            if (!rowVirtualizer || !isScrollContainerReady) {
+                return false;
+            }
+
+            // Version gate: Wait for list rebuild if required
+            const effectiveMin = pending.minIndexVersion ?? indexVersionRef.current;
+            if (indexVersionRef.current < effectiveMin) {
+                return false;
+            }
+
+            if (pending.type === 'file') {
+                const isStructuralChange = pending.reason === 'list-structure-change';
+
+                if (!revealFileOnListChanges && isStructuralChange) {
+                    return true;
+                }
+
+                if (
+                    isStructuralChange &&
+                    pending.filePath &&
+                    selectedFilePathRef.current &&
+                    pending.filePath !== selectedFilePathRef.current
+                ) {
+                    return true;
+                }
+
+                if (!pending.filePath) {
+                    return false;
+                }
+
+                const index = getSelectionIndex(pending.filePath);
+                if (index < 0) {
+                    // Keep pending until file appears in index
+                    return false;
+                }
+
+                let alignment: Align = getListAlign(pending.reason);
+                if (pending.reason === 'reveal' && selectionState.revealSource === 'startup') {
+                    alignment = 'center';
+                }
+                scrollToIndexSafely(index, alignment);
+
+                if (isStructuralChange) {
+                    // Stabilization mechanism: Handle rapid consecutive rebuilds
+                    const usedIndex = index;
+                    const usedPath = pending.filePath;
+                    window.requestAnimationFrame(() => {
+                        const newIndex = usedPath ? getSelectionIndex(usedPath) : -1;
+                        if (usedPath && newIndex >= 0 && newIndex !== usedIndex && revealFileOnListChanges) {
+                            setPending({
+                                type: 'file',
+                                filePath: usedPath,
+                                reason: 'list-structure-change',
+                                minIndexVersion: indexVersionRef.current
+                            });
+                        }
+                    });
+                }
+
+                return true;
+            }
+
+            rowVirtualizer.scrollToOffset(0, { align: 'start', behavior: 'auto' });
+            return true;
+        },
+        [
+            getSelectionIndex,
+            isScrollContainerReady,
+            revealFileOnListChanges,
+            rowVirtualizer,
+            scrollToIndexSafely,
+            selectionState.revealSource,
+            setPending
+        ]
+    );
+
+    const requestPendingScroll = useCallback(
+        (pending: PendingScroll) => {
+            const queued = pendingScrollRef.current;
+            if (queued && rankListPending(queued) > rankListPending(pending)) {
+                if (executePendingScroll(queued)) {
+                    pendingScrollRef.current = null;
+                }
+                return;
+            }
+
+            if (executePendingScroll(pending)) {
+                if (queued) {
+                    pendingScrollRef.current = null;
+                }
+                return;
+            }
+
+            setPending(pending);
+        },
+        [executePendingScroll, setPending]
+    );
 
     /**
      * Process pending scrolls when conditions are met.
@@ -1158,87 +1251,16 @@ export function useListPaneScroll({
      * - list-structure-change: auto (maintain position)
      * - list-reorder: auto (maintain selection visibility)
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!rowVirtualizer || !pendingScrollRef.current || !isScrollContainerReady) {
             return;
         }
 
         const pending = pendingScrollRef.current;
-        let shouldClearPending = false;
-
-        // Version gate: Wait for list rebuild if required
-        const effectiveMin = pending.minIndexVersion ?? indexVersionRef.current;
-        if (indexVersionRef.current < effectiveMin) {
-            return;
-        }
-
-        if (pending.type === 'file') {
-            const isStructuralChange = pending.reason === 'list-structure-change';
-
-            if (!revealFileOnListChanges && isStructuralChange) {
-                shouldClearPending = true;
-            } else if (
-                isStructuralChange &&
-                pending.filePath &&
-                selectedFilePathRef.current &&
-                pending.filePath !== selectedFilePathRef.current
-            ) {
-                shouldClearPending = true;
-            } else if (pending.filePath) {
-                const index = getSelectionIndex(pending.filePath);
-                if (index >= 0) {
-                    let alignment: Align = getListAlign(pending.reason);
-                    if (pending.reason === 'reveal' && selectionState.revealSource === 'startup') {
-                        alignment = 'center';
-                    }
-                    scrollToIndexSafely(index, alignment);
-
-                    if (isStructuralChange) {
-                        // Stabilization mechanism: Handle rapid consecutive rebuilds
-                        const usedIndex = index;
-                        const usedPath = pending.filePath;
-                        window.requestAnimationFrame(() => {
-                            const newIndex = usedPath ? getSelectionIndex(usedPath) : -1;
-                            if (usedPath && newIndex >= 0 && newIndex !== usedIndex && revealFileOnListChanges) {
-                                setPending({
-                                    type: 'file',
-                                    filePath: usedPath,
-                                    reason: 'list-structure-change',
-                                    minIndexVersion: indexVersionRef.current
-                                });
-                            }
-                        });
-                    }
-
-                    shouldClearPending = true;
-                } else {
-                    // Keep pending until file appears in index
-                    shouldClearPending = false;
-                }
-            }
-        } else if (pending.type === 'top') {
-            rowVirtualizer.scrollToOffset(0, { align: 'start', behavior: 'auto' });
-            shouldClearPending = true;
-        }
-
-        if (shouldClearPending) {
+        if (executePendingScroll(pending)) {
             pendingScrollRef.current = null;
         }
-    }, [
-        rowVirtualizer,
-        filePathToIndex,
-        filePathToIndex.size,
-        isScrollContainerReady,
-        listItems.length,
-        pendingScrollVersion,
-        getSelectionIndex,
-        isMobile,
-        setPending,
-        scrollToIndexSafely,
-        revealFileOnListChanges,
-        selectionState.revealSource,
-        selectedFile?.path
-    ]);
+    }, [executePendingScroll, rowVirtualizer, isScrollContainerReady, pendingScrollVersion]);
 
     /**
      * Subscribe to database content changes and refresh virtualizer size estimates when needed.
@@ -1304,7 +1326,7 @@ export function useListPaneScroll({
      * Refresh size estimates when storage becomes ready after cold boot.
      * Ensures estimated heights are correct once preview data is available.
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (enabled && isStorageReady && rowVirtualizer) {
             rowVirtualizer.measure();
         }
@@ -1348,7 +1370,7 @@ export function useListPaneScroll({
             effectiveSortSpec.propertySortSecondary
         ]
     );
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!rowVirtualizer || !isScrollContainerReady) {
             return;
         }
@@ -1379,7 +1401,7 @@ export function useListPaneScroll({
 
         // Layout-only changes can keep the same path/index map, so scroll against the current version.
         if (revealFileOnListChanges && selectedFile) {
-            setPending({
+            requestPendingScroll({
                 type: 'file',
                 filePath: selectedFile.path,
                 reason: 'list-structure-change',
@@ -1387,7 +1409,7 @@ export function useListPaneScroll({
             });
         } else if (wasShowingDescendants && !nowShowingDescendants) {
             // Special case: When disabling descendants and no file selected, scroll to top
-            setPending({
+            requestPendingScroll({
                 type: 'top',
                 reason: 'list-structure-change',
                 minIndexVersion: indexVersionRef.current
@@ -1400,14 +1422,14 @@ export function useListPaneScroll({
         includeDescendantNotes,
         revealFileOnListChanges,
         scrollPreservationSignature,
-        setPending
+        requestPendingScroll
     ]);
 
     /**
      * Preserve scroll when the list index changes within the same context (implicit reorders like pin/unpin).
      * Uses indexVersion changes keyed by current folder/tag context. Avoids duplicate triggers on navigation.
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!rowVirtualizer || !isScrollContainerReady) return;
 
         const propertySelectionKey = selectedProperty ?? '';
@@ -1429,10 +1451,10 @@ export function useListPaneScroll({
                 return;
             }
 
-            // Only queue a file scroll if the selected file exists in the current index
+            // Only request a file scroll if the selected file exists in the current index.
             const inList = !!(selectedFile && filePathToIndex.has(selectedFile.path));
             if (revealFileOnListChanges && inList && selectedFile) {
-                setPending({
+                requestPendingScroll({
                     type: 'file',
                     filePath: selectedFile.path,
                     reason: 'list-structure-change',
@@ -1450,7 +1472,7 @@ export function useListPaneScroll({
         filePathToIndex,
         filePathToIndex.size,
         selectedFile,
-        setPending,
+        requestPendingScroll,
         revealFileOnListChanges
     ]);
 
@@ -1460,7 +1482,7 @@ export function useListPaneScroll({
      * Manages folder navigation flags and list context changes.
      * SCROLL_FOLDER_NAVIGATION: Sets pending scroll with 'folder-navigation' reason
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!enabled || !rowVirtualizer) {
             return;
         }
@@ -1496,6 +1518,15 @@ export function useListPaneScroll({
             return;
         }
 
+        const pendingScroll: PendingScroll = selectedFile
+            ? {
+                  type: 'file',
+                  filePath: selectedFile.path,
+                  reason: 'folder-navigation',
+                  minIndexVersion: indexVersionRef.current
+              }
+            : { type: 'top', reason: 'folder-navigation', minIndexVersion: indexVersionRef.current };
+
         // For single-pane mode, always set pending scroll even if not visible
         // It will be processed when the pane becomes visible
         if (!isScrollContainerReady && (isFolderNavigation || listChanged)) {
@@ -1509,16 +1540,7 @@ export function useListPaneScroll({
                 selectionDispatch({ type: 'SET_FOLDER_NAVIGATION', isFolderNavigation: false });
             }
 
-            setPending(
-                selectedFile
-                    ? {
-                          type: 'file',
-                          filePath: selectedFile.path,
-                          reason: 'folder-navigation',
-                          minIndexVersion: indexVersionRef.current
-                      }
-                    : { type: 'top', reason: 'folder-navigation', minIndexVersion: indexVersionRef.current }
-            );
+            requestPendingScroll(pendingScroll);
             return;
         }
 
@@ -1533,35 +1555,15 @@ export function useListPaneScroll({
             // Clear the folder navigation flag
             selectionDispatch({ type: 'SET_FOLDER_NAVIGATION', isFolderNavigation: false });
 
-            const pendingScroll = selectedFile
-                ? {
-                      type: 'file' as const,
-                      filePath: selectedFile.path,
-                      reason: 'folder-navigation' as const,
-                      minIndexVersion: indexVersionRef.current
-                  }
-                : ({ type: 'top', reason: 'folder-navigation', minIndexVersion: indexVersionRef.current } as const);
-
-            setPending(pendingScroll);
+            requestPendingScroll(pendingScroll);
         } else {
-            // For other cases (initial load), use pending scroll for consistency
-            // RAF was getting canceled due to rapid re-renders
-
-            // Update the ref
+            // For other visible context changes, try the same pre-paint scroll path.
+            // If the target index is not ready yet, leave it queued for a later pass.
             if (listChanged) {
                 prevListKeyRef.current = currentListKey;
             }
 
-            setPending(
-                selectedFile
-                    ? {
-                          type: 'file',
-                          filePath: selectedFile.path,
-                          reason: 'folder-navigation',
-                          minIndexVersion: indexVersionRef.current
-                      }
-                    : { type: 'top', reason: 'folder-navigation', minIndexVersion: indexVersionRef.current }
-            );
+            requestPendingScroll(pendingScroll);
         }
     }, [
         isScrollContainerReady,
@@ -1575,8 +1577,8 @@ export function useListPaneScroll({
         selectionDispatch,
         filePathToIndex.size,
         listItems.length,
-        setPending,
         clearPending,
+        requestPendingScroll,
         hasSelectedFile
     ]);
 
@@ -1585,27 +1587,26 @@ export function useListPaneScroll({
      * Uses pending scroll for proper timing and size estimates.
      * SCROLL_REVEAL_OPERATION: Sets pending scroll with 'reveal' reason
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (selectionState.isRevealOperation && selectedFile && isScrollContainerReady) {
-            // Always use pending scroll for reveal operations
-            // This ensures proper timing and size estimates before scrolling
-            setPending({
+            // Reveal scrolls run immediately when the list is ready, otherwise they stay queued.
+            requestPendingScroll({
                 type: 'file',
                 filePath: selectedFile.path,
                 reason: 'reveal',
                 minIndexVersion: indexVersionRef.current
             });
-            // Reveal behaves like a one-shot event; clear the flag once the list pane has queued the scroll.
+            // Reveal behaves like a one-shot event; clear the flag once the list pane has accepted the scroll.
             selectionDispatch({ type: 'CLEAR_REVEAL_OPERATION' });
         }
-    }, [selectionState.isRevealOperation, selectedFile, isScrollContainerReady, selectionDispatch, filePathToIndex, setPending]);
+    }, [selectionState.isRevealOperation, selectedFile, isScrollContainerReady, selectionDispatch, filePathToIndex, requestPendingScroll]);
 
     /**
      * Handle search query changes.
      * Scrolls to top when search filters change and selected file is not in results.
      * SCROLL_SEARCH: Sets pending scroll to top when appropriate
      */
-    useEffect(() => {
+    useLayoutEffect(() => {
         // Only handle when search is active (searchQuery is defined)
         if (searchQuery === undefined) {
             prevSearchQueryRef.current = searchQuery;
@@ -1639,7 +1640,7 @@ export function useListPaneScroll({
                 suppressSearchTopScrollRef.current = false;
                 return;
             }
-            setPending({ type: 'top', reason: 'list-structure-change', minIndexVersion: indexVersionRef.current });
+            requestPendingScroll({ type: 'top', reason: 'list-structure-change', minIndexVersion: indexVersionRef.current });
             return;
         }
 
@@ -1660,7 +1661,7 @@ export function useListPaneScroll({
         isScrollContainerReady,
         rowVirtualizer,
         listItems.length,
-        setPending,
+        requestPendingScroll,
         suppressSearchTopScrollRef
     ]);
 

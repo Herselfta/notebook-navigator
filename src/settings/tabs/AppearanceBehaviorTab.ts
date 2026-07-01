@@ -124,7 +124,8 @@ function createKeyboardNavigationDefinitionGroup(context: SettingsTabContext): S
     const openContextOptions = {
         tab: strings.contextMenu.file.openInNewTab,
         split: strings.contextMenu.file.openToRight,
-        window: strings.contextMenu.file.openInNewWindow
+        window: strings.contextMenu.file.openInNewWindow,
+        rename: strings.contextMenu.file.renameFile
     };
     const cmdCtrlStrings = Platform.isMacOS ? strings.settings.items.cmdEnterOpenContext : strings.settings.items.ctrlEnterOpenContext;
 

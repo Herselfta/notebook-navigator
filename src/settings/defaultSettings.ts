@@ -37,6 +37,7 @@ import {
     DEFAULT_CALENDAR_CUSTOM_WEEK_PATTERN,
     DEFAULT_CALENDAR_CUSTOM_YEAR_PATTERN
 } from '../utils/calendarCustomNotePatterns';
+import { DEFAULT_FILE_TYPE_ICON_PRESET } from '../utils/fileTypeIconPresets';
 
 const defaultSettingsSync = sanitizeRecord<SettingSyncMode>(undefined);
 SYNC_MODE_SETTING_IDS.forEach(settingId => {
@@ -243,6 +244,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     // Navigation pane tab - Behavior
     collapseBehavior: 'all',
     smartCollapse: true,
+    excludeVaultRootFromCollapse: false,
     collapseOtherBranchesOnExpand: false,
     autoSelectFirstFileOnFocusChange: false,
     autoExpandNavItems: false,
@@ -342,6 +344,7 @@ export const DEFAULT_SETTINGS: NotebookNavigatorSettings = {
     fileNameIconMap: sanitizeRecord<string>(undefined),
     showCategoryIcons: false,
     fileTypeIconMap: sanitizeRecord<string>(undefined),
+    fileTypeIconPreset: DEFAULT_FILE_TYPE_ICON_PRESET,
     fileNameRows: 1,
     useFolderColorForTitles: false,
     showFilePreview: true,

@@ -53,6 +53,7 @@ import {
     isCalendarPeriodicNotesLocaleSource,
     isCalendarPlacement,
     isCalendarWeekendDays,
+    isEnterKeyAction,
     isFeatureImagePixelSizeSetting,
     isFeatureImageSizeSetting,
     isFolderNoteOpenLocation,
@@ -99,6 +100,7 @@ import { sanitizeKeyboardShortcuts } from '../../utils/keyboardShortcuts';
 import { isPropertySortOption, pruneUnavailablePropertySortOverrides } from '../../utils/sortUtils';
 import { isRecord } from '../../utils/typeGuards';
 import { normalizeOptionalVaultFilePath } from '../../utils/pathUtils';
+import { isFileTypeIconPreset } from '../../utils/fileTypeIconPresets';
 import {
     MAX_PANE_TRANSITION_DURATION_MS,
     MIN_PANE_TRANSITION_DURATION_MS,
@@ -294,6 +296,16 @@ export class PluginSettingsController {
         const hadLegacyOpenFolderNotesInNewTabInStoredData = Boolean(
             storedData && Object.prototype.hasOwnProperty.call(storedData, 'openFolderNotesInNewTab')
         );
+        const hadInvalidShiftEnterOpenContextInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'shiftEnterOpenContext') &&
+            !isEnterKeyAction(storedData['shiftEnterOpenContext'])
+        );
+        const hadInvalidCmdCtrlEnterOpenContextInStoredData = Boolean(
+            storedData &&
+            Object.prototype.hasOwnProperty.call(storedData, 'cmdCtrlEnterOpenContext') &&
+            !isEnterKeyAction(storedData['cmdCtrlEnterOpenContext'])
+        );
         const storedSettings = storedData as Partial<NotebookNavigatorSettings> | null;
         const isFirstLaunch = storedData === null;
         this.shouldPersistDesktopScale = Boolean(storedData && 'desktopScale' in storedData);
@@ -340,6 +352,12 @@ export class PluginSettingsController {
         }
 
         this.currentSettings.keyboardShortcuts = sanitizeKeyboardShortcuts(this.currentSettings.keyboardShortcuts);
+        if (!isEnterKeyAction(this.currentSettings.shiftEnterOpenContext)) {
+            this.currentSettings.shiftEnterOpenContext = DEFAULT_SETTINGS.shiftEnterOpenContext;
+        }
+        if (!isEnterKeyAction(this.currentSettings.cmdCtrlEnterOpenContext)) {
+            this.currentSettings.cmdCtrlEnterOpenContext = DEFAULT_SETTINGS.cmdCtrlEnterOpenContext;
+        }
         this.normalizeSyncModes({ storedData, isFirstLaunch });
         const syncModeRegistry = this.getSyncModeRegistry();
 
@@ -509,6 +527,8 @@ export class PluginSettingsController {
             hadUnavailableDefaultFolderSortInStoredData ||
             hadLegacyNoneGroupingInStoredData ||
             hadLegacyOpenFolderNotesInNewTabInStoredData ||
+            hadInvalidShiftEnterOpenContextInStoredData ||
+            hadInvalidCmdCtrlEnterOpenContextInStoredData ||
             prunedUnavailablePropertySortOverrides ||
             uiScaleMigrated ||
             migratedMomentFormats ||
@@ -1128,6 +1148,10 @@ export class PluginSettingsController {
 
         if (typeof this.currentSettings.showFilenameMatchIcons !== 'boolean') {
             this.currentSettings.showFilenameMatchIcons = DEFAULT_SETTINGS.showFilenameMatchIcons;
+        }
+
+        if (!isFileTypeIconPreset(this.currentSettings.fileTypeIconPreset)) {
+            this.currentSettings.fileTypeIconPreset = DEFAULT_SETTINGS.fileTypeIconPreset;
         }
 
         this.currentSettings.fileTypeIconMap = normalizeIconMap(

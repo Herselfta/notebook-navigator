@@ -20,6 +20,7 @@ import { describe, expect, it } from 'vitest';
 import { App, TFile } from 'obsidian';
 import {
     countCharactersForNoteProperty,
+    formatTextCount,
     getCachedWordCountTargetFromFrontmatter,
     getObsidianTextCountStartIndex,
     getWordCountDisplayText,
@@ -93,7 +94,14 @@ describe('wordCountUtils', () => {
         ).toBe('25%');
     });
 
+    it('formats text counts with the runtime locale', () => {
+        expect(formatTextCount(1234.9)).toBe(Math.trunc(1234.9).toLocaleString());
+    });
+
     it('formats word count targets without percentages', () => {
+        const formattedWordCount = formatTextCount(1250);
+        const formattedTarget = formatTextCount(5000);
+
         expect(
             getWordCountDisplayText({
                 wordCount: 1250,
@@ -101,6 +109,6 @@ describe('wordCountUtils', () => {
                 targetProperty: 'word-goal',
                 showTargetPercentage: false
             })
-        ).toBe('1,250 / 5,000');
+        ).toBe(`${formattedWordCount} / ${formattedTarget}`);
     });
 });

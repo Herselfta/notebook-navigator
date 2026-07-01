@@ -40,10 +40,6 @@ export class LazyNotebookNavigatorSettingTab extends PluginSettingTab {
             return [];
         }
 
-        if (!this.delegate && !this.isContainerConnected()) {
-            return [];
-        }
-
         return this.getDelegate().getSettingDefinitions();
     }
 
@@ -72,18 +68,17 @@ export class LazyNotebookNavigatorSettingTab extends PluginSettingTab {
 
     private getDelegate(): NotebookNavigatorSettingTab {
         if (!this.delegate) {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports -- Settings UI is intentionally loaded on first settings access.
-            const { NotebookNavigatorSettingTab } = require('../settings') as typeof import('../settings');
-            this.delegate = new NotebookNavigatorSettingTab(this.app, this.plugin);
+            this.delegate = this.createDelegate();
         }
 
         this.syncDelegateContainer();
         return this.delegate;
     }
 
-    private isContainerConnected(): boolean {
-        const containerEl = this.containerEl as HTMLElement | undefined;
-        return containerEl?.isConnected === true;
+    protected createDelegate(): NotebookNavigatorSettingTab {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports -- Settings UI is intentionally loaded on first settings access.
+        const { NotebookNavigatorSettingTab } = require('../settings') as typeof import('../settings');
+        return new NotebookNavigatorSettingTab(this.app, this.plugin);
     }
 
     private syncDelegateContainer(): void {

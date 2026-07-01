@@ -42,7 +42,7 @@ import { DEFAULT_SETTINGS } from '../../defaultSettings';
 import { createDependentSettingsSection, setElementVisible, wireToggleSettingWithDependentSection } from '../../dependentSettings';
 import { createSettingGroupFactory } from '../../settingGroups';
 import { addSettingSyncModeToggle } from '../../syncModeToggle';
-import type { FileOpenContext, MouseBackForwardAction } from '../../types';
+import type { EnterKeyAction, MouseBackForwardAction } from '../../types';
 import {
     isHomepageSource,
     isMultiSelectModifier,
@@ -172,8 +172,8 @@ function renderKeyboardNavigationSettings(context: SettingsTabContext, createGro
         }
     );
 
-    const normalizeOpenContext = (value: string): FileOpenContext => {
-        if (value === 'split' || value === 'window') {
+    const normalizeEnterKeyAction = (value: string): EnterKeyAction => {
+        if (value === 'split' || value === 'window' || value === 'rename') {
             return value;
         }
         return 'tab';
@@ -187,9 +187,10 @@ function renderKeyboardNavigationSettings(context: SettingsTabContext, createGro
                 .addOption('tab', strings.contextMenu.file.openInNewTab)
                 .addOption('split', strings.contextMenu.file.openToRight)
                 .addOption('window', strings.contextMenu.file.openInNewWindow)
+                .addOption('rename', strings.contextMenu.file.renameFile)
                 .setValue(plugin.settings.shiftEnterOpenContext)
                 .onChange(async value => {
-                    plugin.settings.shiftEnterOpenContext = normalizeOpenContext(value);
+                    plugin.settings.shiftEnterOpenContext = normalizeEnterKeyAction(value);
                     await plugin.saveSettingsAndUpdate();
                 })
         );
@@ -204,9 +205,10 @@ function renderKeyboardNavigationSettings(context: SettingsTabContext, createGro
                 .addOption('tab', strings.contextMenu.file.openInNewTab)
                 .addOption('split', strings.contextMenu.file.openToRight)
                 .addOption('window', strings.contextMenu.file.openInNewWindow)
+                .addOption('rename', strings.contextMenu.file.renameFile)
                 .setValue(plugin.settings.cmdCtrlEnterOpenContext)
                 .onChange(async value => {
-                    plugin.settings.cmdCtrlEnterOpenContext = normalizeOpenContext(value);
+                    plugin.settings.cmdCtrlEnterOpenContext = normalizeEnterKeyAction(value);
                     await plugin.saveSettingsAndUpdate();
                 })
         );

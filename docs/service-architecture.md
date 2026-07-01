@@ -677,6 +677,7 @@ enum OperationType {
   OPEN_FOLDER_NOTE = 'open-folder-note',
   OPEN_VERSION_HISTORY = 'open-version-history',
   OPEN_IN_NEW_CONTEXT = 'open-in-new-context',
+  OPEN_BACKGROUND_FILE = 'open-background-file',
   OPEN_ACTIVE_FILE = 'open-active-file',
   OPEN_HOMEPAGE = 'open-homepage'
 }
@@ -705,7 +706,16 @@ executeDeleteFiles(files: TFile[], performDelete: () => Promise<void>): Promise<
 executeOpenFolderNote(folderPath: string, openFile: () => Promise<void>): Promise<CommandResult>
 executeOpenVersionHistory(file: TFile, openHistory: () => Promise<void>): Promise<CommandResult>
 executeOpenInNewContext(file: TFile, context: PaneType, openFile: () => Promise<void>): Promise<CommandResult>
-executeOpenActiveFile(file: TFile, openFile: () => Promise<void>): Promise<CommandResult<{ skipped: boolean }>>
+executeBackgroundFileOpen(
+  file: TFile,
+  openFile: (targetLeaf: WorkspaceLeaf | null) => Promise<void>,
+  options?: { getLeaf?: () => WorkspaceLeaf | null }
+): Promise<CommandResult>
+executeOpenActiveFile(
+  file: TFile,
+  openFile: (targetLeaf: WorkspaceLeaf | null) => Promise<void>,
+  options?: { active?: boolean; getLeaf?: () => WorkspaceLeaf | null }
+): Promise<CommandResult<{ skipped: boolean }>>
 executeHomepageOpen(file: TFile, openFile: () => Promise<void>): Promise<CommandResult>
 ```
 

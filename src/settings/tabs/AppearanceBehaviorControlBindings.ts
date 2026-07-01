@@ -17,7 +17,7 @@
  */
 
 import type { BackgroundMode } from '../../types';
-import type { FileOpenContext, MouseBackForwardAction, MultiSelectModifier, NotebookNavigatorSettings } from '../types';
+import type { EnterKeyAction, MouseBackForwardAction, MultiSelectModifier, NotebookNavigatorSettings } from '../types';
 
 // Native controls for appearance/behavior include union-typed settings outside the scalar control registry.
 export type AppearanceBehaviorControlKey = AppearanceBehaviorToggleKey | AppearanceBehaviorDropdownKey;
@@ -136,12 +136,12 @@ function applyOpenContext(
     key: 'shiftEnterOpenContext' | 'cmdCtrlEnterOpenContext',
     value: unknown
 ): boolean {
-    const openContext = normalizeOpenContextValue(value);
-    if (!openContext) {
+    const enterAction = normalizeEnterKeyActionValue(value);
+    if (!enterAction) {
         return false;
     }
 
-    settings[key] = openContext;
+    settings[key] = enterAction;
     return true;
 }
 
@@ -178,8 +178,8 @@ function isMultiSelectModifierValue(value: unknown): value is MultiSelectModifie
     return value === 'cmdCtrl' || value === 'optionAlt';
 }
 
-function normalizeOpenContextValue(value: unknown): FileOpenContext | null {
-    if (value === 'tab' || value === 'split' || value === 'window') {
+function normalizeEnterKeyActionValue(value: unknown): EnterKeyAction | null {
+    if (value === 'tab' || value === 'split' || value === 'window' || value === 'rename') {
         return value;
     }
 

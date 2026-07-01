@@ -36,6 +36,24 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
 
     return [
         createGroupDefinition(undefined, [
+            ...(Platform.isMobile
+                ? []
+                : [
+                      createToggleDefinition('autoSelectFirstFileOnFocusChange', {
+                          name: strings.settings.items.autoSelectFirstFileOnFocusChange.name,
+                          desc: strings.settings.items.autoSelectFirstFileOnFocusChange.desc
+                      })
+                  ]),
+            createToggleDefinition('autoExpandNavItems', {
+                name: strings.settings.items.autoExpandNavItems.name,
+                desc: strings.settings.items.autoExpandNavItems.desc
+            }),
+            createToggleDefinition('collapseOtherBranchesOnExpand', {
+                name: strings.settings.items.collapseOtherBranchesOnExpand.name,
+                desc: strings.settings.items.collapseOtherBranchesOnExpand.desc
+            })
+        ]),
+        createGroupDefinition(strings.settings.groups.navigation.collapseItems, [
             createDropdownDefinition('collapseBehavior', {
                 name: strings.settings.items.collapseBehavior.name,
                 desc: strings.settings.items.collapseBehavior.desc,
@@ -51,22 +69,10 @@ export function createNavigationPaneSettingDefinitions(context: SettingsTabConte
                 name: strings.settings.items.smartCollapse.name,
                 desc: strings.settings.items.smartCollapse.desc
             }),
-            createToggleDefinition('collapseOtherBranchesOnExpand', {
-                name: strings.settings.items.collapseOtherBranchesOnExpand.name,
-                desc: strings.settings.items.collapseOtherBranchesOnExpand.desc
-            }),
-            createToggleDefinition('autoExpandNavItems', {
-                name: strings.settings.items.autoExpandNavItems.name,
-                desc: strings.settings.items.autoExpandNavItems.desc
-            }),
-            ...(Platform.isMobile
-                ? []
-                : [
-                      createToggleDefinition('autoSelectFirstFileOnFocusChange', {
-                          name: strings.settings.items.autoSelectFirstFileOnFocusChange.name,
-                          desc: strings.settings.items.autoSelectFirstFileOnFocusChange.desc
-                      })
-                  ])
+            createToggleDefinition('excludeVaultRootFromCollapse', {
+                name: strings.settings.items.excludeVaultRootFromCollapse.name,
+                desc: strings.settings.items.excludeVaultRootFromCollapse.desc
+            })
         ]),
         ...(Platform.isMobile
             ? []
@@ -284,7 +290,7 @@ function renderRootLevelSpacingSetting(setting: Setting, context: SettingsTabCon
         value: plugin.settings.rootLevelSpacing,
         defaultValue: DEFAULT_SETTINGS.rootLevelSpacing,
         min: 0,
-        max: 6,
+        max: 12,
         step: 1,
         formatValue: formatPixelSliderValue,
         onChange: async value => {

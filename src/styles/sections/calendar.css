@@ -503,6 +503,11 @@ button.nn-navigation-calendar-year-month {
     z-index: 2;
 }
 
+.nn-navigation-calendar-day.has-feature-image.is-active-editor-file .nn-navigation-calendar-active-outline,
+.nn-navigation-calendar-year-month.has-feature-image.is-selected-month .nn-navigation-calendar-active-outline {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
+}
+
 .nn-navigation-calendar-year-month-label {
     position: relative;
     z-index: 1;

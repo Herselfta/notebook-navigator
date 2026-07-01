@@ -139,7 +139,7 @@ export const STRINGS_KO = {
         mobileBackToNavigation: '탐색으로 돌아가기', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: '정렬 순서 변경',
         changeSortAndGroup: '정렬 및 그룹 변경',
-        defaultSort: '기본', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: '보기를 기본값으로 재설정',
         manualSort: '수동 정렬',
         editSortOrder: '정렬 순서 편집...',
         removeSortProperty: '정렬 속성 제거',
@@ -397,9 +397,6 @@ export const STRINGS_KO = {
         titleRows: '제목 행',
         previewRows: '미리보기 행',
         groupBy: '그룹화 기준',
-        defaultTitleOption: (rows: number) => `기본 제목 행 (${rows})`,
-        defaultPreviewOption: (rows: number) => `기본 미리보기 행 (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `기본 그룹화 (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows}개 제목 행`,
         previewRowOption: (rows: number) => `${rows}개 미리보기 행`
     },
@@ -994,6 +991,7 @@ export const STRINGS_KO = {
             navigation: {
                 appearance: '모양',
                 banner: '배너',
+                collapseItems: '항목 접기',
                 dragAndDrop: '끌어서 놓기',
                 noteCounts: '노트 수',
                 rainbowColors: '무지개 색상',
@@ -1199,6 +1197,14 @@ export const STRINGS_KO = {
             showCategoryIcons: {
                 name: '파일 유형으로 아이콘 설정',
                 desc: '파일 확장자를 기반으로 아이콘을 지정합니다.'
+            },
+            fileTypeIconPreset: {
+                name: '파일 아이콘 프리셋',
+                desc: '기본 제공 아이콘 또는 아이콘 팩 프리셋을 선택합니다. 사용자 지정 확장자 규칙은 이 프리셋보다 우선합니다.',
+                options: {
+                    none: '기본 제공 아이콘'
+                },
+                notInstalledWarning: '이 아이콘 팩이 설치되어 있지 않습니다. 대신 기본 제공 아이콘이 표시됩니다.'
             },
             fileTypeIconMap: {
                 name: '파일 유형 아이콘 맵',
@@ -1618,19 +1624,19 @@ export const STRINGS_KO = {
             },
             enterToOpenFiles: {
                 name: 'Enter 키로 파일 열기',
-                desc: '목록 키보드 탐색 중 Enter 키를 누를 때만 파일을 엽니다.'
+                desc: '목록 키보드 탐색 중 Enter 키를 누를 때만 파일을 엽니다. macOS에서는 Enter 키가 파일 이름을 변경하지 않도록 합니다.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Shift+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
+                desc: 'Shift+Enter를 누를 때 선택한 파일을 열지 이름을 변경할지 선택합니다.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Cmd+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
+                desc: 'Cmd+Enter를 누를 때 선택한 파일을 열지 이름을 변경할지 선택합니다.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Ctrl+Enter를 누르면 선택한 파일을 새 탭, 분할 또는 창에서 엽니다.'
+                desc: 'Ctrl+Enter를 누를 때 선택한 파일을 열지 이름을 변경할지 선택합니다.'
             },
             mouseBackForwardAction: {
                 name: '마우스 뒤로/앞으로 버튼',
@@ -2075,6 +2081,10 @@ export const STRINGS_KO = {
                 name: '선택한 항목 펼친 상태 유지',
                 desc: '접을 때 선택한 항목과 상위 항목을 펼친 상태로 유지합니다.'
             },
+            excludeVaultRootFromCollapse: {
+                name: '접을 때 보관소 루트 건너뛰기',
+                desc: '모든 항목을 접을 때 보관소 루트 폴더를 현재 상태로 둡니다.'
+            },
             navIndent: {
                 name: '트리 들여쓰기',
                 desc: '중첩된 폴더, 태그, 속성의 들여쓰기 너비를 조정합니다(픽셀).'
@@ -2247,7 +2257,7 @@ export const STRINGS_KO = {
             },
             deleteAttachments: {
                 name: '파일 삭제 시 첨부 파일 삭제',
-                desc: '삭제된 파일에 연결된 첨부 파일이 다른 곳에서 사용되지 않는 경우 자동으로 제거',
+                desc: '연결된 첨부 파일과 생성된 그림 미리 보기가 다른 곳에서 사용되지 않는 경우 자동으로 제거',
                 options: {
                     ask: '매번 확인',
                     always: '항상',

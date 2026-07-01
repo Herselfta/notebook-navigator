@@ -140,7 +140,7 @@ export const STRINGS_FA = {
         mobileBackToNavigation: 'بازگشت به ناوبری',
         changeChildSortOrder: 'تغییر ترتیب',
         changeSortAndGroup: 'تغییر ترتیب و گروه‌بندی',
-        defaultSort: 'پیش‌فرض',
+        resetViewToDefaults: 'بازنشانی نما به پیش‌فرض‌ها',
         manualSort: 'مرتب‌سازی دستی',
         editSortOrder: 'ویرایش ترتیب مرتب‌سازی...',
         removeSortProperty: 'حذف ویژگی مرتب‌سازی',
@@ -398,9 +398,6 @@ export const STRINGS_FA = {
         titleRows: 'ردیف‌های عنوان',
         previewRows: 'ردیف‌های پیش‌نمایش',
         groupBy: 'گروه‌بندی بر اساس',
-        defaultTitleOption: (rows: number) => `ردیف‌های عنوان پیش‌فرض (${rows})`,
-        defaultPreviewOption: (rows: number) => `ردیف‌های پیش‌نمایش پیش‌فرض (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `گروه‌بندی پیش‌فرض (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} ردیف عنوان`,
         previewRowOption: (rows: number) => `${rows} ردیف پیش‌نمایش`
     },
@@ -997,6 +994,7 @@ export const STRINGS_FA = {
             navigation: {
                 appearance: 'ظاهر',
                 banner: 'بنر',
+                collapseItems: 'جمع کردن آیتم‌ها',
                 dragAndDrop: 'کشیدن و رها کردن',
                 noteCounts: 'تعداد یادداشت‌ها',
                 rainbowColors: 'رنگ‌های رنگین‌کمان',
@@ -1202,6 +1200,14 @@ export const STRINGS_FA = {
             showCategoryIcons: {
                 name: 'آیکون بر اساس نوع فایل',
                 desc: 'تخصیص آیکون به فایل‌ها بر اساس پسوند آن‌ها.'
+            },
+            fileTypeIconPreset: {
+                name: 'پیش‌تنظیم آیکون فایل',
+                desc: 'آیکون‌های داخلی یا یک پیش‌تنظیم بسته آیکون را انتخاب کنید. قوانین سفارشی پسوند این پیش‌تنظیم را بازنویسی می‌کنند.',
+                options: {
+                    none: 'آیکون‌های داخلی'
+                },
+                notInstalledWarning: 'این بسته آیکون نصب نشده است. به‌جای آن آیکون‌های داخلی نمایش داده می‌شوند.'
             },
             fileTypeIconMap: {
                 name: 'نگاشت آیکون نوع فایل',
@@ -1622,19 +1628,19 @@ export const STRINGS_FA = {
             },
             enterToOpenFiles: {
                 name: 'فشار Enter برای باز کردن فایل‌ها',
-                desc: 'فایل‌ها فقط با فشار دادن Enter در هنگام پیمایش با صفحه‌کلید در لیست باز شوند.'
+                desc: 'فایل‌ها فقط با فشار دادن Enter در هنگام پیمایش با صفحه‌کلید در لیست باز شوند. در macOS، این کار از تغییر نام فایل‌ها با Enter جلوگیری می‌کند.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Shift+Enter باز کنید.'
+                desc: 'انتخاب کنید که Shift+Enter فایل انتخاب‌شده را باز کند یا نام آن را تغییر دهد.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Cmd+Enter باز کنید.'
+                desc: 'انتخاب کنید که Cmd+Enter فایل انتخاب‌شده را باز کند یا نام آن را تغییر دهد.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'فایل انتخاب‌شده را در تب، تقسیم یا پنجره جدید با فشار Ctrl+Enter باز کنید.'
+                desc: 'انتخاب کنید که Ctrl+Enter فایل انتخاب‌شده را باز کند یا نام آن را تغییر دهد.'
             },
             mouseBackForwardAction: {
                 name: 'دکمه‌های عقب/جلو ماوس',
@@ -2079,6 +2085,10 @@ export const STRINGS_FA = {
                 name: 'باز نگه داشتن آیتم انتخابی',
                 desc: 'هنگام جمع کردن، آیتم انتخابی و والدین آن را باز نگه دارید.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'نادیده گرفتن ریشه خزانه هنگام جمع کردن',
+                desc: 'هنگام جمع کردن همه آیتم‌ها، پوشه ریشه خزانه را در وضعیت فعلی نگه دارید.'
+            },
             navIndent: {
                 name: 'تورفتگی درخت',
                 desc: 'عرض تورفتگی را برای پوشه‌ها، برچسب‌ها و ویژگی‌های تودرتو تنظیم کنید (پیکسل).'
@@ -2251,7 +2261,7 @@ export const STRINGS_FA = {
             },
             deleteAttachments: {
                 name: 'حذف پیوست‌ها هنگام حذف فایل‌ها',
-                desc: 'حذف خودکار پیوست‌های مرتبط با فایل حذف‌شده در صورتی که در جای دیگری استفاده نمی‌شوند',
+                desc: 'حذف خودکار پیوست‌های مرتبط و پیش‌نمایش‌های طراحی تولیدشده در صورتی که در جای دیگری استفاده نمی‌شوند',
                 options: {
                     ask: 'هر بار بپرس',
                     always: 'همیشه',

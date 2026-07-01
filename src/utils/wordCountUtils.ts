@@ -49,6 +49,10 @@ export interface CharacterCountResult {
     withoutSpaces: number;
 }
 
+export function formatTextCount(count: number): string {
+    return Math.trunc(count).toLocaleString();
+}
+
 export function countWordsForNoteProperty(content: string, startIndex: number): number {
     const text = startIndex > 0 ? content.slice(startIndex) : content;
     WORD_PATTERN.lastIndex = 0;
@@ -173,7 +177,7 @@ function formatWordCountDisplayText(params: {
     }
 
     const displayWordCount = Math.trunc(wordCount);
-    const formattedWordCount = displayWordCount.toLocaleString();
+    const formattedWordCount = formatTextCount(displayWordCount);
     if (targetWordCount === null) {
         return formattedWordCount;
     }
@@ -184,7 +188,7 @@ function formatWordCountDisplayText(params: {
         return `${formattedPercent}%`;
     }
 
-    const formattedTarget = targetWordCount.toLocaleString();
+    const formattedTarget = formatTextCount(targetWordCount);
     return `${formattedWordCount} / ${formattedTarget}`;
 }
 

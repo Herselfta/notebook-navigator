@@ -66,6 +66,7 @@ import { useActiveProfile } from '../context/SettingsContext';
 import { resolveUXIcon } from '../utils/uxIcons';
 import { ItemType, type CSSPropertiesWithVars } from '../types';
 import { buildFolderTooltip } from '../utils/navigationTooltipUtils';
+import { InlineRenameInput, type InlineRenameControl } from './InlineRenameInput';
 
 interface FolderItemProps {
     folder: TFolder;
@@ -89,6 +90,7 @@ interface FolderItemProps {
     vaultChangeVersion: number;
     disableContextMenu?: boolean;
     disableNavigationSeparatorActions?: boolean;
+    inlineRename?: InlineRenameControl;
 }
 
 /**
@@ -126,9 +128,10 @@ export const FolderItem = React.memo(function FolderItem({
     excludedFolders,
     vaultChangeVersion,
     disableContextMenu,
-    disableNavigationSeparatorActions
+    disableNavigationSeparatorActions,
+    inlineRename
 }: FolderItemProps) {
-    const { app, isMobile } = useServices();
+    const { app, fileSystemOps, isMobile } = useServices();
     const settings = useSettingsState();
     const { fileVisibility } = useActiveProfile();
     const uxPreferences = useUXPreferences();
@@ -199,17 +202,15 @@ export const FolderItem = React.memo(function FolderItem({
         });
     }, [app, effectiveDisplayName, excludedFolders, fileVisibility, folder, isMobile, settings, showHiddenItems, vaultChangeVersion]);
 
-    const dragIconId = useMemo(() => {
-        if (icon) {
-            return icon;
-        }
+    const dragFallbackIconId = useMemo(() => {
         if (isRootFolder) {
             return hasChildren && isExpanded ? 'open-vault' : 'vault';
         }
         return hasChildren && isExpanded
             ? resolveUXIcon(settings.interfaceIcons, 'nav-folder-open')
             : resolveUXIcon(settings.interfaceIcons, 'nav-folder-closed');
-    }, [hasChildren, icon, isExpanded, isRootFolder, settings.interfaceIcons]);
+    }, [hasChildren, isExpanded, isRootFolder, settings.interfaceIcons]);
+    const dragIconId = icon ?? dragFallbackIconId;
     const customBackground = backgroundColor;
 
     // Memoize className to avoid string concatenation on every render
@@ -228,6 +229,10 @@ export const FolderItem = React.memo(function FolderItem({
         if (applyColorToName) classes.push('nn-has-custom-color');
         return classes.join(' ');
     }, [applyColorToName, hasFolderNote]);
+    const renameInputOptions = useMemo(
+        () => (inlineRename ? fileSystemOps.getFolderDisplayNameRenameInput(folder) : null),
+        [fileSystemOps, folder, inlineRename]
+    );
 
     // Stable event handlers
     const handleDoubleClick = useCallback(() => {
@@ -358,9 +363,11 @@ export const FolderItem = React.memo(function FolderItem({
             data-drag-type="folder"
             // Marks element as draggable for event delegation
             data-draggable={isDraggable ? 'true' : undefined}
-            // Icon to display in drag ghost
+            // Icon to display in drag preview
             data-drag-icon={dragIconId}
-            // Icon color to display in drag ghost
+            // Default icon displayed if the custom drag preview icon is unavailable
+            data-drag-fallback-icon={dragFallbackIconId}
+            // Icon color to display in drag preview
             data-drag-icon-color={customColor || undefined}
             draggable={isDraggable}
             // Drop zone type (folder or tag)
@@ -388,14 +395,18 @@ export const FolderItem = React.memo(function FolderItem({
                 {shouldShowFolderIcon && (
                     <span className="nn-navitem-icon" ref={iconRef} style={customColor ? { color: customColor } : undefined}></span>
                 )}
-                <span
-                    className={folderNameClassName}
-                    style={applyColorToName ? { color: customColor } : undefined}
-                    onClick={handleNameClick}
-                    onMouseDown={handleNameMouseDown}
-                >
-                    {effectiveDisplayName}
-                </span>
+                {inlineRename && renameInputOptions ? (
+                    <InlineRenameInput {...inlineRename} {...renameInputOptions} className="nn-navitem-inline-rename" />
+                ) : (
+                    <span
+                        className={folderNameClassName}
+                        style={applyColorToName ? { color: customColor } : undefined}
+                        onClick={handleNameClick}
+                        onMouseDown={handleNameMouseDown}
+                    >
+                        {effectiveDisplayName}
+                    </span>
+                )}
                 <span className="nn-navitem-spacer nn-navitem-spacer--leader" />
                 {shouldDisplayCount && <span className="nn-navitem-count">{noteCountLabel}</span>}
             </div>

@@ -399,8 +399,8 @@ settings:
         default-dark: '#'
     -
         id: nn-theme-calendar-day-active-border-color
-        title: Active day outline color
-        description: Border color for the outline shown on the active day in the calendar.
+        title: Selection outline color
+        description: Border color for active calendar outlines.
         type: variable-themed-color
         opacity: true
         format: rgb
@@ -408,10 +408,10 @@ settings:
         default-dark: '#'
     -
         id: nn-theme-calendar-day-active-border-width
-        title: Active day outline thickness
-        description: Border width for the outline shown on the active day in the calendar.
+        title: Selection outline thickness
+        description: Border width for active calendar outlines.
         type: variable-number-slider
-        default: 3
+        default: 2
         format: px
         min: 1
         max: 4

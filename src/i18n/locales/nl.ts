@@ -141,7 +141,7 @@ export const STRINGS_NL = {
         mobileBackToNavigation: 'Terug naar navigatie',
         changeChildSortOrder: 'Sorteervolgorde wijzigen',
         changeSortAndGroup: 'Sortering en groepering wijzigen',
-        defaultSort: 'Standaard',
+        resetViewToDefaults: 'Weergave terugzetten naar standaardwaarden',
         manualSort: 'Handmatig sorteren',
         editSortOrder: 'Sorteervolgorde bewerken...',
         removeSortProperty: 'Sorteereigenschap verwijderen',
@@ -401,9 +401,6 @@ export const STRINGS_NL = {
         titleRows: 'Titelrijen',
         previewRows: 'Voorbeeldrijen',
         groupBy: 'Groeperen op',
-        defaultTitleOption: (rows: number) => `Standaard titelrijen (${rows})`,
-        defaultPreviewOption: (rows: number) => `Standaard voorbeeldrijen (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Standaardgroepering (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} titelrij${rows === 1 ? '' : 'en'}`,
         previewRowOption: (rows: number) => `${rows} voorbeeldrij${rows === 1 ? '' : 'en'}`
     },
@@ -999,6 +996,7 @@ export const STRINGS_NL = {
             navigation: {
                 appearance: 'Uiterlijk',
                 banner: 'Banner',
+                collapseItems: 'Items inklappen',
                 dragAndDrop: 'Slepen en neerzetten',
                 noteCounts: 'Notitietellingen',
                 rainbowColors: 'Regenboogkleuren',
@@ -1204,6 +1202,14 @@ export const STRINGS_NL = {
             showCategoryIcons: {
                 name: 'Pictogrammen op bestandstype',
                 desc: 'Pictogrammen toewijzen aan bestanden op basis van hun extensie.'
+            },
+            fileTypeIconPreset: {
+                name: 'Voorinstelling voor bestandspictogrammen',
+                desc: 'Kies de ingebouwde pictogrammen of een voorinstelling voor pictogrampakketten. Aangepaste extensieregels overschrijven deze voorinstelling.',
+                options: {
+                    none: 'Ingebouwde pictogrammen'
+                },
+                notInstalledWarning: 'Dit pictogrampakket is niet geïnstalleerd. In plaats daarvan worden ingebouwde pictogrammen getoond.'
             },
             fileTypeIconMap: {
                 name: 'Bestandstype-pictogram toewijzing',
@@ -1625,19 +1631,19 @@ export const STRINGS_NL = {
             },
             enterToOpenFiles: {
                 name: 'Druk op Enter om bestanden te openen',
-                desc: 'Open bestanden alleen door op Enter te drukken tijdens toetsenbordnavigatie in de lijst.'
+                desc: 'Open bestanden alleen door op Enter te drukken tijdens toetsenbordnavigatie in de lijst. Op macOS voorkomt dit dat Enter bestanden hernoemt.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Shift+Enter.'
+                desc: 'Kies of Shift+Enter het geselecteerde bestand opent of hernoemt.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Cmd+Enter.'
+                desc: 'Kies of Cmd+Enter het geselecteerde bestand opent of hernoemt.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Open het geselecteerde bestand in een nieuw tabblad, splitsing of venster met Ctrl+Enter.'
+                desc: 'Kies of Ctrl+Enter het geselecteerde bestand opent of hernoemt.'
             },
             mouseBackForwardAction: {
                 name: 'Muisknoppen terug/vooruit',
@@ -2082,6 +2088,10 @@ export const STRINGS_NL = {
                 name: 'Geselecteerd item uitgeklapt houden',
                 desc: 'Bij het inklappen het geselecteerde item en de bovenliggende items uitgeklapt houden.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Kluisroot overslaan bij inklappen',
+                desc: 'Bij het inklappen van alle items blijft de rootmap van de kluis in de huidige staat.'
+            },
             navIndent: {
                 name: 'Structuurinspringing',
                 desc: 'De inspringbreedte aanpassen voor geneste mappen, tags en eigenschappen (pixels).'
@@ -2254,7 +2264,7 @@ export const STRINGS_NL = {
             },
             deleteAttachments: {
                 name: 'Bijlagen verwijderen bij het verwijderen van bestanden',
-                desc: 'Automatisch bijlagen verwijderen die gekoppeld zijn aan het verwijderde bestand als ze niet elders worden gebruikt',
+                desc: 'Automatisch gekoppelde bijlagen en gegenereerde tekeningvoorbeelden verwijderen als ze niet elders worden gebruikt',
                 options: {
                     ask: 'Elke keer vragen',
                     always: 'Altijd',

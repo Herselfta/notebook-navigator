@@ -64,7 +64,7 @@ function hasCustomGroupingAppearance(settings: NotebookNavigatorSettings): boole
     return appearances.some(collection => Object.values(collection).some(appearance => appearance?.groupBy === 'custom'));
 }
 
-function hasWordCountTargetPropertyConsumer(settings: NotebookNavigatorSettings): boolean {
+export function hasWordCountTargetPropertyConsumer(settings: NotebookNavigatorSettings): boolean {
     return showsWordCount(settings.textCountDisplay) || (hasCustomGroupHeaderProperty(settings) && hasCustomGroupingAppearance(settings));
 }
 
@@ -319,6 +319,12 @@ export function parsePropertyLinkTarget(value: string): PropertyLinkTarget | nul
 
 export function resolvePropertyDisplayText(rawValue: string): string {
     return parsePropertyLinkTarget(rawValue)?.displayText ?? rawValue.trim();
+}
+
+export function isPropertyLinkMarkupValue(rawValue: string): boolean {
+    const trimmed = rawValue.trim();
+    const linkTarget = parsePropertyLinkTarget(trimmed);
+    return linkTarget !== null && linkTarget.displayText !== trimmed;
 }
 
 export function isSupportedCssColor(value: string): boolean {

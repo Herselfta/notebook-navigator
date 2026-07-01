@@ -140,7 +140,7 @@ export const STRINGS_PT = {
         mobileBackToNavigation: 'Voltar à navegação', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Alterar ordem de ordenação',
         changeSortAndGroup: 'Alterar ordenação e agrupamento',
-        defaultSort: 'Predefinido', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Repor vista para predefinições',
         manualSort: 'Ordenação manual',
         editSortOrder: 'Editar ordenação...',
         removeSortProperty: 'Remover propriedade de ordenação',
@@ -399,9 +399,6 @@ export const STRINGS_PT = {
         titleRows: 'Linhas de título',
         previewRows: 'Linhas de pré-visualização',
         groupBy: 'Agrupar por',
-        defaultTitleOption: (rows: number) => `Linhas de título predefinidas (${rows})`,
-        defaultPreviewOption: (rows: number) => `Linhas de pré-visualização predefinidas (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Agrupamento predefinido (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} linha${rows === 1 ? '' : 's'} de título`,
         previewRowOption: (rows: number) => `${rows} linha${rows === 1 ? '' : 's'} de pré-visualização`
     },
@@ -997,6 +994,7 @@ export const STRINGS_PT = {
             navigation: {
                 appearance: 'Aparência',
                 banner: 'Banner',
+                collapseItems: 'Recolher itens',
                 dragAndDrop: 'Arrastar e largar',
                 noteCounts: 'Contagens de notas',
                 rainbowColors: 'Cores arco-íris',
@@ -1202,6 +1200,14 @@ export const STRINGS_PT = {
             showCategoryIcons: {
                 name: 'Ícones por tipo de ficheiro',
                 desc: 'Atribuir ícones a ficheiros com base na sua extensão.'
+            },
+            fileTypeIconPreset: {
+                name: 'Predefinição de ícones de ficheiro',
+                desc: 'Escolher os ícones integrados ou uma predefinição de pacote de ícones. As regras de extensão personalizadas substituem esta predefinição.',
+                options: {
+                    none: 'Ícones integrados'
+                },
+                notInstalledWarning: 'Este pacote de ícones não está instalado. Em vez disso, são mostrados os ícones integrados.'
             },
             fileTypeIconMap: {
                 name: 'Mapa de ícones por tipo',
@@ -1624,19 +1630,19 @@ export const STRINGS_PT = {
             },
             enterToOpenFiles: {
                 name: 'Pressionar Enter para abrir ficheiros',
-                desc: 'Abrir ficheiros apenas ao pressionar Enter durante a navegação por teclado na lista.'
+                desc: 'Abrir ficheiros apenas ao pressionar Enter durante a navegação por teclado na lista. No macOS, isto impede que Enter renomeie ficheiros.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Abrir o ficheiro selecionado num novo separador, divisão ou janela ao premir Shift+Enter.'
+                desc: 'Escolher se Shift+Enter abre ou renomeia o ficheiro selecionado.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Abrir o ficheiro selecionado num novo separador, divisão ou janela ao premir Cmd+Enter.'
+                desc: 'Escolher se Cmd+Enter abre ou renomeia o ficheiro selecionado.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Abrir o ficheiro selecionado num novo separador, divisão ou janela ao premir Ctrl+Enter.'
+                desc: 'Escolher se Ctrl+Enter abre ou renomeia o ficheiro selecionado.'
             },
             mouseBackForwardAction: {
                 name: 'Botões voltar/avançar do rato',
@@ -2081,6 +2087,10 @@ export const STRINGS_PT = {
                 name: 'Manter item selecionado expandido',
                 desc: 'Ao recolher, manter o item selecionado e os seus pais expandidos.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Ignorar raiz do cofre ao recolher',
+                desc: 'Ao recolher todos os itens, deixe a pasta raiz do cofre no estado atual.'
+            },
             navIndent: {
                 name: 'Indentação da árvore',
                 desc: 'Ajustar a largura de indentação para pastas, etiquetas e propriedades aninhadas (pixels).'
@@ -2253,7 +2263,7 @@ export const STRINGS_PT = {
             },
             deleteAttachments: {
                 name: 'Eliminar anexos ao eliminar ficheiros',
-                desc: 'Remover automaticamente os anexos associados ao ficheiro eliminado se não forem utilizados noutro local',
+                desc: 'Remover automaticamente os anexos associados e as pré-visualizações de desenhos geradas se não forem utilizados noutro local',
                 options: {
                     ask: 'Perguntar sempre',
                     always: 'Sempre',

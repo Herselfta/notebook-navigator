@@ -40,6 +40,7 @@ export { compareVersions } from './utils/versionUtils';
  * Supported inline formats in both info and list items:
  * - Bold text: **text**
  * - Critical emphasis (red + bold): ==text==
+ * - Inline code: `code`
  * - Markdown link: [label](https://example.com)
  * - Auto-link: https://example.com
  *
@@ -48,7 +49,7 @@ export { compareVersions } from './utils/versionUtils';
  * - Paragraph break: double \n\n or two consecutive <br> markers
  *
  * Not supported:
- * - Italics, headings, inline code, HTML except <br> line break markers
+ * - Italics, headings, fenced code blocks, HTML except <br> line break markers
  *
  * Writing rules:
  * - Use factual, concise statements
@@ -89,6 +90,38 @@ export interface ReleaseNote {
  * 2. Categorize features into: new, improved, changed, or fixed arrays
  */
 const RELEASE_NOTES: ReleaseNote[] = [
+    {
+        version: '3.2.2',
+        date: '2026-06-30',
+        showOnUpdate: false,
+        info: 'Quick fix to make drag and drop work again with external images.'
+    },
+    {
+        version: '3.2.1',
+        date: '2026-06-29',
+        showOnUpdate: true,
+        bannerUrl: true,
+        info: 'You can now **rename files, tags and properties inline** using Enter (macOS) or F2 (Windows and Linux)! And we got more optimizations! This release significantly reduces **preview work while typing** and also improves **drag and drop performance**. Previously there were lots of processing happening in the background every time Obsidian updated the current file when typing, now all actions are heavily gated.',
+        new: [
+            '**Inline rename.** ==Rename files, folders, tags, and properties inline== with Enter on macOS or F2 on Windows/Linux. The keyboard command is customizable with the `pane:rename` action.',
+            '**Manual sort.** Manual-sort movement now uses the custom hotkey actions `list:manual-sort-up` and `list:manual-sort-down`. Defaults remain `Mod+ArrowUp` and `Mod+ArrowDown`.',
+            '**File icons.** New setting: ==File icon preset== in Notes > Icons by file type. You can now pick default file icons from one of the installed icon packs.',
+            '**Navigation pane.** New setting ==Skip vault root when collapsing== in Navigation pane > Collapse items. When collapsing all items, the vault root folder keeps its current state.'
+        ],
+        improved: [
+            '**Navigation pane.** Root item spacing now supports values up to `12px`.',
+            '**Performance.** Significantly improved drag and drop performance! Drag previews now use browser-native drag images instead of a JavaScript element that follows the pointer.',
+            '**Performance.** Significantly improved performance when typing in the current note.'
+        ],
+        changed: [
+            '**Merge notes.** Source notes are no longer moved to trash by default. Select the option in the merge dialog to move them to trash.'
+        ],
+        fixed: [
+            '**Manual sort.** Fixed a problem with manual sort when **Show notes from subfolders / descendants** was enabled. For example, a parent folder could have note `1`, a subfolder with notes `2.0` and `2.1`, and then note `3`. After manually sorting the subfolder notes, the parent folder could show `2.0`, `2.1`, `1`, `3` instead of `1`, `2.0`, `2.1`, `3`. The parent folder now keeps the correct order after sorting notes inside the subfolder.',
+            '**Properties.** Fixed property value assignment writing the display label instead of the original frontmatter link value. Values such as `[[Mini-Tasks]]` now keep the `Mini-Tasks` label while assigning writes `[[Mini-Tasks]]`.',
+            '**List pane.** Fixed Reveal file not scrolling to notes inside collapsed list groups or the collapsed pinned section.'
+        ]
+    },
     {
         version: '3.2.0',
         date: '2026-06-21',

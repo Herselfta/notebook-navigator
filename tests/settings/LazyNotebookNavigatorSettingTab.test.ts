@@ -20,6 +20,7 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { App, Plugin, type SettingDefinitionItem } from 'obsidian';
 import type NotebookNavigatorPlugin from '../../src/main';
 import { LazyNotebookNavigatorSettingTab } from '../../src/settings/LazyNotebookNavigatorSettingTab';
+import type { NotebookNavigatorSettingTab } from '../../src/settings';
 
 interface MockSettingTabDelegate {
     containerEl: HTMLElement;
@@ -50,17 +51,36 @@ function createDelegate(): MockSettingTabDelegate {
     };
 }
 
+class TestLazyNotebookNavigatorSettingTab extends LazyNotebookNavigatorSettingTab {
+    constructor(
+        app: App,
+        plugin: NotebookNavigatorPlugin,
+        private readonly delegateFactory: () => MockSettingTabDelegate
+    ) {
+        super(app, plugin);
+    }
+
+    protected createDelegate(): NotebookNavigatorSettingTab {
+        return this.delegateFactory() as unknown as NotebookNavigatorSettingTab;
+    }
+}
+
 describe('LazyNotebookNavigatorSettingTab', () => {
     beforeEach(() => {
         vi.clearAllMocks();
     });
 
-    it('does not load full settings definitions while the settings container is disconnected', () => {
+    it('loads settings definitions while the settings container is disconnected', () => {
         const plugin = createPlugin();
-        const tab = new LazyNotebookNavigatorSettingTab(plugin.app, plugin);
-        tab.containerEl = createContainer(false);
+        const delegate = createDelegate();
+        const tab = new TestLazyNotebookNavigatorSettingTab(plugin.app, plugin, () => delegate);
+        const containerEl = createContainer(false);
+        tab.containerEl = containerEl;
 
-        expect(tab.getSettingDefinitions()).toEqual([]);
+        const definitions = tab.getSettingDefinitions();
+
+        expect(definitions).toEqual([{ type: 'render', name: 'Mock setting' }]);
+        expect(delegate.containerEl).toBe(containerEl);
     });
 
     it('shares the registered tab container with the delegate before returning definitions', () => {

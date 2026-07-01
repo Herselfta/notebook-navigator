@@ -184,12 +184,10 @@ export function getCurrentLanguage(): string {
 function getObsidianLanguage(): string {
     const locale = getCurrentLanguage();
 
-    // Check if the detected language is supported
     if (locale && SUPPORTED_LANGUAGES.has(locale)) {
         return locale;
     }
 
-    // Fallback to English
     return 'en';
 }
 

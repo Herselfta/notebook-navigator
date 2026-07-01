@@ -4,17 +4,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      day: monday
+      day: saturday
       time: "06:00"
       timezone: Europe/Stockholm
     groups:
-      react-runtime:
-        dependency-type: production
-        patterns:
-          - "react"
-          - "react-dom"
-      npm-development:
-        dependency-type: development
+      npm-dependencies:
         patterns:
           - "*"
     ignore:
@@ -42,7 +36,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      day: monday
+      day: sunday
       time: "06:00"
       timezone: Europe/Stockholm
+    groups:
+      github-actions:
+        patterns:
+          - "*"
     open-pull-requests-limit: 5

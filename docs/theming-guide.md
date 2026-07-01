@@ -75,8 +75,8 @@ Most variables are colors and should resolve to a computed color (some are used 
 | `--nn-theme-calendar-feature-image-overlay-color` | `rgb(0 0 0 / 0.05)` in light mode, `rgb(0 0 0 / 0.3)` in dark mode | Overlay color for calendar feature images |
 | `--nn-theme-calendar-day-today-color`         | `var(--nn-theme-calendar-day-in-month-color)` | Text color for today's date                |
 | `--nn-theme-calendar-day-today-bg`            | `var(--text-selection)`                | Background color for today's date highlight     |
-| `--nn-theme-calendar-day-active-border-color` | `#f94040` | Border color for the outline shown on the active day in the calendar |
-| `--nn-theme-calendar-day-active-border-width` | `3px` | Border width for the outline shown on the active day in the calendar |
+| `--nn-theme-calendar-day-active-border-color` | `var(--interactive-accent)` | Border color for active calendar outlines |
+| `--nn-theme-calendar-day-active-border-width` | `2px` | Border width for active calendar outlines |
 
 ### Navigation pane
 

@@ -19,11 +19,11 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, type KeyboardEvent as ReactKeyboardEvent, type RefObject } from 'react';
 import { TFile } from 'obsidian';
 import { resolvePrimarySelectedFile, useSelectionDispatch, useSelectionState } from '../context/SelectionContext';
-import { useServices } from '../context/ServicesContext';
+import { useFileSystemOps, useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { runAsyncAction } from '../utils/async';
 import { focusElementPreventScroll, isKeyboardEventContextBlocked } from '../utils/domUtils';
-import { isEnterKey, isModifierArrowReorderShortcut, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveKeyboardEnterAction } from '../utils/keyboardOpenContext';
 import { KeyboardShortcutAction, matchesShortcut } from '../utils/keyboardShortcuts';
 import { getManualSortSelectedMarkdownPaths, moveManualSortSelectionByDirection, type ManualSortMoveDirection } from '../utils/manualSort';
 import { openFileInContext } from '../utils/openFileInContext';
@@ -99,6 +99,7 @@ export function useManualSortKeyboard({
     const selectionState = useSelectionState();
     const selectionDispatch = useSelectionDispatch();
     const openFileInWorkspace = useFileOpener();
+    const fileSystemOps = useFileSystemOps();
     const { handleShiftArrowSelection, selectAll } = useMultiSelection();
     const keyboardScrollPathRef = useRef<string | null>(null);
     const handledSelectionScrollPathRef = useRef<string | null>(null);
@@ -289,14 +290,19 @@ export function useManualSortKeyboard({
 
                 event.preventDefault();
 
-                const context = resolveKeyboardOpenContext(nativeEvent, settings);
-                if (context) {
+                const action = resolveKeyboardEnterAction(nativeEvent, settings);
+                if (action === 'rename') {
+                    runAsyncAction(() => fileSystemOps.renameFile(selectedFile));
+                    return;
+                }
+
+                if (action) {
                     runAsyncAction(() =>
                         openFileInContext({
                             app,
                             commandQueue,
                             file: selectedFile,
-                            context,
+                            context: action,
                             active: false
                         })
                     );
@@ -307,9 +313,15 @@ export function useManualSortKeyboard({
                 return;
             }
 
-            if (isModifierArrowReorderShortcut(nativeEvent, settings.multiSelectModifier)) {
-                const direction = nativeEvent.key === 'ArrowDown' ? 'down' : 'up';
-                if (handleKeyboardReorder(direction)) {
+            if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.LIST_MANUAL_SORT_DOWN)) {
+                if (handleKeyboardReorder('down')) {
+                    event.preventDefault();
+                    return;
+                }
+            }
+
+            if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.LIST_MANUAL_SORT_UP)) {
+                if (handleKeyboardReorder('up')) {
                     event.preventDefault();
                     return;
                 }
@@ -465,6 +477,7 @@ export function useManualSortKeyboard({
             commandQueue,
             handleKeyboardReorder,
             handleShiftArrowSelection,
+            fileSystemOps,
             isMobile,
             onScheduleKeyboardOpen,
             onScheduleKeyboardOpenForFile,

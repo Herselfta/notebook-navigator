@@ -140,7 +140,7 @@ export const STRINGS_PL = {
         mobileBackToNavigation: 'Wróć do nawigacji', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Zmień kolejność sortowania',
         changeSortAndGroup: 'Zmień sortowanie i grupowanie',
-        defaultSort: 'Domyślne', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Przywróć widok do ustawień domyślnych',
         manualSort: 'Sortowanie ręczne',
         editSortOrder: 'Edytuj kolejność sortowania...',
         removeSortProperty: 'Usuń atrybut sortowania',
@@ -399,9 +399,6 @@ export const STRINGS_PL = {
         titleRows: 'Wiersze tytułu',
         previewRows: 'Wiersze podglądu',
         groupBy: 'Grupuj według',
-        defaultTitleOption: (rows: number) => `Domyślne wiersze tytułu (${rows})`,
-        defaultPreviewOption: (rows: number) => `Domyślne wiersze podglądu (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Domyślne grupowanie (${groupLabel})`,
         titleRowOption: (rows: number) =>
             `${rows} ${rows === 1 ? 'wiersz' : rows === 2 || rows === 3 || rows === 4 ? 'wiersze' : 'wierszy'} tytułu`,
         previewRowOption: (rows: number) =>
@@ -1000,6 +997,7 @@ export const STRINGS_PL = {
             navigation: {
                 appearance: 'Wygląd',
                 banner: 'Baner',
+                collapseItems: 'Zwiń elementy',
                 dragAndDrop: 'Przeciągnij i upuść',
                 noteCounts: 'Liczba notatek',
                 rainbowColors: 'Kolory tęczy',
@@ -1205,6 +1203,14 @@ export const STRINGS_PL = {
             showCategoryIcons: {
                 name: 'Ikonki według typu pliku',
                 desc: 'Przypisuje ikonki do plików na podstawie ich rozszerzeń.'
+            },
+            fileTypeIconPreset: {
+                name: 'Ustawienie wstępne ikonek plików',
+                desc: 'Wybierz wbudowane ikonki lub ustawienie wstępne pakietu ikonek. Niestandardowe reguły rozszerzeń zastępują to ustawienie wstępne.',
+                options: {
+                    none: 'Wbudowane ikonki'
+                },
+                notInstalledWarning: 'Ten pakiet ikonek nie jest zainstalowany. Zamiast niego są wyświetlane wbudowane ikonki.'
             },
             fileTypeIconMap: {
                 name: 'Przypisanie ikonek na podstawie typu pliku',
@@ -1626,19 +1632,19 @@ export const STRINGS_PL = {
             },
             enterToOpenFiles: {
                 name: 'Naciśnij Enter, aby otworzyć pliki',
-                desc: 'Otwórz pliki tylko po naciśnięciu Enter podczas nawigacji po liście za pomocą klawiatury.'
+                desc: 'Otwieraj pliki tylko po naciśnięciu Enter podczas nawigacji po liście za pomocą klawiatury. W macOS zapobiega to zmianie nazw plików klawiszem Enter.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Shift+Enter.'
+                desc: 'Wybierz, czy Shift+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Cmd+Enter.'
+                desc: 'Wybierz, czy Cmd+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Otwórz wybrany plik w nowej karcie, grupie lub oknie po naciśnięciu Ctrl+Enter.'
+                desc: 'Wybierz, czy Ctrl+Enter otwiera, czy zmienia nazwę wybranego pliku.'
             },
             mouseBackForwardAction: {
                 name: 'Przyciski wstecz/dalej myszy',
@@ -2083,6 +2089,10 @@ export const STRINGS_PL = {
                 name: 'Zachowaj wybrany element rozwinięty',
                 desc: 'Podczas zwijania, zachowaj wybrany element oraz elementy nadrzędne rozwinięte.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Pomiń katalog główny sejfu podczas zwijania',
+                desc: 'Podczas zwijania wszystkich elementów pozostaw folder główny sejfu w bieżącym stanie.'
+            },
             navIndent: {
                 name: 'Wcięcie w strukturze',
                 desc: 'Dostosuj szerokość wcięcia w strukturze folderów, tagów i właściwości (piksele).'
@@ -2255,7 +2265,7 @@ export const STRINGS_PL = {
             },
             deleteAttachments: {
                 name: 'Usuń załączniki przy usuwaniu plików',
-                desc: 'Automatycznie usuwaj załączniki powiązane z usuniętym plikiem, jeśli nie są używane gdzie indziej',
+                desc: 'Automatycznie usuwaj powiązane załączniki i wygenerowane podglądy rysunków, jeśli nie są używane gdzie indziej',
                 options: {
                     ask: 'Pytaj za każdym razem',
                     always: 'Zawsze',

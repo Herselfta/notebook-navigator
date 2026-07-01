@@ -140,7 +140,7 @@ export const STRINGS_TH = {
         mobileBackToNavigation: 'กลับไปการนำทาง',
         changeChildSortOrder: 'เปลี่ยนลำดับการเรียง',
         changeSortAndGroup: 'เปลี่ยนการเรียงและการจัดกลุ่ม',
-        defaultSort: 'ค่าเริ่มต้น',
+        resetViewToDefaults: 'รีเซ็ตมุมมองเป็นค่าเริ่มต้น',
         manualSort: 'จัดเรียงด้วยตนเอง',
         editSortOrder: 'แก้ไขลำดับการจัดเรียง...',
         removeSortProperty: 'ลบคุณสมบัติการจัดเรียง',
@@ -398,9 +398,6 @@ export const STRINGS_TH = {
         titleRows: 'แถวชื่อเรื่อง',
         previewRows: 'แถวตัวอย่าง',
         groupBy: 'จัดกลุ่มตาม',
-        defaultTitleOption: (rows: number) => `แถวชื่อเรื่องเริ่มต้น (${rows})`,
-        defaultPreviewOption: (rows: number) => `แถวตัวอย่างเริ่มต้น (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `การจัดกลุ่มเริ่มต้น (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} แถวชื่อเรื่อง`,
         previewRowOption: (rows: number) => `${rows} แถวตัวอย่าง`
     },
@@ -990,6 +987,7 @@ export const STRINGS_TH = {
             navigation: {
                 appearance: 'ลักษณะ',
                 banner: 'แบนเนอร์',
+                collapseItems: 'ยุบรายการ',
                 dragAndDrop: 'ลากและวาง',
                 noteCounts: 'จำนวนโน้ต',
                 rainbowColors: 'สีรุ้ง',
@@ -1195,6 +1193,14 @@ export const STRINGS_TH = {
             showCategoryIcons: {
                 name: 'ไอคอนตามประเภทไฟล์',
                 desc: 'กำหนดไอคอนให้ไฟล์ตามนามสกุล'
+            },
+            fileTypeIconPreset: {
+                name: 'ค่าที่ตั้งไว้ล่วงหน้าสำหรับไอคอนไฟล์',
+                desc: 'เลือกไอคอนในตัวหรือค่าที่ตั้งไว้ล่วงหน้าของชุดไอคอน กฎนามสกุลแบบกำหนดเองจะเขียนทับค่านี้',
+                options: {
+                    none: 'ไอคอนในตัว'
+                },
+                notInstalledWarning: 'ยังไม่ได้ติดตั้งชุดไอคอนนี้ จะแสดงไอคอนในตัวแทน'
             },
             fileTypeIconMap: {
                 name: 'แผนที่ไอคอนประเภทไฟล์',
@@ -1615,19 +1621,19 @@ export const STRINGS_TH = {
             },
             enterToOpenFiles: {
                 name: 'กด Enter เพื่อเปิดไฟล์',
-                desc: 'เปิดไฟล์เฉพาะเมื่อกด Enter ระหว่างการนำทางด้วยแป้นพิมพ์ในรายการ'
+                desc: 'เปิดไฟล์เฉพาะเมื่อกด Enter ระหว่างการนำทางด้วยแป้นพิมพ์ในรายการ บน macOS การตั้งค่านี้จะป้องกันไม่ให้ Enter เปลี่ยนชื่อไฟล์'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Shift+Enter'
+                desc: 'เลือกว่าจะให้ Shift+Enter เปิดหรือเปลี่ยนชื่อไฟล์ที่เลือก'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Cmd+Enter'
+                desc: 'เลือกว่าจะให้ Cmd+Enter เปิดหรือเปลี่ยนชื่อไฟล์ที่เลือก'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'เปิดไฟล์ที่เลือกในแท็บใหม่ แยก หรือหน้าต่างเมื่อกด Ctrl+Enter'
+                desc: 'เลือกว่าจะให้ Ctrl+Enter เปิดหรือเปลี่ยนชื่อไฟล์ที่เลือก'
             },
             mouseBackForwardAction: {
                 name: 'ปุ่มย้อนกลับ/ไปข้างหน้าของเมาส์',
@@ -2071,6 +2077,10 @@ export const STRINGS_TH = {
                 name: 'เก็บรายการที่เลือกไว้ขยาย',
                 desc: 'เมื่อยุบ เก็บรายการที่เลือกและหลักไว้ขยาย'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'ข้ามรูทห้องนิรภัยเมื่อยุบ',
+                desc: 'เมื่อยุบรายการทั้งหมด ให้คงโฟลเดอร์รูทของห้องนิรภัยไว้ในสถานะปัจจุบัน'
+            },
             navIndent: {
                 name: 'การเยื้องต้นไม้',
                 desc: 'ปรับความกว้างการเยื้องสำหรับโฟลเดอร์ แท็ก และคุณสมบัติที่ซ้อนกัน (พิกเซล)'
@@ -2243,7 +2253,7 @@ export const STRINGS_TH = {
             },
             deleteAttachments: {
                 name: 'ลบไฟล์แนบเมื่อลบไฟล์',
-                desc: 'ลบไฟล์แนบที่เชื่อมโยงกับไฟล์ที่ถูกลบโดยอัตโนมัติหากไม่ได้ใช้ในที่อื่น',
+                desc: 'ลบไฟล์แนบที่เชื่อมโยงและตัวอย่างภาพวาดที่สร้างขึ้นโดยอัตโนมัติหากไม่ได้ใช้ในที่อื่น',
                 options: {
                     ask: 'ถามทุกครั้ง',
                     always: 'เสมอ',

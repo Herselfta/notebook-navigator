@@ -138,6 +138,13 @@ export function showListPaneAppearanceMenu({
 
     const isStandard = effectiveMode === 'standard';
     const isCompact = effectiveMode === 'compact';
+    const appearanceMode = appearance?.mode;
+    const hasAppearanceOverride =
+        ((appearanceMode === 'standard' || appearanceMode === 'compact') && appearanceMode !== defaultMode) ||
+        appearance?.titleRows !== undefined ||
+        appearance?.previewRows !== undefined;
+    const withDefaultSuffix = (label: string, isDefault: boolean): string =>
+        isDefault ? `${label} ${strings.folderAppearance.defaultSuffix}` : label;
 
     menu.addItem(item => {
         item.setTitle(strings.folderAppearance.appearance).setIcon('lucide-palette').setDisabled(true);
@@ -145,10 +152,7 @@ export function showListPaneAppearanceMenu({
 
     // Standard preset
     menu.addItem(item => {
-        const label =
-            defaultMode === 'standard'
-                ? `${strings.folderAppearance.standardPreset} ${strings.folderAppearance.defaultSuffix}`
-                : strings.folderAppearance.standardPreset;
+        const label = withDefaultSuffix(strings.folderAppearance.standardPreset, defaultMode === 'standard');
         item.setTitle(label)
             .setIcon('lucide-list')
             .setChecked(isStandard)
@@ -159,10 +163,7 @@ export function showListPaneAppearanceMenu({
 
     // Compact preset
     menu.addItem(item => {
-        const label =
-            defaultMode === 'compact'
-                ? `${strings.folderAppearance.compactPreset} ${strings.folderAppearance.defaultSuffix}`
-                : strings.folderAppearance.compactPreset;
+        const label = withDefaultSuffix(strings.folderAppearance.compactPreset, defaultMode === 'compact');
         item.setTitle(label)
             .setIcon('lucide-align-left')
             .setChecked(isCompact)
@@ -178,27 +179,16 @@ export function showListPaneAppearanceMenu({
         item.setTitle(strings.folderAppearance.titleRows).setIcon('lucide-text').setDisabled(true);
     });
 
-    // Default title rows option
-    menu.addItem(item => {
-        const hasCustomTitleRows = appearance?.titleRows !== undefined;
-        const isDefaultTitle = !hasCustomTitleRows;
-        item.setTitle(`    ${strings.folderAppearance.defaultTitleOption(settings.fileNameRows)}`)
-            .setIcon('lucide-text')
-            .setChecked(isDefaultTitle)
-            .onClick(() => {
-                updateAppearance({ titleRows: undefined });
-            });
-    });
-
     // Title row options
+    const effectiveTitleRows = appearance?.titleRows ?? settings.fileNameRows;
     [1, 2, 3].forEach(rows => {
+        const isDefaultRows = rows === settings.fileNameRows;
         menu.addItem(item => {
-            const isChecked = appearance?.titleRows === rows;
-            item.setTitle(`    ${strings.folderAppearance.titleRowOption(rows)}`)
+            item.setTitle(`    ${withDefaultSuffix(strings.folderAppearance.titleRowOption(rows), isDefaultRows)}`)
                 .setIcon('lucide-text')
-                .setChecked(isChecked)
+                .setChecked(effectiveTitleRows === rows)
                 .onClick(() => {
-                    updateAppearance({ titleRows: rows });
+                    updateAppearance({ titleRows: isDefaultRows ? undefined : rows });
                 });
         });
     });
@@ -211,28 +201,16 @@ export function showListPaneAppearanceMenu({
             item.setTitle(strings.folderAppearance.previewRows).setIcon('lucide-file-text').setDisabled(true);
         });
 
-        // Default preview rows option
-        menu.addItem(item => {
-            const hasCustomPreviewRows = appearance?.previewRows !== undefined;
-            const isDefaultPreview = !hasCustomPreviewRows;
-            item.setTitle(`    ${strings.folderAppearance.defaultPreviewOption(settings.previewRows)}`)
-                .setIcon('lucide-file-text')
-                .setChecked(isDefaultPreview)
-                .onClick(() => {
-                    updateAppearance({ previewRows: undefined });
-                });
-        });
-
         // Preview row options
+        const effectivePreviewRows = appearance?.previewRows ?? settings.previewRows;
         [1, 2, 3, 4, 5].forEach(rows => {
+            const isDefaultRows = rows === settings.previewRows;
             menu.addItem(item => {
-                const hasCustomPreviewRows = appearance?.previewRows !== undefined;
-                const isChecked = hasCustomPreviewRows && appearance?.previewRows === rows;
-                item.setTitle(`    ${strings.folderAppearance.previewRowOption(rows)}`)
+                item.setTitle(`    ${withDefaultSuffix(strings.folderAppearance.previewRowOption(rows), isDefaultRows)}`)
                     .setIcon('lucide-file-text')
-                    .setChecked(isChecked)
+                    .setChecked(effectivePreviewRows === rows)
                     .onClick(() => {
-                        updateAppearance({ previewRows: rows });
+                        updateAppearance({ previewRows: isDefaultRows ? undefined : rows });
                     });
             });
         });
@@ -251,6 +229,18 @@ export function showListPaneAppearanceMenu({
     }
 
     if (defaultSettingsAction) {
+        menu.addSeparator();
+        menu.addItem(item => {
+            item.setTitle(strings.paneHeader.resetViewToDefaults)
+                .setIcon('lucide-rotate-ccw')
+                .setDisabled(!hasAppearanceOverride)
+                .onClick(() => {
+                    if (!hasAppearanceOverride) {
+                        return;
+                    }
+                    updateAppearance({ mode: undefined, titleRows: undefined, previewRows: undefined });
+                });
+        });
         menu.addSeparator();
         menu.addItem(item => {
             item.setTitle(defaultSettingsAction.menuTitle)

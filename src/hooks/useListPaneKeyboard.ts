@@ -46,7 +46,7 @@ import { useFileOpener } from './useFileOpener';
 import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortcuts';
 import { runAsyncAction } from '../utils/async';
 import { openFileInContext } from '../utils/openFileInContext';
-import { isEnterKey, isModifierArrowReorderShortcut, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveKeyboardEnterAction } from '../utils/keyboardOpenContext';
 import type { Align } from '../types/scroll';
 
 /**
@@ -83,6 +83,8 @@ interface UseListPaneKeyboardProps {
     onCommitKeyboardOpen?: () => void;
     /** Reorder the selected property-sorted file block */
     onReorderPropertySort?: (direction: 'up' | 'down') => boolean;
+    /** Starts inline rename for the current file when available */
+    onStartRename?: () => boolean;
 }
 
 /**
@@ -102,7 +104,8 @@ export function useListPaneKeyboard({
     onScheduleKeyboardOpen,
     onScheduleKeyboardOpenForFile,
     onCommitKeyboardOpen,
-    onReorderPropertySort
+    onReorderPropertySort,
+    onStartRename
 }: UseListPaneKeyboardProps) {
     const { app, commandQueue, isMobile, tagTreeService, propertyTreeService } = useServices();
     const openFileInWorkspace = useFileOpener();
@@ -279,6 +282,13 @@ export function useListPaneKeyboard({
             };
 
             if (settings.enterToOpenFiles && isEnterKey(e)) {
+                const action = resolveKeyboardEnterAction(e, settings);
+                if (action === 'rename') {
+                    e.preventDefault();
+                    onStartRename?.();
+                    return;
+                }
+
                 const selectedFile = resolvePrimarySelectedFile(app, currentFileSelection);
                 if (!selectedFile) {
                     return;
@@ -286,14 +296,13 @@ export function useListPaneKeyboard({
 
                 e.preventDefault();
 
-                const context = resolveKeyboardOpenContext(e, settings);
-                if (context) {
+                if (action) {
                     runAsyncAction(() =>
                         openFileInContext({
                             app,
                             commandQueue,
                             file: selectedFile,
-                            context,
+                            context: action,
                             active: false
                         })
                     );
@@ -301,6 +310,11 @@ export function useListPaneKeyboard({
                 }
 
                 openFileInWorkspace(selectedFile);
+                return;
+            }
+
+            if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_RENAME) && onStartRename?.()) {
+                e.preventDefault();
                 return;
             }
 
@@ -313,9 +327,15 @@ export function useListPaneKeyboard({
                 openFileInWorkspace(file);
             };
 
-            if (isModifierArrowReorderShortcut(e, settings.multiSelectModifier)) {
-                const direction = e.key === 'ArrowDown' ? 'down' : 'up';
-                if (onReorderPropertySort?.(direction) === true) {
+            if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_MANUAL_SORT_DOWN)) {
+                if (onReorderPropertySort?.('down') === true) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+
+            if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.LIST_MANUAL_SORT_UP)) {
+                if (onReorderPropertySort?.('up') === true) {
                     e.preventDefault();
                     return;
                 }
@@ -574,6 +594,7 @@ export function useListPaneKeyboard({
             onScheduleKeyboardOpen,
             onScheduleKeyboardOpenForFile,
             onReorderPropertySort,
+            onStartRename,
             scrollToIndexSafely
         ]
     );

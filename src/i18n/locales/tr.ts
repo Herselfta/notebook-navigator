@@ -140,7 +140,7 @@ export const STRINGS_TR = {
         mobileBackToNavigation: 'Gezinmeye dön', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Sıralama düzenini değiştir',
         changeSortAndGroup: 'Sıralama ve gruplandırmayı değiştir',
-        defaultSort: 'Varsayılan', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Görünümü varsayılanlara sıfırla',
         manualSort: 'Manuel sıralama',
         editSortOrder: 'Sıralama düzenini düzenle...',
         removeSortProperty: 'Sıralama özelliğini kaldır',
@@ -399,9 +399,6 @@ export const STRINGS_TR = {
         titleRows: 'Başlık satırları',
         previewRows: 'Önizleme satırları',
         groupBy: 'Grupla',
-        defaultTitleOption: (rows: number) => `Varsayılan başlık satırları (${rows})`,
-        defaultPreviewOption: (rows: number) => `Varsayılan önizleme satırları (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Varsayılan gruplama (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} başlık satırı`,
         previewRowOption: (rows: number) => `${rows} önizleme satırı`
     },
@@ -995,6 +992,7 @@ export const STRINGS_TR = {
             navigation: {
                 appearance: 'Görünüm',
                 banner: 'Afiş',
+                collapseItems: 'Öğeleri daralt',
                 dragAndDrop: 'Sürükle ve bırak',
                 noteCounts: 'Not sayıları',
                 rainbowColors: 'Gökkuşağı renkleri',
@@ -1200,6 +1198,14 @@ export const STRINGS_TR = {
             showCategoryIcons: {
                 name: 'Dosya türüne göre simgeler',
                 desc: 'Dosyalara uzantılarına göre simge ata.'
+            },
+            fileTypeIconPreset: {
+                name: 'Dosya simgesi ön ayarı',
+                desc: 'Yerleşik simgeleri veya bir simge paketi ön ayarını seçin. Özel uzantı kuralları bu ön ayarı geçersiz kılar.',
+                options: {
+                    none: 'Yerleşik simgeler'
+                },
+                notInstalledWarning: 'Bu simge paketi yüklü değil. Bunun yerine yerleşik simgeler gösterilir.'
             },
             fileTypeIconMap: {
                 name: 'Dosya türü simge eşlemesi',
@@ -1620,19 +1626,19 @@ export const STRINGS_TR = {
             },
             enterToOpenFiles: {
                 name: "Dosyaları açmak için Enter'a basın",
-                desc: "Dosyaları yalnızca listede klavye ile gezinirken Enter'a basarak açın."
+                desc: "Dosyaları yalnızca listede klavye ile gezinirken Enter'a basarak açın. macOS'ta bu, Enter'ın dosyaları yeniden adlandırmasını engeller."
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Shift+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Shift+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Cmd+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Cmd+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             ctrlEnterOpenContext: {
                 name: 'Ctrl+Enter',
-                desc: 'Ctrl+Enter ile seçili dosyayı yeni sekmede, bölmede veya pencerede aç.'
+                desc: 'Ctrl+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
             mouseBackForwardAction: {
                 name: 'Fare geri/ileri düğmeleri',
@@ -2077,6 +2083,10 @@ export const STRINGS_TR = {
                 name: 'Seçili öğeyi genişletilmiş tut',
                 desc: 'Daraltırken seçili öğeyi ve üst öğelerini genişletilmiş tut.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Daraltırken kasa kökünü atla',
+                desc: 'Tüm öğeleri daraltırken kasa kök klasörünü geçerli durumunda bırak.'
+            },
             navIndent: {
                 name: 'Ağaç girintisi',
                 desc: 'İç içe klasörler, etiketler ve özellikler için girinti genişliğini ayarlayın (piksel).'
@@ -2249,7 +2259,7 @@ export const STRINGS_TR = {
             },
             deleteAttachments: {
                 name: 'Dosyaları silerken ekleri sil',
-                desc: 'Silinen dosyaya bağlı ekleri başka bir yerde kullanılmıyorsa otomatik olarak kaldır',
+                desc: 'Bağlı ekleri ve oluşturulan çizim önizlemelerini başka bir yerde kullanılmıyorsa otomatik olarak kaldır',
                 options: {
                     ask: 'Her seferinde sor',
                     always: 'Her zaman',

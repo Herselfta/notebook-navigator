@@ -80,8 +80,9 @@ import { ServiceIcon } from './ServiceIcon';
 import { getDrawingFeatureImageSource } from '../utils/drawingFeatureImages';
 import { useDrawingFeatureImage } from '../hooks/useDrawingFeatureImage';
 import { resolveFileRowBackgroundColor } from '../utils/colorUtils';
-import { getWordCountDisplayText } from '../utils/wordCountUtils';
+import { formatTextCount, getWordCountDisplayText } from '../utils/wordCountUtils';
 import { showsCharacterCount, showsWordCount } from '../settings/types';
+import { InlineRenameInput } from './InlineRenameInput';
 
 const FEATURE_IMAGE_MAX_ASPECT_RATIO = 16 / 9;
 
@@ -94,7 +95,7 @@ function getCharacterCountDisplayText(count: number | null | undefined): string 
         return null;
     }
 
-    return Math.trunc(count).toLocaleString();
+    return formatTextCount(count);
 }
 
 function getTitleCountDisplayText(params: {
@@ -184,6 +185,11 @@ interface FileItemProps {
     getSolidBackground: (color?: string | null) => string | undefined;
     disableNativeDrag?: boolean;
     manualSortDisabled?: boolean;
+    inlineRename?: {
+        onCommit: (file: TFile, value: string) => Promise<boolean>;
+        onCancel: () => void;
+        onRestoreFocus: () => void;
+    };
 }
 
 export interface FileItemStorageHelpers {
@@ -403,10 +409,11 @@ export const FileItem = React.memo(function FileItem({
     fileItemPillOrderModel,
     getSolidBackground,
     disableNativeDrag = false,
-    manualSortDisabled = false
+    manualSortDisabled = false,
+    inlineRename
 }: FileItemProps) {
     // === Hooks (all hooks together at the top) ===
-    const { app, isMobile, plugin, commandQueue, tagOperations } = useServices();
+    const { app, isMobile, plugin, commandQueue, fileSystemOps, tagOperations } = useServices();
     const settings = useSettingsState();
     const metadataService = useMetadataService();
     const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = fileItemStorage;
@@ -628,7 +635,9 @@ export const FileItem = React.memo(function FileItem({
                 showFilenameMatchIcons: settings.showFilenameMatchIcons,
                 fileNameIconMap: settings.fileNameIconMap,
                 showCategoryIcons: settings.showCategoryIcons,
-                fileTypeIconMap: settings.fileTypeIconMap
+                fileTypeIconMap: settings.fileTypeIconMap,
+                fileTypeIconPreset: settings.fileTypeIconPreset,
+                externalIconProviders: settings.externalIconProviders
             },
             {
                 customIconId: fileIconId ?? folderIconId,
@@ -651,6 +660,8 @@ export const FileItem = React.memo(function FileItem({
         isExternalFile,
         metadataVersion,
         settings.fileNameIconMap,
+        settings.externalIconProviders,
+        settings.fileTypeIconPreset,
         settings.fileTypeIconMap,
         settings.showCategoryIcons,
         settings.showFilenameMatchIcons,
@@ -661,11 +672,19 @@ export const FileItem = React.memo(function FileItem({
         ? (fileColor ?? (settings.useFolderColorForTitles ? folderListColor : undefined))
         : undefined;
     const applyColorToName = Boolean(fileTitleColor);
-    // Icon to use when dragging the file
-    const dragIconId = useMemo(() => {
+    const dragFallbackIconId = useMemo(() => {
         void metadataVersion;
-        return resolveFileDragIconId(file, settings.fileTypeIconMap, app.metadataCache, effectiveFileIconId);
-    }, [app.metadataCache, effectiveFileIconId, file, metadataVersion, settings.fileTypeIconMap]);
+        return resolveFileDragIconId(
+            file,
+            settings.fileTypeIconMap,
+            app.metadataCache,
+            undefined,
+            settings.fileTypeIconPreset,
+            settings.externalIconProviders
+        );
+    }, [app.metadataCache, file, metadataVersion, settings.externalIconProviders, settings.fileTypeIconMap, settings.fileTypeIconPreset]);
+    // Icon to use when dragging the file
+    const dragIconId = effectiveFileIconId || dragFallbackIconId;
 
     // Determines whether to display the file icon based on icon availability
     const shouldShowFileIcon = useMemo(() => {
@@ -708,7 +727,39 @@ export const FileItem = React.memo(function FileItem({
     );
     const shouldShowCountInTitle = settings.textCountPlacement === 'title' && titleCountDisplayText !== null;
 
+    const renameInputOptions = useMemo(
+        () => (inlineRename ? fileSystemOps.getFileDisplayNameRenameInput(file) : null),
+        [file, fileSystemOps, inlineRename]
+    );
     const fileTitleElement = useMemo(() => {
+        if (inlineRename && renameInputOptions) {
+            return (
+                <div
+                    className="nn-file-name nn-file-name--inline-renaming"
+                    data-has-color={applyColorToName ? 'true' : 'false'}
+                    data-title-rows={appearanceSettings.titleRows}
+                    style={
+                        {
+                            '--filename-rows': appearanceSettings.titleRows,
+                            ...(applyColorToName ? { '--nn-file-name-custom-color': fileTitleColor } : {})
+                        } as React.CSSProperties
+                    }
+                >
+                    <InlineRenameInput
+                        initialValue={renameInputOptions.initialValue}
+                        ariaLabel={file.extension === 'md' ? strings.contextMenu.file.renameNote : strings.contextMenu.file.renameFile}
+                        onCommit={value => inlineRename.onCommit(file, value)}
+                        onCancel={inlineRename.onCancel}
+                        onRestoreFocus={inlineRename.onRestoreFocus}
+                        inputFilter={renameInputOptions.inputFilter}
+                        onInputChange={renameInputOptions.onInputChange}
+                        className="nn-file-inline-rename"
+                    />
+                    {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
+                </div>
+            );
+        }
+
         return (
             <div
                 className="nn-file-name"
@@ -732,6 +783,9 @@ export const FileItem = React.memo(function FileItem({
         fileTitleColor,
         applyColorToName,
         highlightedName,
+        inlineRename,
+        file,
+        renameInputOptions,
         shouldShowCountInTitle,
         titleCountDisplayText
     ]);
@@ -1289,9 +1343,11 @@ export const FileItem = React.memo(function FileItem({
             data-drag-type="file"
             // Marks element as draggable for event delegation
             data-draggable={!isMobile && !disableNativeDrag ? 'true' : undefined}
-            // Icon to display in drag ghost
+            // Icon to display in drag preview
             data-drag-icon={dragIconId}
-            // Icon color to display in drag ghost
+            // Default icon displayed if the custom drag preview icon is unavailable
+            data-drag-fallback-icon={dragFallbackIconId}
+            // Icon color to display in drag preview
             data-drag-icon-color={dragIconColor}
             onClick={handleItemClick}
             onMouseDown={handleMouseDown}

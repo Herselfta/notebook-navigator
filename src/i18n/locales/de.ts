@@ -139,7 +139,7 @@ export const STRINGS_DE = {
         mobileBackToNavigation: 'Zurück zur Navigation', // Mobile-only back button text to return to navigation pane (English: Back to navigation)
         changeChildSortOrder: 'Sortierreihenfolge ändern',
         changeSortAndGroup: 'Sortierung und Gruppierung ändern',
-        defaultSort: 'Standard', // Label for default sorting mode (English: Default)
+        resetViewToDefaults: 'Ansicht auf Standardwerte zurücksetzen',
         manualSort: 'Manuelle Sortierung',
         editSortOrder: 'Sortierreihenfolge bearbeiten...',
         removeSortProperty: 'Sortier-Eigenschaft entfernen',
@@ -399,9 +399,6 @@ export const STRINGS_DE = {
         titleRows: 'Titelzeilen',
         previewRows: 'Vorschauzeilen',
         groupBy: 'Gruppieren nach',
-        defaultTitleOption: (rows: number) => `Standard-Titelzeilen (${rows})`,
-        defaultPreviewOption: (rows: number) => `Standard-Vorschauzeilen (${rows})`,
-        defaultGroupOption: (groupLabel: string) => `Standardgruppierung (${groupLabel})`,
         titleRowOption: (rows: number) => `${rows} Titelzeile${rows === 1 ? '' : 'n'}`,
         previewRowOption: (rows: number) => `${rows} Vorschauzeile${rows === 1 ? '' : 'n'}`
     },
@@ -999,6 +996,7 @@ export const STRINGS_DE = {
             navigation: {
                 appearance: 'Darstellung',
                 banner: 'Banner',
+                collapseItems: 'Elemente einklappen',
                 dragAndDrop: 'Drag-and-drop',
                 noteCounts: 'Notizanzahlen',
                 rainbowColors: 'Regenbogenfarben',
@@ -1204,6 +1202,14 @@ export const STRINGS_DE = {
             showCategoryIcons: {
                 name: 'Symbole nach Dateityp',
                 desc: 'Symbole basierend auf der Dateierweiterung zuweisen.'
+            },
+            fileTypeIconPreset: {
+                name: 'Dateisymbol-Voreinstellung',
+                desc: 'Die integrierten Symbole oder eine Symbolpaket-Voreinstellung auswählen. Benutzerdefinierte Erweiterungsregeln überschreiben diese Voreinstellung.',
+                options: {
+                    none: 'Integrierte Symbole'
+                },
+                notInstalledWarning: 'Dieses Symbolpaket ist nicht installiert. Stattdessen werden integrierte Symbole angezeigt.'
             },
             fileTypeIconMap: {
                 name: 'Dateityp-Symbol-Zuordnung',
@@ -1627,19 +1633,19 @@ export const STRINGS_DE = {
             },
             enterToOpenFiles: {
                 name: 'Enter drücken zum Öffnen',
-                desc: 'Dateien nur mit Enter öffnen während der Tastaturnavigation in der Liste.'
+                desc: 'Dateien nur mit Enter öffnen während der Tastaturnavigation in der Liste. Unter macOS verhindert dies, dass Enter Dateien umbenennt.'
             },
             shiftEnterOpenContext: {
                 name: 'Shift+Enter',
-                desc: 'Ausgewählte Datei in neuem Tab, geteilter Ansicht oder Fenster öffnen mit Shift+Enter.'
+                desc: 'Festlegen, ob Shift+Enter die ausgewählte Datei öffnet oder umbenennt.'
             },
             cmdEnterOpenContext: {
                 name: 'Cmd+Enter',
-                desc: 'Ausgewählte Datei in neuem Tab, geteilter Ansicht oder Fenster öffnen mit Cmd+Enter.'
+                desc: 'Festlegen, ob Cmd+Enter die ausgewählte Datei öffnet oder umbenennt.'
             },
             ctrlEnterOpenContext: {
                 name: 'Strg+Enter',
-                desc: 'Ausgewählte Datei in neuem Tab, geteilter Ansicht oder Fenster öffnen mit Strg+Enter.'
+                desc: 'Festlegen, ob Strg+Enter die ausgewählte Datei öffnet oder umbenennt.'
             },
             mouseBackForwardAction: {
                 name: 'Maustasten vor/zurück',
@@ -2083,6 +2089,10 @@ export const STRINGS_DE = {
                 name: 'Ausgewähltes Element erweitert halten',
                 desc: 'Beim Einklappen bleibt das ausgewählte Element und seine übergeordneten Elemente erweitert.'
             },
+            excludeVaultRootFromCollapse: {
+                name: 'Tresorverzeichnis beim Einklappen überspringen',
+                desc: 'Beim Einklappen aller Elemente bleibt der Stammordner des Tresors in seinem aktuellen Zustand.'
+            },
             navIndent: {
                 name: 'Baum-Einrückung',
                 desc: 'Passen Sie die Einrückungsbreite für verschachtelte Ordner, Tags und Eigenschaften an (Pixel).'
@@ -2255,7 +2265,7 @@ export const STRINGS_DE = {
             },
             deleteAttachments: {
                 name: 'Anhänge beim Löschen von Dateien löschen',
-                desc: 'Verknüpfte Anhänge der gelöschten Datei automatisch entfernen, wenn sie nicht anderweitig verwendet werden',
+                desc: 'Verknüpfte Anhänge und generierte Zeichnungsvorschauen automatisch entfernen, wenn sie nicht anderweitig verwendet werden',
                 options: {
                     ask: 'Jedes Mal fragen',
                     always: 'Immer',

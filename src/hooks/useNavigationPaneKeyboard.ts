@@ -45,7 +45,7 @@ import { matchesShortcut, KeyboardShortcutAction } from '../utils/keyboardShortc
 import { runAsyncAction } from '../utils/async';
 import { getNavigationIndex } from '../utils/navigationIndex';
 import { getFolderNote, openFolderNoteFile } from '../utils/folderNotes';
-import { isEnterKey, resolveFolderNoteDefaultOpenContext, resolveKeyboardOpenContext } from '../utils/keyboardOpenContext';
+import { isEnterKey, resolveFolderNoteDefaultOpenContext, resolveKeyboardEnterAction } from '../utils/keyboardOpenContext';
 import { buildPropertyKeyNodeId } from '../utils/propertyTree';
 import { getNavigationExpansionTargetForItem, toggleNavigationExpansionTarget } from '../utils/navigationExpansion';
 
@@ -93,13 +93,21 @@ interface UseNavigationPaneKeyboardProps {
     containerRef: React.RefObject<HTMLDivElement | null>;
     /** Combined navigation index map */
     pathToIndex: Map<string, number>;
+    /** Starts inline rename for the current item when available */
+    onStartRename?: () => boolean;
 }
 
 /**
  * Hook for keyboard navigation in the navigation pane.
  * Handles folder/tag-specific keyboard interactions.
  */
-export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pathToIndex }: UseNavigationPaneKeyboardProps) {
+export function useNavigationPaneKeyboard({
+    items,
+    virtualizer,
+    containerRef,
+    pathToIndex,
+    onStartRename
+}: UseNavigationPaneKeyboardProps) {
     const { app, commandQueue, isMobile, plugin } = useServices();
     const fileSystemOps = useFileSystemOps();
     const settings = useSettingsState();
@@ -250,6 +258,11 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                 return;
             }
 
+            if (matchesShortcut(e, shortcuts, KeyboardShortcutAction.PANE_RENAME) && onStartRename?.()) {
+                e.preventDefault();
+                return;
+            }
+
             const getFirstSelectableIndex = () => helpers.findNextIndex(-1);
             const findSelectableBefore = (startIndex: number) => {
                 if (items.length === 0) {
@@ -277,8 +290,13 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
                 if (folderNote) {
                     e.preventDefault();
 
-                    const modifierContext = resolveKeyboardOpenContext(e, settings);
-                    const openContext = modifierContext ?? resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
+                    const modifierAction = resolveKeyboardEnterAction(e, settings);
+                    if (modifierAction === 'rename') {
+                        onStartRename?.();
+                        return;
+                    }
+
+                    const openContext = modifierAction ?? resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
 
                     runAsyncAction(() =>
                         openFolderNoteFile({
@@ -560,7 +578,8 @@ export function useNavigationPaneKeyboard({ items, virtualizer, containerRef, pa
             fileSystemOps,
             virtualizer,
             includeDescendantNotes,
-            showHiddenItems
+            showHiddenItems,
+            onStartRename
         ]
     );
 
