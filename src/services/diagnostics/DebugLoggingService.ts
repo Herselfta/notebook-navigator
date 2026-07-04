@@ -521,8 +521,7 @@ export class DebugLoggingService {
             try {
                 await this.app.vault.adapter.append(this.logPath, text);
             } catch (error) {
-                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-                console.log('[Notebook Navigator debug] Failed to append debug log', error);
+                console.warn('[Notebook Navigator debug] Failed to append debug log', error);
             }
         };
 

@@ -23,8 +23,6 @@
 import { getLanguage } from 'obsidian';
 import type { STRINGS_EN } from './locales/en';
 
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unnecessary-type-assertion -- Literal CommonJS requires keep locale modules bundled while deferring locale initialization. */
-
 // Type for the translation strings structure
 type TranslationStrings = typeof STRINGS_EN;
 
@@ -89,6 +87,7 @@ const SUPPORTED_LANGUAGES = new Set([
 
 let englishStrings: TranslationStrings | null = null;
 
+/* eslint-disable @typescript-eslint/no-require-imports -- Literal CommonJS requires keep locale modules bundled while deferring locale initialization. */
 function getEnglishStrings(): TranslationStrings {
     if (!englishStrings) {
         englishStrings = (require('./locales/en.ts') as typeof import('./locales/en')).STRINGS_EN;
@@ -147,6 +146,7 @@ function loadLocaleOverrides(locale: string): TranslationStrings | undefined {
             return undefined;
     }
 }
+/* eslint-enable @typescript-eslint/no-require-imports -- Locale modules are loaded through literal CommonJS requires above. */
 
 const resolvedLanguageCache = new Map<string, TranslationStrings>();
 
@@ -162,9 +162,8 @@ function getResolvedStrings(locale: string): TranslationStrings {
 
     const loadedLocale = loadLocaleOverrides(locale);
     if (loadedLocale) {
-        const resolved = loadedLocale as TranslationStrings;
-        resolvedLanguageCache.set(locale, resolved);
-        return resolved;
+        resolvedLanguageCache.set(locale, loadedLocale);
+        return loadedLocale;
     }
 
     return getEnglishStrings();

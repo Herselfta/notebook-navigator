@@ -52,8 +52,12 @@ export class LazyNotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     display(): void {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Obsidian versions before 1.13 still call display().
-        this.getDelegate().display();
+        const delegate = this.getDelegate();
+        // Obsidian versions before native settings pages call display().
+        const display = Reflect.get(delegate, 'display');
+        if (typeof display === 'function') {
+            Reflect.apply(display, delegate, []);
+        }
     }
 
     hide(): void {

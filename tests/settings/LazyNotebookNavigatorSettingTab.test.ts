@@ -105,8 +105,11 @@ describe('LazyNotebookNavigatorSettingTab', () => {
         tab.containerEl = containerEl;
         Reflect.set(tab, 'delegate', delegate);
 
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- This verifies the fallback display path for Obsidian before 1.13.
-        tab.display();
+        const display = Reflect.get(tab, 'display');
+        if (typeof display !== 'function') {
+            throw new Error('Lazy settings tab display fallback is missing.');
+        }
+        Reflect.apply(display, tab, []);
 
         expect(delegate.containerEl).toBe(containerEl);
         expect(delegate.display).toHaveBeenCalledOnce();

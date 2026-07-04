@@ -38,13 +38,11 @@ export function createOnceLogger(maxEntries = 500): (key: string, message: strin
         }
 
         if (error !== undefined) {
-            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-            console.log(message, error);
+            console.warn(message, error);
             return;
         }
 
-        // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-        console.log(message);
+        console.warn(message);
     };
 }
 

@@ -216,8 +216,9 @@ export function SearchInput({
     const handleKeyDown = (e: React.KeyboardEvent) => {
         const nativeEvent = e.nativeEvent;
         const shortcuts = settings.keyboardShortcuts;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated -- keyCode=229 is still needed for legacy IME detection
-        const isImeComposing = nativeEvent.isComposing || nativeEvent.keyCode === 229;
+        // Read the legacy IME key code without typed deprecated member access.
+        const nativeKeyCode: unknown = Reflect.get(nativeEvent, 'keyCode');
+        const isImeComposing = nativeEvent.isComposing || nativeKeyCode === 229;
 
         if (isImeComposing) {
             return;

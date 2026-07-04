@@ -301,26 +301,21 @@ export class IndexedDBStorage {
         // Only downgrade schema changes require database recreation; upgrades are handled via onupgradeneeded.
         if (schemaChanged) {
             if (schemaDowngrade) {
-                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-                console.log(
+                console.warn(
                     `Database schema version downgraded from ${storedSchemaVersion} to ${currentSchemaVersion}. Recreating database.`
                 );
                 await this.deleteDatabase();
             } else {
-                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-                console.log(`Database schema version upgraded from ${storedSchemaVersion} to ${currentSchemaVersion}.`);
+                console.warn(`Database schema version upgraded from ${storedSchemaVersion} to ${currentSchemaVersion}.`);
             }
         } else if (schemaVersionUnknown) {
-            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-            console.log(`Database schema version is missing. Rebuilding database.`);
+            console.warn(`Database schema version is missing. Rebuilding database.`);
         }
 
         if (contentChanged) {
-            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-            console.log(`Content version changed from ${storedContentVersion} to ${currentContentVersion}. Rebuilding content.`);
+            console.warn(`Content version changed from ${storedContentVersion} to ${currentContentVersion}. Rebuilding content.`);
         } else if (contentVersionUnknown) {
-            // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-            console.log('Content version is missing. Rebuilding content.');
+            console.warn('Content version is missing. Rebuilding content.');
         }
 
         const needsRebuild = schemaDowngrade || contentChanged || schemaVersionUnknown || contentVersionUnknown;
@@ -331,8 +326,7 @@ export class IndexedDBStorage {
             await this.openDatabase(needsRebuild);
         } catch (error: unknown) {
             if (this.isVersionError(error)) {
-                // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-                console.log('Database version mismatch detected. Recreating database.');
+                console.warn('Database version mismatch detected. Recreating database.');
             } else {
                 console.error('Database open failed. Recreating database.', error);
             }

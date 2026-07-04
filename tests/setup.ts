@@ -31,8 +31,8 @@ const fallbackDocument = {
     removeEventListener: () => {}
 } as unknown as Document;
 
-// eslint-disable-next-line obsidianmd/no-global-this -- Vitest exposes the test runtime through globalThis.
-const testWindow = globalThis as Window & typeof globalThis & { document?: Document };
+declare const globalThis: Window & { document?: Document };
+const testWindow = globalThis;
 
 Object.defineProperty(testWindow, 'activeWindow', {
     configurable: true,

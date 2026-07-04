@@ -3673,8 +3673,7 @@ button.nn-navigation-calendar-day {
     height: 100%;
 
     /* CSS Custom Properties for file items - themes can override these */
-    /* Isolate layout and style calculations per item while allowing ::before to extend beyond bounds */
-    contain: layout style;
+    contain: layout style paint;
 }
 
 /* Remove shadows */
@@ -3700,8 +3699,7 @@ button.nn-navigation-calendar-day {
     top: 0px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.5px;
+    bottom: 0;
     background-color: var(--nn-file-custom-bg-color);
     border-top-left-radius: var(--nn-file-top-left-radius, var(--nn-file-item-border-radius));
     border-top-right-radius: var(--nn-file-top-right-radius, var(--nn-file-item-border-radius));
@@ -5056,8 +5054,7 @@ button.nn-list-group-header-collapse-button .nn-list-group-header-icon {
     top: 0px;
     inset-inline-start: 0;
     inset-inline-end: 0;
-    /* Extend slightly beyond bottom item bounds (height rounding issue) to prevent hairline gaps when zoomed */
-    bottom: -0.5px;
+    bottom: 0;
     /* Pre-composited solid color prevents hairlines by blending alpha with pane background */
     background-color: var(--nn-selected-file-bg-color);
     border-top-left-radius: var(--nn-file-top-left-radius, var(--nn-file-item-border-radius));
@@ -6886,8 +6883,7 @@ body.nn-resizing {
 .nn-virtual-file-item {
     position: relative;
     height: var(--item-height);
-    /* Isolate layout and style calculations per item while allowing overlays to extend beyond bounds */
-    contain: layout style;
+    contain: layout style paint;
 }
 /* Source: src/styles/sections/settings-page.css */
 

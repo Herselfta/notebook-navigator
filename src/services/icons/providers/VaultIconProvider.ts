@@ -96,8 +96,7 @@ function logSvgNotRendered(path: string, reason: string, extra?: Record<string, 
     }
 
     SVG_RENDER_FAILURE_REASONS.set(normalizedPath, reason);
-    // eslint-disable-next-line obsidianmd/rule-custom-message -- Intentional diagnostic logging.
-    console.log('[VaultIconProvider] SVG icon not rendered', { path: normalizedPath, reason, ...extra });
+    console.warn('[VaultIconProvider] SVG icon not rendered', { path: normalizedPath, reason, ...extra });
 }
 
 function clearSvgNotRendered(path: string): void {

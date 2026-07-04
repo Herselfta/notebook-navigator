@@ -21,7 +21,7 @@ import { createOnceLogger, createRenderBudgetLimiter } from '../../src/services/
 
 describe('createOnceLogger', () => {
     it('logs a key once and evicts old keys', () => {
-        const spy = vi.spyOn(console, 'log').mockImplementation(() => {});
+        const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
         const logOnce = createOnceLogger(2);
 
         logOnce('a', 'A');
