@@ -89,6 +89,7 @@ export const STRINGS_NL = {
     navigationCalendar: {
         ariaLabel: 'Kalender',
         dailyNotesNotEnabled: 'De dagelijkse notities plugin is niet ingeschakeld.',
+        noteHiddenByProfile: 'De kalendernotitie is verborgen door het huidige kluisprofiel.',
         createDailyNote: {
             title: 'Nieuwe dagelijkse notitie',
             message: 'Bestand {filename} bestaat niet. Wilt u het aanmaken?',
@@ -171,6 +172,7 @@ export const STRINGS_NL = {
     // Search input
     searchInput: {
         placeholder: 'Zoeken...',
+        placeholderVault: 'Kluis doorzoeken...',
         placeholderOmnisearch: 'Omnisearch...',
         clearSearch: 'Zoekopdracht wissen',
         switchToFilterSearch: 'Overschakelen naar filterzoeken',
@@ -183,16 +185,16 @@ export const STRINGS_NL = {
         searchHelp: 'Zoeksyntax',
         searchHelpTitle: 'Zoeksyntax',
         searchHelpModal: {
-            intro: 'Combineer bestandsnamen, eigenschappen, tags, datums en filters in één zoekopdracht (bijv. `meeting .status=active #work @thisweek`). Installeer de Omnisearch-plugin om zoeken in volledige tekst te gebruiken.',
+            intro: 'Combineer weergavenamen, aliassen, eigenschappen, tags, datums en filters in één zoekopdracht (bijv. `meeting .status=active #work @thisweek`). Installeer de Omnisearch-plugin om zoeken in volledige tekst te gebruiken.',
             introSwitching:
                 'Schakel tussen filterzoeken en Omnisearch met de pijltoetsen omhoog/omlaag of door op het zoekpictogram te klikken.',
             sections: {
                 fileNames: {
-                    title: 'Bestandsnamen',
+                    title: 'Bestandsnamen en aliassen',
                     items: [
-                        '`word` Notities met "word" in de bestandsnaam vinden.',
-                        '`word1 word2` Elk woord moet overeenkomen met de bestandsnaam.',
-                        '`-word` Notities met "word" in de bestandsnaam uitsluiten.'
+                        '`word` Notities met "word" in de weergavenaam of een alias vinden.',
+                        '`word1 word2` Elk woord moet voorkomen in de weergavenaam of de aliassen.',
+                        '`-word` Notities met "word" in de weergavenaam of een alias uitsluiten.'
                     ]
                 },
                 tags: {
@@ -212,11 +214,11 @@ export const STRINGS_NL = {
                 properties: {
                     title: 'Eigenschappen',
                     items: [
-                        '`.key` Notities met eigenschapssleutel opnemen.',
+                        '`.key` Notities opnemen met een eigenschapssleutel die begint met `key`.',
                         '`.key=value` Notities opnemen waarvan de eigenschapswaarde `value` bevat.',
                         '`."Reading Status"` Notities opnemen met een eigenschapssleutel die spaties bevat.',
                         '`."Reading Status"="In Progress"` Sleutels en waarden met spaties moeten tussen dubbele aanhalingstekens staan.',
-                        '`-.key` Notities met eigenschapssleutel uitsluiten.',
+                        '`-.key` Notities uitsluiten met een eigenschapssleutel die begint met `key`.',
                         '`-.key=value` Notities uitsluiten waarvan de eigenschapswaarde `value` bevat.',
                         'Cmd/Ctrl+Klik op een eigenschap om toe te voegen met AND. Cmd/Ctrl+Shift+Klik om toe te voegen met OR.'
                     ]
@@ -353,6 +355,9 @@ export const STRINGS_NL = {
             changeBackground: 'Achtergrond wijzigen',
             excludeFolder: 'Map verbergen',
             unhideFolder: 'Map zichtbaar maken',
+            excludeFromDescendants: 'Verbergen in bovenliggende mappen',
+            includeInDescendants: 'Weergeven in bovenliggende mappen',
+            hiddenFromParentsIndicator: 'Verborgen in lijsten van bovenliggende mappen',
             moveFolder: 'Map verplaatsen naar...',
             renameFolder: 'Map hernoemen',
             deleteFolder: 'Map verwijderen'
@@ -669,6 +674,7 @@ export const STRINGS_NL = {
         },
         navigationBanner: {
             placeholder: 'Afbeeldingen zoeken...',
+            svgMissingDimensions: 'Het geselecteerde SVG-bestand definieert geen breedte, hoogte of viewBox.',
             instructions: {
                 navigate: 'om te navigeren',
                 select: 'om banner in te stellen',
@@ -715,11 +721,11 @@ export const STRINGS_NL = {
         welcome: {
             title: 'Welkom bij {pluginName}',
             introText:
-                'Hallo! Voordat je begint, raad ik je sterk aan om de eerste vijf minuten van de onderstaande video te bekijken om te begrijpen hoe de panelen en de schakelaar "Notities uit submappen weergeven" werken.',
+                'Hallo en van harte welkom bij Notebook Navigator, een betere bestandsbrowser en kalender voor Obsidian. Voordat je begint, raad ik je echt aan om ten minste de eerste drie hoofdstukken van de video hieronder, Mastering Notebook Navigator, te bekijken. Daarin maak je kennis met de werking van de twee panelen en kun je snel aan de slag.',
             continueText:
-                'Als je nog vijf minuten hebt, bekijk dan de rest van de video om de compacte weergavemodi te begrijpen en hoe je snelkoppelingen en belangrijke sneltoetsen correct instelt.',
-            thanksText: 'Heel erg bedankt voor het downloaden en veel plezier!',
-            videoAlt: 'Notebook Navigator installeren en beheersen',
+                'Als je daarna nog tien minuten hebt, kijk dan verder naar de hoofdstukken over de eerste configuratie en de dagelijkse routine. Daarmee weet je alles wat je nodig hebt om te beginnen en kun je later terugkomen voor meer details. Bovenaan de instellingen van Notebook Navigator vind je een link naar de video.',
+            thanksText: 'Veel plezier met Notebook Navigator!',
+            videoAlt: 'Notebook Navigator 3 beheersen',
             openVideoButton: 'Video afspelen',
             closeButton: 'Misschien later'
         }
@@ -775,6 +781,8 @@ export const STRINGS_NL = {
         notices: {
             hideFolder: 'Map verborgen: {name}',
             showFolder: 'Map zichtbaar: {name}',
+            folderExcludedFromDescendants: 'Verborgen in lijsten van bovenliggende mappen: {name}',
+            folderIncludedInDescendants: 'Weergegeven in lijsten van bovenliggende mappen: {name}',
             mergeNotes: '{count} notities samengevoegd in {name}'
         },
         notifications: {
@@ -859,7 +867,7 @@ export const STRINGS_NL = {
         openYearlyNote: 'Jaarlijkse notitie openen',
         revealFile: 'Bestand tonen',
         search: 'Zoeken',
-        searchVaultRoot: 'Zoeken in kluisroot',
+        searchVaultRoot: 'Hele kluis doorzoeken',
         toggleDualPane: 'Dubbel paneel in-/uitschakelen',
         toggleDualPaneOrientation: 'Dubbel paneel oriëntatie wisselen', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Kalender in-/uitschakelen',
@@ -899,7 +907,8 @@ export const STRINGS_NL = {
         removeTag: 'Tag verwijderen van geselecteerde bestanden',
         removeAllTags: 'Alle tags verwijderen van geselecteerde bestanden',
         openAllFiles: 'Alle bestanden openen',
-        rebuildCache: 'Cache opnieuw opbouwen'
+        rebuildCache: 'Cache opnieuw opbouwen',
+        restoreDefaultSettings: 'Standaardinstellingen herstellen' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -908,7 +917,17 @@ export const STRINGS_NL = {
         calendarViewName: 'Kalender',
         folderNoteSidebarViewName: 'Mapnotitie',
         ribbonTooltip: 'Notebook Navigator',
-        revealInNavigator: 'Tonen in Notebook Navigator'
+        revealInNavigator: 'Tonen in Notebook Navigator',
+        settingsUnavailableNotice:
+            'Notebook Navigator kon de instellingen niet lezen en is niet gestart. Als je kluis wordt gesynchroniseerd, herstart Obsidian nadat de synchronisatie is voltooid. Om opnieuw te beginnen met standaardinstellingen, voer je de opdracht "Standaardinstellingen herstellen" uit.', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Standaardinstellingen herstellen', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Dit vervangt het instellingenbestand van Notebook Navigator door standaardinstellingen. Als je kluis nog wordt gesynchroniseerd, kunnen de herstelde standaardwaarden de instellingen op je andere apparaten overschrijven. Een leesbaar instellingenbestand wordt eerst gekopieerd naar een back-up met tijdstempel in de pluginmap.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Standaardwaarden herstellen', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'Instellingenherstel kon niet worden voltooid. Lokale voorkeuren zijn behouden.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Standaardinstellingen hersteld. Herstart Obsidian om te voltooien.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -981,6 +1000,7 @@ export const STRINGS_NL = {
                 vaultConfiguration: 'Kluisinstelling',
                 templates: 'Sjablonen',
                 behavior: 'Gedrag',
+                startup: 'Opstarten',
                 keyboardNavigation: 'Toetsenbordnavigatie',
                 mouseButtons: 'Muisknoppen',
                 view: 'Uiterlijk',
@@ -1157,6 +1177,10 @@ export const STRINGS_NL = {
                 name: 'Submappaden tonen',
                 desc: 'Toont bij groeperen op map in het lijstpaneel submappaden in plaats van alleen mapnamen.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Aantallen items tonen',
+                desc: 'Toont het aantal items in elke groepskop in het lijstpaneel.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Mapgroepering: bestanden van huidige map onderaan',
                 desc: 'Wanneer de standaardgroepering Map is, worden bestanden direct in de geselecteerde map onder submapgroepen geplaatst.'
@@ -1231,8 +1255,8 @@ export const STRINGS_NL = {
                 desc: 'De naam van de bovenliggende map weergeven voor notities in submappen, tags of eigenschappen.'
             },
             showParentFolderFullPath: {
-                name: 'Volledig pad tonen',
-                desc: 'Het volledige pad van de bovenliggende map weergeven in plaats van alleen de mapnaam.'
+                name: 'Mappad tonen',
+                desc: 'Het pad ten opzichte van de geselecteerde map weergeven in plaats van alleen de mapnaam. Tags en eigenschappen tonen het volledige pad.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Klik op bovenliggende map opent map',
@@ -1303,7 +1327,7 @@ export const STRINGS_NL = {
             },
             startView: {
                 name: 'Standaard opstartweergave',
-                desc: 'Kies welk paneel wordt weergegeven bij het openen van Notebook Navigator. Navigatiepaneel toont snelkoppelingen, recente bestanden en mappenstructuur. Lijstpaneel toont direct de bestandenlijst.',
+                desc: 'Kies welk paneel actief is bij het openen van Notebook Navigator. De enkelpaneelweergave toont dit paneel eerst; de dubbelpaneelweergave geeft het de toetsenbordfocus.',
                 options: {
                     navigation: 'Navigatiepaneel',
                     files: 'Lijstpaneel'
@@ -1479,6 +1503,10 @@ export const STRINGS_NL = {
                 name: 'Uitgelichte afbeelding tonen',
                 desc: 'Toon uitgelichte afbeeldingen voor notities in de kalender.'
             },
+            calendarShowTasks: {
+                name: 'Taken tonen',
+                desc: 'Een indicator weergeven op dagen, weken en maanden met onvoltooide taken.'
+            },
             calendarShowWeekNumber: {
                 name: 'Weeknummer tonen',
                 desc: 'Voeg een kolom toe met het weeknummer.'
@@ -1494,6 +1522,10 @@ export const STRINGS_NL = {
             calendarConfirmBeforeCreate: {
                 name: 'Bevestigen voor aanmaken',
                 desc: 'Toon een bevestigingsdialoog bij het aanmaken van een nieuwe dagelijkse notitie.'
+            },
+            calendarShowHiddenItems: {
+                name: 'Verborgen items tonen',
+                desc: 'Indien ingeschakeld, toont de kalender altijd alle kalendernotities, inclusief notities die door de filters van het kluisprofiel zijn verborgen.'
             },
             calendarIntegrationMode: {
                 name: 'Dagelijkse notitie bron',
@@ -1594,6 +1626,12 @@ export const STRINGS_NL = {
                     editorDesc: 'Plak of bewerk JSON hieronder. Niet-opgenomen instellingen worden teruggezet naar de standaardwaarden.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'Importeren',
+                    confirmTitle: 'Instellingen importeren?',
+                    confirmMessage: 'Bij importeren worden de huidige Notebook Navigator-instellingen vervangen.',
+                    backupToggleName: 'Huidige instellingen vóór importeren opslaan in de kluisroot',
+                    backupToggleDesc: 'Maakt een JSON-bestand met tijdstempel in de kluisroot.',
+                    successWithBackupNotice: 'Instellingen geïmporteerd. Vorige instellingen opgeslagen in {path}.',
+                    backupError: 'Kan huidige instellingen niet opslaan: {message}',
                     successNotice: 'Instellingen geïmporteerd.',
                     errorNotice: 'Importeren van instellingen mislukt: {message}',
                     fileReadError: 'Kan bestand niet lezen: {message}'
@@ -1730,6 +1768,11 @@ export const STRINGS_NL = {
                 name: 'Mappen verbergen (kluisprofiel)',
                 desc: 'Kommagescheiden lijst van te verbergen mappen. Naampatronen: assets* (mappen beginnend met assets), *_temp (eindigend met _temp). Padpatronen: /archive (alleen root archive), /res* (root mappen beginnend met res), /*/temp (temp mappen één niveau diep), /projects/* (alle mappen binnen projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Mappen uitsluiten van notities uit submappen (kluisprofiel)',
+                desc: 'Kommagescheiden lijst met mappen die worden overgeslagen bij het verzamelen van notities uit submappen. Mappen blijven zichtbaar, en het selecteren van een map toont nog steeds de notities. Gebruikt dezelfde patronen als Mappen verbergen.',
+                placeholder: 'dagelijks, bronnen, /archief'
             },
             showFileDate: {
                 name: 'Datum tonen',

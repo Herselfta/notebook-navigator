@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import React from 'react';
 import { useSelectionState } from '../context/SelectionContext';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
@@ -37,7 +38,7 @@ interface NavigationPaneHeaderProps {
     showVaultTitleInHeader: boolean;
 }
 
-export function NavigationPaneHeader({
+export const NavigationPaneHeader = React.memo(function NavigationPaneHeader({
     onTreeUpdateComplete,
     onToggleRootFolderReorder,
     rootReorderActive,
@@ -246,4 +247,4 @@ export function NavigationPaneHeader({
             </div>
         </div>
     );
-}
+});

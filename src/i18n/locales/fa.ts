@@ -88,6 +88,7 @@ export const STRINGS_FA = {
     navigationCalendar: {
         ariaLabel: 'تقویم',
         dailyNotesNotEnabled: 'افزونه یادداشت روزانه فعال نیست.',
+        noteHiddenByProfile: 'یادداشت تقویم توسط نمایه فعلی خزانه پنهان شده است.',
         createDailyNote: {
             title: 'یادداشت روزانه جدید',
             message: 'فایل {filename} وجود ندارد. آیا می‌خواهید آن را ایجاد کنید؟',
@@ -169,6 +170,7 @@ export const STRINGS_FA = {
     // Search input
     searchInput: {
         placeholder: 'جستجو...',
+        placeholderVault: 'جستجو در خزانه...',
         placeholderOmnisearch: 'Omnisearch...',
         clearSearch: 'پاک کردن جستجو',
         switchToFilterSearch: 'تغییر به جستجوی فیلتری',
@@ -181,15 +183,15 @@ export const STRINGS_FA = {
         searchHelp: 'نحو جستجو',
         searchHelpTitle: 'نحو جستجو',
         searchHelpModal: {
-            intro: 'نام فایل‌ها، ویژگی‌ها، برچسب‌ها، تاریخ‌ها و فیلترها را در یک جستجو ترکیب کنید (مثال: `meeting .status=active #work @thisweek`). افزونه Omnisearch را نصب کنید تا از جستجوی متن کامل استفاده کنید.',
+            intro: 'نام‌های نمایشی، نام‌های مستعار، ویژگی‌ها، برچسب‌ها، تاریخ‌ها و فیلترها را در یک جستجو ترکیب کنید (مثال: `meeting .status=active #work @thisweek`). افزونه Omnisearch را نصب کنید تا از جستجوی متن کامل استفاده کنید.',
             introSwitching: 'با استفاده از کلیدهای بالا/پایین یا کلیک روی آیکون جستجو بین جستجوی فیلتر و Omnisearch جابه‌جا شوید.',
             sections: {
                 fileNames: {
-                    title: 'نام‌های فایل',
+                    title: 'نام‌های فایل و نام‌های مستعار',
                     items: [
-                        '`word` یادداشت‌هایی با "word" در نام فایل پیدا کنید.',
-                        '`word1 word2` هر کلمه باید با نام فایل مطابقت داشته باشد.',
-                        '`-word` یادداشت‌هایی با "word" در نام فایل را حذف کنید.'
+                        '`word` یادداشت‌هایی با "word" در نام نمایشی یا یکی از نام‌های مستعار پیدا کنید.',
+                        '`word1 word2` هر کلمه باید در نام نمایشی یا نام‌های مستعار وجود داشته باشد.',
+                        '`-word` یادداشت‌هایی با "word" در نام نمایشی یا یکی از نام‌های مستعار را حذف کنید.'
                     ]
                 },
                 tags: {
@@ -209,11 +211,11 @@ export const STRINGS_FA = {
                 properties: {
                     title: 'ویژگی‌ها',
                     items: [
-                        '`.key` شامل کردن یادداشت‌هایی با کلید ویژگی.',
+                        '`.key` شامل کردن یادداشت‌هایی که کلید ویژگی آن‌ها با `key` شروع می‌شود.',
                         '`.key=value` شامل کردن یادداشت‌هایی که مقدار ویژگی آن‌ها شامل `value` است.',
                         '`."Reading Status"` شامل کردن یادداشت‌هایی با کلید ویژگی حاوی فاصله.',
                         '`."Reading Status"="In Progress"` کلیدها و مقادیر حاوی فاصله باید در گیومه دوتایی قرار گیرند.',
-                        '`-.key` حذف یادداشت‌هایی با کلید ویژگی.',
+                        '`-.key` حذف یادداشت‌هایی که کلید ویژگی آن‌ها با `key` شروع می‌شود.',
                         '`-.key=value` حذف یادداشت‌هایی که مقدار ویژگی آن‌ها شامل `value` است.',
                         'Cmd/Ctrl+کلیک روی ویژگی برای افزودن با AND. Cmd/Ctrl+Shift+کلیک برای افزودن با OR.'
                     ]
@@ -350,6 +352,9 @@ export const STRINGS_FA = {
             changeBackground: 'تغییر پس‌زمینه',
             excludeFolder: 'مخفی کردن پوشه',
             unhideFolder: 'آشکار کردن پوشه',
+            excludeFromDescendants: 'مخفی کردن از پوشه‌های والد',
+            includeInDescendants: 'نمایش در پوشه‌های والد',
+            hiddenFromParentsIndicator: 'از فهرست‌های پوشه‌های والد مخفی شده است',
             moveFolder: 'انتقال پوشه به...',
             renameFolder: 'تغییر نام پوشه',
             deleteFolder: 'حذف پوشه'
@@ -668,6 +673,7 @@ export const STRINGS_FA = {
         },
         navigationBanner: {
             placeholder: 'جستجوی تصویر...',
+            svgMissingDimensions: 'فایل SVG انتخاب‌شده عرض، ارتفاع یا viewBox تعریف نمی‌کند.',
             instructions: {
                 navigate: 'برای ناوبری',
                 select: 'برای تنظیم بنر',
@@ -714,11 +720,11 @@ export const STRINGS_FA = {
         welcome: {
             title: 'به {pluginName} خوش آمدید',
             introText:
-                'سلام! قبل از شروع، اکیداً توصیه می‌کنم پنج دقیقه اول ویدیوی زیر را تماشا کنید تا نحوه کار پنل‌ها و کلید «نمایش یادداشت‌ها از زیرپوشه‌ها» را درک کنید.',
+                'سلام و به Notebook Navigator، مرورگر فایل و تقویمی بهتر برای Obsidian، خوش آمدید. پیش از شروع، واقعاً پیشنهاد می‌کنم دست‌کم سه فصل اول ویدیوی زیر، Mastering Notebook Navigator، را تماشا کنید. این فصل‌ها با نحوه کار دو پنل آشنایتان می‌کنند تا بتوانید سریع شروع کنید.',
             continueText:
-                'اگر پنج دقیقه دیگر وقت دارید، به تماشای ویدیو ادامه دهید تا حالت‌های نمایش فشرده و نحوه تنظیم صحیح میانبرها و کلیدهای میانبر مهم را درک کنید.',
-            thanksText: 'از دانلود شما بسیار سپاسگزارم، لذت ببرید!',
-            videoAlt: 'نصب و تسلط بر Notebook Navigator',
+                'سپس اگر ده دقیقه دیگر وقت دارید، فصل‌های راه‌اندازی اولیه و روال استفاده روزمره را هم تماشا کنید. با این بخش‌ها هرچه برای شروع لازم دارید در اختیار خواهید داشت و بعداً می‌توانید برای دیدن جزئیات بیشتر برگردید. پیوند ویدیو را در بالای تنظیمات Notebook Navigator پیدا می‌کنید.',
+            thanksText: 'از کار با Notebook Navigator لذت ببرید!',
+            videoAlt: 'تسلط بر Notebook Navigator 3',
             openVideoButton: 'پخش ویدیو',
             closeButton: 'شاید بعداً'
         }
@@ -773,6 +779,8 @@ export const STRINGS_FA = {
         notices: {
             hideFolder: 'پوشه مخفی شد: {name}',
             showFolder: 'پوشه نمایش داده شد: {name}',
+            folderExcludedFromDescendants: 'از فهرست‌های پوشه‌های والد مخفی شد: {name}',
+            folderIncludedInDescendants: 'در فهرست‌های پوشه‌های والد نمایش داده شد: {name}',
             mergeNotes: '{count} یادداشت در {name} ادغام شد'
         },
         notifications: {
@@ -857,7 +865,7 @@ export const STRINGS_FA = {
         openYearlyNote: 'باز کردن یادداشت سالانه',
         revealFile: 'نمایش فایل',
         search: 'جستجو',
-        searchVaultRoot: 'جستجو در ریشه خزانه',
+        searchVaultRoot: 'جستجو در کل خزانه',
         toggleDualPane: 'تغییر نمای پنل دوگانه',
         toggleDualPaneOrientation: 'تغییر جهت پنل دوگانه', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'تغییر تقویم',
@@ -897,7 +905,8 @@ export const STRINGS_FA = {
         removeTag: 'حذف برچسب از فایل‌های انتخابی',
         removeAllTags: 'حذف همه برچسب‌ها از فایل‌های انتخابی',
         openAllFiles: 'باز کردن همه فایل‌ها',
-        rebuildCache: 'بازسازی کش'
+        rebuildCache: 'بازسازی کش',
+        restoreDefaultSettings: 'بازیابی تنظیمات پیش‌فرض' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -906,7 +915,17 @@ export const STRINGS_FA = {
         calendarViewName: 'تقویم',
         folderNoteSidebarViewName: 'یادداشت پوشه',
         ribbonTooltip: 'Notebook Navigator',
-        revealInNavigator: 'نمایش در Notebook Navigator'
+        revealInNavigator: 'نمایش در Notebook Navigator',
+        settingsUnavailableNotice:
+            'Notebook Navigator نتوانست تنظیمات خود را بخواند و راه‌اندازی نشد. اگر Vault شما در حال همگام‌سازی است، پس از پایان همگام‌سازی Obsidian را دوباره راه‌اندازی کنید. برای شروع دوباره با تنظیمات پیش‌فرض، فرمان «بازیابی تنظیمات پیش‌فرض» را اجرا کنید.', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'بازیابی تنظیمات پیش‌فرض', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'این کار فایل تنظیمات Notebook Navigator را با تنظیمات پیش‌فرض جایگزین می‌کند. اگر Vault شما هنوز در حال همگام‌سازی است، تنظیمات پیش‌فرض بازیابی‌شده ممکن است جایگزین تنظیمات ذخیره‌شده در دستگاه‌های دیگر شما شود. فایل تنظیمات قابل خواندن ابتدا در یک نسخه پشتیبان دارای برچسب زمانی در پوشه افزونه کپی می‌شود.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'بازیابی پیش‌فرض‌ها', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'بازیابی تنظیمات کامل نشد. ترجیحات محلی حفظ شدند.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'تنظیمات پیش‌فرض بازیابی شد. برای پایان کار Obsidian را دوباره راه‌اندازی کنید.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -979,6 +998,7 @@ export const STRINGS_FA = {
                 vaultConfiguration: 'پیکربندی خزانه',
                 templates: 'الگوها',
                 behavior: 'رفتار',
+                startup: 'راه‌اندازی',
                 keyboardNavigation: 'پیمایش با صفحه‌کلید',
                 mouseButtons: 'دکمه‌های ماوس',
                 view: 'ظاهر',
@@ -1155,6 +1175,10 @@ export const STRINGS_FA = {
                 name: 'نمایش مسیرهای زیرپوشه',
                 desc: 'هنگام گروه‌بندی بر اساس پوشه در پنل لیست، مسیرهای زیرپوشه را به جای فقط نام پوشه‌ها نمایش دهید.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'نمایش تعداد موارد',
+                desc: 'تعداد موارد را در هر سربرگ گروه در پنل لیست نمایش دهید.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'گروه‌بندی پوشه: فایل‌های پوشه فعلی در پایین',
                 desc: 'وقتی گروه‌بندی پیش‌فرض روی پوشه است، فایل‌هایی را که مستقیماً در پوشه انتخاب‌شده هستند به زیر گروه‌های زیرپوشه منتقل کن.'
@@ -1229,8 +1253,8 @@ export const STRINGS_FA = {
                 desc: 'نام پوشه والد را برای یادداشت‌ها در زیرپوشه‌ها، برچسب‌ها یا ویژگی‌ها نمایش دهید.'
             },
             showParentFolderFullPath: {
-                name: 'نمایش مسیر کامل',
-                desc: 'مسیر کامل پوشه والد را به جای فقط نام پوشه نمایش دهید.'
+                name: 'نمایش مسیر پوشه',
+                desc: 'مسیر را نسبت به پوشه انتخاب‌شده به جای فقط نام پوشه نمایش دهید. برچسب‌ها و ویژگی‌ها مسیر کامل را نشان می‌دهند.'
             },
             parentFolderClickRevealsFile: {
                 name: 'کلیک روی پوشه والد پوشه را باز می‌کند',
@@ -1301,7 +1325,7 @@ export const STRINGS_FA = {
             },
             startView: {
                 name: 'نمای پیش‌فرض شروع',
-                desc: 'پنلی که هنگام باز کردن Notebook Navigator نمایش داده می‌شود را انتخاب کنید. پنل ناوبری میانبرها، فایل‌های اخیر و درخت پوشه را نمایش می‌دهد. پنل لیست فوراً لیست فایل‌ها را نمایش می‌دهد.',
+                desc: 'پنل فعال هنگام باز شدن Notebook Navigator را انتخاب کنید. در چیدمان تک‌پنلی این پنل ابتدا نمایش داده می‌شود؛ در چیدمان دوپنلی فوکوس صفحه‌کلید به آن داده می‌شود.',
                 options: {
                     navigation: 'پنل ناوبری',
                     files: 'پنل لیست'
@@ -1477,6 +1501,10 @@ export const STRINGS_FA = {
                 name: 'نمایش تصویر شاخص',
                 desc: 'نمایش تصاویر شاخص یادداشت‌ها در تقویم.'
             },
+            calendarShowTasks: {
+                name: 'نمایش وظایف',
+                desc: 'نمایش نشانگر روی روزها، هفته‌ها و ماه‌های دارای وظایف ناتمام.'
+            },
             calendarShowWeekNumber: {
                 name: 'نمایش شماره هفته',
                 desc: 'افزودن ستون شماره هفته.'
@@ -1492,6 +1520,10 @@ export const STRINGS_FA = {
             calendarConfirmBeforeCreate: {
                 name: 'تأیید قبل از ایجاد',
                 desc: 'نمایش پنجره تأیید هنگام ایجاد یادداشت روزانه جدید.'
+            },
+            calendarShowHiddenItems: {
+                name: 'نمایش آیتم‌های مخفی',
+                desc: 'وقتی فعال، تقویم همیشه همه یادداشت‌های تقویم را نشان می‌دهد، از جمله یادداشت‌های پنهان‌شده توسط فیلترهای نمایه خزانه.'
             },
             calendarIntegrationMode: {
                 name: 'منبع یادداشت روزانه',
@@ -1592,6 +1624,12 @@ export const STRINGS_FA = {
                     editorDesc: 'JSON را در زیر جای‌گذاری یا ویرایش کنید. تنظیمات شامل‌نشده به مقدار پیش‌فرض بازنشانی می‌شوند.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'وارد کردن',
+                    confirmTitle: 'تنظیمات وارد شوند؟',
+                    confirmMessage: 'وارد کردن، تنظیمات فعلی Notebook Navigator را جایگزین می‌کند.',
+                    backupToggleName: 'ذخیره تنظیمات فعلی در ریشه خزانه قبل از وارد کردن',
+                    backupToggleDesc: 'یک فایل JSON زمان‌دار در ریشه خزانه ایجاد می‌کند.',
+                    successWithBackupNotice: 'تنظیمات وارد شد. تنظیمات قبلی در {path} ذخیره شد.',
+                    backupError: 'ذخیره تنظیمات فعلی ممکن نبود: {message}',
                     successNotice: 'تنظیمات وارد شد.',
                     errorNotice: 'وارد کردن تنظیمات ناموفق بود: {message}',
                     fileReadError: 'خواندن فایل ممکن نبود: {message}'
@@ -1727,6 +1765,11 @@ export const STRINGS_FA = {
                 name: 'مخفی کردن پوشه‌ها (پروفایل خزانه)',
                 desc: 'لیست پوشه‌های جدا شده با کاما برای مخفی کردن. الگوهای نام: assets* (پوشه‌های شروع‌شده با assets)، *_temp (پایان‌یافته با _temp). الگوهای مسیر: /archive (فقط archive اصلی)، /res* (پوشه‌های اصلی شروع‌شده با res)، /*/temp (پوشه‌های temp یک سطح عمیق)، /projects/* (همه پوشه‌های داخل projects).',
                 placeholder: 'قالب‌ها، assets*، /archive، /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'مستثنی کردن پوشه‌ها از یادداشت‌های زیرپوشه‌ها (نمایه خزانه)',
+                desc: 'فهرست پوشه‌های جداشده با کاما که هنگام جمع‌آوری یادداشت‌ها از زیرپوشه‌ها نادیده گرفته می‌شوند. پوشه‌ها همچنان قابل مشاهده می‌مانند و با انتخاب آن‌ها یادداشت‌هایشان نمایش داده می‌شود. از همان الگوهای مخفی کردن پوشه‌ها استفاده می‌کند.',
+                placeholder: 'روزانه، منابع، /archive'
             },
             showFileDate: {
                 name: 'نمایش تاریخ',

@@ -175,7 +175,7 @@ export function findHtmlTagRanges(text: string): NumericRange[] {
 
     const ranges: NumericRange[] = [];
 
-    for (let cursor = 0; cursor < text.length; ) {
+    for (let cursor = 0; cursor < text.length;) {
         const start = text.indexOf('<', cursor);
         if (start === -1) {
             break;
@@ -213,7 +213,7 @@ export function stripHtmlForPreview(text: string): string {
 
     const ranges: NumericRange[] = [];
 
-    for (let cursor = 0; cursor < text.length; ) {
+    for (let cursor = 0; cursor < text.length;) {
         const start = text.indexOf('<', cursor);
         if (start === -1) {
             break;

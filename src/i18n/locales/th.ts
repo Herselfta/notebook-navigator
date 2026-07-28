@@ -88,6 +88,7 @@ export const STRINGS_TH = {
     navigationCalendar: {
         ariaLabel: 'ปฏิทิน',
         dailyNotesNotEnabled: 'ปลั๊กอินบันทึกรายวันไม่ได้เปิดใช้งาน',
+        noteHiddenByProfile: 'โน้ตปฏิทินถูกซ่อนโดยโปรไฟล์คลังปัจจุบัน',
         createDailyNote: {
             title: 'บันทึกรายวันใหม่',
             message: 'ไฟล์ {filename} ไม่มีอยู่ คุณต้องการสร้างหรือไม่?',
@@ -169,6 +170,7 @@ export const STRINGS_TH = {
     // Search input
     searchInput: {
         placeholder: 'ค้นหา...',
+        placeholderVault: 'ค้นหาห้องนิรภัย...',
         placeholderOmnisearch: 'Omnisearch...',
         clearSearch: 'ล้างการค้นหา',
         switchToFilterSearch: 'สลับไปใช้การค้นหาแบบกรอง',
@@ -181,15 +183,15 @@ export const STRINGS_TH = {
         searchHelp: 'ไวยากรณ์การค้นหา',
         searchHelpTitle: 'ไวยากรณ์การค้นหา',
         searchHelpModal: {
-            intro: 'รวมชื่อไฟล์ คุณสมบัติ แท็ก วันที่ และตัวกรองในคำค้นหาเดียว (เช่น `meeting .status=active #work @thisweek`) ติดตั้งปลั๊กอิน Omnisearch เพื่อใช้การค้นหาข้อความเต็ม',
+            intro: 'รวมชื่อที่แสดง นามแฝง คุณสมบัติ แท็ก วันที่ และตัวกรองในคำค้นหาเดียว (เช่น `meeting .status=active #work @thisweek`) ติดตั้งปลั๊กอิน Omnisearch เพื่อใช้การค้นหาข้อความเต็ม',
             introSwitching: 'สลับระหว่างการค้นหาแบบกรองและ Omnisearch โดยใช้ปุ่มลูกศรขึ้น/ลงหรือคลิกไอคอนค้นหา',
             sections: {
                 fileNames: {
-                    title: 'ชื่อไฟล์',
+                    title: 'ชื่อไฟล์และนามแฝง',
                     items: [
-                        '`word` ค้นหาโน้ตที่มี "word" ในชื่อไฟล์',
-                        '`word1 word2` ทุกคำต้องตรงกับชื่อไฟล์',
-                        '`-word` ไม่รวมโน้ตที่มี "word" ในชื่อไฟล์'
+                        '`word` ค้นหาโน้ตที่มี "word" ในชื่อที่แสดงหรือนามแฝง',
+                        '`word1 word2` ทุกคำต้องตรงกับชื่อที่แสดงหรือนามแฝง',
+                        '`-word` ไม่รวมโน้ตที่มี "word" ในชื่อที่แสดงหรือนามแฝง'
                     ]
                 },
                 tags: {
@@ -209,11 +211,11 @@ export const STRINGS_TH = {
                 properties: {
                     title: 'คุณสมบัติ',
                     items: [
-                        '`.key` รวมโน้ตที่มีคีย์คุณสมบัติ',
+                        '`.key` รวมโน้ตที่มีคีย์คุณสมบัติขึ้นต้นด้วย `key`',
                         '`.key=value` รวมโน้ตที่ค่าคุณสมบัติมี `value` อยู่',
                         '`."Reading Status"` รวมโน้ตที่มีคีย์คุณสมบัติที่มีช่องว่าง',
                         '`."Reading Status"="In Progress"` คีย์และค่าที่มีช่องว่างต้องอยู่ในเครื่องหมายคำพูดคู่',
-                        '`-.key` ไม่รวมโน้ตที่มีคีย์คุณสมบัติ',
+                        '`-.key` ไม่รวมโน้ตที่มีคีย์คุณสมบัติขึ้นต้นด้วย `key`',
                         '`-.key=value` ไม่รวมโน้ตที่ค่าคุณสมบัติมี `value` อยู่',
                         'Cmd/Ctrl+คลิกคุณสมบัติเพื่อเพิ่มด้วย AND Cmd/Ctrl+Shift+คลิกเพื่อเพิ่มด้วย OR'
                     ]
@@ -350,6 +352,9 @@ export const STRINGS_TH = {
             changeBackground: 'เปลี่ยนพื้นหลัง',
             excludeFolder: 'ซ่อนโฟลเดอร์',
             unhideFolder: 'เลิกซ่อนโฟลเดอร์',
+            excludeFromDescendants: 'ซ่อนจากโฟลเดอร์แม่',
+            includeInDescendants: 'แสดงในโฟลเดอร์แม่',
+            hiddenFromParentsIndicator: 'ซ่อนจากรายการโฟลเดอร์แม่',
             moveFolder: 'ย้ายโฟลเดอร์ไปยัง...',
             renameFolder: 'เปลี่ยนชื่อโฟลเดอร์',
             deleteFolder: 'ลบโฟลเดอร์'
@@ -662,6 +667,7 @@ export const STRINGS_TH = {
         },
         navigationBanner: {
             placeholder: 'ค้นหารูปภาพ...',
+            svgMissingDimensions: 'ไฟล์ SVG ที่เลือกไม่ได้กำหนดความกว้าง ความสูง หรือ viewBox',
             instructions: {
                 navigate: 'เพื่อนำทาง',
                 select: 'เพื่อตั้งแบนเนอร์',
@@ -708,11 +714,11 @@ export const STRINGS_TH = {
         welcome: {
             title: 'ยินดีต้อนรับสู่ {pluginName}',
             introText:
-                'สวัสดี! ก่อนเริ่มต้น ขอแนะนำอย่างยิ่งให้ดูวิดีโอด้านล่างห้านาทีแรกเพื่อทำความเข้าใจว่าแผงควบคุมและปุ่มสลับ "แสดงโน้ตจากโฟลเดอร์ย่อย" ทำงานอย่างไร',
+                'สวัสดีและยินดีต้อนรับสู่ Notebook Navigator โปรแกรมเรียกดูไฟล์และปฏิทินที่ดีกว่าสำหรับ Obsidian ก่อนเริ่มใช้งาน ขอแนะนำให้ดูอย่างน้อยสามบทแรกของวิดีโอ Mastering Notebook Navigator ด้านล่าง วิดีโอจะแนะนำการทำงานของสองแผงและช่วยให้คุณเริ่มใช้งานได้อย่างรวดเร็ว',
             continueText:
-                'หากคุณมีเวลาอีกห้านาที ให้ดูวิดีโอต่อเพื่อทำความเข้าใจโหมดแสดงผลแบบกะทัดรัดและวิธีตั้งค่าทางลัดและปุ่มลัดที่สำคัญอย่างถูกต้อง',
-            thanksText: 'ขอบคุณมากที่ดาวน์โหลด สนุกกับการใช้งาน!',
-            videoAlt: 'การติดตั้งและเชี่ยวชาญ Notebook Navigator',
+                'จากนั้น หากมีเวลาอีกสิบนาที ให้ดูบทเกี่ยวกับการตั้งค่าครั้งแรกและขั้นตอนการใช้งานประจำวันต่อ เนื้อหาเหล่านี้ครอบคลุมทุกอย่างที่จำเป็นสำหรับการเริ่มต้น และคุณสามารถกลับมาดูรายละเอียดเพิ่มเติมในภายหลังได้ ลิงก์วิดีโออยู่ที่ด้านบนของการตั้งค่า Notebook Navigator',
+            thanksText: 'ขอให้สนุกกับการใช้ Notebook Navigator!',
+            videoAlt: 'เชี่ยวชาญ Notebook Navigator 3',
             openVideoButton: 'เล่นวิดีโอ',
             closeButton: 'ไว้ทีหลัง'
         }
@@ -766,6 +772,8 @@ export const STRINGS_TH = {
         notices: {
             hideFolder: 'ซ่อนโฟลเดอร์แล้ว: {name}',
             showFolder: 'แสดงโฟลเดอร์แล้ว: {name}',
+            folderExcludedFromDescendants: 'ซ่อนจากรายการโฟลเดอร์แม่: {name}',
+            folderIncludedInDescendants: 'แสดงในรายการโฟลเดอร์แม่: {name}',
             mergeNotes: 'รวม {count} โน้ตเป็น {name} แล้ว'
         },
         notifications: {
@@ -850,7 +858,7 @@ export const STRINGS_TH = {
         openYearlyNote: 'เปิดโน้ตรายปี',
         revealFile: 'แสดงไฟล์',
         search: 'ค้นหา',
-        searchVaultRoot: 'ค้นหาในรูทห้องนิรภัย',
+        searchVaultRoot: 'ค้นหาทั้งห้องนิรภัย',
         toggleDualPane: 'สลับรูปแบบแผงคู่',
         toggleDualPaneOrientation: 'สลับทิศทางแผงคู่', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'สลับปฏิทิน',
@@ -890,7 +898,8 @@ export const STRINGS_TH = {
         removeTag: 'นำแท็กออกจากไฟล์ที่เลือก',
         removeAllTags: 'นำแท็กทั้งหมดออกจากไฟล์ที่เลือก',
         openAllFiles: 'เปิดไฟล์ทั้งหมด',
-        rebuildCache: 'สร้างแคชใหม่'
+        rebuildCache: 'สร้างแคชใหม่',
+        restoreDefaultSettings: 'กู้คืนการตั้งค่าเริ่มต้น' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -899,7 +908,17 @@ export const STRINGS_TH = {
         calendarViewName: 'ปฏิทิน',
         folderNoteSidebarViewName: 'โน้ตโฟลเดอร์',
         ribbonTooltip: 'Notebook Navigator',
-        revealInNavigator: 'แสดงใน Notebook Navigator'
+        revealInNavigator: 'แสดงใน Notebook Navigator',
+        settingsUnavailableNotice:
+            'Notebook Navigator ไม่สามารถอ่านการตั้งค่าได้และไม่ได้เริ่มทำงาน หากคลังของคุณกำลังซิงค์อยู่ ให้รีสตาร์ท Obsidian หลังจากการซิงค์เสร็จสิ้น หากต้องการเริ่มใหม่ด้วยการตั้งค่าเริ่มต้น ให้เรียกใช้คำสั่ง "กู้คืนการตั้งค่าเริ่มต้น"', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'กู้คืนการตั้งค่าเริ่มต้น', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'การดำเนินการนี้จะแทนที่ไฟล์การตั้งค่าของ Notebook Navigator ด้วยการตั้งค่าเริ่มต้น หากคลังของคุณยังซิงค์อยู่ การตั้งค่าเริ่มต้นที่กู้คืนอาจเขียนทับการตั้งค่าที่บันทึกไว้ในอุปกรณ์อื่นของคุณ ไฟล์การตั้งค่าที่อ่านได้จะถูกคัดลอกไปยังข้อมูลสำรองที่มีการประทับเวลาในโฟลเดอร์ปลั๊กอินก่อน', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'กู้คืนค่าเริ่มต้น', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'ไม่สามารถกู้คืนการตั้งค่าให้เสร็จสมบูรณ์ได้ การกำหนดลักษณะในเครื่องถูกเก็บไว้', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'กู้คืนการตั้งค่าเริ่มต้นแล้ว รีสตาร์ท Obsidian เพื่อเสร็จสิ้น' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -972,6 +991,7 @@ export const STRINGS_TH = {
                 vaultConfiguration: 'การตั้งค่าห้องนิรภัย',
                 templates: 'เทมเพลต',
                 behavior: 'พฤติกรรม',
+                startup: 'การเริ่มต้น',
                 keyboardNavigation: 'การนำทางด้วยแป้นพิมพ์',
                 mouseButtons: 'ปุ่มเมาส์',
                 view: 'ลักษณะ',
@@ -1148,6 +1168,10 @@ export const STRINGS_TH = {
                 name: 'แสดงเส้นทางโฟลเดอร์ย่อย',
                 desc: 'เมื่อจัดกลุ่มตามโฟลเดอร์ในแผงรายการ ให้แสดงเส้นทางโฟลเดอร์ย่อยแทนการแสดงเฉพาะชื่อโฟลเดอร์'
             },
+            showGroupHeaderItemCounts: {
+                name: 'แสดงจำนวนรายการ',
+                desc: 'แสดงจำนวนรายการในส่วนหัวแต่ละกลุ่มของแผงรายการ'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'การจัดกลุ่มตามโฟลเดอร์: ไฟล์ในโฟลเดอร์ปัจจุบันอยู่ด้านล่าง',
                 desc: 'เมื่อการจัดกลุ่มเริ่มต้นเป็นโฟลเดอร์ ให้ย้ายไฟล์ที่อยู่ในโฟลเดอร์ที่เลือกโดยตรงไปไว้ใต้กลุ่มโฟลเดอร์ย่อย'
@@ -1222,8 +1246,8 @@ export const STRINGS_TH = {
                 desc: 'แสดงชื่อโฟลเดอร์หลักสำหรับโน้ตในโฟลเดอร์ย่อย แท็ก หรือคุณสมบัติ'
             },
             showParentFolderFullPath: {
-                name: 'แสดงเส้นทางเต็ม',
-                desc: 'แสดงเส้นทางเต็มของโฟลเดอร์หลักแทนที่จะแสดงเฉพาะชื่อโฟลเดอร์'
+                name: 'แสดงเส้นทางโฟลเดอร์',
+                desc: 'แสดงเส้นทางที่สัมพันธ์กับโฟลเดอร์ที่เลือกแทนการแสดงเฉพาะชื่อโฟลเดอร์ แท็กและคุณสมบัติจะแสดงเส้นทางแบบเต็ม'
             },
             parentFolderClickRevealsFile: {
                 name: 'คลิกโฟลเดอร์หลักเพื่อเปิดโฟลเดอร์',
@@ -1294,7 +1318,7 @@ export const STRINGS_TH = {
             },
             startView: {
                 name: 'มุมมองเริ่มต้นเมื่อเริ่มงาน',
-                desc: 'เลือกแผงที่จะแสดงเมื่อเปิด Notebook Navigator แผงนำทางแสดงทางลัด ไฟล์ล่าสุด และต้นไม้โฟลเดอร์ แผงรายการแสดงรายการไฟล์ทันที',
+                desc: 'เลือกแผงที่ใช้งานเมื่อเปิด Notebook Navigator เลย์เอาต์แผงเดียวจะแสดงแผงนี้ก่อน ส่วนเลย์เอาต์สองแผงจะให้โฟกัสแป้นพิมพ์กับแผงนี้',
                 options: {
                     navigation: 'แผงนำทาง',
                     files: 'แผงรายการ'
@@ -1470,6 +1494,10 @@ export const STRINGS_TH = {
                 name: 'แสดงรูปภาพเด่น',
                 desc: 'แสดงรูปภาพเด่นของบันทึกในปฏิทิน'
             },
+            calendarShowTasks: {
+                name: 'แสดงงาน',
+                desc: 'แสดงตัวบ่งชี้ในวัน สัปดาห์ และเดือนที่มีงานที่ยังไม่เสร็จ'
+            },
             calendarShowWeekNumber: {
                 name: 'แสดงหมายเลขสัปดาห์',
                 desc: 'เพิ่มคอลัมน์พร้อมหมายเลขสัปดาห์'
@@ -1485,6 +1513,10 @@ export const STRINGS_TH = {
             calendarConfirmBeforeCreate: {
                 name: 'ยืนยันก่อนสร้าง',
                 desc: 'แสดงกล่องยืนยันเมื่อสร้างบันทึกรายวันใหม่'
+            },
+            calendarShowHiddenItems: {
+                name: 'แสดงรายการที่ซ่อน',
+                desc: 'เมื่อเปิดใช้งาน ปฏิทินจะแสดงโน้ตปฏิทินทั้งหมดเสมอ รวมถึงโน้ตที่ถูกซ่อนโดยตัวกรองของโปรไฟล์คลัง'
             },
             calendarIntegrationMode: {
                 name: 'แหล่งที่มาบันทึกรายวัน',
@@ -1585,6 +1617,12 @@ export const STRINGS_TH = {
                     editorDesc: 'วางหรือแก้ไข JSON ด้านล่าง การตั้งค่าที่ไม่ได้รวมไว้จะถูกรีเซ็ตเป็นค่าเริ่มต้น',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'นำเข้า',
+                    confirmTitle: 'นำเข้าการตั้งค่าหรือไม่?',
+                    confirmMessage: 'การนำเข้าจะแทนที่การตั้งค่า Notebook Navigator ปัจจุบัน',
+                    backupToggleName: 'บันทึกการตั้งค่าปัจจุบันไว้ในรูทห้องนิรภัยก่อนนำเข้า',
+                    backupToggleDesc: 'สร้างไฟล์ JSON ที่มีเวลาประทับในรูทห้องนิรภัย',
+                    successWithBackupNotice: 'นำเข้าการตั้งค่าแล้ว บันทึกการตั้งค่าก่อนหน้าไว้ที่ {path}',
+                    backupError: 'ไม่สามารถบันทึกการตั้งค่าปัจจุบันได้: {message}',
                     successNotice: 'นำเข้าการตั้งค่าแล้ว',
                     errorNotice: 'นำเข้าการตั้งค่าล้มเหลว: {message}',
                     fileReadError: 'ไม่สามารถอ่านไฟล์ได้: {message}'
@@ -1719,6 +1757,11 @@ export const STRINGS_TH = {
                 name: 'ซ่อนโฟลเดอร์ (โปรไฟล์ห้องนิรภัย)',
                 desc: 'รายการโฟลเดอร์คั่นด้วยเครื่องหมายจุลภาคที่จะซ่อน รูปแบบชื่อ: assets* (โฟลเดอร์ที่เริ่มด้วย assets), *_temp (ลงท้ายด้วย _temp) รูปแบบเส้นทาง: /archive (archive หลักเท่านั้น), /res* (โฟลเดอร์หลักที่เริ่มด้วย res), /*/temp (โฟลเดอร์ temp ลึกหนึ่งระดับ), /projects/* (โฟลเดอร์ทั้งหมดใน projects)',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'ยกเว้นโฟลเดอร์จากโน้ตในโฟลเดอร์ย่อย (โปรไฟล์คลัง)',
+                desc: 'รายการโฟลเดอร์คั่นด้วยเครื่องหมายจุลภาคที่จะละเว้นเมื่อรวบรวมโน้ตจากโฟลเดอร์ย่อย โฟลเดอร์ยังคงมองเห็นได้ และเมื่อเลือกโฟลเดอร์นั้นจะยังแสดงโน้ตของโฟลเดอร์นั้น ใช้รูปแบบเดียวกับซ่อนโฟลเดอร์',
+                placeholder: 'รายวัน, ทรัพยากร, /archive'
             },
             showFileDate: {
                 name: 'แสดงวันที่',

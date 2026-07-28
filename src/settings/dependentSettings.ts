@@ -25,7 +25,7 @@ export function setElementVisible(element: HTMLElement, visible: boolean): void 
 }
 
 export function createDependentSettingsSection(parentSetting: Setting): HTMLDivElement {
-    const container = parentSetting.settingEl.ownerDocument.createElement('div');
+    const container = parentSetting.settingEl.win.createDiv();
     parentSetting.settingEl.after(container);
     return container;
 }

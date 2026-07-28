@@ -137,7 +137,7 @@ function createFileData(overrides: Partial<FileData>): FileData {
         characterCountWithoutSpaces: null,
         taskTotal: 0,
         taskUnfinished: 0,
-        properties: null,
+        properties: [],
         previewStatus: 'unprocessed',
         featureImage: null,
         featureImageStatus: 'unprocessed',
@@ -347,6 +347,22 @@ describe('MarkdownPipelineContentProvider word count', () => {
 
         expect(result.update?.characterCountWithSpaces).toBeUndefined();
         expect(result.update?.characterCountWithoutSpaces).toBeUndefined();
+    });
+
+    it('counts words for sort-activated custom group headers when file counts are hidden', async () => {
+        const context = createApp();
+        const settings = createSettings({
+            textCountDisplay: 'none',
+            noteGrouping: 'date',
+            defaultFolderSort: 'title-asc'
+        });
+        const provider = new TestMarkdownPipelineContentProvider(context.app);
+        const file = createFile('notes/note.md');
+
+        setMarkdownContent(context, file, 'Hello group header');
+        const result = await provider.runProcessFile(file, null, settings);
+
+        expect(result.update?.wordCount).toBe(3);
     });
 
     it('counts isolated punctuation when Math Alphanumeric Symbols are present', async () => {

@@ -31,6 +31,7 @@ export function renderDisplayFiltersTab(context: SettingsTabContext): void {
     const filteringGroup = createGroup(undefined);
 
     let excludedFoldersInput: HTMLInputElement | null = null;
+    let descendantExcludedFoldersInput: HTMLInputElement | null = null;
     let hiddenTagsInput: HTMLInputElement | null = null;
     let hiddenFileTagsInput: HTMLInputElement | null = null;
     let excludedFilesInput: HTMLInputElement | null = null;
@@ -48,6 +49,9 @@ export function renderDisplayFiltersTab(context: SettingsTabContext): void {
         const activeProfile = getActiveProfile();
         if (excludedFoldersInput) {
             excludedFoldersInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.hiddenFolders) : '';
+        }
+        if (descendantExcludedFoldersInput) {
+            descendantExcludedFoldersInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.descendantExcludedFolders) : '';
         }
         if (hiddenTagsInput) {
             hiddenTagsInput.value = activeProfile ? formatCommaSeparatedList(activeProfile.hiddenTags) : '';
@@ -102,6 +106,26 @@ export function renderDisplayFiltersTab(context: SettingsTabContext): void {
     });
     excludedFoldersSetting.controlEl.addClass('nn-setting-wide-input');
     excludedFoldersInput = excludedFoldersSetting.controlEl.querySelector('input');
+
+    const descendantExcludedFoldersSetting = filteringGroup.addSetting(setting => {
+        configureDebouncedTextSetting(
+            setting,
+            strings.settings.items.descendantExcludedFolders.name,
+            strings.settings.items.descendantExcludedFolders.desc,
+            strings.settings.items.descendantExcludedFolders.placeholder,
+            () => formatCommaSeparatedList(getActiveProfile()?.descendantExcludedFolders ?? []),
+            value => {
+                const activeProfile = getActiveProfile();
+                if (!activeProfile) {
+                    return;
+                }
+                const nextDescendantExcludedFolders = parseCommaSeparatedList(value);
+                activeProfile.descendantExcludedFolders = Array.from(new Set(nextDescendantExcludedFolders));
+            }
+        );
+    });
+    descendantExcludedFoldersSetting.controlEl.addClass('nn-setting-wide-input');
+    descendantExcludedFoldersInput = descendantExcludedFoldersSetting.controlEl.querySelector('input');
 
     const hiddenTagsSetting = filteringGroup.addSetting(setting => {
         configureDebouncedTextSetting(

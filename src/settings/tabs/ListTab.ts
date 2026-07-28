@@ -30,11 +30,7 @@ import { getManualSortGroupHeaderPropertyKey, isValidManualSortPropertyKey, norm
 import { formatPixelSliderValue, renderSliderSetting } from './SliderSetting';
 
 type QuickActionSettingKey =
-    | 'quickActionRevealInFolder'
-    | 'quickActionAddTag'
-    | 'quickActionAddToShortcuts'
-    | 'quickActionPinNote'
-    | 'quickActionOpenInNewTab';
+    'quickActionRevealInFolder' | 'quickActionAddTag' | 'quickActionAddToShortcuts' | 'quickActionPinNote' | 'quickActionOpenInNewTab';
 
 interface QuickActionToggleConfig {
     key: QuickActionSettingKey;
@@ -111,6 +107,10 @@ export function createListPaneSettingDefinitions(context: SettingsTabContext): S
             createToggleDefinition('showFolderGroupPaths', {
                 name: strings.settings.items.showFolderGroupPaths.name,
                 desc: strings.settings.items.showFolderGroupPaths.desc
+            }),
+            createToggleDefinition('showGroupHeaderItemCounts', {
+                name: strings.settings.items.showGroupHeaderItemCounts.name,
+                desc: strings.settings.items.showGroupHeaderItemCounts.desc
             }),
             createRenderDefinition({
                 name: strings.settings.items.manualSortGroupHeaderProperty.name,

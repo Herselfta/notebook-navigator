@@ -31,7 +31,7 @@ export function setNativeDragPreview(event: DragEvent, content: HTMLElement, opt
     }
 
     const ownerDocument = content.ownerDocument;
-    const wrapper = ownerDocument.createElement('div');
+    const wrapper = content.win.createDiv();
     wrapper.className = options.className ?? 'nn-drag-native-preview';
     wrapper.appendChild(content);
     ownerDocument.body.appendChild(wrapper);

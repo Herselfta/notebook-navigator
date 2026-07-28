@@ -223,19 +223,19 @@ export async function waitForDatabaseInitialization(): Promise<IndexedDBStorage 
         return null;
     }
 
-    if (!db.isInitialized()) {
+    if (isShutdownInProgress() || dbInstance !== db) {
+        return null;
+    }
+    // Await init unconditionally: `isInitialized()` reports true once the connection opens, which can be
+    // before cache hydration completes. `init()` is idempotent and resolves immediately when done.
+    try {
+        await db.init();
         if (isShutdownInProgress() || dbInstance !== db) {
             return null;
         }
-        try {
-            await db.init();
-            if (isShutdownInProgress() || dbInstance !== db) {
-                return null;
-            }
-        } catch (error) {
-            console.error('Failed to initialize database while waiting:', error);
-            return null;
-        }
+    } catch (error) {
+        console.error('Failed to initialize database while waiting:', error);
+        return null;
     }
 
     return db;

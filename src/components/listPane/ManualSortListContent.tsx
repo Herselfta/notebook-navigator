@@ -49,7 +49,7 @@ import { hasSolidFileRowBackground } from '../../utils/colorUtils';
 import { addManualSortGroupHeaderMenuItems } from '../../utils/contextMenu/manualSortGroupHeaderMenuItems';
 import { getCachedWordCountTargetFromFrontmatter, getWordCountTargetFromProperties } from '../../utils/wordCountUtils';
 import { ObsidianIcon } from '../ObsidianIcon';
-import { FileItem, type FileItemStorageHelpers } from '../FileItem';
+import { FileItem, type FileItemPaneProps, type FileItemStorageHelpers } from '../FileItem';
 import { ManualSortGroupHeaderContent, ManualSortGroupHeaderProgress } from './ManualSortGroupHeaderContent';
 
 const MANUAL_SORT_MOUSE_CONSTRAINT = { distance: 2 };
@@ -117,22 +117,7 @@ interface ManualSortRenderRow {
 
 interface ManualSortRowContext {
     isMobile: boolean;
-    selectionType: NavigationItemType | null;
-    sortOption?: SortOption;
-    localDayReference: Date | null;
-    fileIconSize: number;
-    appearanceSettings: ListPaneAppearanceSettings;
-    includeDescendantNotes: boolean;
-    hiddenTagVisibility: HiddenTagVisibility;
-    fileNameIconNeedles: readonly FileNameIconNeedle[];
-    visibleListPropertyKeys: ReadonlySet<string>;
-    visibleNavigationPropertyKeys: ReadonlySet<string>;
-    fileItemStorage: FileItemStorageHelpers;
-    folderDecorationModel: FolderDecorationModel;
-    fileItemPillDecorationModel: FileItemPillDecorationModel;
-    fileItemPillOrderModel: FileItemPillOrderModel;
-    getSolidBackground: (color?: string | null) => string | undefined;
-    onFileClick: (file: TFile, fileIndex: number | undefined, event: ReactMouseEvent) => void;
+    paneProps: FileItemPaneProps;
 }
 
 interface ManualSortRowProps extends ManualSortRowContext {
@@ -211,23 +196,8 @@ function ManualSortRowContent({
     entry,
     canReorder,
     isMobile,
-    selectionType,
-    sortOption,
-    localDayReference,
-    fileIconSize,
-    appearanceSettings,
-    includeDescendantNotes,
-    hiddenTagVisibility,
-    fileNameIconNeedles,
-    visibleListPropertyKeys,
-    visibleNavigationPropertyKeys,
-    fileItemStorage,
+    paneProps,
     shortcutKey,
-    folderDecorationModel,
-    fileItemPillDecorationModel,
-    fileItemPillOrderModel,
-    getSolidBackground,
-    onFileClick,
     isSelected,
     hasSelectedAbove,
     hasSelectedBelow,
@@ -238,35 +208,16 @@ function ManualSortRowContent({
             <div className="nn-manual-sort-file">
                 <FileItem
                     file={entry.file}
+                    paneProps={paneProps}
                     isSelected={isSelected}
                     hasSelectedAbove={hasSelectedAbove}
                     hasSelectedBelow={hasSelectedBelow}
                     showQuickActionsPanel={false}
-                    onFileClick={onFileClick}
                     fileIndex={entry.info.fileIndex}
-                    sortOption={sortOption}
                     parentFolder={entry.info.parentFolder}
                     isPinned={false}
-                    selectionType={selectionType}
                     isHidden={entry.info.isHidden}
-                    onModifySearchWithTag={noopModifySearch}
-                    onModifySearchWithProperty={noopModifySearch}
-                    localDayReference={localDayReference}
-                    fileIconSize={fileIconSize}
-                    appearanceSettings={appearanceSettings}
-                    includeDescendantNotes={includeDescendantNotes}
-                    hiddenTagVisibility={hiddenTagVisibility}
-                    fileNameIconNeedles={fileNameIconNeedles}
-                    visiblePropertyKeys={visibleListPropertyKeys}
-                    visibleNavigationPropertyKeys={visibleNavigationPropertyKeys}
-                    fileItemStorage={fileItemStorage}
                     shortcutKey={shortcutKey}
-                    onToggleNoteShortcut={noopToggleShortcut}
-                    folderDecorationModel={folderDecorationModel}
-                    fileItemPillDecorationModel={fileItemPillDecorationModel}
-                    fileItemPillOrderModel={fileItemPillOrderModel}
-                    getSolidBackground={getSolidBackground}
-                    disableNativeDrag={true}
                     manualSortDisabled={!canReorder}
                 />
             </div>
@@ -504,7 +455,7 @@ function ManualSortGroup({
     selectedFiles,
     activeDragPaths
 }: ManualSortGroupProps) {
-    const { fileItemStorage, getSolidBackground } = rowContext;
+    const { fileItemStorage, getSolidBackground } = rowContext.paneProps;
     const settings = useSettingsState();
     const metadataService = useMetadataService();
     const backgroundCache = new Map<string, boolean>();
@@ -722,28 +673,31 @@ export function ManualSortListContent({
     }, [entries]);
     const sortableIds = useMemo(() => markdownFiles.map(file => file.path), [markdownFiles]);
 
-    const rowContext = useMemo<ManualSortRowContext>(
+    const paneProps = useMemo<FileItemPaneProps>(
         () => ({
-            isMobile,
+            onFileClick,
             selectionType,
             sortOption,
+            onModifySearchWithTag: noopModifySearch,
+            onModifySearchWithProperty: noopModifySearch,
             localDayReference,
             fileIconSize,
             appearanceSettings,
             includeDescendantNotes,
             hiddenTagVisibility,
             fileNameIconNeedles,
-            visibleListPropertyKeys,
+            visiblePropertyKeys: visibleListPropertyKeys,
             visibleNavigationPropertyKeys,
             fileItemStorage,
+            onToggleNoteShortcut: noopToggleShortcut,
             folderDecorationModel,
             fileItemPillDecorationModel,
             fileItemPillOrderModel,
             getSolidBackground,
-            onFileClick
+            disableNativeDrag: true
         }),
         [
-            isMobile,
+            onFileClick,
             selectionType,
             sortOption,
             localDayReference,
@@ -758,10 +712,11 @@ export function ManualSortListContent({
             folderDecorationModel,
             fileItemPillDecorationModel,
             fileItemPillOrderModel,
-            getSolidBackground,
-            onFileClick
+            getSolidBackground
         ]
     );
+
+    const rowContext = useMemo<ManualSortRowContext>(() => ({ isMobile, paneProps }), [isMobile, paneProps]);
 
     const getDragBlockPaths = useCallback(
         (activePath: string): ReadonlySet<string> => {

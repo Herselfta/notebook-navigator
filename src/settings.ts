@@ -82,6 +82,9 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     private isFallbackSettingsDisplay = false;
     private legacySettingsLandingScrollTop = 0;
     private settingsRenderCleanupCallbacks: (() => void)[] = [];
+    // Registered settings tab that Obsidian renders native setting definitions on.
+    // Obsidian stores rendered definition state on that tab, so DOM-state refreshes must run on it.
+    private nativeSettingsHost: PluginSettingTab | null = null;
 
     /**
      * Creates a new settings tab
@@ -120,10 +123,15 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
         });
     }
 
+    setNativeSettingsHost(host: PluginSettingTab): void {
+        this.nativeSettingsHost = host;
+    }
+
     private refreshNativeSettingsDomState(): void {
-        const refreshDomState: unknown = Reflect.get(this, 'refreshDomState');
+        const host = this.nativeSettingsHost ?? this;
+        const refreshDomState: unknown = Reflect.get(host, 'refreshDomState');
         if (typeof refreshDomState === 'function') {
-            refreshDomState.call(this);
+            refreshDomState.call(host);
         }
     }
 
@@ -172,9 +180,10 @@ export class NotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     private updateNativeSettingsDefinitions(): void {
-        const update: unknown = Reflect.get(this, 'update');
+        const host = this.nativeSettingsHost ?? this;
+        const update: unknown = Reflect.get(host, 'update');
         if (typeof update === 'function') {
-            update.call(this);
+            update.call(host);
         }
     }
 

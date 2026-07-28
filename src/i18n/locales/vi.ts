@@ -88,6 +88,7 @@ export const STRINGS_VI = {
     navigationCalendar: {
         ariaLabel: 'Lịch',
         dailyNotesNotEnabled: 'Plugin ghi chú hàng ngày chưa được bật.',
+        noteHiddenByProfile: 'Ghi chú lịch bị ẩn bởi hồ sơ kho hiện tại.',
         createDailyNote: {
             title: 'Ghi chú hàng ngày mới',
             message: 'Tệp {filename} không tồn tại. Bạn có muốn tạo không?',
@@ -169,6 +170,7 @@ export const STRINGS_VI = {
     // Search input
     searchInput: {
         placeholder: 'Tìm kiếm...', // Placeholder text for search input (English: Search...)
+        placeholderVault: 'Tìm kiếm vault...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Xóa tìm kiếm', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'Chuyển sang tìm kiếm bộ lọc',
@@ -181,15 +183,15 @@ export const STRINGS_VI = {
         searchHelp: 'Cú pháp tìm kiếm',
         searchHelpTitle: 'Cú pháp tìm kiếm',
         searchHelpModal: {
-            intro: 'Kết hợp tên tệp, thuộc tính, thẻ, ngày và bộ lọc trong một truy vấn (ví dụ: `meeting .status=active #work @thisweek`). Cài đặt plugin Omnisearch để sử dụng tìm kiếm toàn văn.',
+            intro: 'Kết hợp tên hiển thị, bí danh, thuộc tính, thẻ, ngày và bộ lọc trong một truy vấn (ví dụ: `meeting .status=active #work @thisweek`). Cài đặt plugin Omnisearch để sử dụng tìm kiếm toàn văn.',
             introSwitching: 'Chuyển đổi giữa tìm kiếm bộ lọc và Omnisearch bằng phím mũi tên lên/xuống hoặc nhấp vào biểu tượng tìm kiếm.',
             sections: {
                 fileNames: {
-                    title: 'Tên tệp',
+                    title: 'Tên tệp và bí danh',
                     items: [
-                        '`word` Tìm ghi chú có "word" trong tên tệp.',
-                        '`word1 word2` Mỗi từ phải khớp với tên tệp.',
-                        '`-word` Loại trừ ghi chú có "word" trong tên tệp.'
+                        '`word` Tìm ghi chú có "word" trong tên hiển thị hoặc bí danh.',
+                        '`word1 word2` Mỗi từ phải khớp với tên hiển thị hoặc một trong các bí danh.',
+                        '`-word` Loại trừ ghi chú có "word" trong tên hiển thị hoặc bí danh.'
                     ]
                 },
                 tags: {
@@ -209,11 +211,11 @@ export const STRINGS_VI = {
                 properties: {
                     title: 'Thuộc tính',
                     items: [
-                        '`.key` Bao gồm ghi chú có khóa thuộc tính.',
+                        '`.key` Bao gồm ghi chú có khóa thuộc tính bắt đầu bằng `key`.',
                         '`.key=value` Bao gồm ghi chú có giá trị thuộc tính chứa `value`.',
                         '`."Reading Status"` Bao gồm ghi chú có khóa thuộc tính chứa khoảng trắng.',
                         '`."Reading Status"="In Progress"` Khóa và giá trị có khoảng trắng phải được đặt trong dấu ngoặc kép.',
-                        '`-.key` Loại trừ ghi chú có khóa thuộc tính.',
+                        '`-.key` Loại trừ ghi chú có khóa thuộc tính bắt đầu bằng `key`.',
                         '`-.key=value` Loại trừ ghi chú có giá trị thuộc tính chứa `value`.',
                         'Cmd/Ctrl+Nhấp vào thuộc tính để thêm với AND. Cmd/Ctrl+Shift+Nhấp để thêm với OR.'
                     ]
@@ -350,6 +352,9 @@ export const STRINGS_VI = {
             changeBackground: 'Đổi nền',
             excludeFolder: 'Ẩn thư mục',
             unhideFolder: 'Hiện thư mục',
+            excludeFromDescendants: 'Ẩn khỏi thư mục cha',
+            includeInDescendants: 'Hiện trong thư mục cha',
+            hiddenFromParentsIndicator: 'Đã ẩn khỏi danh sách thư mục cha',
             moveFolder: 'Di chuyển thư mục...',
             renameFolder: 'Đổi tên thư mục',
             deleteFolder: 'Xóa thư mục'
@@ -669,6 +674,7 @@ export const STRINGS_VI = {
         },
         navigationBanner: {
             placeholder: 'Tìm ảnh...',
+            svgMissingDimensions: 'Tệp SVG đã chọn không xác định chiều rộng, chiều cao hoặc viewBox.',
             instructions: {
                 navigate: 'để điều hướng',
                 select: 'để đặt banner',
@@ -715,11 +721,11 @@ export const STRINGS_VI = {
         welcome: {
             title: 'Chào mừng đến với {pluginName}',
             introText:
-                'Xin chào! Trước khi bắt đầu, tôi khuyên bạn nên xem năm phút đầu tiên của video bên dưới để hiểu cách hoạt động của các bảng điều khiển và nút chuyển đổi "Hiển thị ghi chú từ thư mục con".',
+                'Xin chào và chào mừng bạn đến với Notebook Navigator, một trình duyệt tệp và lịch tốt hơn dành cho Obsidian. Trước khi bắt đầu, tôi thực sự khuyên bạn nên xem ít nhất ba chương đầu của video Mastering Notebook Navigator bên dưới. Video này giới thiệu cách hoạt động của hai bảng và giúp bạn nhanh chóng làm quen.',
             continueText:
-                'Nếu bạn có thêm năm phút nữa, hãy tiếp tục xem video để hiểu các chế độ hiển thị thu gọn và cách thiết lập phím tắt và các phím nóng quan trọng một cách chính xác.',
-            thanksText: 'Cảm ơn bạn rất nhiều vì đã tải xuống, chúc bạn sử dụng vui vẻ!',
-            videoAlt: 'Cài đặt và làm chủ Notebook Navigator',
+                'Tiếp theo, nếu bạn có thêm mười phút, hãy xem tiếp các chương về thiết lập lần đầu và quy trình sử dụng hằng ngày. Những chương này cung cấp mọi thứ bạn cần để bắt đầu, và bạn có thể quay lại xem chi tiết hơn sau. Bạn sẽ tìm thấy liên kết đến video ở đầu phần cài đặt Notebook Navigator.',
+            thanksText: 'Chúc bạn sử dụng Notebook Navigator vui vẻ!',
+            videoAlt: 'Làm chủ Notebook Navigator 3',
             openVideoButton: 'Phát video',
             closeButton: 'Có lẽ sau'
         }
@@ -774,6 +780,8 @@ export const STRINGS_VI = {
         notices: {
             hideFolder: 'Đã ẩn thư mục: {name}',
             showFolder: 'Đã hiện thư mục: {name}',
+            folderExcludedFromDescendants: 'Đã ẩn khỏi danh sách thư mục cha: {name}',
+            folderIncludedInDescendants: 'Đã hiện trong danh sách thư mục cha: {name}',
             mergeNotes: 'Đã hợp nhất {count} ghi chú vào {name}'
         },
         notifications: {
@@ -858,7 +866,7 @@ export const STRINGS_VI = {
         openYearlyNote: 'Mở ghi chú hằng năm',
         revealFile: 'Hiện tệp', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Tìm kiếm', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: 'Tìm kiếm trong thư mục gốc vault', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: 'Tìm kiếm toàn bộ vault', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'Bật/tắt hai ngăn', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Chuyển đổi hướng hai ngăn', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Bật/tắt lịch', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -898,7 +906,8 @@ export const STRINGS_VI = {
         removeTag: 'Gỡ thẻ khỏi tệp đã chọn', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'Gỡ tất cả thẻ khỏi tệp đã chọn', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'Mở tất cả tệp', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'Xây dựng lại cache' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'Xây dựng lại cache', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'Khôi phục cài đặt mặc định' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -907,7 +916,17 @@ export const STRINGS_VI = {
         calendarViewName: 'Lịch', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'Ghi chú thư mục', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'Hiện trong Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'Hiện trong Notebook Navigator', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'Notebook Navigator không thể đọc cài đặt và đã không khởi động. Nếu kho của bạn đang đồng bộ, hãy khởi động lại Obsidian sau khi đồng bộ hoàn tất. Để bắt đầu lại với cài đặt mặc định, hãy chạy lệnh "Khôi phục cài đặt mặc định".', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Khôi phục cài đặt mặc định', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Thao tác này thay thế tệp cài đặt của Notebook Navigator bằng cài đặt mặc định. Nếu kho của bạn vẫn đang đồng bộ, cài đặt mặc định được khôi phục có thể ghi đè cài đặt lưu trên các thiết bị khác của bạn. Tệp cài đặt đọc được sẽ được sao chép vào bản sao lưu có dấu thời gian trong thư mục plugin trước.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Khôi phục mặc định', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'Không thể hoàn tất việc khôi phục cài đặt. Các tùy chọn cục bộ được giữ nguyên.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Đã khôi phục cài đặt mặc định. Khởi động lại Obsidian để hoàn tất.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -980,6 +999,7 @@ export const STRINGS_VI = {
                 vaultConfiguration: 'Thiết lập vault',
                 templates: 'Mẫu',
                 behavior: 'Hành vi',
+                startup: 'Khởi động',
                 keyboardNavigation: 'Điều hướng bằng bàn phím',
                 mouseButtons: 'Nút chuột',
                 view: 'Giao diện',
@@ -1156,6 +1176,10 @@ export const STRINGS_VI = {
                 name: 'Hiện đường dẫn thư mục con',
                 desc: 'Khi nhóm theo thư mục trong ngăn danh sách, hiển thị đường dẫn thư mục con thay vì chỉ tên thư mục.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Hiện số lượng mục',
+                desc: 'Hiển thị số lượng mục trong mỗi tiêu đề nhóm ở ngăn danh sách.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Nhóm theo thư mục: tệp trong thư mục hiện tại ở dưới cùng',
                 desc: 'Khi kiểu nhóm mặc định là Thư mục, chuyển các tệp nằm trực tiếp trong thư mục đã chọn xuống dưới các nhóm thư mục con.'
@@ -1230,8 +1254,8 @@ export const STRINGS_VI = {
                 desc: 'Hiển thị tên thư mục cha cho ghi chú trong thư mục con, thẻ hoặc thuộc tính.'
             },
             showParentFolderFullPath: {
-                name: 'Hiện đường dẫn đầy đủ',
-                desc: 'Hiển thị đường dẫn đầy đủ của thư mục cha thay vì chỉ tên thư mục.'
+                name: 'Hiện đường dẫn thư mục',
+                desc: 'Hiển thị đường dẫn tương đối với thư mục đã chọn thay vì chỉ tên thư mục. Thẻ và thuộc tính hiển thị đường dẫn đầy đủ.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Nhấn thư mục cha để mở thư mục',
@@ -1302,7 +1326,7 @@ export const STRINGS_VI = {
             },
             startView: {
                 name: 'Chế độ xem khởi động mặc định',
-                desc: 'Chọn ngăn hiển thị khi mở Notebook Navigator. Ngăn điều hướng hiện lối tắt, tệp gần đây và cây thư mục. Ngăn danh sách hiện danh sách tệp ngay.',
+                desc: 'Chọn ngăn hoạt động khi mở Notebook Navigator. Bố cục một ngăn hiển thị ngăn này trước; bố cục hai ngăn chuyển tiêu điểm bàn phím vào ngăn này.',
                 options: {
                     navigation: 'Ngăn điều hướng',
                     files: 'Ngăn danh sách'
@@ -1478,6 +1502,10 @@ export const STRINGS_VI = {
                 name: 'Hiển thị hình ảnh nổi bật',
                 desc: 'Hiển thị hình ảnh nổi bật của ghi chú trong lịch.'
             },
+            calendarShowTasks: {
+                name: 'Hiển thị nhiệm vụ',
+                desc: 'Hiển thị chỉ báo trên ngày, tuần và tháng có nhiệm vụ chưa hoàn thành.'
+            },
             calendarShowWeekNumber: {
                 name: 'Hiển thị số tuần',
                 desc: 'Thêm cột với số tuần.'
@@ -1493,6 +1521,10 @@ export const STRINGS_VI = {
             calendarConfirmBeforeCreate: {
                 name: 'Xác nhận trước khi tạo',
                 desc: 'Hiển thị hộp thoại xác nhận khi tạo ghi chú hàng ngày mới.'
+            },
+            calendarShowHiddenItems: {
+                name: 'Hiện mục ẩn',
+                desc: 'Khi bật, lịch luôn hiển thị tất cả ghi chú lịch, bao gồm cả ghi chú bị ẩn bởi bộ lọc của hồ sơ kho.'
             },
             calendarIntegrationMode: {
                 name: 'Nguồn ghi chú hàng ngày',
@@ -1593,6 +1625,12 @@ export const STRINGS_VI = {
                     editorDesc: 'Dán hoặc chỉnh sửa JSON bên dưới. Các cài đặt không được bao gồm sẽ được đặt lại về mặc định.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'Nhập',
+                    confirmTitle: 'Nhập cài đặt?',
+                    confirmMessage: 'Việc nhập sẽ thay thế cài đặt Notebook Navigator hiện tại.',
+                    backupToggleName: 'Lưu cài đặt hiện tại vào thư mục gốc của kho trước khi nhập',
+                    backupToggleDesc: 'Tạo tệp JSON có dấu thời gian trong thư mục gốc của kho.',
+                    successWithBackupNotice: 'Đã nhập cài đặt. Cài đặt trước đó đã được lưu vào {path}.',
+                    backupError: 'Không thể lưu cài đặt hiện tại: {message}',
                     successNotice: 'Đã nhập cài đặt.',
                     errorNotice: 'Nhập cài đặt thất bại: {message}',
                     fileReadError: 'Không thể đọc tệp: {message}'
@@ -1728,6 +1766,11 @@ export const STRINGS_VI = {
                 name: 'Ẩn thư mục (hồ sơ vault)',
                 desc: 'Danh sách thư mục cần ẩn phân cách bằng dấu phẩy. Mẫu tên: assets* (thư mục bắt đầu bằng assets), *_temp (kết thúc bằng _temp). Mẫu đường dẫn: /archive (chỉ archive gốc), /res* (thư mục gốc bắt đầu bằng res), /*/temp (thư mục temp ở độ sâu một cấp), /projects/* (tất cả thư mục trong projects).',
                 placeholder: 'mẫu, assets*, /lưu trữ, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Loại trừ thư mục khỏi ghi chú thư mục con (hồ sơ kho)',
+                desc: 'Danh sách thư mục phân cách bằng dấu phẩy sẽ được bỏ qua khi thu thập ghi chú từ thư mục con. Các thư mục vẫn hiển thị, và khi chọn một thư mục thì ghi chú của thư mục đó vẫn được hiển thị. Dùng cùng mẫu với Ẩn thư mục.',
+                placeholder: 'hằng ngày, tài nguyên, /lưu trữ'
             },
             showFileDate: {
                 name: 'Hiện ngày',

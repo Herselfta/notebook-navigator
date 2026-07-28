@@ -107,7 +107,7 @@ type FontSizeVariableName = (typeof ANDROID_FONT_SIZE_VARIABLES)[number];
 
 function createMeasurementProbe(container: HTMLElement): HTMLElement {
     // Hidden probe lets us read computed font sizes without disturbing layout
-    const probe = container.ownerDocument.createElement('div');
+    const probe = container.win.createDiv();
     probe.style.cssText = `
         position: absolute;
         visibility: hidden;

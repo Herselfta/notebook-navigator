@@ -72,7 +72,7 @@ interface DropdownDefinitionOptions extends ControlDefinitionOptions {
 
 /** Builds native 1.13 setting definitions for appearance and behavior settings. */
 export function createAppearanceBehaviorSettingDefinitions(context: SettingsTabContext): SettingDefinitionItem[] {
-    const groups: SettingDefinitionGroup[] = [createBehaviorDefinitionGroup(context)];
+    const groups: SettingDefinitionGroup[] = [createBehaviorDefinitionGroup(context), createStartupDefinitionGroup(context)];
 
     if (!Platform.isMobile) {
         groups.push(
@@ -115,6 +115,47 @@ function createBehaviorDefinitionGroup(context: SettingsTabContext): SettingDefi
             name: strings.settings.items.autoRevealIgnoreOtherWindows.name,
             desc: strings.settings.items.autoRevealIgnoreOtherWindows.desc,
             visible: () => plugin.settings.autoRevealActiveFile
+        })
+    ]);
+}
+
+function createStartupDefinitionGroup(context: SettingsTabContext): SettingDefinitionGroup {
+    const { plugin } = context;
+
+    return createGroupDefinition(strings.settings.groups.general.startup, [
+        createDropdownDefinition('startView', {
+            name: strings.settings.items.startView.name,
+            desc: strings.settings.items.startView.desc,
+            aliases: optionAliases(strings.settings.items.startView.options),
+            options: {
+                navigation: strings.settings.items.startView.options.navigation,
+                files: strings.settings.items.startView.options.files
+            }
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.homepage.name,
+            desc: strings.settings.items.homepage.desc,
+            aliases: optionAliases(strings.settings.items.homepage.options),
+            render: setting => renderHomepageSetting(setting, context)
+        }),
+        createRenderDefinition({
+            name: strings.settings.items.homepage.file.name,
+            desc: strings.settings.items.homepage.file.empty,
+            aliases: [strings.settings.items.homepage.chooseButton, strings.common.clear],
+            visible: () => plugin.settings.homepage.source === 'file',
+            render: setting => renderHomepageFileSetting(setting, context)
+        }),
+        createRenderedToggleDefinition(context, {
+            name: strings.settings.items.homepage.createMissing.name,
+            desc: strings.settings.items.homepage.createMissing.desc,
+            getValue: () => plugin.settings.homepage.createMissingPeriodicNote,
+            setValue: value => {
+                plugin.settings.homepage = {
+                    ...plugin.settings.homepage,
+                    createMissingPeriodicNote: value
+                };
+            },
+            visible: () => isPeriodicHomepageSource(plugin.settings.homepage.source)
         })
     ]);
 }
@@ -325,40 +366,6 @@ function createViewDefinitionGroup(context: SettingsTabContext): SettingDefiniti
             desc: strings.settings.items.paneTransitionDuration.desc,
             aliases: [strings.settings.items.paneTransitionDuration.resetTooltip],
             render: setting => renderPaneTransitionSetting(setting, context)
-        }),
-        createDropdownDefinition('startView', {
-            name: strings.settings.items.startView.name,
-            desc: strings.settings.items.startView.desc,
-            aliases: optionAliases(strings.settings.items.startView.options),
-            options: {
-                navigation: strings.settings.items.startView.options.navigation,
-                files: strings.settings.items.startView.options.files
-            }
-        }),
-        createRenderDefinition({
-            name: strings.settings.items.homepage.name,
-            desc: strings.settings.items.homepage.desc,
-            aliases: optionAliases(strings.settings.items.homepage.options),
-            render: setting => renderHomepageSetting(setting, context)
-        }),
-        createRenderDefinition({
-            name: strings.settings.items.homepage.file.name,
-            desc: strings.settings.items.homepage.file.empty,
-            aliases: [strings.settings.items.homepage.chooseButton, strings.common.clear],
-            visible: () => plugin.settings.homepage.source === 'file',
-            render: setting => renderHomepageFileSetting(setting, context)
-        }),
-        createRenderedToggleDefinition(context, {
-            name: strings.settings.items.homepage.createMissing.name,
-            desc: strings.settings.items.homepage.createMissing.desc,
-            getValue: () => plugin.settings.homepage.createMissingPeriodicNote,
-            setValue: value => {
-                plugin.settings.homepage = {
-                    ...plugin.settings.homepage,
-                    createMissingPeriodicNote: value
-                };
-            },
-            visible: () => isPeriodicHomepageSource(plugin.settings.homepage.source)
         }),
         createToggleDefinition('showInfoButtons', {
             name: strings.settings.items.showInfoButtons.name,
@@ -689,6 +696,24 @@ interface RenderedToggleOptions extends DefinitionOptions {
     setValue: (value: boolean) => void;
 }
 
+function createRenderedToggleDefinition(context: SettingsTabContext, options: RenderedToggleOptions): SettingDefinitionRender {
+    return createRenderDefinition({
+        name: options.name,
+        desc: options.desc,
+        aliases: options.aliases,
+        visible: options.visible,
+        render: setting => {
+            setting.setName(options.name).setDesc(options.desc);
+            setting.addToggle(toggle =>
+                toggle.setValue(options.getValue()).onChange(async value => {
+                    options.setValue(value);
+                    await context.plugin.saveSettingsAndUpdate();
+                })
+            );
+        }
+    });
+}
+
 function createToggleDefinition(
     key: AppearanceBehaviorToggleKey,
     options: ControlDefinitionOptions
@@ -706,24 +731,6 @@ function createDropdownDefinition(
     return createDropdownControlDefinition(key, {
         ...options,
         defaultValue: DEFAULT_SETTINGS[key]
-    });
-}
-
-function createRenderedToggleDefinition(context: SettingsTabContext, options: RenderedToggleOptions): SettingDefinitionRender {
-    return createRenderDefinition({
-        name: options.name,
-        desc: options.desc,
-        aliases: options.aliases,
-        visible: options.visible,
-        render: setting => {
-            setting.setName(options.name).setDesc(options.desc);
-            setting.addToggle(toggle =>
-                toggle.setValue(options.getValue()).onChange(async value => {
-                    options.setValue(value);
-                    await context.plugin.saveSettingsAndUpdate();
-                })
-            );
-        }
     });
 }
 

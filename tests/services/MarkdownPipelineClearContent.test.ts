@@ -55,15 +55,28 @@ describe('MarkdownPipelineContentProvider clearContent', () => {
         batchClearFeatureImageContentMock.mockReset();
     });
 
-    it('clears persisted properties when property fields are disabled', async () => {
+    it('declares every list sort setting used by word count consumers', () => {
+        const provider = new MarkdownPipelineContentProvider(new App());
+
+        expect(provider.getRelevantSettings()).toEqual(
+            expect.arrayContaining([
+                'defaultFolderSort',
+                'propertySortKey',
+                'folderSortOverrides',
+                'tagSortOverrides',
+                'propertySortOverrides'
+            ])
+        );
+    });
+
+    it('keeps persisted properties when every display property is disabled', async () => {
         const provider = new MarkdownPipelineContentProvider(new App());
         const oldSettings = createSettings({ propertyFields: 'status' });
         const newSettings = createSettings({ propertyFields: '' });
 
         await provider.clearContent({ oldSettings, newSettings });
 
-        expect(batchClearAllFileContentMock).toHaveBeenCalledTimes(1);
-        expect(batchClearAllFileContentMock).toHaveBeenCalledWith('properties');
+        expect(batchClearAllFileContentMock).not.toHaveBeenCalled();
     });
 
     it('clears previews when preview is enabled', async () => {
@@ -88,15 +101,14 @@ describe('MarkdownPipelineContentProvider clearContent', () => {
         expect(batchClearAllFileContentMock).toHaveBeenCalledWith('preview');
     });
 
-    it('clears persisted properties when property fields change while remaining enabled', async () => {
+    it('keeps persisted properties when display property fields change', async () => {
         const provider = new MarkdownPipelineContentProvider(new App());
         const oldSettings = createSettings({ propertyFields: 'status' });
         const newSettings = createSettings({ propertyFields: 'status, type' });
 
         await provider.clearContent({ oldSettings, newSettings });
 
-        expect(batchClearAllFileContentMock).toHaveBeenCalledTimes(1);
-        expect(batchClearAllFileContentMock).toHaveBeenCalledWith('properties');
+        expect(batchClearAllFileContentMock).not.toHaveBeenCalled();
     });
 
     it('clears character counts when character count display is enabled', async () => {
@@ -121,6 +133,26 @@ describe('MarkdownPipelineContentProvider clearContent', () => {
 
         expect(provider.shouldRegenerate(oldSettings, newSettings)).toBe(true);
         expect(batchClearAllFileContentMock).toHaveBeenCalledTimes(1);
+        expect(batchClearAllFileContentMock).toHaveBeenCalledWith('wordCount');
+        expect(batchClearFeatureImageContentMock).not.toHaveBeenCalled();
+    });
+
+    it('clears word counts when sorting activates custom group headers', async () => {
+        const provider = new MarkdownPipelineContentProvider(new App());
+        const oldSettings = createSettings({
+            textCountDisplay: 'none',
+            noteGrouping: 'date',
+            defaultFolderSort: 'modified-desc'
+        });
+        const newSettings = createSettings({
+            textCountDisplay: 'none',
+            noteGrouping: 'date',
+            defaultFolderSort: 'title-asc'
+        });
+
+        await provider.clearContent({ oldSettings, newSettings });
+
+        expect(provider.shouldRegenerate(oldSettings, newSettings)).toBe(true);
         expect(batchClearAllFileContentMock).toHaveBeenCalledWith('wordCount');
         expect(batchClearFeatureImageContentMock).not.toHaveBeenCalled();
     });

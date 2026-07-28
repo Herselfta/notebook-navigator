@@ -2,7 +2,7 @@
 
 Hey there, and thanks for your interest in Notebook Navigator.
 
-This project does not accept pull requests, and this one will be closed automatically.
+This project does not accept pull requests, and pull requests are closed automatically.
 
 With the emergence of agentic coding, I can no longer quality-control outside code submissions to the standard the project needs, so all code stays under a single design and release process.
 

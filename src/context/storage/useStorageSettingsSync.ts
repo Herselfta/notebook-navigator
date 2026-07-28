@@ -32,9 +32,13 @@ import {
     getActiveHiddenFileProperties,
     getActiveHiddenFolders
 } from '../../utils/vaultProfiles';
-import { getPropertyFrontmatterFieldSignature } from '../../utils/propertyUtils';
 import { clearCacheRebuildNoticeState, getCacheRebuildNoticeState, setCacheRebuildNoticeState } from './cacheRebuildNoticeStorage';
 import { getCacheRebuildProgressTypes, getMetadataDependentTypes, haveStringArraysChanged } from './storageContentTypes';
+import {
+    clearFrontmatterMetadataCacheSignature,
+    haveFrontmatterMetadataCacheSettingsChanged,
+    markFrontmatterMetadataCacheCurrent
+} from '../../utils/frontmatterMetadataCache';
 
 /**
  * Reacts to settings/profile changes that affect storage and derived content.
@@ -128,6 +132,13 @@ export function useStorageSettingsSync(params: {
 
             // Provider-level settings may change which files need content and which providers should run.
             const affectedProviders = await registry.handleSettingsChange(oldSettings, newSettings);
+            if (haveFrontmatterMetadataCacheSettingsChanged(oldSettings, newSettings)) {
+                if (newSettings.useFrontmatterMetadata) {
+                    markFrontmatterMetadataCacheCurrent(newSettings);
+                } else {
+                    clearFrontmatterMetadataCacheSignature();
+                }
+            }
 
             const enabledFeatureImages = oldSettings.showFeatureImage !== newSettings.showFeatureImage && newSettings.showFeatureImage;
             const shouldShowIndexNotice = (affectedProviders.length > 0 || enabledFeatureImages) && !stoppedRef.current;
@@ -260,10 +271,7 @@ export function useStorageSettingsSync(params: {
         const relevantSettings = registry?.getAllRelevantSettings() ?? [];
         const hasRelevantSettingsChange =
             !registry || relevantSettings.some(settingKey => previousSettings[settingKey] !== settings[settingKey]);
-        const propertyFieldsChanged =
-            getPropertyFrontmatterFieldSignature(previousSettings) !== getPropertyFrontmatterFieldSignature(settings);
-
-        if (hasRelevantSettingsChange || propertyFieldsChanged) {
+        if (hasRelevantSettingsChange) {
             scheduleSettingsChanges(previousSettings, settings);
         }
 
@@ -283,14 +291,14 @@ export function useStorageSettingsSync(params: {
             runAsyncAction(async () => {
                 try {
                     const allFiles = getIndexableFiles();
-                    const { toAdd, toUpdate, toRemove, cachedFiles } = await calculateFileDiff(allFiles);
+                    const { toAdd, toUpdate, toRemove, existingData } = calculateFileDiff(allFiles);
 
                     if (toRemove.length > 0) {
                         await removeFilesFromCache(toRemove);
                     }
 
                     if (toAdd.length > 0 || toUpdate.length > 0) {
-                        await recordFileChanges([...toAdd, ...toUpdate], cachedFiles, pendingRenameDataRef.current);
+                        await recordFileChanges([...toAdd, ...toUpdate], existingData, pendingRenameDataRef.current);
                     }
 
                     if (settings.showTags) {

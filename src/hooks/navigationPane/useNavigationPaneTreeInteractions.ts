@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import type { Dispatch, SetStateAction } from 'react';
 import { App, TFile, TFolder } from 'obsidian';
 import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';
@@ -51,6 +51,7 @@ import {
     getTagAncestorPaths,
     toggleNavigationExpansionTarget
 } from '../../utils/navigationExpansion';
+import { useStableHandlerFacade } from '../useStableHandlerFacade';
 
 interface ExpansionStateLike {
     expandedFolders: Set<string>;
@@ -91,14 +92,13 @@ export interface NavigationPaneTreeInteractionsResult {
     handleFolderClick: (folder: TFolder, options?: { fromShortcut?: boolean }) => void;
     handleFolderNameClick: (folder: TFolder, event?: React.MouseEvent<HTMLSpanElement>) => void;
     handleFolderNameMouseDown: (folder: TFolder, event: React.MouseEvent<HTMLSpanElement>) => void;
+    handleFolderToggleAllSiblings: (folder: TFolder) => void;
     handleTagToggle: (path: string) => void;
+    handleTagToggleAllSiblings: (tagPath: string) => void;
     handlePropertyToggle: (nodeId: string) => void;
+    handlePropertyToggleAllSiblings: (propertyNode: PropertyTreeNode) => void;
     handleVirtualFolderToggle: (folderId: string) => void;
-    getAllDescendantFolders: (folder: TFolder) => string[];
-    getAllTagPaths: () => string[];
-    getAllDescendantTags: (tagPath: string) => string[];
-    getAllPropertyNodeIds: () => string[];
-    getAllDescendantPropertyNodeIds: (propertyNode: PropertyTreeNode) => string[];
+    handleVirtualFolderToggleAllSiblings: (folderId: string) => void;
     handleTagClick: (tagPath: string, event?: React.MouseEvent, options?: { fromShortcut?: boolean }) => void;
     handleTagCollectionClick: (tagCollectionId: string, event: React.MouseEvent<HTMLDivElement>) => void;
     handlePropertyCollectionClick: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -133,8 +133,7 @@ export function useNavigationPaneTreeInteractions({
                 return;
             }
 
-            uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
-            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+            uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
         },
         [uiDispatch, uiState.singlePane]
     );
@@ -183,7 +182,7 @@ export function useNavigationPaneTreeInteractions({
 
             if (shouldCollapseOnSelect) {
                 handleFolderToggle(folder.path);
-                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
+                uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
                 return;
             }
 
@@ -193,15 +192,14 @@ export function useNavigationPaneTreeInteractions({
 
             if (uiState.singlePane) {
                 if (shouldExpandOnly) {
-                    uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
+                    uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
                 } else {
-                    uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
-                    uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+                    uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
                 }
                 return;
             }
 
-            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
+            uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
         },
         [
             clearActiveShortcut,
@@ -233,6 +231,12 @@ export function useNavigationPaneTreeInteractions({
                 selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder?.path === folder.path;
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
 
+            // Folder-note name clicks stop before the row click handler, so automatic expansion must run in this branch.
+            const hasChildFolders = folder.children.some(child => child instanceof TFolder);
+            if (settings.autoExpandNavItems && hasChildFolders && !expansionState.expandedFolders.has(folder.path)) {
+                handleFolderToggle(folder.path);
+            }
+
             const openContext = event
                 ? resolveFolderNoteClickOpenContext(event, settings.folderNoteOpenLocation, settings.multiSelectModifier, isMobile)
                 : resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
@@ -256,8 +260,10 @@ export function useNavigationPaneTreeInteractions({
         [
             app,
             commandQueue,
+            expansionState.expandedFolders,
             focusListPaneAfterRightSidebarFolderNoteSelection,
             handleFolderClick,
+            handleFolderToggle,
             isMobile,
             openFolderNoteInRightSidebar,
             selectionDispatch,
@@ -465,15 +471,14 @@ export function useNavigationPaneTreeInteractions({
         (keepNavigationFocus: boolean) => {
             if (uiState.singlePane) {
                 if (keepNavigationFocus) {
-                    uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
+                    uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
                 } else {
-                    uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
-                    uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+                    uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
                 }
                 return;
             }
 
-            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
+            uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
         },
         [uiDispatch, uiState.singlePane]
     );
@@ -498,7 +503,7 @@ export function useNavigationPaneTreeInteractions({
             const shouldCollapseOnSelect = settings.autoExpandNavItems && !uiState.singlePane && hasChildren && isExpanded && isSelected;
             if (shouldCollapseOnSelect) {
                 onToggleExpand();
-                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
+                uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
                 return;
             }
 
@@ -658,42 +663,97 @@ export function useNavigationPaneTreeInteractions({
         ]
     );
 
-    return useMemo(
-        () => ({
-            handleFolderToggle,
-            handleFolderClick,
-            handleFolderNameClick,
-            handleFolderNameMouseDown,
-            handleTagToggle,
-            handlePropertyToggle,
-            handleVirtualFolderToggle,
-            getAllDescendantFolders,
-            getAllTagPaths,
-            getAllDescendantTags,
-            getAllPropertyNodeIds,
-            getAllDescendantPropertyNodeIds,
-            handleTagClick,
-            handleTagCollectionClick,
-            handlePropertyCollectionClick,
-            handlePropertyClick
-        }),
-        [
-            getAllDescendantFolders,
-            getAllDescendantPropertyNodeIds,
-            getAllDescendantTags,
-            getAllPropertyNodeIds,
-            getAllTagPaths,
-            handleFolderClick,
-            handleFolderNameClick,
-            handleFolderNameMouseDown,
-            handleFolderToggle,
-            handlePropertyClick,
-            handlePropertyCollectionClick,
-            handlePropertyToggle,
-            handleTagClick,
-            handleTagCollectionClick,
-            handleTagToggle,
-            handleVirtualFolderToggle
-        ]
+    const handleFolderToggleAllSiblings = useCallback(
+        (folder: TFolder) => {
+            const isCurrentlyExpanded = expansionState.expandedFolders.has(folder.path);
+            handleFolderToggle(folder.path);
+            const descendantPaths = getAllDescendantFolders(folder);
+            if (descendantPaths.length > 0) {
+                expansionDispatch({ type: 'TOGGLE_DESCENDANT_FOLDERS', descendantPaths, expand: !isCurrentlyExpanded });
+            }
+        },
+        [expansionDispatch, expansionState.expandedFolders, getAllDescendantFolders, handleFolderToggle]
     );
+
+    const handleTagToggleAllSiblings = useCallback(
+        (tagPath: string) => {
+            const isCurrentlyExpanded = expansionState.expandedTags.has(tagPath);
+            handleTagToggle(tagPath);
+            const descendantPaths = getAllDescendantTags(tagPath);
+            if (descendantPaths.length > 0) {
+                expansionDispatch({ type: 'TOGGLE_DESCENDANT_TAGS', descendantPaths, expand: !isCurrentlyExpanded });
+            }
+        },
+        [expansionDispatch, expansionState.expandedTags, getAllDescendantTags, handleTagToggle]
+    );
+
+    const handlePropertyToggleAllSiblings = useCallback(
+        (propertyNode: PropertyTreeNode) => {
+            const isCurrentlyExpanded = expansionState.expandedProperties.has(propertyNode.id);
+            handlePropertyToggle(propertyNode.id);
+            const descendantNodeIds = getAllDescendantPropertyNodeIds(propertyNode);
+            if (descendantNodeIds.length > 0) {
+                expansionDispatch({ type: 'TOGGLE_DESCENDANT_PROPERTIES', descendantNodeIds, expand: !isCurrentlyExpanded });
+            }
+        },
+        [expansionDispatch, expansionState.expandedProperties, getAllDescendantPropertyNodeIds, handlePropertyToggle]
+    );
+
+    const handleVirtualFolderToggleAllSiblings = useCallback(
+        (folderId: string) => {
+            const isCurrentlyExpanded = expansionState.expandedVirtualFolders.has(folderId);
+            handleVirtualFolderToggle(folderId);
+            if (folderId === TAGS_ROOT_VIRTUAL_FOLDER_ID) {
+                const descendantPaths = getAllTagPaths();
+                if (descendantPaths.length > 0) {
+                    expansionDispatch({ type: 'TOGGLE_DESCENDANT_TAGS', descendantPaths, expand: !isCurrentlyExpanded });
+                }
+                return;
+            }
+            if (folderId === PROPERTIES_ROOT_VIRTUAL_FOLDER_ID) {
+                const descendantNodeIds = getAllPropertyNodeIds();
+                if (descendantNodeIds.length > 0) {
+                    expansionDispatch({ type: 'TOGGLE_DESCENDANT_PROPERTIES', descendantNodeIds, expand: !isCurrentlyExpanded });
+                }
+            }
+        },
+        [expansionDispatch, expansionState.expandedVirtualFolders, getAllPropertyNodeIds, getAllTagPaths, handleVirtualFolderToggle]
+    );
+
+    const interactions: NavigationPaneTreeInteractionsResult = {
+        handleFolderToggle,
+        handleFolderClick,
+        handleFolderNameClick,
+        handleFolderNameMouseDown,
+        handleFolderToggleAllSiblings,
+        handleTagToggle,
+        handleTagToggleAllSiblings,
+        handlePropertyToggle,
+        handlePropertyToggleAllSiblings,
+        handleVirtualFolderToggle,
+        handleVirtualFolderToggleAllSiblings,
+        handleTagClick,
+        handleTagCollectionClick,
+        handlePropertyCollectionClick,
+        handlePropertyClick
+    };
+
+    // Identity-stable facade; calls forward to the latest handlers through a ref
+    return useStableHandlerFacade(interactions, [
+        'handleFolderToggle',
+        'handleFolderClick',
+        'handleFolderNameClick',
+        'handleFolderNameMouseDown',
+        'handleFolderToggleAllSiblings',
+        'handleTagToggle',
+        'handleTagToggleAllSiblings',
+        'handlePropertyToggle',
+        'handlePropertyToggleAllSiblings',
+        'handleVirtualFolderToggle',
+        'handleVirtualFolderToggleAllSiblings',
+        'handleTagClick',
+        'handleTagCollectionClick',
+        'handlePropertyCollectionClick',
+        'handlePropertyClick'
+    ]);
 }

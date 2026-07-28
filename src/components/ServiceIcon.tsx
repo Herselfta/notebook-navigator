@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { memo, useEffect, useRef, type CSSProperties } from 'react';
 import { getIconService, useIconServiceVersion } from '../services/icons';
 
 interface ServiceIconProps {
@@ -29,7 +29,7 @@ interface ServiceIconProps {
     'aria-hidden'?: boolean;
 }
 
-export function ServiceIcon({
+export const ServiceIcon = memo(function ServiceIcon({
     iconId,
     size,
     className,
@@ -52,4 +52,4 @@ export function ServiceIcon({
     return (
         <span ref={ref} className={className} style={style} data-has-color={dataHasColor} aria-label={ariaLabel} aria-hidden={ariaHidden} />
     );
-}
+});

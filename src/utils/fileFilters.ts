@@ -18,12 +18,13 @@
 
 import { TFile, TFolder, App } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../settings/types';
-import { isPdfFile, isPrimaryDocumentFile, shouldDisplayFile } from './fileTypeUtils';
+import { isGeneratedThumbnailFile, isPrimaryDocumentFile, shouldDisplayFile } from './fileTypeUtils';
 import {
     getActiveFileVisibility,
     getActiveHiddenFileNames,
     getActiveHiddenFileTags,
     getActiveHiddenFileProperties,
+    getHiddenFolderBoundaryMatcher,
     getActiveHiddenFolders,
     getHiddenFolderMatcher
 } from './vaultProfiles';
@@ -505,8 +506,12 @@ function matchesFolderPattern(folderName: string, pattern: string): boolean {
  * @param folderPath - The full folder path for path-based patterns (e.g., "root/archive")
  * @returns true if the folder should be excluded
  */
-export function shouldExcludeFolder(folderName: string, patterns: string[], folderPath?: string): boolean {
-    const pathMatcher = getHiddenFolderMatcher(patterns).matches;
+function matchesFolderExclusionPatterns(
+    folderName: string,
+    patterns: string[],
+    folderPath: string | undefined,
+    pathMatcher: (path: string) => boolean
+): boolean {
     const hasNamePattern = patterns.some(pattern => !pattern.startsWith('/') && matchesFolderPattern(folderName, pattern));
 
     if (hasNamePattern) {
@@ -519,6 +524,19 @@ export function shouldExcludeFolder(folderName: string, patterns: string[], fold
 
     const normalizedPath = folderPath.startsWith('/') ? folderPath : `/${folderPath}`;
     return pathMatcher(normalizedPath);
+}
+
+export function shouldExcludeFolder(folderName: string, patterns: string[], folderPath?: string): boolean {
+    return matchesFolderExclusionPatterns(folderName, patterns, folderPath, getHiddenFolderMatcher(patterns).matches);
+}
+
+/**
+ * Checks if a folder's notes should be omitted from parent folder aggregation.
+ * Uses the same name and path pattern syntax as shouldExcludeFolder, but path
+ * patterns match only the folder itself, not its descendants.
+ */
+export function shouldExcludeFolderFromDescendants(folderName: string, patterns: string[], folderPath?: string): boolean {
+    return matchesFolderExclusionPatterns(folderName, patterns, folderPath, getHiddenFolderBoundaryMatcher(patterns).matches);
 }
 
 /**
@@ -612,11 +630,12 @@ export function isPathInExcludedFolder(filePath: string, excludedFolderPatterns:
     if (!filePath || excludedFolderPatterns.length === 0) return false;
 
     const pathParts = filePath.split('/');
+    let folderPath = '';
     // Check each folder in the path (excluding the file name itself)
     for (let i = 0; i < pathParts.length - 1; i++) {
         const folderName = pathParts[i];
         // Build the folder path up to this point
-        const folderPath = pathParts.slice(0, i + 1).join('/');
+        folderPath = i === 0 ? folderName : `${folderPath}/${folderName}`;
         if (shouldExcludeFolder(folderName, excludedFolderPatterns, folderPath)) {
             return true;
         }
@@ -761,6 +780,19 @@ export function getFilteredMarkdownFiles(app: App, settings: NotebookNavigatorSe
 }
 
 /**
+ * Creates a predicate that applies the same exclusion filters as `getFilteredMarkdownFiles`, used to
+ * test individual files without scanning the vault.
+ */
+export function createFileVisibilityChecker(
+    app: App,
+    settings: NotebookNavigatorSettings,
+    options?: FileFilterOptions
+): (file: TFile) => boolean {
+    const filterState = createExclusionFilterState(settings, options);
+    return (file: TFile) => passesExclusionFilters(file, filterState, app);
+}
+
+/**
  * Gets filtered files that should be present in the storage cache.
  */
 export function getFilteredIndexableFiles(app: App, settings: NotebookNavigatorSettings, options?: FileFilterOptions): TFile[] {
@@ -779,7 +811,7 @@ export function getFilteredIndexableFiles(app: App, settings: NotebookNavigatorS
         }
 
         const isNonMarkdownDrawingFile = isNonMarkdownDrawingFeatureImageFile(file);
-        if (!isPdfFile(file) && !isNonMarkdownDrawingFile) {
+        if (!isGeneratedThumbnailFile(file) && !isNonMarkdownDrawingFile) {
             continue;
         }
 

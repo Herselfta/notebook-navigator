@@ -34,6 +34,7 @@ interface CalendarYearPanelProps {
     highlightedMonthImageUrls: Record<string, string>;
     onNavigateYear: (delta: number) => void;
     onYearPeriodClick: (event: React.MouseEvent<HTMLElement>) => void;
+    onYearPeriodMouseDown: (event: React.MouseEvent<HTMLElement>) => void;
     onYearPeriodContextMenu: (event: React.MouseEvent<HTMLElement>) => void;
     onSelectYearMonth: (event: React.MouseEvent<HTMLButtonElement>, date: CalendarYearMonthEntry['date']) => void;
 }
@@ -51,6 +52,7 @@ export const CalendarYearPanel = React.memo(function CalendarYearPanel({
     highlightedMonthImageUrls,
     onNavigateYear,
     onYearPeriodClick,
+    onYearPeriodMouseDown,
     onYearPeriodContextMenu,
     onSelectYearMonth
 }: CalendarYearPanelProps) {
@@ -80,6 +82,7 @@ export const CalendarYearPanel = React.memo(function CalendarYearPanel({
                         .filter(Boolean)
                         .join(' ')}
                     aria-live="polite"
+                    onMouseDown={onYearPeriodMouseDown}
                     onClick={onYearPeriodClick}
                     onContextMenu={onYearPeriodContextMenu}
                 >

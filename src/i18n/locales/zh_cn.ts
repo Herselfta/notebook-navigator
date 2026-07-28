@@ -87,6 +87,7 @@ export const STRINGS_ZH_CN = {
     navigationCalendar: {
         ariaLabel: '导航日历',
         dailyNotesNotEnabled: '未启用每日笔记。请在 Obsidian 设置 → 核心插件中启用每日笔记。',
+        noteHiddenByProfile: '日历笔记已被当前仓库配置隐藏。',
         createDailyNote: {
             title: '创建每日笔记',
             message: '每日笔记 {filename} 不存在。是否创建？',
@@ -168,6 +169,7 @@ export const STRINGS_ZH_CN = {
     // Search input
     searchInput: {
         placeholder: '搜索...', // Placeholder text for search input (English: Search...)
+        placeholderVault: '搜索仓库...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: '清除搜索', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: '切换到筛选搜索',
@@ -180,15 +182,15 @@ export const STRINGS_ZH_CN = {
         searchHelp: '搜索语法',
         searchHelpTitle: '搜索语法',
         searchHelpModal: {
-            intro: '在一个查询中组合文件名、属性、标签、日期和过滤器（例如：`meeting .status=active #work @thisweek`）。安装 Omnisearch 插件以使用全文搜索。',
+            intro: '在一个查询中组合显示名称、别名、属性、标签、日期和过滤器（例如：`meeting .status=active #work @thisweek`）。安装 Omnisearch 插件以使用全文搜索。',
             introSwitching: '使用上/下箭头键或点击搜索图标在过滤搜索和 Omnisearch 之间切换。',
             sections: {
                 fileNames: {
-                    title: '文件名',
+                    title: '文件名和别名',
                     items: [
-                        '`word` 查找文件名中含有 "word" 的笔记。',
-                        '`word1 word2` 每个词都必须匹配文件名。',
-                        '`-word` 排除文件名中含有 "word" 的笔记。'
+                        '`word` 查找显示名称或别名中含有 "word" 的笔记。',
+                        '`word1 word2` 每个词都必须在显示名称或别名中匹配。',
+                        '`-word` 排除显示名称或别名中含有 "word" 的笔记。'
                     ]
                 },
                 tags: {
@@ -208,11 +210,11 @@ export const STRINGS_ZH_CN = {
                 properties: {
                     title: '属性',
                     items: [
-                        '`.key` 包含具有属性键的笔记。',
+                        '`.key` 包含属性键以 `key` 开头的笔记。',
                         '`.key=value` 包含属性值含有 `value` 的笔记。',
                         '`."Reading Status"` 包含属性键包含空格的笔记。',
                         '`."Reading Status"="In Progress"` 包含空格的键和值必须用双引号括起来。',
-                        '`-.key` 排除具有属性键的笔记。',
+                        '`-.key` 排除属性键以 `key` 开头的笔记。',
                         '`-.key=value` 排除属性值含有 `value` 的笔记。',
                         'Cmd/Ctrl+点击属性以 AND 方式添加。Cmd/Ctrl+Shift+点击以 OR 方式添加。'
                     ]
@@ -350,6 +352,9 @@ export const STRINGS_ZH_CN = {
             changeBackground: '更改背景',
             excludeFolder: '隐藏文件夹',
             unhideFolder: '显示文件夹',
+            excludeFromDescendants: '在父文件夹中隐藏',
+            includeInDescendants: '在父文件夹中显示',
+            hiddenFromParentsIndicator: '已从父文件夹列表中隐藏',
             moveFolder: '移动文件夹到...',
             renameFolder: '重命名文件夹',
             deleteFolder: '删除文件夹'
@@ -661,6 +666,7 @@ export const STRINGS_ZH_CN = {
         },
         navigationBanner: {
             placeholder: '搜索图片...',
+            svgMissingDimensions: '所选 SVG 文件未定义宽度、高度或 viewBox。',
             instructions: {
                 navigate: '导航',
                 select: '设为横幅',
@@ -705,10 +711,12 @@ export const STRINGS_ZH_CN = {
         },
         welcome: {
             title: '欢迎使用 {pluginName}',
-            introText: '您好！在开始之前，强烈建议您观看下面视频的前五分钟，以了解面板和开关"显示子文件夹中的笔记"是如何工作的。',
-            continueText: '如果您还有五分钟时间，请继续观看视频以了解紧凑显示模式以及如何正确设置快捷方式和重要的快捷键。',
-            thanksText: '非常感谢您的下载，祝您使用愉快！',
-            videoAlt: '安装和掌握 Notebook Navigator',
+            introText:
+                '您好，欢迎使用 Notebook Navigator，一款更好用的 Obsidian 文件浏览器和日历。在开始之前，强烈建议您至少观看下方《Mastering Notebook Navigator》视频的前三章。它会介绍两个面板的工作方式，帮助您快速上手。',
+            continueText:
+                '如果您还有十分钟，请继续观看首次设置和日常使用流程这两个章节。看完后，您就掌握了入门所需的全部内容，以后还可以回来了解更多细节。Notebook Navigator 设置顶部提供了该视频的链接。',
+            thanksText: '祝您使用 Notebook Navigator 愉快！',
+            videoAlt: '精通 Notebook Navigator 3',
             openVideoButton: '播放视频',
             closeButton: '以后再说'
         }
@@ -763,6 +771,8 @@ export const STRINGS_ZH_CN = {
         notices: {
             hideFolder: '已隐藏文件夹：{name}',
             showFolder: '已显示文件夹：{name}',
+            folderExcludedFromDescendants: '已从父文件夹列表中隐藏：{name}',
+            folderIncludedInDescendants: '已在父文件夹列表中显示：{name}',
             mergeNotes: '已将 {count} 个笔记合并到 {name}'
         },
         notifications: {
@@ -847,7 +857,7 @@ export const STRINGS_ZH_CN = {
         openYearlyNote: '打开每年笔记',
         revealFile: '定位文件', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '搜索', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: '在仓库根目录搜索', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: '搜索整个仓库', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: '切换双窗格布局', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: '切换双窗格方向', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: '切换日历', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -887,7 +897,8 @@ export const STRINGS_ZH_CN = {
         removeTag: '从选定文件移除标签', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: '从选定文件移除所有标签', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: '打开所有文件', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: '重建缓存' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: '重建缓存', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: '恢复默认设置' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -896,7 +907,17 @@ export const STRINGS_ZH_CN = {
         calendarViewName: '日历', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: '文件夹笔记', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: '笔记本导航器', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: '在笔记本导航器中定位' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: '在笔记本导航器中定位', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            '笔记本导航器无法读取其设置,因此未启动。如果仓库正在同步,请在同步完成后重启 Obsidian。要使用默认设置重新开始,请运行命令"恢复默认设置"。', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: '恢复默认设置', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                '此操作会将笔记本导航器的设置文件替换为默认设置。如果仓库仍在同步,恢复的默认设置可能会覆盖其他设备上保存的设置。可读取的设置文件会先复制到插件文件夹中带时间戳的备份文件。', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: '恢复默认', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: '无法完成设置恢复。已保留本地偏好设置。', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: '已恢复默认设置。请重启 Obsidian 以完成。' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -969,6 +990,7 @@ export const STRINGS_ZH_CN = {
                 vaultConfiguration: '仓库设置',
                 templates: '模板',
                 behavior: '行为',
+                startup: '启动',
                 keyboardNavigation: '键盘导航',
                 mouseButtons: '鼠标按钮',
                 view: '外观',
@@ -1142,6 +1164,10 @@ export const STRINGS_ZH_CN = {
                 name: '显示子文件夹路径',
                 desc: '在列表窗格中按文件夹分组时，显示子文件夹路径，而不是仅显示文件夹名称。'
             },
+            showGroupHeaderItemCounts: {
+                name: '显示项目计数',
+                desc: '在列表窗格的每个分组标题中显示项目数量。'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: '文件夹分组：当前文件夹文件置底',
                 desc: '当默认分组为文件夹时，将所选文件夹中的直属文件移到子文件夹分组下方。'
@@ -1216,8 +1242,8 @@ export const STRINGS_ZH_CN = {
                 desc: '为子文件夹、标签或属性中的笔记显示父文件夹名称。'
             },
             showParentFolderFullPath: {
-                name: '显示完整路径',
-                desc: '显示父文件夹的完整路径而不仅仅是文件夹名称。'
+                name: '显示文件夹路径',
+                desc: '显示相对于所选文件夹的路径，而不是仅显示文件夹名称。标签和属性显示完整路径。'
             },
             parentFolderClickRevealsFile: {
                 name: '点击父文件夹打开文件夹',
@@ -1288,7 +1314,7 @@ export const STRINGS_ZH_CN = {
             },
             startView: {
                 name: '默认启动视图',
-                desc: '选择打开 Notebook Navigator 时显示的窗格。导航窗格显示快捷方式、最近文件和文件夹结构。列表窗格显示文件列表。',
+                desc: '选择打开 Notebook Navigator 时处于活动状态的窗格。单窗格布局优先显示该窗格；双窗格布局将键盘焦点移至该窗格。',
                 options: {
                     navigation: '导航窗格',
                     files: '列表窗格'
@@ -1463,6 +1489,10 @@ export const STRINGS_ZH_CN = {
                 name: '显示特色图片',
                 desc: '在日历中显示笔记的特色图片。'
             },
+            calendarShowTasks: {
+                name: '显示任务',
+                desc: '在包含未完成任务的日、周和月上显示指示器。'
+            },
             calendarShowWeekNumber: {
                 name: '显示周号',
                 desc: '在每行开头显示周号。'
@@ -1478,6 +1508,10 @@ export const STRINGS_ZH_CN = {
             calendarConfirmBeforeCreate: {
                 name: '创建前确认',
                 desc: '点击没有笔记的日期时显示确认对话框。'
+            },
+            calendarShowHiddenItems: {
+                name: '显示隐藏项目',
+                desc: '启用时，日历始终显示所有日历笔记，包括被仓库配置过滤器隐藏的笔记。'
             },
             calendarIntegrationMode: {
                 name: '日记来源',
@@ -1577,6 +1611,12 @@ export const STRINGS_ZH_CN = {
                     editorDesc: '在下方粘贴或编辑 JSON。未包含的设置将重置为默认值。',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: '导入',
+                    confirmTitle: '导入设置？',
+                    confirmMessage: '导入会替换当前的 Notebook Navigator 设置。',
+                    backupToggleName: '导入前将当前设置保存到仓库根目录',
+                    backupToggleDesc: '在仓库根目录中创建带时间戳的 JSON 文件。',
+                    successWithBackupNotice: '设置已导入。之前的设置已保存到 {path}。',
+                    backupError: '无法保存当前设置: {message}',
                     successNotice: '设置已导入。',
                     errorNotice: '导入设置失败: {message}',
                     fileReadError: '无法读取文件: {message}'
@@ -1679,6 +1719,11 @@ export const STRINGS_ZH_CN = {
                 name: '隐藏文件夹 (库配置)',
                 desc: '逗号分隔的要隐藏的文件夹列表。名称模式：assets*（以assets开头的文件夹），*_temp（以_temp结尾）。路径模式：/archive（仅根目录archive），/res*（以res开头的根文件夹），/*/temp（一级目录下的temp文件夹），/projects/*（projects内的所有文件夹）。',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: '从子文件夹笔记中排除文件夹（库配置）',
+                desc: '逗号分隔的文件夹列表，用于在收集子文件夹中的笔记时跳过这些文件夹。文件夹仍会显示，选择该文件夹时仍会显示其中的笔记。使用与隐藏文件夹相同的模式。',
+                placeholder: '日记, 资源, /archive'
             },
             fileVisibility: {
                 name: '显示文件类型 (库配置)',

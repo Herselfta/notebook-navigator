@@ -42,8 +42,9 @@ import {
     getPathPatternCacheKey,
     getNormalizedPathSegments,
     matchesLiteralPrefix,
+    matchesParsedPatternSegments,
     parsePathPattern,
-    rebuildPattern,
+    rebuildRenamedPattern,
     type PathPatternMatcher,
     type ParsedPathPattern
 } from './pathPatternMatcher';
@@ -54,6 +55,7 @@ const FALLBACK_VAULT_PROFILE_NAME = 'Default';
 interface VaultProfileInitOptions {
     id?: string;
     hiddenFolders?: string[];
+    descendantExcludedFolders?: string[];
     hiddenFileProperties?: string[];
     hiddenFileNames?: string[];
     hiddenTags?: string[];
@@ -135,12 +137,21 @@ const matchesHiddenFolderLiteralPrefix = (pattern: ParsedPathPattern, candidateS
 };
 
 // Cache compiled hidden-folder matchers keyed by the normalized pattern list.
-const hiddenFolderMatcherCache = new Map<string, PathPatternMatcher>();
-let hiddenFolderMatcherCacheVersion = 0;
-const hiddenFolderMatcherByPatternList = new WeakMap<readonly string[], { version: number; matcher: PathPatternMatcher }>();
+interface HiddenFolderMatcherCaches {
+    byKey: Map<string, PathPatternMatcher>;
+    byPatternList: WeakMap<readonly string[], { version: number; matcher: PathPatternMatcher }>;
+}
 
-export const getHiddenFolderMatcher = (patterns: string[]): PathPatternMatcher => {
-    const cachedByPatternList = hiddenFolderMatcherByPatternList.get(patterns);
+let hiddenFolderMatcherCacheVersion = 0;
+const hiddenFolderMatcherCaches: HiddenFolderMatcherCaches = { byKey: new Map(), byPatternList: new WeakMap() };
+const hiddenFolderBoundaryMatcherCaches: HiddenFolderMatcherCaches = { byKey: new Map(), byPatternList: new WeakMap() };
+
+const getCachedHiddenFolderMatcher = (
+    patterns: string[],
+    caches: HiddenFolderMatcherCaches,
+    buildMatcher: (pathPatterns: string[]) => PathPatternMatcher
+): PathPatternMatcher => {
+    const cachedByPatternList = caches.byPatternList.get(patterns);
     if (cachedByPatternList && cachedByPatternList.version === hiddenFolderMatcherCacheVersion) {
         return cachedByPatternList.matcher;
     }
@@ -162,26 +173,50 @@ export const getHiddenFolderMatcher = (patterns: string[]): PathPatternMatcher =
     });
 
     const cacheKey = getPathPatternCacheKey(Array.from(normalizedPatterns).sort());
-    const cached = hiddenFolderMatcherCache.get(cacheKey);
+    const cached = caches.byKey.get(cacheKey);
     if (cached) {
-        hiddenFolderMatcherByPatternList.set(patterns, { version: hiddenFolderMatcherCacheVersion, matcher: cached });
+        caches.byPatternList.set(patterns, { version: hiddenFolderMatcherCacheVersion, matcher: cached });
         return cached;
     }
 
-    const matcher = createPathPatternMatcher(pathPatterns, {
-        normalizePattern: normalizeHiddenFolderMatchPattern,
-        normalizePath: normalizeHiddenFolderMatchPath,
-        requireRoot: true
-    });
-
-    hiddenFolderMatcherCache.set(cacheKey, matcher);
-    hiddenFolderMatcherByPatternList.set(patterns, { version: hiddenFolderMatcherCacheVersion, matcher });
+    const matcher = buildMatcher(pathPatterns);
+    caches.byKey.set(cacheKey, matcher);
+    caches.byPatternList.set(patterns, { version: hiddenFolderMatcherCacheVersion, matcher });
     return matcher;
 };
 
+export const getHiddenFolderMatcher = (patterns: string[]): PathPatternMatcher =>
+    getCachedHiddenFolderMatcher(patterns, hiddenFolderMatcherCaches, pathPatterns =>
+        createPathPatternMatcher(pathPatterns, {
+            normalizePattern: normalizeHiddenFolderMatchPattern,
+            normalizePath: normalizeHiddenFolderMatchPath,
+            requireRoot: true
+        })
+    );
+
+// Boundary matcher: path patterns match the folder itself, never its descendants,
+// so the extra path segments allowed by matchesParsedPatternSegments are rejected
+// through an exact segment-count requirement.
+export const getHiddenFolderBoundaryMatcher = (patterns: string[]): PathPatternMatcher =>
+    getCachedHiddenFolderMatcher(patterns, hiddenFolderBoundaryMatcherCaches, pathPatterns => {
+        const parsedPatterns = pathPatterns
+            .map(pattern => parsePathPattern(pattern, { normalizePattern: normalizeHiddenFolderMatchPattern, requireRoot: true }))
+            .filter((pattern): pattern is ParsedPathPattern => pattern !== null);
+        return {
+            patterns: parsedPatterns,
+            matches: path => {
+                const pathSegments = getNormalizedPathSegments(path, normalizeHiddenFolderMatchPath);
+                return parsedPatterns.some(
+                    pattern => pathSegments.length === pattern.segments.length && matchesParsedPatternSegments(pattern, pathSegments)
+                );
+            }
+        };
+    });
+
 // Clears all cached hidden-folder matchers.
 export const clearHiddenFolderMatcherCache = (): void => {
-    hiddenFolderMatcherCache.clear();
+    hiddenFolderMatcherCaches.byKey.clear();
+    hiddenFolderBoundaryMatcherCaches.byKey.clear();
     hiddenFolderMatcherCacheVersion += 1;
 };
 
@@ -206,8 +241,10 @@ const isHiddenFolderPathPattern = (pattern: string): boolean => {
 
 export interface HiddenFolderPatternMatch {
     normalizedPrefix: string;
-    rebuildPattern: (nextPrefix: string) => string;
 }
+
+type FolderPatternProfileKey = 'hiddenFolders' | 'descendantExcludedFolders';
+const FOLDER_PATTERN_PROFILE_KEYS: readonly FolderPatternProfileKey[] = ['hiddenFolders', 'descendantExcludedFolders'];
 
 export const getHiddenFolderPatternMatch = (pattern: string): HiddenFolderPatternMatch | null => {
     if (!isHiddenFolderPathPattern(pattern)) {
@@ -224,21 +261,7 @@ export const getHiddenFolderPatternMatch = (pattern: string): HiddenFolderPatter
     });
     const normalizedPrefix = normalizeHiddenFolderPath(`/${normalizedPrefixSegments.join('/')}`);
 
-    return {
-        normalizedPrefix,
-        rebuildPattern: (nextPrefix: string) => {
-            const normalizedNext = normalizeHiddenFolderPath(nextPrefix);
-            if (!normalizedNext) {
-                return '';
-            }
-
-            const nextSegments = getNormalizedPathSegments(normalizedNext, normalizeHiddenFolderPath);
-            return rebuildPattern(parsed, nextSegments, {
-                addLeadingSlash: true,
-                normalizePattern: normalizeHiddenFolderPath
-            });
-        }
-    };
+    return { normalizedPrefix };
 };
 
 // Creates a clean copy of pattern array, trimming and filtering out empty strings
@@ -629,6 +652,7 @@ export function createVaultProfile(name: string, options: VaultProfileInitOption
         name: resolveProfileName(name),
         fileVisibility: resolveFileVisibility(options.fileVisibility),
         hiddenFolders: clonePatterns(options.hiddenFolders),
+        descendantExcludedFolders: clonePatterns(options.descendantExcludedFolders),
         hiddenTags: clonePatterns(options.hiddenTags),
         hiddenFileNames: clonePatterns(options.hiddenFileNames),
         hiddenFileTags: clonePatterns(options.hiddenFileTags),
@@ -655,6 +679,7 @@ function createVaultProfileFromTemplate(name: string, template: VaultProfileTemp
     const source = template.sourceProfile ?? null;
     return createVaultProfile(name, {
         hiddenFolders: source?.hiddenFolders,
+        descendantExcludedFolders: source?.descendantExcludedFolders,
         hiddenFileProperties: source?.hiddenFileProperties,
         hiddenFileNames: source?.hiddenFileNames,
         hiddenTags: source?.hiddenTags ?? template.fallbackHiddenTags,
@@ -856,6 +881,7 @@ export function ensureVaultProfiles(settings: NotebookNavigatorSettings): void {
         profile.name = resolveProfileName(profile.name);
         profile.fileVisibility = resolveFileVisibility(profile.fileVisibility);
         profile.hiddenFolders = clonePatterns(profile.hiddenFolders);
+        profile.descendantExcludedFolders = clonePatterns(profile.descendantExcludedFolders);
         const hiddenTagSource = Array.isArray(profile.hiddenTags) ? profile.hiddenTags : [];
         profile.hiddenTags = clonePatterns(hiddenTagSource);
         profile.hiddenFileNames = clonePatterns(profile.hiddenFileNames);
@@ -904,6 +930,10 @@ export function findVaultProfileById(profiles: VaultProfile[] | undefined, profi
 // Returns the list of hidden folder patterns from the active profile
 export function getActiveHiddenFolders(settings: NotebookNavigatorSettings): string[] {
     return getActiveVaultProfile(settings).hiddenFolders;
+}
+
+export function getActiveDescendantExcludedFolders(settings: NotebookNavigatorSettings): string[] {
+    return getActiveVaultProfile(settings).descendantExcludedFolders;
 }
 
 export function getActiveHiddenFileNames(settings: NotebookNavigatorSettings): string[] {
@@ -1021,7 +1051,12 @@ export function updateHiddenTagPrefixMatches(settings: NotebookNavigatorSettings
                 return pattern;
             }
 
-            const rebuilt = rebuildPattern(parsedPattern, nextSegments, { normalizePattern: normalizeTagPathValue });
+            const rebuilt = rebuildRenamedPattern(parsedPattern, previousSegments, nextSegments, {
+                normalizePattern: normalizeTagPathValue
+            });
+            if (rebuilt === null) {
+                return pattern;
+            }
             if (rebuilt !== pattern) {
                 profileUpdated = true;
             }
@@ -1067,7 +1102,12 @@ export function updateHiddenFileTagPrefixMatches(settings: NotebookNavigatorSett
                 return pattern;
             }
 
-            const rebuilt = rebuildPattern(parsedPattern, nextSegments, { normalizePattern: normalizeTagPathValue });
+            const rebuilt = rebuildRenamedPattern(parsedPattern, previousSegments, nextSegments, {
+                normalizePattern: normalizeTagPathValue
+            });
+            if (rebuilt === null) {
+                return pattern;
+            }
             if (rebuilt !== pattern) {
                 profileUpdated = true;
             }
@@ -1197,38 +1237,46 @@ export function updateHiddenFolderExactMatches(settings: NotebookNavigatorSettin
     let didUpdate = false;
 
     settings.vaultProfiles.forEach(profile => {
-        if (!Array.isArray(profile.hiddenFolders) || profile.hiddenFolders.length === 0) {
-            return;
-        }
-
-        const matcher = createHiddenFolderUpdateMatcher(profile.hiddenFolders);
-        if (matcher.patterns.length === 0) {
-            return;
-        }
-
-        const parsedByRaw = new Map(matcher.patterns.map(pattern => [pattern.raw, pattern]));
-
-        let profileUpdated = false;
-        const updated = profile.hiddenFolders.map(pattern => {
-            const parsed = parsedByRaw.get(pattern);
-            if (!parsed || parsed.literalPrefixLength === 0 || !matchesHiddenFolderLiteralPrefix(parsed, previousSegments)) {
-                return pattern;
+        FOLDER_PATTERN_PROFILE_KEYS.forEach(profileKey => {
+            const patterns = profile[profileKey];
+            if (!Array.isArray(patterns) || patterns.length === 0) {
+                return;
             }
 
-            const rebuilt = rebuildPattern(parsed, nextSegments, {
-                addLeadingSlash: true,
-                normalizePattern: normalizeHiddenFolderPath
+            const matcher = createHiddenFolderUpdateMatcher(patterns);
+            if (matcher.patterns.length === 0) {
+                return;
+            }
+
+            const parsedByRaw = new Map(matcher.patterns.map(pattern => [pattern.raw, pattern]));
+
+            let profileUpdated = false;
+            const updated = patterns.map(pattern => {
+                const parsed = parsedByRaw.get(pattern);
+                if (!parsed || parsed.literalPrefixLength === 0 || !matchesHiddenFolderLiteralPrefix(parsed, previousSegments)) {
+                    return pattern;
+                }
+
+                // previousSegments are casefolded by normalizeHiddenFolderMatchPath; pattern segments keep their original case
+                const rebuilt = rebuildRenamedPattern(parsed, previousSegments, nextSegments, {
+                    addLeadingSlash: true,
+                    normalizePattern: normalizeHiddenFolderPath,
+                    normalizeMatchSegment: casefold
+                });
+                if (rebuilt === null) {
+                    return pattern;
+                }
+                if (rebuilt !== parsed.raw) {
+                    profileUpdated = true;
+                }
+                return rebuilt;
             });
-            if (rebuilt !== parsed.raw) {
-                profileUpdated = true;
-            }
-            return rebuilt;
-        });
 
-        if (profileUpdated) {
-            profile.hiddenFolders = Array.from(new Set(updated));
-            didUpdate = true;
-        }
+            if (profileUpdated) {
+                profile[profileKey] = Array.from(new Set(updated));
+                didUpdate = true;
+            }
+        });
     });
 
     return didUpdate;
@@ -1244,41 +1292,44 @@ export function removeHiddenFolderExactMatches(settings: NotebookNavigatorSettin
     let didUpdate = false;
 
     settings.vaultProfiles.forEach(profile => {
-        if (!Array.isArray(profile.hiddenFolders) || profile.hiddenFolders.length === 0) {
-            return;
-        }
-
-        const matcher = createHiddenFolderUpdateMatcher(profile.hiddenFolders);
-        if (matcher.patterns.length === 0) {
-            return;
-        }
-
-        const parsedByRaw = new Map(matcher.patterns.map(pattern => [pattern.raw, pattern]));
-        const targetSegments = getNormalizedPathSegments(normalizedTarget, normalizeHiddenFolderMatchPath);
-
-        let profileUpdated = false;
-        const filtered = profile.hiddenFolders.filter(pattern => {
-            const parsed = parsedByRaw.get(pattern);
-            if (!parsed || parsed.literalPrefixLength === 0) {
-                return true;
+        FOLDER_PATTERN_PROFILE_KEYS.forEach(profileKey => {
+            const patterns = profile[profileKey];
+            if (!Array.isArray(patterns) || patterns.length === 0) {
+                return;
             }
 
-            if (!matchesHiddenFolderLiteralPrefix(parsed, targetSegments)) {
-                return true;
+            const matcher = createHiddenFolderUpdateMatcher(patterns);
+            if (matcher.patterns.length === 0) {
+                return;
             }
 
-            if (parsed.literalPrefixLength < targetSegments.length && parsed.literalPrefixLength < parsed.segments.length) {
-                return true;
-            }
+            const parsedByRaw = new Map(matcher.patterns.map(pattern => [pattern.raw, pattern]));
+            const targetSegments = getNormalizedPathSegments(normalizedTarget, normalizeHiddenFolderMatchPath);
 
-            profileUpdated = true;
-            return false;
+            let profileUpdated = false;
+            const filtered = patterns.filter(pattern => {
+                const parsed = parsedByRaw.get(pattern);
+                if (!parsed || parsed.literalPrefixLength === 0) {
+                    return true;
+                }
+
+                if (!matchesHiddenFolderLiteralPrefix(parsed, targetSegments)) {
+                    return true;
+                }
+
+                if (parsed.literalPrefixLength < targetSegments.length && parsed.literalPrefixLength < parsed.segments.length) {
+                    return true;
+                }
+
+                profileUpdated = true;
+                return false;
+            });
+
+            if (profileUpdated) {
+                profile[profileKey] = filtered;
+                didUpdate = true;
+            }
         });
-
-        if (profileUpdated) {
-            profile.hiddenFolders = filtered;
-            didUpdate = true;
-        }
     });
 
     return didUpdate;

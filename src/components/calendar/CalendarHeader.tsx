@@ -44,6 +44,7 @@ interface CalendarHeaderProps {
     onToday: () => void;
     onOpenHelp: () => void;
     onPeriodClick: (event: React.MouseEvent<HTMLElement>, kind: CalendarHeaderPeriodKind) => void;
+    onPeriodMouseDown: (event: React.MouseEvent<HTMLElement>, kind: CalendarHeaderPeriodKind) => void;
     onPeriodContextMenu: (event: React.MouseEvent<HTMLElement>, kind: CalendarHeaderPeriodKind) => void;
 }
 
@@ -69,6 +70,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
     onToday,
     onOpenHelp,
     onPeriodClick,
+    onPeriodMouseDown,
     onPeriodContextMenu
 }: CalendarHeaderProps) {
     // Keep mouse clicks from moving focus to header controls so `:focus-within`
@@ -79,6 +81,15 @@ export const CalendarHeader = React.memo(function CalendarHeader({
         }
 
         event.preventDefault();
+    };
+
+    const handlePeriodMouseDown = (event: React.MouseEvent<HTMLButtonElement>, kind: CalendarHeaderPeriodKind) => {
+        if (event.button === 1) {
+            onPeriodMouseDown(event, kind);
+            return;
+        }
+
+        handleMouseDown(event);
     };
 
     const headerYearControl = showYearInHeader ? (
@@ -92,7 +103,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
             ]
                 .filter(Boolean)
                 .join(' ')}
-            onMouseDown={handleMouseDown}
+            onMouseDown={event => handlePeriodMouseDown(event, 'year')}
             onClick={event => onPeriodClick(event, 'year')}
             onContextMenu={event => onPeriodContextMenu(event, 'year')}
         >
@@ -114,7 +125,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
                 ]
                     .filter(Boolean)
                     .join(' ')}
-                onMouseDown={handleMouseDown}
+                onMouseDown={event => handlePeriodMouseDown(event, 'quarter')}
                 onClick={event => onPeriodClick(event, 'quarter')}
                 onContextMenu={event => onPeriodContextMenu(event, 'quarter')}
             >
@@ -163,7 +174,7 @@ export const CalendarHeader = React.memo(function CalendarHeader({
                         ]
                             .filter(Boolean)
                             .join(' ')}
-                        onMouseDown={handleMouseDown}
+                        onMouseDown={event => handlePeriodMouseDown(event, 'month')}
                         onClick={event => onPeriodClick(event, 'month')}
                         onContextMenu={event => onPeriodContextMenu(event, 'month')}
                     >

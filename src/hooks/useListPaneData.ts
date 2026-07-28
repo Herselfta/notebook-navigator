@@ -37,7 +37,7 @@ import { ItemType, ListPaneItemType } from '../types';
 import type { VisibilityPreferences } from '../types';
 import type { ListPaneItem } from '../types/virtualization';
 import { createFrontmatterPropertyExclusionMatcher } from '../utils/fileFilters';
-import { parseFilterSearchTokens, filterSearchHasActiveCriteria } from '../utils/filterSearch';
+import { parseFilterSearchTokens, filterSearchHasActiveCriteria, filterSearchNeedsPropertyLookup } from '../utils/filterSearch';
 import type { ListNoteGroupingOption, NotebookNavigatorSettings } from '../settings/types';
 import type { FilterSearchTokens } from '../utils/filterSearch';
 import type { SearchResultMeta } from '../types/search';
@@ -167,6 +167,7 @@ export function useListPaneData({
     const hasTaskSearchFilters =
         activeFilterSearchTokens !== null &&
         (activeFilterSearchTokens.requireUnfinishedTasks || activeFilterSearchTokens.excludeUnfinishedTasks);
+    const hasPropertySearchFilters = activeFilterSearchTokens !== null && filterSearchNeedsPropertyLookup(activeFilterSearchTokens);
     const hasDateSearchFilters =
         activeFilterSearchTokens !== null &&
         (activeFilterSearchTokens.dateRanges.length > 0 || activeFilterSearchTokens.excludeDateRanges.length > 0);
@@ -174,9 +175,13 @@ export function useListPaneData({
         if (selectionType !== ItemType.FOLDER || !selectedFolder) {
             return undefined;
         }
+        if (selectedFolder.path === '/') {
+            return undefined;
+        }
         return selectedFolder.path;
     }, [selectionType, selectedFolder]);
-    const { hiddenFolders, hiddenFileProperties, hiddenFileNames, hiddenTags, hiddenFileTags, fileVisibility } = activeProfile;
+    const { hiddenFolders, descendantExcludedFolders, hiddenFileProperties, hiddenFileNames, hiddenTags, hiddenFileTags, fileVisibility } =
+        activeProfile;
     const hiddenFilePropertyMatcher = useMemo(
         () => createFrontmatterPropertyExclusionMatcher(hiddenFileProperties),
         [hiddenFileProperties]
@@ -235,6 +240,7 @@ export function useListPaneData({
         selectedProperty,
         activeProfile.profile.id,
         activeProfile.hiddenFolders,
+        descendantExcludedFolders,
         activeProfile.hiddenFileProperties,
         activeProfile.hiddenFileNames,
         activeProfile.hiddenTags,
@@ -278,7 +284,7 @@ export function useListPaneData({
     const searchableNames = useSearchableNames({ app, baseFiles, getFileDisplayName });
     const filterSettings = useMemo(() => ({ alphabeticalDateMode: settings.alphabeticalDateMode }), [settings.alphabeticalDateMode]);
 
-    const filteredFiles = useMemo(() => {
+    const filterResult = useMemo(() => {
         return filterListPaneFiles({
             app,
             baseFiles,
@@ -305,6 +311,7 @@ export function useListPaneData({
         trimmedQuery,
         useOmnisearch
     ]);
+    const filteredFiles = filterResult.files;
 
     const files = useMemo(() => {
         if (!propertySortOrderOverride || propertySortOrderOverride.length === 0) {
@@ -363,6 +370,8 @@ export function useListPaneData({
             hiddenTags,
             listConfig,
             collapsedListGroups,
+            matchedAliases: filterResult.matchedAliases,
+            matchedProperties: filterResult.matchedProperties,
             searchMetaMap,
             selectedFolder,
             selectedTag,
@@ -386,6 +395,8 @@ export function useListPaneData({
         hiddenTags,
         listConfig,
         collapsedListGroups,
+        filterResult.matchedAliases,
+        filterResult.matchedProperties,
         selectedFolder,
         selectedTag,
         selectedProperty,
@@ -445,6 +456,7 @@ export function useListPaneData({
         groupBy,
         hasDateSearchFilters,
         hasManualSortWordCountGroupHeaders: customGroupHeaderState.hasWordCountGroupHeaders,
+        hasPropertySearchFilters,
         hasTaskSearchFilters,
         hiddenFilePropertyMatcher,
         hiddenFileTags,

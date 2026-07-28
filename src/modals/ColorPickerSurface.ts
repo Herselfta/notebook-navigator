@@ -942,7 +942,7 @@ export class ColorPickerSurface {
 
     private createDragPreview(color: string): HTMLElement {
         const size = 36;
-        const canvas = this.rootEl.ownerDocument.createElement('canvas');
+        const canvas = this.rootEl.win.createEl('canvas');
         canvas.width = size;
         canvas.height = size;
         canvas.className = 'nn-drag-preview';

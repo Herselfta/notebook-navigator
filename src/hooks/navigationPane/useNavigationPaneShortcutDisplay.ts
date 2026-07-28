@@ -43,6 +43,7 @@ interface UseNavigationPaneShortcutDisplayProps {
     fileVisibility: FileVisibility;
     noteCountDB: ReturnType<typeof import('../../storage/fileOperations').getDBInstanceOrNull>;
     hiddenFolders: string[];
+    descendantExcludedFolders: string[];
     effectiveFrontmatterExclusions: string[];
     effectiveFrontmatterExclusionMatcher: ReturnType<typeof import('../../utils/fileFilters').createFrontmatterPropertyExclusionMatcher>;
     folderCountFileNameMatcher: ReturnType<typeof import('../../utils/fileFilters').createHiddenFileNameMatcherForVisibility>;
@@ -66,6 +67,7 @@ export function useNavigationPaneShortcutDisplay({
     fileVisibility,
     noteCountDB,
     hiddenFolders,
+    descendantExcludedFolders,
     effectiveFrontmatterExclusions,
     effectiveFrontmatterExclusionMatcher,
     folderCountFileNameMatcher,
@@ -132,6 +134,7 @@ export function useNavigationPaneShortcutDisplay({
                 excludedFiles: effectiveFrontmatterExclusions,
                 excludedFileMatcher: effectiveFrontmatterExclusionMatcher,
                 excludedFolders: hiddenFolders,
+                descendantExcludedFolders,
                 fileNameMatcher: folderCountFileNameMatcher,
                 hiddenFileTagVisibility,
                 includeDescendants: includeDescendantNotes,
@@ -144,6 +147,7 @@ export function useNavigationPaneShortcutDisplay({
             app,
             effectiveFrontmatterExclusionMatcher,
             effectiveFrontmatterExclusions,
+            descendantExcludedFolders,
             fileVisibility,
             folderCountFileNameMatcher,
             getFolderCounts,

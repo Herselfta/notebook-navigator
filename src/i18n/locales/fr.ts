@@ -88,6 +88,7 @@ export const STRINGS_FR = {
     navigationCalendar: {
         ariaLabel: 'Calendrier',
         dailyNotesNotEnabled: "Le plugin de notes quotidiennes n'est pas activé.",
+        noteHiddenByProfile: 'La note du calendrier est masquée par le profil de coffre actuel.',
         createDailyNote: {
             title: 'Nouvelle note quotidienne',
             message: "Le fichier {filename} n'existe pas. Voulez-vous le créer ?",
@@ -169,6 +170,7 @@ export const STRINGS_FR = {
     // Search input
     searchInput: {
         placeholder: 'Rechercher...', // Placeholder text for search input (English: Search...)
+        placeholderVault: 'Rechercher dans le coffre...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Effacer la recherche', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'Passer à la recherche par filtre',
@@ -181,16 +183,16 @@ export const STRINGS_FR = {
         searchHelp: 'Syntaxe de recherche',
         searchHelpTitle: 'Syntaxe de recherche',
         searchHelpModal: {
-            intro: 'Combinez noms de fichiers, propriétés, étiquettes, dates et filtres dans une requête (ex. `meeting .status=active #work @thisweek`). Installez le plugin Omnisearch pour utiliser la recherche plein texte.',
+            intro: 'Combinez noms d’affichage, alias, propriétés, étiquettes, dates et filtres dans une requête (ex. `meeting .status=active #work @thisweek`). Installez le plugin Omnisearch pour utiliser la recherche plein texte.',
             introSwitching:
                 "Basculez entre la recherche par filtre et Omnisearch avec les touches fléchées haut/bas ou en cliquant sur l'icône de recherche.",
             sections: {
                 fileNames: {
-                    title: 'Noms de fichiers',
+                    title: 'Noms de fichiers et alias',
                     items: [
-                        '`word` Trouver les notes avec "word" dans le nom de fichier.',
-                        '`word1 word2` Chaque mot doit correspondre au nom de fichier.',
-                        '`-word` Exclure les notes avec "word" dans le nom de fichier.'
+                        '`word` Trouver les notes avec "word" dans le nom d’affichage ou un alias.',
+                        '`word1 word2` Chaque mot doit être présent dans le nom d’affichage ou dans les alias.',
+                        '`-word` Exclure les notes avec "word" dans le nom d’affichage ou un alias.'
                     ]
                 },
                 tags: {
@@ -210,11 +212,11 @@ export const STRINGS_FR = {
                 properties: {
                     title: 'Propriétés',
                     items: [
-                        '`.key` Inclure les notes avec une clé de propriété.',
+                        '`.key` Inclure les notes dont la clé de propriété commence par `key`.',
                         '`.key=value` Inclure les notes dont la valeur de propriété contient `value`.',
                         '`."Reading Status"` Inclure les notes avec une clé de propriété contenant des espaces.',
                         '`."Reading Status"="In Progress"` Les clés et valeurs contenant des espaces doivent être entre guillemets doubles.',
-                        '`-.key` Exclure les notes avec une clé de propriété.',
+                        '`-.key` Exclure les notes dont la clé de propriété commence par `key`.',
                         '`-.key=value` Exclure les notes dont la valeur de propriété contient `value`.',
                         'Cmd/Ctrl+Clic sur une propriété pour ajouter avec AND. Cmd/Ctrl+Shift+Clic pour ajouter avec OR.'
                     ]
@@ -352,6 +354,9 @@ export const STRINGS_FR = {
             changeBackground: 'Changer l’arrière-plan',
             excludeFolder: 'Masquer le dossier',
             unhideFolder: 'Afficher le dossier',
+            excludeFromDescendants: 'Masquer dans les dossiers parents',
+            includeInDescendants: 'Afficher dans les dossiers parents',
+            hiddenFromParentsIndicator: 'Masqué dans les listes des dossiers parents',
             moveFolder: 'Déplacer le dossier vers...',
             renameFolder: 'Renommer le dossier',
             deleteFolder: 'Supprimer le dossier'
@@ -670,6 +675,7 @@ export const STRINGS_FR = {
         },
         navigationBanner: {
             placeholder: 'Rechercher des images...',
+            svgMissingDimensions: 'Le fichier SVG sélectionné ne définit ni largeur, ni hauteur, ni viewBox.',
             instructions: {
                 navigate: 'pour naviguer',
                 select: 'pour définir la bannière',
@@ -716,11 +722,11 @@ export const STRINGS_FR = {
         welcome: {
             title: 'Bienvenue dans {pluginName}',
             introText:
-                'Bonjour ! Avant de commencer, je vous recommande vivement de regarder les cinq premières minutes de la vidéo ci-dessous pour comprendre comment fonctionnent les panneaux et le bouton « Afficher les notes des sous-dossiers ».',
+                'Bonjour et bienvenue dans Notebook Navigator, un explorateur de fichiers et un calendrier améliorés pour Obsidian. Avant de commencer, je vous recommande vraiment de regarder au moins les trois premiers chapitres de la vidéo ci-dessous, Mastering Notebook Navigator. Ils vous présentent le fonctionnement des deux panneaux et vous permettront de prendre rapidement vos repères.',
             continueText:
-                "Si vous avez encore cinq minutes, continuez à regarder la vidéo pour comprendre les modes d'affichage compacts et comment configurer correctement les raccourcis et les touches de raccourci importantes.",
-            thanksText: 'Merci beaucoup pour le téléchargement et profitez-en !',
-            videoAlt: 'Installer et maîtriser Notebook Navigator',
+                "Ensuite, si vous avez encore dix minutes, poursuivez avec les chapitres sur la configuration initiale et l'utilisation quotidienne. Vous aurez ainsi tout ce qu'il faut pour commencer, puis vous pourrez revenir plus tard pour découvrir les détails. Vous trouverez un lien vers la vidéo en haut des paramètres de Notebook Navigator.",
+            thanksText: 'Amusez-vous bien avec Notebook Navigator !',
+            videoAlt: 'Maîtriser Notebook Navigator 3',
             openVideoButton: 'Lire la vidéo',
             closeButton: 'Peut-être plus tard'
         }
@@ -776,6 +782,8 @@ export const STRINGS_FR = {
         notices: {
             hideFolder: 'Dossier masqué : {name}',
             showFolder: 'Dossier affiché : {name}',
+            folderExcludedFromDescendants: 'Masqué dans les listes des dossiers parents : {name}',
+            folderIncludedInDescendants: 'Affiché dans les listes des dossiers parents : {name}',
             mergeNotes: '{count} notes fusionnées dans {name}'
         },
         notifications: {
@@ -860,7 +868,7 @@ export const STRINGS_FR = {
         openYearlyNote: 'Ouvrir la note annuelle',
         revealFile: 'Révéler le fichier', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Rechercher', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: 'Rechercher dans la racine du coffre', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: 'Rechercher dans tout le coffre', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'Basculer la disposition à double panneau', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: "Basculer l'orientation du double panneau", // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Afficher/masquer le calendrier', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -900,7 +908,8 @@ export const STRINGS_FR = {
         removeTag: 'Supprimer une étiquette des fichiers sélectionnés', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'Supprimer toutes les étiquettes des fichiers sélectionnés', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'Ouvrir tous les fichiers', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'Reconstruire le cache' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'Reconstruire le cache', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'Restaurer les paramètres par défaut' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -909,7 +918,17 @@ export const STRINGS_FR = {
         calendarViewName: 'Calendrier', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'Note de dossier', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Navigateur de Carnets', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'Révéler dans le Navigateur de Carnets' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'Révéler dans le Navigateur de Carnets', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            "Le Navigateur de Carnets n'a pas pu lire ses paramètres et ne s'est pas lancé. Si votre coffre est en cours de synchronisation, redémarrez Obsidian une fois la synchronisation terminée. Pour repartir avec les paramètres par défaut, exécutez la commande « Restaurer les paramètres par défaut ».", // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Restaurer les paramètres par défaut', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                "Ceci remplace le fichier de paramètres du Navigateur de Carnets par les paramètres par défaut. Si votre coffre est encore en cours de synchronisation, les valeurs par défaut restaurées peuvent remplacer les paramètres enregistrés sur vos autres appareils. Un fichier de paramètres lisible est d'abord copié vers une sauvegarde horodatée dans le dossier du plugin.", // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Restaurer les valeurs par défaut', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'Impossible de terminer la récupération des paramètres. Les préférences locales ont été conservées.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Paramètres par défaut restaurés. Redémarrez Obsidian pour terminer.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -983,6 +1002,7 @@ export const STRINGS_FR = {
                 vaultConfiguration: 'Configuration du coffre',
                 templates: 'Modèles',
                 behavior: 'Comportement',
+                startup: 'Démarrage',
                 keyboardNavigation: 'Navigation au clavier',
                 mouseButtons: 'Boutons de souris',
                 view: 'Apparence',
@@ -1159,6 +1179,10 @@ export const STRINGS_FR = {
                 name: 'Afficher les chemins des sous-dossiers',
                 desc: 'Lors du regroupement par dossier dans le panneau de liste, afficher les chemins des sous-dossiers au lieu des seuls noms de dossier.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Afficher le nombre d’éléments',
+                desc: 'Affiche le nombre d’éléments dans chaque en-tête de groupe du panneau de liste.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Regroupement par dossier : fichiers du dossier actuel en bas',
                 desc: 'Lorsque le regroupement par défaut est Dossier, déplacer les fichiers directement dans le dossier sélectionné sous les groupes de sous-dossiers.'
@@ -1233,8 +1257,8 @@ export const STRINGS_FR = {
                 desc: 'Afficher le nom du dossier parent pour les notes dans les sous-dossiers, étiquettes ou propriétés.'
             },
             showParentFolderFullPath: {
-                name: 'Afficher le chemin complet',
-                desc: 'Afficher le chemin complet du dossier parent au lieu du nom du dossier uniquement.'
+                name: 'Afficher le chemin du dossier',
+                desc: 'Afficher le chemin relatif au dossier sélectionné au lieu du seul nom de dossier. Les étiquettes et propriétés affichent le chemin complet.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Clic sur dossier parent ouvre le dossier',
@@ -1305,7 +1329,7 @@ export const STRINGS_FR = {
             },
             startView: {
                 name: 'Vue de démarrage par défaut',
-                desc: "Choisissez le panneau affiché lors de l'ouverture de Notebook Navigator. Le panneau de navigation montre les raccourcis, les fichiers récents et la structure des dossiers. Le panneau de liste affiche immédiatement la liste des fichiers.",
+                desc: "Choisissez le panneau actif à l'ouverture de Notebook Navigator. La disposition à panneau unique affiche ce panneau en premier ; la disposition à double panneau lui donne le focus clavier.",
                 options: {
                     navigation: 'Panneau de navigation',
                     files: 'Panneau de liste'
@@ -1481,6 +1505,10 @@ export const STRINGS_FR = {
                 name: "Afficher l'image mise en avant",
                 desc: 'Afficher les images mises en avant des notes dans le calendrier.'
             },
+            calendarShowTasks: {
+                name: 'Afficher les tâches',
+                desc: 'Afficher un indicateur sur les jours, semaines et mois avec des tâches inachevées.'
+            },
             calendarShowWeekNumber: {
                 name: 'Afficher le numéro de semaine',
                 desc: 'Ajouter une colonne avec le numéro de semaine.'
@@ -1496,6 +1524,10 @@ export const STRINGS_FR = {
             calendarConfirmBeforeCreate: {
                 name: 'Confirmer avant de créer',
                 desc: "Afficher une boîte de dialogue de confirmation lors de la création d'une nouvelle note quotidienne."
+            },
+            calendarShowHiddenItems: {
+                name: 'Afficher les éléments masqués',
+                desc: "Lorsqu'activé, le calendrier affiche toujours toutes les notes du calendrier, y compris les notes masquées par les filtres du profil de coffre."
             },
             calendarIntegrationMode: {
                 name: 'Source des notes quotidiennes',
@@ -1598,6 +1630,12 @@ export const STRINGS_FR = {
                         'Collez ou modifiez le JSON ci-dessous. Les paramètres non inclus sont réinitialisés aux valeurs par défaut.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'Importer',
+                    confirmTitle: 'Importer les paramètres ?',
+                    confirmMessage: 'L’importation remplace les paramètres actuels de Notebook Navigator.',
+                    backupToggleName: 'Enregistrer les paramètres actuels à la racine du coffre avant l’importation',
+                    backupToggleDesc: 'Crée un fichier JSON horodaté à la racine du coffre.',
+                    successWithBackupNotice: 'Paramètres importés. Paramètres précédents enregistrés dans {path}.',
+                    backupError: 'Impossible d’enregistrer les paramètres actuels : {message}',
                     successNotice: 'Paramètres importés.',
                     errorNotice: "Échec de l'importation des paramètres : {message}",
                     fileReadError: 'Impossible de lire le fichier : {message}'
@@ -1702,6 +1740,11 @@ export const STRINGS_FR = {
                 name: 'Masquer les dossiers (profil du coffre)',
                 desc: 'Liste de dossiers à masquer séparés par des virgules. Modèles de nom : assets* (dossiers commençant par assets), *_temp (finissant par _temp). Modèles de chemin : /archive (archive racine uniquement), /res* (dossiers racine commençant par res), /*/temp (dossiers temp un niveau plus bas), /projects/* (tous les dossiers dans projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Exclure des dossiers des notes de sous-dossiers (profil du coffre)',
+                desc: 'Liste de dossiers séparés par des virgules à ignorer lors de la collecte des notes des sous-dossiers. Les dossiers restent visibles, et leur sélection affiche toujours leurs notes. Utilise les mêmes modèles que Masquer les dossiers.',
+                placeholder: 'quotidien, ressources, /archive'
             },
             fileVisibility: {
                 name: 'Afficher les types de fichiers (profil du coffre)',

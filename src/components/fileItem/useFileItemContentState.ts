@@ -201,6 +201,154 @@ export function loadFileItemCacheSnapshot({
     };
 }
 
+/** Cached row content fields stored together with metadata refresh bookkeeping. */
+export type FileItemContentBox = Omit<FileItemContentState, 'featureImageUrl'>;
+
+function boxFromSnapshot(snapshot: FileItemCacheSnapshot): FileItemContentBox {
+    return {
+        previewText: snapshot.previewText,
+        tags: snapshot.tags,
+        featureImageKey: snapshot.featureImageKey,
+        featureImageStatus: snapshot.featureImageStatus,
+        properties: snapshot.properties,
+        wordCount: snapshot.wordCount,
+        characterCountWithSpaces: snapshot.characterCountWithSpaces,
+        characterCountWithoutSpaces: snapshot.characterCountWithoutSpaces,
+        taskUnfinished: snapshot.taskUnfinished,
+        metadataVersion: 0
+    };
+}
+
+/** Merges a fresh cache snapshot into the previous box, preserving field identity for unchanged values. */
+function mergeSnapshotIntoBox(prev: FileItemContentBox, snapshot: FileItemCacheSnapshot): FileItemContentBox {
+    const tags = areStringArraysEqual(prev.tags, snapshot.tags) ? prev.tags : snapshot.tags;
+    const properties = arePropertyItemsEqual(prev.properties, snapshot.properties) ? prev.properties : snapshot.properties;
+    if (
+        prev.previewText === snapshot.previewText &&
+        tags === prev.tags &&
+        prev.featureImageKey === snapshot.featureImageKey &&
+        prev.featureImageStatus === snapshot.featureImageStatus &&
+        properties === prev.properties &&
+        prev.wordCount === snapshot.wordCount &&
+        prev.characterCountWithSpaces === snapshot.characterCountWithSpaces &&
+        prev.characterCountWithoutSpaces === snapshot.characterCountWithoutSpaces &&
+        prev.taskUnfinished === snapshot.taskUnfinished
+    ) {
+        return prev;
+    }
+
+    return {
+        ...boxFromSnapshot(snapshot),
+        tags,
+        properties,
+        metadataVersion: prev.metadataVersion
+    };
+}
+
+export function applyFileItemContentChangeToBox({
+    prev,
+    changes,
+    shouldLoadPreviewText,
+    shouldLoadTags,
+    shouldLoadFeatureImage,
+    shouldLoadProperties,
+    shouldLoadWordCount,
+    shouldLoadCharacterCount,
+    shouldLoadTaskUnfinished,
+    showPreview,
+    fileExtension,
+    shouldRefreshMetadataVersion
+}: {
+    prev: FileItemContentBox;
+    changes: FileContentChange['changes'];
+    shouldLoadPreviewText: boolean;
+    shouldLoadTags: boolean;
+    shouldLoadFeatureImage: boolean;
+    shouldLoadProperties: boolean;
+    shouldLoadWordCount: boolean;
+    shouldLoadCharacterCount: boolean;
+    shouldLoadTaskUnfinished: boolean;
+    showPreview: boolean;
+    fileExtension: string;
+    shouldRefreshMetadataVersion: boolean;
+}): FileItemContentBox {
+    let next = prev;
+    const mutate = (): FileItemContentBox => {
+        if (next === prev) {
+            next = { ...prev };
+        }
+        return next;
+    };
+
+    if (changes.preview !== undefined && shouldLoadPreviewText && showPreview && fileExtension === 'md') {
+        const nextPreview = changes.preview || '';
+        if (prev.previewText !== nextPreview) {
+            mutate().previewText = nextPreview;
+        }
+    }
+
+    if (changes.featureImageKey !== undefined && shouldLoadFeatureImage) {
+        const nextKey = changes.featureImageKey ?? null;
+        if (prev.featureImageKey !== nextKey) {
+            mutate().featureImageKey = nextKey;
+        }
+    }
+
+    if (changes.featureImageStatus !== undefined && shouldLoadFeatureImage) {
+        if (prev.featureImageStatus !== changes.featureImageStatus) {
+            mutate().featureImageStatus = changes.featureImageStatus;
+        }
+    }
+
+    if (changes.tags !== undefined && shouldLoadTags) {
+        const nextTags = changes.tags ?? [];
+        if (!areStringArraysEqual(prev.tags, nextTags)) {
+            mutate().tags = [...nextTags];
+        }
+    }
+
+    if (changes.wordCount !== undefined && shouldLoadWordCount) {
+        const nextWordCount = changes.wordCount ?? null;
+        if (prev.wordCount !== nextWordCount) {
+            mutate().wordCount = nextWordCount;
+        }
+    }
+
+    if (changes.characterCountWithSpaces !== undefined && shouldLoadCharacterCount) {
+        const nextCount = changes.characterCountWithSpaces ?? null;
+        if (prev.characterCountWithSpaces !== nextCount) {
+            mutate().characterCountWithSpaces = nextCount;
+        }
+    }
+
+    if (changes.characterCountWithoutSpaces !== undefined && shouldLoadCharacterCount) {
+        const nextCount = changes.characterCountWithoutSpaces ?? null;
+        if (prev.characterCountWithoutSpaces !== nextCount) {
+            mutate().characterCountWithoutSpaces = nextCount;
+        }
+    }
+
+    if (changes.taskUnfinished !== undefined && shouldLoadTaskUnfinished) {
+        const nextTaskUnfinished = changes.taskUnfinished ?? null;
+        if (prev.taskUnfinished !== nextTaskUnfinished) {
+            mutate().taskUnfinished = nextTaskUnfinished;
+        }
+    }
+
+    if (changes.properties !== undefined && shouldLoadProperties) {
+        const nextProperties = changes.properties ?? null;
+        if (!arePropertyItemsEqual(prev.properties, nextProperties)) {
+            mutate().properties = clonePropertyItems(nextProperties);
+        }
+    }
+
+    if (shouldRefreshMetadataVersion) {
+        mutate().metadataVersion = prev.metadataVersion + 1;
+    }
+
+    return next;
+}
+
 export function useFileItemContentState({
     app,
     file,
@@ -267,19 +415,9 @@ export function useFileItemContentState({
     const initialData = initialDataRef.current ?? loadSnapshot();
     initialDataRef.current = initialData;
 
-    const [previewText, setPreviewText] = useState<string>(initialData.previewText);
-    const [tags, setTags] = useState<string[]>(initialData.tags);
-    const [featureImageKey, setFeatureImageKey] = useState<string | null>(initialData.featureImageKey);
-    const [featureImageStatus, setFeatureImageStatus] = useState<FeatureImageStatus>(initialData.featureImageStatus);
+    const [box, setBox] = useState<FileItemContentBox>(() => boxFromSnapshot(initialData));
     const [featureImageUrl, setFeatureImageUrl] = useState<string | null>(initialData.featureImageUrl);
-    const [properties, setProperties] = useState<PropertyItem[] | null>(initialData.properties);
-    const [wordCount, setWordCount] = useState<number | null>(initialData.wordCount);
-    const [characterCountWithSpaces, setCharacterCountWithSpaces] = useState<number | null>(initialData.characterCountWithSpaces);
-    const [characterCountWithoutSpaces, setCharacterCountWithoutSpaces] = useState<number | null>(initialData.characterCountWithoutSpaces);
-    const [taskUnfinished, setTaskUnfinished] = useState<number | null>(initialData.taskUnfinished);
-    const [metadataVersion, setMetadataVersion] = useState(0);
 
-    const propertiesRef = useRef<PropertyItem[] | null>(initialData.properties);
     const featureImageObjectUrlRef = useRef<string | null>(null);
     const lastFeatureImageRegenRef = useRef<{ key: string; at: number } | null>(null);
     useLayoutEffect(() => {
@@ -289,22 +427,7 @@ export function useFileItemContentState({
             filePath: file.path,
             loadSnapshot,
             applySnapshot: initialSnapshot => {
-                setPreviewText(prev => (prev === initialSnapshot.previewText ? prev : initialSnapshot.previewText));
-                setTags(prev => (areStringArraysEqual(prev, initialSnapshot.tags) ? prev : initialSnapshot.tags));
-                setFeatureImageKey(prev => (prev === initialSnapshot.featureImageKey ? prev : initialSnapshot.featureImageKey));
-                setFeatureImageStatus(prev => (prev === initialSnapshot.featureImageStatus ? prev : initialSnapshot.featureImageStatus));
-                if (!arePropertyItemsEqual(propertiesRef.current, initialSnapshot.properties)) {
-                    propertiesRef.current = initialSnapshot.properties;
-                    setProperties(initialSnapshot.properties);
-                }
-                setWordCount(prev => (prev === initialSnapshot.wordCount ? prev : initialSnapshot.wordCount));
-                setCharacterCountWithSpaces(prev =>
-                    prev === initialSnapshot.characterCountWithSpaces ? prev : initialSnapshot.characterCountWithSpaces
-                );
-                setCharacterCountWithoutSpaces(prev =>
-                    prev === initialSnapshot.characterCountWithoutSpaces ? prev : initialSnapshot.characterCountWithoutSpaces
-                );
-                setTaskUnfinished(prev => (prev === initialSnapshot.taskUnfinished ? prev : initialSnapshot.taskUnfinished));
+                setBox(prev => mergeSnapshotIntoBox(prev, initialSnapshot));
             },
             onChange: (changes: FileContentChange['changes']) => {
                 const shouldRefreshMetadataVersion = shouldRefreshFileItemMetadataVersionForContentChange({
@@ -313,64 +436,22 @@ export function useFileItemContentState({
                     refreshMetadataVersionOnFeatureImageChange
                 });
 
-                if (changes.preview !== undefined && shouldLoadPreviewText && showPreview && file.extension === 'md') {
-                    const nextPreview = changes.preview || '';
-                    setPreviewText(prev => (prev === nextPreview ? prev : nextPreview));
-                }
-
-                if (changes.featureImageKey !== undefined) {
-                    if (shouldLoadFeatureImage) {
-                        setFeatureImageKey(prev => (prev === changes.featureImageKey ? prev : (changes.featureImageKey ?? null)));
-                    }
-                }
-
-                if (changes.featureImageStatus !== undefined) {
-                    if (shouldLoadFeatureImage) {
-                        const nextStatus = changes.featureImageStatus;
-                        setFeatureImageStatus(prev => (prev === nextStatus ? prev : nextStatus));
-                    }
-                }
-
-                if (changes.tags !== undefined && shouldLoadTags) {
-                    const nextTags = [...(changes.tags ?? [])];
-                    setTags(prev => (areStringArraysEqual(prev, nextTags) ? prev : nextTags));
-                }
-
-                if (changes.wordCount !== undefined && shouldLoadWordCount) {
-                    const nextWordCount = changes.wordCount ?? null;
-                    setWordCount(prev => (prev === nextWordCount ? prev : nextWordCount));
-                }
-
-                if (changes.characterCountWithSpaces !== undefined && shouldLoadCharacterCount) {
-                    const nextCharacterCountWithSpaces = changes.characterCountWithSpaces ?? null;
-                    setCharacterCountWithSpaces(prev => (prev === nextCharacterCountWithSpaces ? prev : nextCharacterCountWithSpaces));
-                }
-
-                if (changes.characterCountWithoutSpaces !== undefined && shouldLoadCharacterCount) {
-                    const nextCharacterCountWithoutSpaces = changes.characterCountWithoutSpaces ?? null;
-                    setCharacterCountWithoutSpaces(prev =>
-                        prev === nextCharacterCountWithoutSpaces ? prev : nextCharacterCountWithoutSpaces
-                    );
-                }
-
-                if (changes.taskUnfinished !== undefined && shouldLoadTaskUnfinished) {
-                    const nextTaskUnfinished = changes.taskUnfinished ?? null;
-                    setTaskUnfinished(prev => (prev === nextTaskUnfinished ? prev : nextTaskUnfinished));
-                }
-
-                if (changes.properties !== undefined) {
-                    if (shouldLoadProperties) {
-                        const nextProperties = clonePropertyItems(changes.properties ?? null);
-                        if (!arePropertyItemsEqual(propertiesRef.current, nextProperties)) {
-                            propertiesRef.current = nextProperties;
-                            setProperties(nextProperties);
-                        }
-                    }
-                }
-
-                if (shouldRefreshMetadataVersion) {
-                    setMetadataVersion(version => version + 1);
-                }
+                setBox(prev =>
+                    applyFileItemContentChangeToBox({
+                        prev,
+                        changes,
+                        shouldLoadPreviewText,
+                        shouldLoadTags,
+                        shouldLoadFeatureImage,
+                        shouldLoadProperties,
+                        shouldLoadWordCount,
+                        shouldLoadCharacterCount,
+                        shouldLoadTaskUnfinished,
+                        showPreview,
+                        fileExtension: file.extension,
+                        shouldRefreshMetadataVersion
+                    })
+                );
             }
         });
 
@@ -433,7 +514,7 @@ export function useFileItemContentState({
             };
         }
 
-        if (featureImageStatus !== 'has' || !featureImageKey) {
+        if (box.featureImageStatus !== 'has' || !box.featureImageKey) {
             setFeatureImageUrl(null);
             return () => {
                 isActive = false;
@@ -441,7 +522,7 @@ export function useFileItemContentState({
         }
 
         const db = getDB();
-        const expectedKey = featureImageKey;
+        const expectedKey = box.featureImageKey;
         void db.getFeatureImageBlob(file.path, expectedKey).then(blob => {
             if (!isActive) {
                 return;
@@ -469,8 +550,8 @@ export function useFileItemContentState({
         };
     }, [
         app,
-        featureImageKey,
-        featureImageStatus,
+        box.featureImageKey,
+        box.featureImageStatus,
         file,
         fileStatMtime,
         getDB,
@@ -481,16 +562,16 @@ export function useFileItemContentState({
     ]);
 
     return {
-        previewText,
-        tags,
-        featureImageKey,
-        featureImageStatus,
+        previewText: box.previewText,
+        tags: box.tags,
+        featureImageKey: box.featureImageKey,
+        featureImageStatus: box.featureImageStatus,
         featureImageUrl,
-        properties,
-        wordCount,
-        characterCountWithSpaces,
-        characterCountWithoutSpaces,
-        taskUnfinished,
-        metadataVersion
+        properties: box.properties,
+        wordCount: box.wordCount,
+        characterCountWithSpaces: box.characterCountWithSpaces,
+        characterCountWithoutSpaces: box.characterCountWithoutSpaces,
+        taskUnfinished: box.taskUnfinished,
+        metadataVersion: box.metadataVersion
     };
 }

@@ -88,6 +88,7 @@ export const STRINGS_ID = {
     navigationCalendar: {
         ariaLabel: 'Kalender',
         dailyNotesNotEnabled: 'Plugin catatan harian tidak diaktifkan.',
+        noteHiddenByProfile: 'Catatan kalender disembunyikan oleh profil vault saat ini.',
         createDailyNote: {
             title: 'Catatan harian baru',
             message: 'File {filename} tidak ada. Apakah Anda ingin membuatnya?',
@@ -169,6 +170,7 @@ export const STRINGS_ID = {
     // Search input
     searchInput: {
         placeholder: 'Cari...',
+        placeholderVault: 'Cari vault...',
         placeholderOmnisearch: 'Omnisearch...',
         clearSearch: 'Bersihkan pencarian',
         switchToFilterSearch: 'Beralih ke pencarian filter',
@@ -181,16 +183,16 @@ export const STRINGS_ID = {
         searchHelp: 'Sintaks pencarian',
         searchHelpTitle: 'Sintaks pencarian',
         searchHelpModal: {
-            intro: 'Gabungkan nama file, properti, tag, tanggal, dan filter dalam satu kueri (contoh: `meeting .status=active #work @thisweek`). Instal plugin Omnisearch untuk menggunakan pencarian teks lengkap.',
+            intro: 'Gabungkan nama tampilan, alias, properti, tag, tanggal, dan filter dalam satu kueri (contoh: `meeting .status=active #work @thisweek`). Instal plugin Omnisearch untuk menggunakan pencarian teks lengkap.',
             introSwitching:
                 'Beralih antara pencarian filter dan Omnisearch menggunakan tombol panah atas/bawah atau dengan mengklik ikon pencarian.',
             sections: {
                 fileNames: {
-                    title: 'Nama file',
+                    title: 'Nama file dan alias',
                     items: [
-                        '`word` Temukan catatan dengan "word" di nama file.',
-                        '`word1 word2` Setiap kata harus cocok dengan nama file.',
-                        '`-word` Kecualikan catatan dengan "word" di nama file.'
+                        '`word` Temukan catatan dengan "word" di nama tampilan atau alias.',
+                        '`word1 word2` Setiap kata harus cocok pada nama tampilan atau alias.',
+                        '`-word` Kecualikan catatan dengan "word" di nama tampilan atau alias.'
                     ]
                 },
                 tags: {
@@ -210,11 +212,11 @@ export const STRINGS_ID = {
                 properties: {
                     title: 'Properti',
                     items: [
-                        '`.key` Sertakan catatan dengan kunci properti.',
+                        '`.key` Sertakan catatan dengan kunci properti yang dimulai dengan `key`.',
                         '`.key=value` Sertakan catatan yang nilai propertinya mengandung `value`.',
                         '`."Reading Status"` Sertakan catatan dengan kunci properti yang mengandung spasi.',
                         '`."Reading Status"="In Progress"` Kunci dan nilai yang mengandung spasi harus diapit tanda kutip ganda.',
-                        '`-.key` Kecualikan catatan dengan kunci properti.',
+                        '`-.key` Kecualikan catatan dengan kunci properti yang dimulai dengan `key`.',
                         '`-.key=value` Kecualikan catatan yang nilai propertinya mengandung `value`.',
                         'Cmd/Ctrl+Klik properti untuk menambahkan dengan AND. Cmd/Ctrl+Shift+Klik untuk menambahkan dengan OR.'
                     ]
@@ -351,6 +353,9 @@ export const STRINGS_ID = {
             changeBackground: 'Ubah latar belakang',
             excludeFolder: 'Sembunyikan folder',
             unhideFolder: 'Tampilkan folder',
+            excludeFromDescendants: 'Sembunyikan dari folder induk',
+            includeInDescendants: 'Tampilkan di folder induk',
+            hiddenFromParentsIndicator: 'Disembunyikan dari daftar folder induk',
             moveFolder: 'Pindahkan folder ke...',
             renameFolder: 'Ubah nama folder',
             deleteFolder: 'Hapus folder'
@@ -668,6 +673,7 @@ export const STRINGS_ID = {
         },
         navigationBanner: {
             placeholder: 'Cari gambar...',
+            svgMissingDimensions: 'Berkas SVG yang dipilih tidak menentukan lebar, tinggi, atau viewBox.',
             instructions: {
                 navigate: 'untuk navigasi',
                 select: 'untuk mengatur banner',
@@ -714,11 +720,11 @@ export const STRINGS_ID = {
         welcome: {
             title: 'Selamat datang di {pluginName}',
             introText:
-                'Halo! Sebelum memulai, saya sangat menyarankan Anda menonton lima menit pertama video di bawah ini untuk memahami cara kerja panel dan tombol "Tampilkan catatan dari subfolder".',
+                'Halo dan selamat datang di Notebook Navigator, penjelajah file dan kalender yang lebih baik untuk Obsidian. Sebelum memulai, saya sangat menyarankan agar Anda menonton setidaknya tiga bab pertama dari video di bawah ini, Mastering Notebook Navigator. Video tersebut memperkenalkan cara kerja kedua panel dan membantu Anda cepat memahami penggunaannya.',
             continueText:
-                'Jika Anda memiliki waktu lima menit lagi, lanjutkan menonton video untuk memahami mode tampilan ringkas dan cara mengatur pintasan dan tombol pintasan penting dengan benar.',
-            thanksText: 'Terima kasih banyak telah mengunduh, selamat menggunakan!',
-            videoAlt: 'Menginstal dan menguasai Notebook Navigator',
+                'Lalu, jika Anda punya waktu sepuluh menit lagi, lanjutkan menonton bab penyiapan awal dan alur penggunaan sehari-hari. Bab-bab tersebut mencakup semua yang Anda perlukan untuk memulai, dan Anda dapat kembali nanti untuk melihat penjelasan yang lebih mendetail. Tautan videonya ada di bagian atas pengaturan Notebook Navigator.',
+            thanksText: 'Selamat menggunakan Notebook Navigator!',
+            videoAlt: 'Menguasai Notebook Navigator 3',
             openVideoButton: 'Putar video',
             closeButton: 'Mungkin nanti'
         }
@@ -773,6 +779,8 @@ export const STRINGS_ID = {
         notices: {
             hideFolder: 'Folder disembunyikan: {name}',
             showFolder: 'Folder ditampilkan: {name}',
+            folderExcludedFromDescendants: 'Disembunyikan dari daftar folder induk: {name}',
+            folderIncludedInDescendants: 'Ditampilkan di daftar folder induk: {name}',
             mergeNotes: 'Menggabungkan {count} catatan menjadi {name}'
         },
         notifications: {
@@ -857,7 +865,7 @@ export const STRINGS_ID = {
         openYearlyNote: 'Buka catatan tahunan',
         revealFile: 'Tampilkan file',
         search: 'Cari',
-        searchVaultRoot: 'Cari di root vault',
+        searchVaultRoot: 'Cari di seluruh vault',
         toggleDualPane: 'Alihkan tata letak panel ganda',
         toggleDualPaneOrientation: 'Alihkan orientasi panel ganda', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Alihkan kalender',
@@ -897,7 +905,8 @@ export const STRINGS_ID = {
         removeTag: 'Hapus tag dari file yang dipilih',
         removeAllTags: 'Hapus semua tag dari file yang dipilih',
         openAllFiles: 'Buka semua file',
-        rebuildCache: 'Bangun ulang cache'
+        rebuildCache: 'Bangun ulang cache',
+        restoreDefaultSettings: 'Pulihkan pengaturan bawaan' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -906,7 +915,17 @@ export const STRINGS_ID = {
         calendarViewName: 'Kalender',
         folderNoteSidebarViewName: 'Catatan folder',
         ribbonTooltip: 'Notebook Navigator',
-        revealInNavigator: 'Tampilkan di Notebook Navigator'
+        revealInNavigator: 'Tampilkan di Notebook Navigator',
+        settingsUnavailableNotice:
+            'Notebook Navigator tidak dapat membaca pengaturannya dan tidak dijalankan. Jika vault Anda sedang disinkronkan, mulai ulang Obsidian setelah sinkronisasi selesai. Untuk memulai ulang dengan pengaturan bawaan, jalankan perintah "Pulihkan pengaturan bawaan".', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Pulihkan pengaturan bawaan', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Tindakan ini mengganti file pengaturan Notebook Navigator dengan pengaturan bawaan. Jika vault Anda masih disinkronkan, pengaturan bawaan yang dipulihkan dapat menimpa pengaturan yang tersimpan di perangkat Anda yang lain. File pengaturan yang dapat dibaca disalin terlebih dahulu ke cadangan bertanda waktu di folder plugin.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Pulihkan bawaan', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'Pemulihan pengaturan tidak dapat diselesaikan. Preferensi lokal tetap dipertahankan.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Pengaturan bawaan dipulihkan. Mulai ulang Obsidian untuk menyelesaikan.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -979,6 +998,7 @@ export const STRINGS_ID = {
                 vaultConfiguration: 'Penyiapan vault',
                 templates: 'Templat',
                 behavior: 'Perilaku',
+                startup: 'Startup',
                 keyboardNavigation: 'Navigasi keyboard',
                 mouseButtons: 'Tombol mouse',
                 view: 'Tampilan',
@@ -1155,6 +1175,10 @@ export const STRINGS_ID = {
                 name: 'Tampilkan jalur subfolder',
                 desc: 'Saat mengelompokkan berdasarkan folder di panel daftar, tampilkan jalur subfolder alih-alih hanya nama folder.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Tampilkan jumlah item',
+                desc: 'Tampilkan jumlah item di setiap header grup panel daftar.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Pengelompokan folder: file folder saat ini di bawah',
                 desc: 'Saat pengelompokan default adalah Folder, pindahkan file yang langsung berada di folder yang dipilih ke bawah grup subfolder.'
@@ -1229,8 +1253,8 @@ export const STRINGS_ID = {
                 desc: 'Tampilkan nama folder induk untuk catatan di subfolder, tag, atau properti.'
             },
             showParentFolderFullPath: {
-                name: 'Tampilkan path lengkap',
-                desc: 'Tampilkan path lengkap folder induk alih-alih hanya nama folder.'
+                name: 'Tampilkan jalur folder',
+                desc: 'Tampilkan jalur relatif terhadap folder yang dipilih alih-alih hanya nama folder. Tag dan properti menampilkan jalur lengkap.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Klik folder induk untuk membuka folder',
@@ -1301,7 +1325,7 @@ export const STRINGS_ID = {
             },
             startView: {
                 name: 'Tampilan startup default',
-                desc: 'Pilih panel mana yang ditampilkan saat membuka Notebook Navigator. Panel navigasi menampilkan pintasan, file terbaru, dan pohon folder. Panel daftar menampilkan daftar file segera.',
+                desc: 'Pilih panel yang aktif saat Notebook Navigator dibuka. Tata letak panel tunggal menampilkan panel ini lebih dulu; tata letak panel ganda memberinya fokus keyboard.',
                 options: {
                     navigation: 'Panel navigasi',
                     files: 'Panel daftar'
@@ -1477,6 +1501,10 @@ export const STRINGS_ID = {
                 name: 'Tampilkan gambar fitur',
                 desc: 'Tampilkan gambar fitur untuk catatan di kalender.'
             },
+            calendarShowTasks: {
+                name: 'Tampilkan tugas',
+                desc: 'Tampilkan indikator pada hari, minggu, dan bulan dengan tugas yang belum selesai.'
+            },
             calendarShowWeekNumber: {
                 name: 'Tampilkan nomor minggu',
                 desc: 'Tambahkan kolom dengan nomor minggu.'
@@ -1492,6 +1520,10 @@ export const STRINGS_ID = {
             calendarConfirmBeforeCreate: {
                 name: 'Konfirmasi sebelum membuat',
                 desc: 'Tampilkan dialog konfirmasi saat membuat catatan harian baru.'
+            },
+            calendarShowHiddenItems: {
+                name: 'Tampilkan item tersembunyi',
+                desc: 'Saat diaktifkan, kalender selalu menampilkan semua catatan kalender, termasuk catatan yang disembunyikan oleh filter profil vault.'
             },
             calendarIntegrationMode: {
                 name: 'Sumber catatan harian',
@@ -1592,6 +1624,12 @@ export const STRINGS_ID = {
                     editorDesc: 'Tempel atau edit JSON di bawah. Pengaturan yang tidak disertakan akan diatur ulang ke default.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'Impor',
+                    confirmTitle: 'Impor pengaturan?',
+                    confirmMessage: 'Mengimpor akan mengganti pengaturan Notebook Navigator saat ini.',
+                    backupToggleName: 'Simpan pengaturan saat ini di root vault sebelum mengimpor',
+                    backupToggleDesc: 'Membuat file JSON bertimestamp di root vault.',
+                    successWithBackupNotice: 'Pengaturan diimpor. Pengaturan sebelumnya disimpan ke {path}.',
+                    backupError: 'Tidak dapat menyimpan pengaturan saat ini: {message}',
                     successNotice: 'Pengaturan diimpor.',
                     errorNotice: 'Gagal mengimpor pengaturan: {message}',
                     fileReadError: 'Tidak dapat membaca file: {message}'
@@ -1727,6 +1765,11 @@ export const STRINGS_ID = {
                 name: 'Sembunyikan folder (profil vault)',
                 desc: 'Daftar folder yang dipisahkan koma untuk disembunyikan. Pola nama: assets* (folder yang dimulai dengan assets), *_temp (diakhiri dengan _temp). Pola path: /arsip (arsip root saja), /res* (folder root yang dimulai dengan res), /*/temp (folder temp satu level ke dalam), /proyek/* (semua folder di dalam proyek).',
                 placeholder: 'template, assets*, /arsip, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Kecualikan folder dari catatan subfolder (profil vault)',
+                desc: 'Daftar folder yang dipisahkan koma untuk dilewati saat mengumpulkan catatan dari subfolder. Folder tetap terlihat, dan memilih folder tetap menampilkan catatannya. Menggunakan pola yang sama seperti Sembunyikan folder.',
+                placeholder: 'harian, sumber-daya, /arsip'
             },
             showFileDate: {
                 name: 'Tampilkan tanggal',

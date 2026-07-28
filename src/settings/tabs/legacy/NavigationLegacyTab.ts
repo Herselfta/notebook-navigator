@@ -39,7 +39,8 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
 
     const createRainbowHeading = (heading: string): DocumentFragment => {
         const doc = containerEl.ownerDocument;
-        const fragment = doc.createDocumentFragment();
+        const win = containerEl.win;
+        const fragment = win.createFragment();
         const chars = Array.from(heading);
         const coloredChars = chars.filter(char => char.trim().length > 0);
         const colorDenominator = Math.max(1, coloredChars.length - 1);
@@ -52,7 +53,7 @@ export function renderNavigationPaneTab(context: SettingsTabContext): void {
                 continue;
             }
 
-            const span = doc.createElement('span');
+            const span = win.createSpan();
             const color = interpolateHeadingColor(colorIndex / colorDenominator);
             span.style.color = toCssRgba(color);
             span.setText(char);

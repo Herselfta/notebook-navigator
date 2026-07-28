@@ -1,6 +1,6 @@
 # Notebook Navigator Theming Guide
 
-Updated: June 4, 2026
+Updated: July 9, 2026
 
 ## Table of Contents
 
@@ -76,7 +76,7 @@ Most variables are colors and should resolve to a computed color (some are used 
 | `--nn-theme-calendar-day-today-color`         | `var(--nn-theme-calendar-day-in-month-color)` | Text color for today's date                |
 | `--nn-theme-calendar-day-today-bg`            | `var(--text-selection)`                | Background color for today's date highlight     |
 | `--nn-theme-calendar-day-active-border-color` | `var(--interactive-accent)` | Border color for active calendar outlines |
-| `--nn-theme-calendar-day-active-border-width` | `2px` | Border width for active calendar outlines |
+| `--nn-theme-calendar-day-active-border-width` | `3px` | Border width for active calendar outlines |
 
 ### Navigation pane
 
@@ -127,7 +127,8 @@ Most variables are colors and should resolve to a computed color (some are used 
 #### Text styling
 
 These variables control the font weight and decoration of folder/tag/property names and file names in shortcuts and recent files.
-Priority order: folder note styles override custom color styles, which override the default style.
+Priority order for font weight: custom color styles override folder note styles, which override the default style.
+Folder note decoration still applies when custom colors are present.
 
 | Variable                                                | Default     | Description                                                                   |
 | ------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------- |
@@ -136,7 +137,7 @@ Priority order: folder note styles override custom color styles, which override 
 | `--nn-theme-navitem-count-font-weight`                  | `400`       | Font weight for file count badges                                             |
 | `--nn-theme-navitem-custom-color-name-font-weight`      | `600`       | Font weight for folders/tags/properties with custom colors (overrides default) |
 | `--nn-theme-navitem-custom-color-file-name-font-weight` | `600`       | Font weight for file names with custom colors (overrides default file weight) |
-| `--nn-theme-navitem-folder-note-name-font-weight`       | `400`       | Font weight for folders with notes (overrides all others)                     |
+| `--nn-theme-navitem-folder-note-name-font-weight`       | `400`       | Font weight for folders with notes when no custom color weight applies        |
 | `--nn-theme-navitem-folder-note-name-decoration`        | `underline` | Text decoration for folders with notes (none, underline, underline dotted)    |
 | `--nn-theme-navitem-folder-note-name-hover-decoration`  | `underline` | Text decoration when hovering folders with notes                              |
 
@@ -332,6 +333,7 @@ body {
   --nn-theme-calendar-day-today-color: #ffffff;
   --nn-theme-calendar-day-today-bg: #4a78c8;
   --nn-theme-calendar-day-active-border-color: rgba(169, 183, 198, 0.5);
+  --nn-theme-calendar-day-active-border-width: 2px;
 
   /* Navigation items */
   --nn-theme-navitem-chevron-color: #6e6e6e;
@@ -539,8 +541,8 @@ To support both light and dark modes, define your variables under `.theme-light`
 
 ### User Custom Colors Override
 
-When users set custom colors (right-click → "Change icon" or "Change color"), their choices automatically override your
-theme through inline styles.
+When users set custom colors or backgrounds (right-click → "Change icon", "Change color", or "Change background"),
+their choices automatically override your theme through inline styles and row-level CSS custom properties.
 
 ## Style Settings Support
 

@@ -9,6 +9,8 @@
     background-color: var(--nn-theme-list-search-active-bg);
     color: inherit;
     border-radius: 3px;
+    padding: 0;
+    font-weight: 600;
 }
 
 /* Resets Obsidian's default view-content padding for cleaner integration */

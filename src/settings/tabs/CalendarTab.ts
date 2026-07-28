@@ -47,6 +47,10 @@ export function createCalendarSettingDefinitions(context: SettingsTabContext): S
             createToggleDefinition('calendarConfirmBeforeCreate', {
                 name: strings.settings.items.calendarConfirmBeforeCreate.name,
                 desc: strings.settings.items.calendarConfirmBeforeCreate.desc
+            }),
+            createToggleDefinition('calendarShowHiddenItems', {
+                name: strings.settings.items.calendarShowHiddenItems.name,
+                desc: strings.settings.items.calendarShowHiddenItems.desc
             })
         ]),
         createGroupDefinition(strings.settings.groups.navigation.appearance, [
@@ -84,6 +88,10 @@ export function createCalendarSettingDefinitions(context: SettingsTabContext): S
             createToggleDefinition('calendarShowFeatureImage', {
                 name: strings.settings.items.calendarShowFeatureImage.name,
                 desc: strings.settings.items.calendarShowFeatureImage.desc
+            }),
+            createToggleDefinition('calendarShowTasks', {
+                name: strings.settings.items.calendarShowTasks.name,
+                desc: strings.settings.items.calendarShowTasks.desc
             }),
             createToggleDefinition('calendarShowWeekNumber', {
                 name: strings.settings.items.calendarShowWeekNumber.name,

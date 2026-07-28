@@ -24,6 +24,7 @@ import { useServices, useFileSystemOps, useTagOperations } from '../context/Serv
 import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
 import { useExpansionState, useExpansionDispatch } from '../context/ExpansionContext';
+import { useInternalDragSession } from '../context/InternalDragContext';
 import { strings } from '../i18n';
 import { showNotice } from '../utils/noticeUtils';
 import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../types';
@@ -59,6 +60,7 @@ type DragItemType = (typeof ItemType)[keyof typeof ItemType];
 type AutoExpandTarget = { type: 'folder' | 'tag'; path: string };
 
 const SUPPRESS_CLICK_AFTER_DROP_MS = 100;
+const OBSIDIAN_FILE_MIME = 'obsidian/file';
 const TEXT_PLAIN_MIME = 'text/plain';
 const TEXT_URI_LIST_MIME = 'text/uri-list';
 
@@ -211,6 +213,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
     const dispatch = useSelectionDispatch();
     const settings = useSettingsState();
     const uxPreferences = useUXPreferences();
+    const internalDragSession = useInternalDragSession();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
     const expansionState = useExpansionState();
@@ -311,8 +314,8 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
 
     const showNativeMultiFileDragPreview = useCallback(
         (event: DragEvent, count: number): boolean => {
-            const ownerDocument = containerRef.current?.ownerDocument ?? activeDocument;
-            const badge = ownerDocument.createElement('div');
+            const ownerWindow = containerRef.current?.win ?? activeWindow;
+            const badge = ownerWindow.createDiv();
             badge.className = 'nn-drag-preview-badge';
             badge.textContent = `${count}`;
             return setNativeDragPreview(event, badge);
@@ -334,8 +337,8 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 return false;
             }
 
-            const ownerDocument = containerRef.current?.ownerDocument ?? activeDocument;
-            const iconWrapper = ownerDocument.createElement('div');
+            const ownerWindow = containerRef.current?.win ?? activeWindow;
+            const iconWrapper = ownerWindow.createDiv();
             iconWrapper.className = 'nn-drag-preview-icon';
             const resolvedIconColor = iconColor ?? '#ffffff';
             iconWrapper.style.color = resolvedIconColor;
@@ -403,6 +406,43 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         [app]
     );
 
+    const getDraggedFilePaths = useCallback(
+        (dataTransfer: DataTransfer | null): string[] | null => {
+            const dataTransferPaths = extractFilePathsFromDataTransfer(dataTransfer, {
+                getPathType: getDragPathType,
+                vaultName: app.vault.getName()
+            });
+            if (dataTransferPaths && dataTransferPaths.length > 0) {
+                return dataTransferPaths;
+            }
+
+            const internalSession = internalDragSession.getSession();
+            if (internalSession?.type === ItemType.FILE && internalSession.filePaths.length > 0) {
+                return internalSession.filePaths;
+            }
+
+            return null;
+        },
+        [app, getDragPathType, internalDragSession]
+    );
+
+    const getDraggedSingleItemPath = useCallback(
+        (dataTransfer: DataTransfer | null): string | null => {
+            const dataTransferPath = dataTransfer?.getData(OBSIDIAN_FILE_MIME);
+            if (dataTransferPath) {
+                return dataTransferPath;
+            }
+
+            const internalSession = internalDragSession.getSession();
+            if (internalSession?.type === ItemType.FOLDER) {
+                return internalSession.folderPath;
+            }
+
+            return null;
+        },
+        [internalDragSession]
+    );
+
     /**
      * Moves files to a folder with selection context
      */
@@ -425,10 +465,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
 
     const getMarkdownFilesFromDragEvent = useCallback(
         (event: DragEvent): { files: TFile[]; hasNonMarkdown: boolean } => {
-            const selectedPaths = extractFilePathsFromDataTransfer(event.dataTransfer ?? null, {
-                getPathType: getDragPathType,
-                vaultName: app.vault.getName()
-            });
+            const selectedPaths = getDraggedFilePaths(event.dataTransfer ?? null);
             if (!selectedPaths || selectedPaths.length === 0) {
                 return { files: [], hasNonMarkdown: false };
             }
@@ -441,7 +478,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             const hasNonMarkdown = files.some(file => file.extension !== 'md');
             return { files, hasNonMarkdown };
         },
-        [app, getDragPathType, getFilesFromPaths]
+        [getDraggedFilePaths, getFilesFromPaths]
     );
 
     /**
@@ -457,6 +494,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             }
 
             springLoadedExpandCountRef.current = 0;
+            internalDragSession.clearSession();
             clearDraggingElements();
 
             const draggable = e.target.closest('[data-draggable="true"]');
@@ -497,6 +535,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
 
                 const draggedFiles = getFilesFromPaths(selectedPaths);
                 if (draggedFiles.length > 0) {
+                    internalDragSession.setSession({ type: ItemType.FILE, filePaths: draggedFiles.map(file => file.path) });
                     setNativeFileDragPayload(e.dataTransfer, app.vault.getName(), draggedFiles);
                     setDragManagerPayload({
                         type: 'files',
@@ -512,7 +551,11 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             }
 
             if (type === ItemType.FOLDER) {
-                e.dataTransfer.setData('obsidian/file', path);
+                const folder = app.vault.getFolderByPath(path);
+                if (folder) {
+                    internalDragSession.setSession({ type: ItemType.FOLDER, folderPath: folder.path });
+                }
+                e.dataTransfer.setData(OBSIDIAN_FILE_MIME, path);
             }
 
             if (type === ItemType.FILE || type === ItemType.FOLDER || type === ItemType.TAG || type === ItemType.PROPERTY) {
@@ -525,6 +568,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             if (type === ItemType.FILE) {
                 const file = app.vault.getFileByPath(path);
                 if (file) {
+                    internalDragSession.setSession({ type: ItemType.FILE, filePaths: [file.path] });
                     setNativeFileDragPayload(e.dataTransfer, app.vault.getName(), [file]);
                     setDragManagerPayload({
                         type: 'file',
@@ -535,6 +579,11 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             } else if (type === ItemType.TAG) {
                 dragTagDisplayRef.current = path;
                 dragTagCanonicalRef.current = canonicalTag ?? null;
+                internalDragSession.setSession({
+                    type: ItemType.TAG,
+                    displayPath: path,
+                    canonicalPath: canonicalTag ?? normalizeTagPathValue(path)
+                });
                 try {
                     const tagPayload = {
                         displayPath: path,
@@ -550,6 +599,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                     title: path
                 });
             } else if (type === ItemType.PROPERTY) {
+                internalDragSession.setSession({ type: ItemType.PROPERTY, nodeId: path });
                 try {
                     const payload = { nodeId: path };
                     e.dataTransfer.setData(PROPERTY_DRAG_MIME, JSON.stringify(payload));
@@ -566,6 +616,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             selectionState,
             app,
             getFilesFromPaths,
+            internalDragSession,
             setDragManagerPayload,
             clearDraggingElements,
             markDraggingElement,
@@ -800,8 +851,12 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 const allowInternalDrop = dropZone.dataset.allowInternalDrop !== 'false';
                 const allowExternalDrop = dropZone.dataset.allowExternalDrop !== 'false';
                 const typesList = e.dataTransfer.types;
-                const hasObsidianData = hasPotentialObsidianFileDragType(typesList);
-                const hasTagPayload = Boolean(typesList?.includes(TAG_DRAG_MIME));
+                const internalSession = internalDragSession.getSession();
+                const hasInternalDraggedFiles = internalSession?.type === ItemType.FILE && internalSession.filePaths.length > 0;
+                const hasInternalDraggedFolder = internalSession?.type === ItemType.FOLDER;
+                const hasInternalDraggedTag = internalSession?.type === ItemType.TAG;
+                const hasObsidianData = hasPotentialObsidianFileDragType(typesList) || hasInternalDraggedFiles || hasInternalDraggedFolder;
+                const hasTagPayload = Boolean(typesList?.includes(TAG_DRAG_MIME)) || hasInternalDraggedTag;
                 const hasExternalFiles =
                     hasExternalFileDragType(typesList) || Boolean(e.dataTransfer.files && e.dataTransfer.files.length > 0);
                 const isInternalTransfer = hasObsidianData || hasTagPayload;
@@ -919,7 +974,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             dragOverElement.current = dropZone;
             dragOverDropEffectRef.current = e.dataTransfer?.dropEffect ?? null;
         },
-        [clearAutoExpandTimer, maybeScheduleAutoExpand]
+        [clearAutoExpandTimer, internalDragSession, maybeScheduleAutoExpand]
     );
 
     /**
@@ -1003,8 +1058,8 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
     );
 
     /**
-     * Imports external files dropped from OS into a target folder
-     * Handles both text and binary files with unique name generation
+     * Imports external files dropped from the OS with unique name generation.
+     * Copies the original bytes because decoding text would transcode non-UTF-8 files.
      */
     const handleExternalFileDrop = useCallback(
         async (files: FileList, targetFolder: TFolder) => {
@@ -1032,23 +1087,8 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                     const uniqueBaseName = generateUniqueFilename(targetFolder.path, baseName, extension, app);
                     const finalPath = buildFilePathInFolder(targetFolder.path, uniqueBaseName, extension);
 
-                    // Decide text vs binary import
-                    const lowerName = file.name.toLowerCase();
-                    const mime = file.type || '';
-                    const isLikelyText =
-                        extension.toLowerCase() === 'md' ||
-                        mime.startsWith('text/') ||
-                        mime === 'application/json' ||
-                        mime === 'application/xml' ||
-                        /\.(canvas|json|csv|txt|xml|html|css|js|ts)$/i.test(lowerName);
-
-                    if (isLikelyText) {
-                        const content = await file.text();
-                        await app.vault.create(finalPath, content);
-                    } else {
-                        const arrayBuffer = await file.arrayBuffer();
-                        await app.vault.createBinary(finalPath, arrayBuffer);
-                    }
+                    const arrayBuffer = await file.arrayBuffer();
+                    await app.vault.createBinary(finalPath, arrayBuffer);
 
                     importedCount.success++;
                 } catch (error) {
@@ -1130,12 +1170,13 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 const allowExternalDrop = dropZone.dataset.allowExternalDrop !== 'false';
                 const typesList = e.dataTransfer?.types;
                 const externalFiles = e.dataTransfer?.files ?? null;
-                const selectedPaths = extractFilePathsFromDataTransfer(e.dataTransfer ?? null, {
-                    getPathType: getDragPathType,
-                    vaultName: app.vault.getName()
-                });
-                const hasObsidianData = hasObsidianFileDragType(typesList) || Boolean(selectedPaths && selectedPaths.length > 0);
-                const hasTagPayload = Boolean(typesList?.includes(TAG_DRAG_MIME));
+                const selectedPaths = getDraggedFilePaths(e.dataTransfer ?? null);
+                const singleItemData = getDraggedSingleItemPath(e.dataTransfer ?? null);
+                const internalSession = internalDragSession.getSession();
+                const hasInternalDraggedTag = internalSession?.type === ItemType.TAG;
+                const hasObsidianData =
+                    hasObsidianFileDragType(typesList) || Boolean(selectedPaths && selectedPaths.length > 0) || Boolean(singleItemData);
+                const hasTagPayload = Boolean(typesList?.includes(TAG_DRAG_MIME)) || hasInternalDraggedTag;
                 const hasExternalFiles = hasExternalFileDragType(typesList) || Boolean(externalFiles && externalFiles.length > 0);
                 const isInternalTransfer = hasObsidianData || hasTagPayload;
                 const isExternalOnly = hasExternalFiles && !isInternalTransfer;
@@ -1241,7 +1282,6 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                     }
                 }
 
-                const singleItemData = e.dataTransfer?.getData('obsidian/file');
                 if (!singleItemData) {
                     return;
                 }
@@ -1288,6 +1328,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
                 clearDraggingElements();
                 setDragManagerPayload(null);
                 dragTypeRef.current = null;
+                internalDragSession.clearSession();
                 dragTagDisplayRef.current = null;
                 dragTagCanonicalRef.current = null;
                 springLoadedExpandCountRef.current = 0;
@@ -1300,7 +1341,9 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             handleExternalFileDrop,
             moveFilesWithContext,
             getFilesFromPaths,
-            getDragPathType,
+            getDraggedFilePaths,
+            getDraggedSingleItemPath,
+            internalDragSession,
             clearAutoExpandTimer,
             clearDraggingElements,
             setDragManagerPayload,
@@ -1353,9 +1396,10 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         setDragManagerPayload(null);
         clearAutoExpandTimer();
         dragTypeRef.current = null;
+        internalDragSession.clearSession();
         dragTagDisplayRef.current = null;
         dragTagCanonicalRef.current = null;
-    }, [clearDraggingElements, clearAutoExpandTimer, setDragManagerPayload]);
+    }, [clearDraggingElements, clearAutoExpandTimer, internalDragSession, setDragManagerPayload]);
 
     /**
      * Attaches drag and drop event listeners to container element
@@ -1364,6 +1408,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
     useEffect(() => {
         const container = containerRef.current;
         if (!container || isMobile) return;
+        const ownerDocument = container.ownerDocument;
         // Wrap handleDrop to catch async errors properly
         const handleDropListener = (event: DragEvent) => {
             runAsyncAction(() => handleDrop(event));
@@ -1373,7 +1418,8 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         container.addEventListener('dragover', handleDragOver);
         container.addEventListener('dragleave', handleDragLeave);
         container.addEventListener('drop', handleDropListener);
-        container.addEventListener('dragend', handleDragEnd);
+        ownerDocument.addEventListener('dragend', handleDragEnd);
+        ownerDocument.addEventListener('drop', handleDragEnd);
         const handleClickCapture = (event: MouseEvent) => {
             if (Date.now() > suppressClickUntilRef.current) {
                 return;
@@ -1390,7 +1436,8 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             container.removeEventListener('dragover', handleDragOver);
             container.removeEventListener('dragleave', handleDragLeave);
             container.removeEventListener('drop', handleDropListener);
-            container.removeEventListener('dragend', handleDragEnd);
+            ownerDocument.removeEventListener('dragend', handleDragEnd);
+            ownerDocument.removeEventListener('drop', handleDragEnd);
             container.removeEventListener('click', handleClickCapture, true);
 
             // Clean up any lingering drag state on unmount
@@ -1398,6 +1445,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
             setDragManagerPayload(null);
             clearAutoExpandTimer();
             dragTypeRef.current = null;
+            internalDragSession.clearSession();
             dragOverDropEffectRef.current = null;
         };
     }, [
@@ -1410,6 +1458,7 @@ export function useDragAndDrop(containerRef: React.RefObject<HTMLElement | null>
         isMobile,
         clearDraggingElements,
         clearAutoExpandTimer,
+        internalDragSession,
         setDragManagerPayload
     ]);
 }

@@ -160,6 +160,7 @@ export function useNavigationPaneData({
     const {
         effectiveFrontmatterExclusions,
         hiddenFolders,
+        descendantExcludedFolders,
         hiddenFileTags,
         fileVisibility,
         navigationBannerPath,
@@ -175,7 +176,8 @@ export function useNavigationPaneData({
         metadataDecorationVersion,
         metadataVisibilityVersion,
         tagDataVersion,
-        fileChangeVersion
+        fileChangeVersion,
+        folderChangeVersion
     } = sourceState;
 
     const {
@@ -252,10 +254,12 @@ export function useNavigationPaneData({
         propertyCollectionCount,
         effectiveFrontmatterExclusions,
         hiddenFolders,
+        descendantExcludedFolders,
         hiddenFileTags,
         showHiddenItems,
         folderCountFileNameMatcher,
         fileVisibility,
+        folderChangeVersion,
         vaultChangeVersion: fileChangeVersion,
         metadataVisibilityVersion,
         tagDataVersion

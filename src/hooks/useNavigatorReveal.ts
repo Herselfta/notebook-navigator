@@ -26,7 +26,7 @@ import { useSelectionState, useSelectionDispatch } from '../context/SelectionCon
 import type { SelectionRevealSource } from '../context/SelectionContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useUXPreferences } from '../context/UXPreferencesContext';
-import { useUIState, useUIDispatch } from '../context/UIStateContext';
+import { useUIState, useUIDispatch, type ContentPane } from '../context/UIStateContext';
 import { useFileCache } from '../context/StorageContext';
 import { useCommandQueue } from '../context/ServicesContext';
 import { determineTagToReveal, findNearestVisibleTagAncestor, normalizeTagPath } from '../utils/tagUtils';
@@ -55,15 +55,11 @@ import {
 } from '../utils/propertyTree';
 import { expandNavigationTreeItems } from '../utils/navigationExpansion';
 
-interface FocusPaneOptions {
-    updateSinglePaneView?: boolean;
-}
-
 interface UseNavigatorRevealOptions {
     app: App;
     navigationPaneRef: RefObject<NavigationPaneHandle | null>;
-    focusNavigationPane: (options?: FocusPaneOptions) => void;
-    focusFilesPane: (options?: FocusPaneOptions) => void;
+    focusNavigationPane: () => void;
+    focusFilesPane: () => void;
 }
 
 export interface RevealFileOptions {
@@ -132,11 +128,22 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
     const uiDispatch = useUIDispatch();
     const { getDB, getPropertyTree, findTagInTree } = useFileCache();
     const commandQueue = useCommandQueue();
+    const activatePane = useCallback(
+        (target: ContentPane) => {
+            if (target === 'navigation') {
+                focusNavigationPane();
+            } else {
+                focusFilesPane();
+            }
+        },
+        [focusFilesPane, focusNavigationPane]
+    );
 
     // Auto-reveal state
     const [fileToReveal, setFileToReveal] = useState<TFile | null>(null);
     const [isStartupReveal, setIsStartupReveal] = useState<boolean>(false);
-    const activeFileRef = useRef<string | null>(null);
+    // Obsidian mutates a TFile on rename, so instance identity still distinguishes a new file that later reuses the old path.
+    const activeFileRef = useRef<TFile | null>(null);
     const hasInitializedRef = useRef<boolean>(false);
     const selectedFilePathRef = useRef<string | null>(null);
 
@@ -331,15 +338,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                 source: options?.source
             });
 
-            // In single pane mode, switch to list pane view
-            if (uiState.singlePane && uiState.currentSinglePaneView === 'navigation') {
-                uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
-            }
-
-            // Shift focus to list pane unless already there
-            if (uiState.focusedPane !== 'files') {
-                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
-            }
+            uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
 
             if (navigationPaneRef.current && resolvedFolder) {
                 // Scroll navigation pane so the resolved folder stays in view for manual reveals
@@ -352,7 +351,6 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             expansionState.expandedFolders,
             expandFolderPaths,
             selectionDispatch,
-            uiState,
             uiDispatch,
             navigationPaneRef,
             getRevealTargetFolder,
@@ -378,15 +376,8 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
-                    uiState: {
-                        singlePane: uiState.singlePane,
-                        currentSinglePaneView: uiState.currentSinglePaneView,
-                        focusedPane: uiState.focusedPane
-                    },
-                    uiDispatch,
+                    activatePane,
                     findTagInTree,
-                    focusNavigationPane,
-                    focusFilesPane,
                     requestScroll: (path, scrollOptions) => {
                         navigationPaneRef.current?.requestScroll(path, scrollOptions);
                     }
@@ -420,11 +411,8 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             expansionState.expandedVirtualFolders,
             expansionDispatch,
             selectionDispatch,
-            focusFilesPane,
-            focusNavigationPane,
+            activatePane,
             findTagInTree,
-            uiState,
-            uiDispatch,
             selectionState.selectedFile,
             navigationPaneRef,
             settings.showAllTagsFolder,
@@ -451,14 +439,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
-                    uiState: {
-                        singlePane: uiState.singlePane,
-                        currentSinglePaneView: uiState.currentSinglePaneView,
-                        focusedPane: uiState.focusedPane
-                    },
-                    uiDispatch,
-                    focusNavigationPane,
-                    focusFilesPane,
+                    activatePane,
                     requestScroll: (nodeId, scrollOptions) => {
                         navigationPaneRef.current?.requestScroll(nodeId, scrollOptions);
                     }
@@ -494,10 +475,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             expansionState.expandedVirtualFolders,
             expansionDispatch,
             selectionDispatch,
-            focusFilesPane,
-            focusNavigationPane,
-            uiState,
-            uiDispatch,
+            activatePane,
             selectionState.selectedFile,
             navigationPaneRef,
             settings.showAllPropertiesFolder,
@@ -726,7 +704,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
 
             // Implicit file reveals (auto-reveal, shortcuts, recent notes) update selection/expansion only.
             // Keep the current single-pane view (no navigation → files switch) during external file opens.
-            // If we want reveal to force the list pane visible again, reintroduce a SET_SINGLE_PANE_VIEW('files') here.
+            // If implicit reveals should switch panes in the future, activate the files pane here.
 
             const shouldSkipShortcutScroll = Boolean(settings.skipAutoScroll && revealSource === 'shortcut');
             if (!shouldSkipShortcutScroll) {
@@ -809,9 +787,9 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             if (!options?.skipFocus) {
                 if (uiState.singlePane) {
                     if (options?.preserveNavigationFocus) {
-                        focusNavigationPane({ updateSinglePaneView: true });
+                        focusNavigationPane();
                     } else {
-                        focusFilesPane({ updateSinglePaneView: true });
+                        focusFilesPane();
                     }
                 } else {
                     focusNavigationPane();
@@ -851,15 +829,8 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
-                    uiState: {
-                        singlePane: uiState.singlePane,
-                        currentSinglePaneView: uiState.currentSinglePaneView,
-                        focusedPane: uiState.focusedPane
-                    },
-                    uiDispatch,
+                    activatePane,
                     findTagInTree,
-                    focusNavigationPane,
-                    focusFilesPane,
                     requestScroll: (path, scrollOptions) => {
                         navigationPaneRef.current?.requestScroll(path, scrollOptions);
                     }
@@ -873,17 +844,12 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             expansionState.expandedTags,
             expansionState.expandedVirtualFolders,
             findTagInTree,
-            focusFilesPane,
-            focusNavigationPane,
+            activatePane,
             navigationPaneRef,
             selectionDispatch,
             settings.showAllTagsFolder,
             settings.collapseOtherBranchesOnExpand,
-            settings.showTags,
-            uiDispatch,
-            uiState.currentSinglePaneView,
-            uiState.focusedPane,
-            uiState.singlePane
+            settings.showTags
         ]
     );
 
@@ -902,14 +868,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                     collapseOtherBranchesOnExpand: settings.collapseOtherBranchesOnExpand,
                     expansionDispatch,
                     selectionDispatch,
-                    uiState: {
-                        singlePane: uiState.singlePane,
-                        currentSinglePaneView: uiState.currentSinglePaneView,
-                        focusedPane: uiState.focusedPane
-                    },
-                    uiDispatch,
-                    focusNavigationPane,
-                    focusFilesPane,
+                    activatePane,
                     requestScroll: (nodeId, scrollOptions) => {
                         navigationPaneRef.current?.requestScroll(nodeId, scrollOptions);
                     }
@@ -922,17 +881,12 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             expansionDispatch,
             expansionState.expandedProperties,
             expansionState.expandedVirtualFolders,
-            focusFilesPane,
-            focusNavigationPane,
+            activatePane,
             navigationPaneRef,
             selectionDispatch,
             settings.showAllPropertiesFolder,
             settings.collapseOtherBranchesOnExpand,
             settings.showProperties,
-            uiDispatch,
-            uiState.currentSinglePaneView,
-            uiState.focusedPane,
-            uiState.singlePane,
             getPropertyTree
         ]
     );
@@ -987,12 +941,12 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
             }
 
             // Check if this is actually a different file
-            if (activeFileRef.current === file.path) {
+            if (activeFileRef.current === file) {
                 return; // Same file, no change
             }
 
             // Update the active file reference
-            activeFileRef.current = file.path;
+            activeFileRef.current = file;
 
             // Always reveal newly created files
             if (isRecentlyCreated) {
@@ -1051,7 +1005,7 @@ export function useNavigatorReveal({ app, navigationPaneRef, focusNavigationPane
                 const split = getLeafSplitLocation(app, activeLeaf);
                 const isIgnoredRightSidebarLeaf = settings.autoRevealIgnoreRightSidebar && split === 'right-sidebar';
                 if (!isIgnoredRightSidebarLeaf && !shouldIgnoreOtherWindowAutoReveal(activeLeaf)) {
-                    activeFileRef.current = activeFile.path;
+                    activeFileRef.current = activeFile;
                     setIsStartupReveal(true);
                     setFileToReveal(activeFile);
                 }

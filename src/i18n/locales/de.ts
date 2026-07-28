@@ -87,6 +87,7 @@ export const STRINGS_DE = {
     navigationCalendar: {
         ariaLabel: 'Kalender',
         dailyNotesNotEnabled: 'Das Kernplugin für tägliche Notizen ist nicht aktiviert.',
+        noteHiddenByProfile: 'Die Kalendernotiz ist durch das aktuelle Tresorprofil ausgeblendet.',
         createDailyNote: {
             title: 'Neue tägliche Notiz',
             message: 'Datei {filename} existiert nicht. Möchten Sie sie erstellen?',
@@ -168,6 +169,7 @@ export const STRINGS_DE = {
     // Search input
     searchInput: {
         placeholder: 'Suchen...', // Placeholder text for search input (English: Search...)
+        placeholderVault: 'Tresor durchsuchen...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Suche löschen', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'Zur Filtersuche wechseln',
@@ -180,16 +182,16 @@ export const STRINGS_DE = {
         searchHelp: 'Suchsyntax',
         searchHelpTitle: 'Suchsyntax',
         searchHelpModal: {
-            intro: 'Kombinieren Sie Dateinamen, Eigenschaften, Tags, Daten und Filter in einer Abfrage (z.B. `meeting .status=active #work @thisweek`). Installieren Sie das Omnisearch-Plugin für Volltextsuche.',
+            intro: 'Kombinieren Sie Anzeigenamen, Aliasnamen, Eigenschaften, Tags, Daten und Filter in einer Abfrage (z.B. `meeting .status=active #work @thisweek`). Installieren Sie das Omnisearch-Plugin für Volltextsuche.',
             introSwitching:
                 'Wechseln Sie zwischen Filtersuche und Omnisearch mit den Auf-/Ab-Pfeiltasten oder durch Klicken auf das Suchsymbol.',
             sections: {
                 fileNames: {
-                    title: 'Dateinamen',
+                    title: 'Dateinamen und Aliasnamen',
                     items: [
-                        '`word` Notizen mit "word" im Dateinamen finden.',
-                        '`word1 word2` Jedes Wort muss im Dateinamen vorkommen.',
-                        '`-word` Notizen mit "word" im Dateinamen ausschließen.'
+                        '`word` Notizen mit "word" im Anzeigenamen oder in einem Aliasnamen finden.',
+                        '`word1 word2` Jedes Wort muss im Anzeigenamen oder in den Aliasnamen vorkommen.',
+                        '`-word` Notizen mit "word" im Anzeigenamen oder in einem Aliasnamen ausschließen.'
                     ]
                 },
                 tags: {
@@ -209,11 +211,11 @@ export const STRINGS_DE = {
                 properties: {
                     title: 'Eigenschaften',
                     items: [
-                        '`.key` Notizen mit Eigenschaftsschlüssel einschließen.',
+                        '`.key` Notizen mit einem Eigenschaftsschlüssel einschließen, der mit `key` beginnt.',
                         '`.key=value` Notizen einschließen, deren Eigenschaftswert `value` enthält.',
                         '`."Reading Status"` Notizen mit einem Eigenschaftsschlüssel einschließen, der Leerzeichen enthält.',
                         '`."Reading Status"="In Progress"` Schlüssel und Werte mit Leerzeichen müssen in Anführungszeichen stehen.',
-                        '`-.key` Notizen mit Eigenschaftsschlüssel ausschließen.',
+                        '`-.key` Notizen mit einem Eigenschaftsschlüssel ausschließen, der mit `key` beginnt.',
                         '`-.key=value` Notizen ausschließen, deren Eigenschaftswert `value` enthält.',
                         'Cmd/Ctrl+Klick auf eine Eigenschaft zum Hinzufügen mit AND. Cmd/Ctrl+Shift+Klick zum Hinzufügen mit OR.'
                     ]
@@ -351,6 +353,9 @@ export const STRINGS_DE = {
             changeBackground: 'Hintergrund ändern',
             excludeFolder: 'Ordner verstecken',
             unhideFolder: 'Ordner einblenden',
+            excludeFromDescendants: 'In übergeordneten Ordnern ausblenden',
+            includeInDescendants: 'In übergeordneten Ordnern anzeigen',
+            hiddenFromParentsIndicator: 'Aus übergeordneten Ordnerlisten ausgeblendet',
             moveFolder: 'Ordner verschieben nach...',
             renameFolder: 'Ordner umbenennen',
             deleteFolder: 'Ordner löschen'
@@ -668,6 +673,7 @@ export const STRINGS_DE = {
         },
         navigationBanner: {
             placeholder: 'Bilder durchsuchen...',
+            svgMissingDimensions: 'Die ausgewählte SVG-Datei definiert weder Breite, Höhe noch viewBox.',
             instructions: {
                 navigate: 'zum Navigieren',
                 select: 'um Banner zu setzen',
@@ -714,11 +720,11 @@ export const STRINGS_DE = {
         welcome: {
             title: 'Willkommen bei {pluginName}',
             introText:
-                'Hallo! Bevor Sie beginnen, empfehle ich Ihnen, die ersten fünf Minuten des Videos unten anzusehen, um zu verstehen, wie die Bereiche und der Schalter „Notizen aus Unterordnern anzeigen" funktionieren.',
+                'Hallo und herzlich willkommen bei Notebook Navigator, einem besseren Dateibrowser und Kalender für Obsidian. Bevor Sie loslegen, empfehle ich Ihnen wirklich, mindestens die ersten drei Kapitel des Videos unten, Mastering Notebook Navigator, anzusehen. Dort erfahren Sie, wie die beiden Bereiche funktionieren und wie Sie schnell einsteigen können.',
             continueText:
-                'Wenn Sie weitere fünf Minuten haben, schauen Sie das Video weiter an, um die kompakten Anzeigemodi und die richtige Einrichtung von Lesezeichen und wichtigen Tastenkombinationen zu verstehen.',
-            thanksText: 'Vielen Dank fürs Herunterladen und viel Spaß!',
-            videoAlt: 'Notebook Navigator installieren und beherrschen',
+                'Wenn Sie dann noch zehn Minuten Zeit haben, schauen Sie sich auch die Kapitel zur Ersteinrichtung und zum täglichen Ablauf an. Damit haben Sie alles, was Sie für den Einstieg brauchen, und können später zurückkehren, um sich weitere Details anzusehen. Einen Link zum Video finden Sie oben in den Einstellungen von Notebook Navigator.',
+            thanksText: 'Viel Spaß mit Notebook Navigator!',
+            videoAlt: 'Notebook Navigator 3 meistern',
             openVideoButton: 'Video abspielen',
             closeButton: 'Vielleicht später'
         }
@@ -775,6 +781,8 @@ export const STRINGS_DE = {
         notices: {
             hideFolder: 'Ordner ausgeblendet: {name}',
             showFolder: 'Ordner eingeblendet: {name}',
+            folderExcludedFromDescendants: 'Aus übergeordneten Ordnerlisten ausgeblendet: {name}',
+            folderIncludedInDescendants: 'In übergeordneten Ordnerlisten angezeigt: {name}',
             mergeNotes: '{count} Notizen in {name} zusammengeführt'
         },
         notifications: {
@@ -859,7 +867,7 @@ export const STRINGS_DE = {
         openYearlyNote: 'Jährliche Notiz öffnen',
         revealFile: 'Datei anzeigen', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Suchen', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: 'Im Tresorverzeichnis suchen', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: 'Gesamten Tresor durchsuchen', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'Doppelbereichslayout umschalten', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Doppelbereich-Ausrichtung umschalten', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Kalender umschalten', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -899,7 +907,8 @@ export const STRINGS_DE = {
         removeTag: 'Tag von ausgewählten Dateien entfernen', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'Alle Tags von ausgewählten Dateien entfernen', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'Alle Dateien öffnen', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'Cache neu aufbauen' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'Cache neu aufbauen', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'Standardeinstellungen wiederherstellen' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -908,7 +917,18 @@ export const STRINGS_DE = {
         calendarViewName: 'Kalender', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'Ordnernotiz', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'In Notebook Navigator anzeigen' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'In Notebook Navigator anzeigen', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'Notebook Navigator konnte seine Einstellungen nicht lesen und wurde nicht gestartet. Wenn Ihr Vault synchronisiert wird, starten Sie Obsidian nach Abschluss der Synchronisierung neu. Um mit Standardeinstellungen neu zu beginnen, führen Sie den Befehl „Standardeinstellungen wiederherstellen“ aus.', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Standardeinstellungen wiederherstellen', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Dies ersetzt die Einstellungsdatei von Notebook Navigator durch Standardeinstellungen. Wenn Ihr Vault noch synchronisiert wird, können die wiederhergestellten Standardwerte die auf Ihren anderen Geräten gespeicherten Einstellungen überschreiben. Eine lesbare Einstellungsdatei wird zuvor in eine Sicherungsdatei mit Zeitstempel im Plugin-Ordner kopiert.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Standardwerte wiederherstellen', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice:
+                'Die Wiederherstellung der Einstellungen konnte nicht abgeschlossen werden. Lokale Einstellungen wurden beibehalten.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Standardeinstellungen wiederhergestellt. Starten Sie Obsidian neu, um den Vorgang abzuschließen.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -981,6 +1001,7 @@ export const STRINGS_DE = {
                 vaultConfiguration: 'Tresor-Einrichtung',
                 templates: 'Vorlagen',
                 behavior: 'Verhalten',
+                startup: 'Start',
                 keyboardNavigation: 'Tastaturnavigation',
                 mouseButtons: 'Maustasten',
                 view: 'Darstellung',
@@ -1157,6 +1178,10 @@ export const STRINGS_DE = {
                 name: 'Unterordnerpfade anzeigen',
                 desc: 'Beim Gruppieren nach Ordner im Listenbereich Unterordnerpfade statt nur Ordnernamen anzeigen.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Elementanzahl anzeigen',
+                desc: 'Zeigt die Anzahl der Elemente in jeder Gruppenüberschrift im Listenbereich an.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Ordnergruppierung: Dateien des aktuellen Ordners unten',
                 desc: 'Wenn die Standardgruppierung „Ordner“ ist, Dateien direkt im ausgewählten Ordner unter den Unterordnergruppen anzeigen.'
@@ -1231,8 +1256,8 @@ export const STRINGS_DE = {
                 desc: 'Den übergeordneten Ordnernamen für Notizen in Unterordnern, Tags oder Eigenschaften anzeigen.'
             },
             showParentFolderFullPath: {
-                name: 'Vollständigen Pfad anzeigen',
-                desc: 'Den vollständigen Pfad des übergeordneten Ordners anstelle nur des Ordnernamens anzeigen.'
+                name: 'Ordnerpfad anzeigen',
+                desc: 'Den Pfad relativ zum ausgewählten Ordner statt nur den Ordnernamen anzeigen. Tags und Eigenschaften zeigen den vollständigen Pfad.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Klick auf übergeordneten Ordner öffnet Ordner',
@@ -1303,7 +1328,7 @@ export const STRINGS_DE = {
             },
             startView: {
                 name: 'Standard-Startansicht',
-                desc: 'Wählen Sie den Bereich, der beim Öffnen von Notebook Navigator angezeigt wird. Der Navigationsbereich zeigt Verknüpfungen, neueste Dateien und die Ordnerstruktur. Der Listenbereich zeigt die Dateiliste.',
+                desc: 'Wählen Sie den Bereich, der beim Öffnen von Notebook Navigator aktiv ist. In der einspaltigen Ansicht wird dieser Bereich zuerst angezeigt, in der zweispaltigen Ansicht erhält er den Tastaturfokus.',
                 options: {
                     navigation: 'Navigationsbereich',
                     files: 'Listenbereich'
@@ -1479,6 +1504,10 @@ export const STRINGS_DE = {
                 name: 'Feature-Bild anzeigen',
                 desc: 'Feature-Bilder für Notizen im Kalender anzeigen.'
             },
+            calendarShowTasks: {
+                name: 'Aufgaben anzeigen',
+                desc: 'Einen Indikator an Tagen, Wochen und Monaten mit unerledigten Aufgaben anzeigen.'
+            },
             calendarShowWeekNumber: {
                 name: 'Wochennummer anzeigen',
                 desc: 'Spalte mit der Wochennummer hinzufügen.'
@@ -1494,6 +1523,10 @@ export const STRINGS_DE = {
             calendarConfirmBeforeCreate: {
                 name: 'Vor Erstellung bestätigen',
                 desc: 'Bestätigungsdialog beim Erstellen einer neuen täglichen Notiz anzeigen.'
+            },
+            calendarShowHiddenItems: {
+                name: 'Ausgeblendete Elemente anzeigen',
+                desc: 'Wenn aktiviert, zeigt der Kalender immer alle Kalendernotizen, einschließlich Notizen, die durch Filter des Tresorprofils ausgeblendet sind.'
             },
             calendarIntegrationMode: {
                 name: 'Tagesnotiz-Quelle',
@@ -1596,6 +1629,12 @@ export const STRINGS_DE = {
                         'JSON unten einfügen oder bearbeiten. Nicht enthaltene Einstellungen werden auf Standardwerte zurückgesetzt.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'Importieren',
+                    confirmTitle: 'Einstellungen importieren?',
+                    confirmMessage: 'Beim Importieren werden Ihre aktuellen Notebook Navigator-Einstellungen ersetzt.',
+                    backupToggleName: 'Aktuelle Einstellungen vor dem Importieren im Stammordner des Tresors speichern',
+                    backupToggleDesc: 'Erstellt eine JSON-Datei mit Zeitstempel im Stammordner des Tresors.',
+                    successWithBackupNotice: 'Einstellungen importiert. Vorherige Einstellungen wurden unter {path} gespeichert.',
+                    backupError: 'Aktuelle Einstellungen konnten nicht gespeichert werden: {message}',
                     successNotice: 'Einstellungen importiert.',
                     errorNotice: 'Einstellungen konnten nicht importiert werden: {message}',
                     fileReadError: 'Datei konnte nicht gelesen werden: {message}'
@@ -1700,6 +1739,11 @@ export const STRINGS_DE = {
                 name: 'Ordner verstecken (Tresorprofil)',
                 desc: 'Kommagetrennte Liste von auszublendenden Ordnern. Namensmuster: assets* (Ordner die mit assets beginnen), *_temp (endet mit _temp). Pfadmuster: /archive (nur Wurzel-Archive), /res* (Wurzelordner die mit res beginnen), /*/temp (temp-Ordner eine Ebene tief), /projects/* (alle Ordner in projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Ordner aus Unterordner-Notizen ausschließen (Tresorprofil)',
+                desc: 'Kommagetrennte Liste von Ordnern, die beim Sammeln von Notizen aus Unterordnern ausgelassen werden. Die Ordner bleiben sichtbar, und beim Auswählen eines Ordners werden seine Notizen weiterhin angezeigt. Verwendet dieselben Muster wie Ordner verstecken.',
+                placeholder: 'daily, ressourcen, /archive'
             },
             fileVisibility: {
                 name: 'Dateitypen anzeigen (Tresorprofil)',

@@ -55,7 +55,20 @@ export { compareVersions } from './utils/versionUtils';
  * - Use factual, concise statements
  * - Avoid benefit language and subjective adjectives
  * - Keep to the categories: new, improved, changed, fixed
+ * - Do not start list items with a bold area prefix such as `**Calendar.**` (used in 3.2.3 and earlier)
  */
+
+/**
+ * Positions the play button over a YouTube thumbnail.
+ */
+export interface YoutubePlayButtonOptions {
+    /** Horizontal center as a percentage of the thumbnail width */
+    x: number;
+    /** Vertical center as a percentage of the thumbnail height */
+    y: number;
+    /** Multiplier applied to the default play button size; defaults to 1 */
+    scale?: number;
+}
 
 /**
  * Represents a single release note entry
@@ -75,6 +88,8 @@ export interface ReleaseNote {
     videoClickable?: boolean;
     /** Optional YouTube video URL shown above the release notes for this version */
     youtubeUrl?: string;
+    /** Optional play button placement; thumbnails otherwise use a centered button at its default size */
+    youtubePlayButton?: YoutubePlayButtonOptions;
     info?: string; // General information about the release, shown at top without bullets
     new?: string[];
     improved?: string[];
@@ -90,6 +105,73 @@ export interface ReleaseNote {
  * 2. Categorize features into: new, improved, changed, or fixed arrays
  */
 const RELEASE_NOTES: ReleaseNote[] = [
+    {
+        version: '3.2.5',
+        date: '2026-07-26',
+        showOnUpdate: true,
+        new: [
+            'New setting: Calendar > ==Show hidden items==. When enabled, the calendar always shows all calendar notes, including notes hidden by vault profile filters. Disabled by default.'
+        ],
+        fixed: [
+            'Fixed the appearance preview ignoring the ==Apply color to icons only== setting. When enabled, items without a custom icon show their default icon when previewing a color.',
+            'Fixed folder note links not expanding folders when ==Expand on selection== was enabled.',
+            'Fixed auto-reveal keeping a renamed note selected when a new note reused its previous path.',
+            "Fixed Obsidian's `Move current file to another folder` command switching the Navigator folder when ==Auto-reveal active note== was disabled.",
+            'External files dropped into folders now preserve their original bytes instead of being rewritten as UTF-8.'
+        ]
+    },
+    {
+        version: '3.2.4',
+        date: '2026-07-20',
+        showOnUpdate: true,
+        youtubeUrl: 'https://www.youtube.com/watch?v=m2maDNtho7Y',
+        youtubePlayButton: { x: 80, y: 49, scale: 1.8 },
+        info: 'We finally have a new **Mastering Notebook Navigator 3** video! In this one-hour long masterclass I go through everything you need to know about Notebook Navigator in 14 separate chapters. It took some time to record this, and I hope you find value in it.',
+        new: [
+            'Filter search now checks frontmatter aliases and all supported frontmatter properties, including properties that are not shown in Notebook Navigator. For example, `kickoff` finds a note with the alias `Project kickoff`, `.stat` finds the `status` property, and `.status=act` finds the value `active`. Matches are highlighted in the note list, and hidden properties are shown next to the note name. Exclusions such as `-kickoff` also check aliases. This change requires a one-time cache rebuild after updating. Sorry about that!',
+            'You can now show item counts in the list pane group headers using the new setting: List pane > Group headers > ==Show item counts==. Disabled by default.'
+        ],
+        improved: [
+            'Settings are no longer reset to defaults when the settings file is temporarily missing or unreadable, which can happen with some third party sync services. Startup retries the settings load for a short window, then shows a notice and keeps the plugin inactive until Obsidian is restarted. The new command `Restore default settings` replaces a damaged settings file with verified defaults after saving a timestamped copy to the plugin folder.',
+            'If you are using a hardware keyboard with a mobile device, you can now use Tab, Shift+Tab, and the Left and Right arrow keys to move between the navigation and list panes.',
+            'Excalidraw drawings now show preview text from the frontmatter properties listed in `Preview properties`.'
+        ],
+        changed: [
+            'In the list pane, the parent folder label with ==Show folder path== enabled now shows the path relative to the selected folder instead of the full path. For example with the folder `Projects` selected, a note in `Projects/Clients/Acme` now shows `Clients/Acme`.'
+        ],
+        fixed: [
+            'Fixed freshly downloaded icon packs appearing as square placeholder symbols in the icon picker until Obsidian was restarted.',
+            'Calendar notes now follow vault profile visibility, including hidden folders and `Show hidden items` in the right sidebar.',
+            'Fixed Cmd/Ctrl-click not opening note shortcuts and recent files in a new tab when Option/Alt was selected as the multi-select modifier.',
+            'Fixed an issue where deleting notes could leave their tags showing in the tag tree. This happened when deleting a folder while a custom root folder order was set.',
+            'Fixed custom group headers not showing word counts when note word count display was disabled.'
+        ]
+    },
+    {
+        version: '3.2.3',
+        date: '2026-07-09',
+        showOnUpdate: true,
+        bannerUrl: true,
+        info: 'After making startup much faster in 3.2.0, I took the time to go through everything that runs when you actually use the plugin: scrolling, switching folders, typing in notes, editing tags, and moving folders.\n\nRendering while scrolling is now 15-25% more efficient, switching folders builds the list about 60% faster, warm starts load storage about 5 times faster, background processing while typing is cut in half, and moving a folder now batches its database writes instead of writing every file separately.\n\nYou should notice these improvements in your daily use, especially if you have a large vault. Thank you for using Notebook Navigator!',
+        new: [
+            '**Calendar.** New setting: Calendar > ==Show tasks==. You can now hide the indicator on days, weeks, and months with unfinished tasks. Enabled by default.',
+            '**Display filters.** New setting: Display filters > ==Exclude folders from descendants==. You can now exclude folders from showing when "Show files from subfolders" is enabled. Use it to hide folder content like periodic notes from parent folder lists while keeping the folders visible and selectable. You can also exclude folders directly with the new menu command `Hide from parents`.',
+            '**Feature images.** SVG images are back as feature images again. SVG sources are now rasterized into cached thumbnails during content generation instead of rendering live in the list. SVG files that embed bitmap images are skipped.',
+            '**Navigation banner.** SVG files can now also be selected as the navigation banner image.'
+        ],
+        improved: [
+            '**Search.** The command `Search in vault root` was renamed to ==Search whole vault==. It now always includes notes from subfolders without changing the `Show notes from subfolders` setting.',
+            '**Settings.** Importing settings now shows a confirmation dialog with an option to save current settings to a timestamped file in the vault root. Exported settings files now use timestamped filenames and record the plugin version. Import rejects JSON that is not a Notebook Navigator export or recognizable legacy settings diff.',
+            '**Calendar.** Middle-click on day cells, week numbers, month, quarter and year headers, and the year panel opens the calendar note in a new tab, creating it if needed.',
+            '**Feature images.** Thumbnails with transparent backgrounds, such as SVG or PNG images, no longer show an outline over transparent areas.',
+            '**Performance.** Reduced work across list and navigation rendering, calendar updates, warm startup storage loading, note-save content generation, tag and property rebuilds, frontmatter date reads, folder note counts, bulk file operations, and PDF/SVG thumbnail moves.'
+        ],
+        fixed: [
+            '**Drag and drop.** Fixed drag and drop not working on some Windows PCs where the system did not expose drag data during the drag operation.',
+            '**Display filters.** Fixed entries in Display filters > Hide folders losing path segments when a folder moved to a different folder depth. Hidden tag patterns had the same issue when a tag rename changed depth. Patterns containing `name*` segments are left unchanged when the moved folder or renamed tag does not match them.',
+            '**Editor tabs.** Fixed notes pinned in the editor opening again when selected from Notebook Navigator instead of reusing the existing main editor tab.'
+        ]
+    },
     {
         version: '3.2.2',
         date: '2026-06-30',

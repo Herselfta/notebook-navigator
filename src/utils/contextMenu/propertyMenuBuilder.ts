@@ -23,7 +23,7 @@ import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID } from '../../types';
 import { setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { addStyleMenu } from './styleMenuBuilder';
-import { resolveUXIconForMenu } from '../uxIcons';
+import { resolveUXIcon, resolveUXIconForMenu } from '../uxIcons';
 import { normalizePropertyNodeId, parsePropertyNodeId } from '../propertyTree';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
 
@@ -169,7 +169,7 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
         }
 
         selectionDispatch({ type: 'SET_SELECTED_FILE', file });
-        uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+        uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
     };
 
     menu.addItem((item: MenuItem) => {
@@ -196,6 +196,12 @@ export function buildPropertyMenu(params: PropertyMenuBuilderParams): void {
             title: label,
             metadataService,
             initialTab,
+            defaultIcon: settings.showPropertyIcons
+                ? resolveUXIcon(
+                      settings.interfaceIcons,
+                      parsePropertyNodeId(normalizedNodeId)?.valuePath ? 'nav-property-value' : 'nav-property'
+                  )
+                : null,
             icon: settings.showPropertyIcons
                 ? {
                       initial: metadataService.getPropertyIcon(normalizedNodeId) ?? null,

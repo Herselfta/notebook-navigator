@@ -88,6 +88,7 @@ export const STRINGS_IT = {
     navigationCalendar: {
         ariaLabel: 'Calendario',
         dailyNotesNotEnabled: 'Il plugin delle note giornaliere non è abilitato.',
+        noteHiddenByProfile: 'La nota del calendario è nascosta dal profilo del vault corrente.',
         createDailyNote: {
             title: 'Nuova nota giornaliera',
             message: 'Il file {filename} non esiste. Vuoi crearlo?',
@@ -169,6 +170,7 @@ export const STRINGS_IT = {
     // Search input
     searchInput: {
         placeholder: 'Cerca...', // Placeholder text for search input (English: Search...)
+        placeholderVault: 'Cerca nel vault...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Cancella ricerca', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'Passa alla ricerca con filtro',
@@ -181,15 +183,15 @@ export const STRINGS_IT = {
         searchHelp: 'Sintassi di ricerca',
         searchHelpTitle: 'Sintassi di ricerca',
         searchHelpModal: {
-            intro: 'Combina nomi file, proprietà, tag, date e filtri in una query (es. `meeting .status=active #work @thisweek`). Installa il plugin Omnisearch per usare la ricerca full-text.',
+            intro: 'Combina nomi visualizzati, alias, proprietà, tag, date e filtri in una query (es. `meeting .status=active #work @thisweek`). Installa il plugin Omnisearch per usare la ricerca full-text.',
             introSwitching: "Passa tra ricerca con filtro e Omnisearch usando i tasti freccia su/giù o cliccando sull'icona di ricerca.",
             sections: {
                 fileNames: {
-                    title: 'Nomi file',
+                    title: 'Nomi file e alias',
                     items: [
-                        '`word` Trova note con "word" nel nome del file.',
-                        '`word1 word2` Ogni parola deve corrispondere al nome del file.',
-                        '`-word` Escludi note con "word" nel nome del file.'
+                        '`word` Trova note con "word" nel nome visualizzato o in un alias.',
+                        '`word1 word2` Ogni parola deve corrispondere al nome visualizzato o a uno degli alias.',
+                        '`-word` Escludi note con "word" nel nome visualizzato o in un alias.'
                     ]
                 },
                 tags: {
@@ -209,11 +211,11 @@ export const STRINGS_IT = {
                 properties: {
                     title: 'Proprietà',
                     items: [
-                        '`.key` Includi note con chiave di proprietà.',
+                        '`.key` Includi le note con una chiave di proprietà che inizia con `key`.',
                         '`.key=value` Includi note in cui il valore della proprietà contiene `value`.',
                         '`."Reading Status"` Includi note con una chiave di proprietà che contiene spazi.',
                         '`."Reading Status"="In Progress"` Chiavi e valori con spazi devono essere racchiusi tra virgolette doppie.',
-                        '`-.key` Escludi note con chiave di proprietà.',
+                        '`-.key` Escludi le note con una chiave di proprietà che inizia con `key`.',
                         '`-.key=value` Escludi note in cui il valore della proprietà contiene `value`.',
                         'Cmd/Ctrl+Clic su una proprietà per aggiungere con AND. Cmd/Ctrl+Shift+Clic per aggiungere con OR.'
                     ]
@@ -350,6 +352,9 @@ export const STRINGS_IT = {
             changeBackground: 'Cambia sfondo',
             excludeFolder: 'Nascondi cartella',
             unhideFolder: 'Mostra cartella',
+            excludeFromDescendants: 'Nascondi dalle cartelle superiori',
+            includeInDescendants: 'Mostra nelle cartelle superiori',
+            hiddenFromParentsIndicator: 'Nascosta dagli elenchi delle cartelle superiori',
             moveFolder: 'Sposta cartella in...',
             renameFolder: 'Rinomina cartella',
             deleteFolder: 'Elimina cartella'
@@ -664,6 +669,7 @@ export const STRINGS_IT = {
         },
         navigationBanner: {
             placeholder: 'Cerca immagini...',
+            svgMissingDimensions: 'Il file SVG selezionato non definisce larghezza, altezza o viewBox.',
             instructions: {
                 navigate: 'per navigare',
                 select: 'per impostare banner',
@@ -710,11 +716,11 @@ export const STRINGS_IT = {
         welcome: {
             title: 'Benvenuto in {pluginName}',
             introText:
-                'Ciao! Prima di iniziare, ti consiglio vivamente di guardare i primi cinque minuti del video qui sotto per capire come funzionano i pannelli e l\'interruttore "Mostra note dalle sottocartelle".',
+                'Ciao e benvenuto in Notebook Navigator, un file browser e calendario migliore per Obsidian. Prima di iniziare, ti consiglio davvero di guardare almeno i primi tre capitoli del video qui sotto, Mastering Notebook Navigator. Ti spiegano come funzionano i due pannelli e ti aiutano a iniziare rapidamente.',
             continueText:
-                'Se hai altri cinque minuti, continua a guardare il video per capire le modalità di visualizzazione compatta e come configurare correttamente le scorciatoie e i tasti di scelta rapida importanti.',
-            thanksText: 'Grazie mille per aver scaricato e buon divertimento!',
-            videoAlt: 'Installare e padroneggiare Notebook Navigator',
+                'Poi, se hai altri dieci minuti, continua con i capitoli sulla prima configurazione e sull’uso quotidiano. Troverai tutto ciò che ti serve per iniziare e potrai tornare in seguito per approfondire i dettagli. Troverai un link al video nella parte superiore delle impostazioni di Notebook Navigator.',
+            thanksText: 'Buon divertimento con Notebook Navigator!',
+            videoAlt: 'Padroneggiare Notebook Navigator 3',
             openVideoButton: 'Riproduci video',
             closeButton: 'Forse più tardi'
         }
@@ -769,6 +775,8 @@ export const STRINGS_IT = {
         notices: {
             hideFolder: 'Cartella nascosta: {name}',
             showFolder: 'Cartella mostrata: {name}',
+            folderExcludedFromDescendants: 'Nascosta dagli elenchi delle cartelle superiori: {name}',
+            folderIncludedInDescendants: 'Mostrata negli elenchi delle cartelle superiori: {name}',
             mergeNotes: 'Unite {count} note in {name}'
         },
         notifications: {
@@ -853,7 +861,7 @@ export const STRINGS_IT = {
         openYearlyNote: 'Apri nota annuale',
         revealFile: 'Mostra file', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Cerca', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: 'Cerca nella radice del vault', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: 'Cerca in tutto il vault', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'Attiva/disattiva doppio pannello', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Cambia orientamento doppio pannello', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Attiva/disattiva calendario', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -893,7 +901,8 @@ export const STRINGS_IT = {
         removeTag: 'Rimuovi tag dai file selezionati', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'Rimuovi tutti i tag dai file selezionati', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'Apri tutti i file', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'Ricostruisci cache' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'Ricostruisci cache', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'Ripristina impostazioni predefinite' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -902,7 +911,17 @@ export const STRINGS_IT = {
         calendarViewName: 'Calendario', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'Nota cartella', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'Mostra in Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'Mostra in Notebook Navigator', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'Notebook Navigator non è riuscito a leggere le impostazioni e non è stato avviato. Se il tuo vault è in sincronizzazione, riavvia Obsidian al termine della sincronizzazione. Per ricominciare con le impostazioni predefinite, esegui il comando "Ripristina impostazioni predefinite".', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Ripristina impostazioni predefinite', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Questa operazione sostituisce il file delle impostazioni di Notebook Navigator con le impostazioni predefinite. Se il tuo vault è ancora in sincronizzazione, le impostazioni predefinite ripristinate possono sovrascrivere quelle salvate sugli altri tuoi dispositivi. Un file delle impostazioni leggibile viene prima copiato in un backup con data e ora nella cartella del plugin.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Ripristina predefinite', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'Impossibile completare il ripristino delle impostazioni. Le preferenze locali sono state mantenute.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Impostazioni predefinite ripristinate. Riavvia Obsidian per completare.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -975,6 +994,7 @@ export const STRINGS_IT = {
                 vaultConfiguration: 'Configurazione vault',
                 templates: 'Modelli',
                 behavior: 'Comportamento',
+                startup: 'Avvio',
                 keyboardNavigation: 'Navigazione da tastiera',
                 mouseButtons: 'Pulsanti del mouse',
                 view: 'Aspetto',
@@ -1151,6 +1171,10 @@ export const STRINGS_IT = {
                 name: 'Mostra percorsi sottocartelle',
                 desc: 'Quando raggruppi per cartella nel pannello lista, mostra i percorsi delle sottocartelle invece dei soli nomi cartella.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Mostra il numero di elementi',
+                desc: 'Mostra il numero di elementi in ogni intestazione di gruppo del pannello lista.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Raggruppamento per cartella: file della cartella corrente in basso',
                 desc: 'Quando il raggruppamento predefinito è Cartella, sposta i file direttamente nella cartella selezionata sotto i gruppi di sottocartelle.'
@@ -1225,8 +1249,8 @@ export const STRINGS_IT = {
                 desc: 'Visualizza il nome della cartella genitore per note in sottocartelle, tag o proprietà.'
             },
             showParentFolderFullPath: {
-                name: 'Mostra percorso completo',
-                desc: 'Visualizza il percorso completo della cartella genitore invece del solo nome della cartella.'
+                name: 'Mostra percorso cartella',
+                desc: 'Mostra il percorso relativo alla cartella selezionata invece del solo nome della cartella. Tag e proprietà mostrano il percorso completo.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Click su cartella genitore apre cartella',
@@ -1297,7 +1321,7 @@ export const STRINGS_IT = {
             },
             startView: {
                 name: "Vista predefinita all'avvio",
-                desc: "Scegli quale pannello visualizzare all'apertura di Notebook Navigator. Il pannello navigazione mostra scorciatoie, file recenti e albero cartelle. Il pannello lista mostra subito l'elenco file.",
+                desc: "Scegli quale pannello è attivo all'apertura di Notebook Navigator. Il layout a pannello singolo mostra prima questo pannello; il layout a doppio pannello gli assegna il focus della tastiera.",
                 options: {
                     navigation: 'Pannello navigazione',
                     files: 'Pannello lista'
@@ -1473,6 +1497,10 @@ export const STRINGS_IT = {
                 name: 'Mostra immagine in evidenza',
                 desc: 'Visualizza le immagini in evidenza delle note nel calendario.'
             },
+            calendarShowTasks: {
+                name: 'Mostra attività',
+                desc: 'Mostra un indicatore su giorni, settimane e mesi con attività incomplete.'
+            },
             calendarShowWeekNumber: {
                 name: 'Mostra numero settimana',
                 desc: 'Aggiungi una colonna con il numero della settimana.'
@@ -1488,6 +1516,10 @@ export const STRINGS_IT = {
             calendarConfirmBeforeCreate: {
                 name: 'Conferma prima di creare',
                 desc: 'Mostra una finestra di conferma quando si crea una nuova nota giornaliera.'
+            },
+            calendarShowHiddenItems: {
+                name: 'Mostra elementi nascosti',
+                desc: 'Quando abilitato, il calendario mostra sempre tutte le note del calendario, incluse le note nascoste dai filtri del profilo del vault.'
             },
             calendarIntegrationMode: {
                 name: 'Fonte note giornaliere',
@@ -1590,6 +1622,12 @@ export const STRINGS_IT = {
                         'Incolla o modifica il JSON qui sotto. Le impostazioni non incluse vengono ripristinate ai valori predefiniti.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'Importa',
+                    confirmTitle: 'Importare le impostazioni?',
+                    confirmMessage: 'L’importazione sostituisce le impostazioni correnti di Notebook Navigator.',
+                    backupToggleName: 'Salva le impostazioni correnti nella radice del vault prima di importare',
+                    backupToggleDesc: 'Crea un file JSON con timestamp nella radice del vault.',
+                    successWithBackupNotice: 'Impostazioni importate. Le impostazioni precedenti sono state salvate in {path}.',
+                    backupError: 'Impossibile salvare le impostazioni correnti: {message}',
                     successNotice: 'Impostazioni importate.',
                     errorNotice: 'Impossibile importare le impostazioni: {message}',
                     fileReadError: 'Impossibile leggere il file: {message}'
@@ -1726,6 +1764,11 @@ export const STRINGS_IT = {
                 name: 'Nascondi cartelle (profilo vault)',
                 desc: 'Lista di cartelle da nascondere separate da virgola. Pattern nome: assets* (cartelle che iniziano con assets), *_temp (che finiscono con _temp). Pattern percorso: /archivio (solo archivio root), /res* (cartelle root che iniziano con res), /*/temp (cartelle temp un livello sotto), /progetti/* (tutte le cartelle in progetti).',
                 placeholder: 'modelli, assets*, /archivio, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Escludi cartelle dalle note delle sottocartelle (profilo vault)',
+                desc: 'Lista di cartelle separate da virgola da ignorare quando vengono raccolte le note dalle sottocartelle. Le cartelle restano visibili e selezionandone una vengono comunque mostrate le sue note. Usa gli stessi pattern di Nascondi cartelle.',
+                placeholder: 'giornaliere, risorse, /archivio'
             },
             showFileDate: {
                 name: 'Mostra data',

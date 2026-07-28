@@ -141,6 +141,66 @@ function getFolderHeaderSegmentItems(
 }
 
 describe('buildListItems pinned display scope', () => {
+    it('attaches internal search evidence to its file row', () => {
+        const app = createApp();
+        const file = createTestTFile('Notes/Notebook Navigator.md');
+        const db = createDb({
+            [file.path]: { tags: null, properties: null }
+        });
+
+        const items = buildListItems({
+            app,
+            dayKey: '2026-03-07',
+            fileVisibility: FILE_VISIBILITY.DOCUMENTS,
+            files: [file],
+            getDB: () => db,
+            getFileTimestamps: () => ({ created: 0, modified: 0 }),
+            hiddenFileState: new Map(),
+            hiddenTags: [],
+            listConfig: createListConfig({}),
+            matchedAliases: new Map([
+                [
+                    file.path,
+                    [
+                        {
+                            value: 'NN',
+                            foldedTerms: ['nn']
+                        }
+                    ]
+                ]
+            ]),
+            matchedProperties: new Map([
+                [
+                    file.path,
+                    [
+                        {
+                            clause: { key: 'workflow', value: 'waiting' }
+                        }
+                    ]
+                ]
+            ]),
+            searchMetaMap: new Map(),
+            selectedFolder: null,
+            selectedTag: null,
+            selectionType: ItemType.FOLDER,
+            showHiddenItems: false,
+            sortOption: 'alphabetical-asc'
+        });
+
+        const fileItem = items.find(item => item.type === ListPaneItemType.FILE);
+        expect(fileItem?.matchedAliases).toEqual([
+            {
+                value: 'NN',
+                foldedTerms: ['nn']
+            }
+        ]);
+        expect(fileItem?.matchedProperties).toEqual([
+            {
+                clause: { key: 'workflow', value: 'waiting' }
+            }
+        ]);
+    });
+
     it('adds spacer rows before subsequent fixed-height group headers', () => {
         const app = createApp();
         const todayFile = createTestTFile('notes/today.md');

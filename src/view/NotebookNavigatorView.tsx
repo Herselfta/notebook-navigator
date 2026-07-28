@@ -32,6 +32,7 @@ import { StorageProvider } from '../context/StorageContext';
 import { UIStateProvider } from '../context/UIStateContext';
 import { ShortcutsProvider } from '../context/ShortcutsContext';
 import { RecentDataProvider } from '../context/RecentDataContext';
+import { InternalDragSessionProvider } from '../context/InternalDragContext';
 import { strings } from '../i18n';
 import type NotebookNavigatorPlugin from '../main';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
@@ -208,7 +209,9 @@ export class NotebookNavigatorView extends ItemView {
                                                 isMobile={isMobile}
                                             >
                                                 <UIStateProvider isMobile={isMobile}>
-                                                    <NotebookNavigatorContainer ref={this.setComponentHandle} />
+                                                    <InternalDragSessionProvider>
+                                                        <NotebookNavigatorContainer ref={this.setComponentHandle} />
+                                                    </InternalDragSessionProvider>
                                                 </UIStateProvider>
                                             </SelectionProvider>
                                         </ExpansionProvider>
@@ -527,6 +530,13 @@ export class NotebookNavigatorView extends ItemView {
      */
     toggleSearch(): void {
         this.componentHandle?.toggleSearch();
+    }
+
+    /**
+     * Open or focus search with descendant files included for the current scope.
+     */
+    searchWithDescendants(): void {
+        this.componentHandle?.searchWithDescendants();
     }
 
     /**

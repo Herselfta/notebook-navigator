@@ -17,66 +17,63 @@
  */
 
 import React from 'react';
-import type { App, TFile } from 'obsidian';
+import type { App, TFile, TFolder } from 'obsidian';
 import type { NotebookNavigatorSettings } from '../../settings/types';
 import type { FileVisibility } from '../../utils/fileTypeUtils';
-import type { ExpansionAction } from '../../context/ExpansionContext';
-import type { NavigationSelectionState } from '../../context/SelectionContext';
 import type { NoteCountInfo } from '../../types/noteCounts';
 import type { CombinedNavigationItem } from '../../types/virtualization';
 import type { NavigationSectionId } from '../../types';
-import type { NavigationPaneShortcutRenderState } from '../../hooks/navigationPane/navigationPaneShortcutTypes';
+import type {
+    NavigationPaneShortcutRowHandlers,
+    NavigationPaneShortcutUiState
+} from '../../hooks/navigationPane/navigationPaneShortcutTypes';
 import type { NavigationPaneTreeInteractionsResult } from '../../hooks/navigationPane/useNavigationPaneTreeInteractions';
 import type { NavigationSearchHighlightsResult } from '../../hooks/navigationPane/useNavigationSearchHighlights';
-import type { InlineRenameControl } from '../InlineRenameInput';
-
 export type NavigationInlineRenameTarget =
     | { type: 'folder'; id: string; initialValue: string }
     | { type: 'tag'; id: string; initialValue: string; displayPath: string }
     | { type: 'property'; id: string; initialValue: string; normalizedKey: string };
 
-export interface NavigationInlineRenameController {
-    target: NavigationInlineRenameTarget | null;
+export interface NavigationInlineRenameActions {
+    startFolder: (folder: TFolder) => boolean;
     commit: (target: NavigationInlineRenameTarget, value: string) => Promise<boolean>;
     cancel: () => void;
     restoreFocus: () => void;
 }
 
-export interface NavigationPaneExpansionStateSnapshot {
-    expandedFolders: Set<string>;
-    expandedTags: Set<string>;
-    expandedProperties: Set<string>;
-    expandedVirtualFolders: Set<string>;
+/** Per-row state that changes with selection, expansion, inline rename, and shortcut drag; passed as row props so memoized rows re-render only when their own values change */
+export interface NavigationPaneRowHotState {
+    isSelected: boolean;
+    isExpanded: boolean;
+    renameTarget: NavigationInlineRenameTarget | null;
+    isDragSource: boolean;
 }
 
 export interface NavigationPaneRowContext {
     app: App;
     settings: NotebookNavigatorSettings;
     isMobile: boolean;
-    expansionState: NavigationPaneExpansionStateSnapshot;
-    expansionDispatch: React.Dispatch<ExpansionAction>;
-    selectionState: NavigationSelectionState;
     indentGuideLevelsByKey: Map<string, number[]>;
     firstSectionId: NavigationSectionId | null;
     firstInlineFolderPath: string | null;
     shouldPinShortcuts: boolean;
     showHiddenItems: boolean;
-    shortcutsExpanded: boolean;
-    recentNotesExpanded: boolean;
     folderCounts: Map<string, NoteCountInfo>;
     tagCounts: Map<string, NoteCountInfo>;
     propertyCounts: Map<string, NoteCountInfo>;
     vaultChangeVersion: number;
     fileVisibility: FileVisibility;
     hiddenFolders: string[];
+    descendantExcludedFolders: string[];
     getFileDisplayName: (file: TFile) => string;
     getFileTimestamps: (file: TFile) => { created: number; modified: number };
     getFileWordCount: (file: TFile) => number | null;
     getSolidBackground: (color?: string | null) => string | undefined;
-    shortcuts: NavigationPaneShortcutRenderState;
+    shortcuts: NavigationPaneShortcutRowHandlers;
+    shortcutUiState: NavigationPaneShortcutUiState;
     tree: NavigationPaneTreeInteractionsResult;
     searchHighlights: NavigationSearchHighlightsResult;
-    inlineRename: NavigationInlineRenameController;
+    inlineRename: NavigationInlineRenameActions;
     onSectionContextMenu: (
         event: React.MouseEvent<HTMLDivElement>,
         sectionId: NavigationSectionId,
@@ -84,9 +81,7 @@ export interface NavigationPaneRowContext {
     ) => void;
 }
 
-export type NavigationRowInlineRenameControl = InlineRenameControl;
-
-export interface NavigationPaneRowProps {
+export interface NavigationPaneRowProps extends NavigationPaneRowHotState {
     item: CombinedNavigationItem;
     context: NavigationPaneRowContext;
     adjacentFilledClassName?: string;

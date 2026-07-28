@@ -22,13 +22,22 @@ import { strings } from '../../i18n';
 import { showNotice } from '../noticeUtils';
 import { executeCommand, getInternalPlugin, isFolderAncestor, isPluginInstalled } from '../../utils/typeGuards';
 import { getFolderNote, createFolderNote } from '../../utils/folderNotes';
-import { cleanupExclusionPatterns, isFolderInExcludedFolder } from '../../utils/fileFilters';
+import {
+    cleanupExclusionPatterns,
+    hasSubfolders,
+    isFolderInExcludedFolder,
+    shouldExcludeFolderFromDescendants
+} from '../../utils/fileFilters';
 import { ItemType } from '../../types';
-import { runAsyncAction } from '../async';
 import { addCopyPathSubmenu, setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
-import { resolveUXIconForMenu } from '../uxIcons';
-import { getActiveVaultProfile, getHiddenFolderPatternMatch, normalizeHiddenFolderPath } from '../../utils/vaultProfiles';
+import { resolveNavigationFolderIcon, resolveUXIconForMenu } from '../uxIcons';
+import {
+    getActiveHiddenFolders,
+    getActiveVaultProfile,
+    getHiddenFolderPatternMatch,
+    normalizeHiddenFolderPath
+} from '../../utils/vaultProfiles';
 import { casefold } from '../../utils/recordUtils';
 import { EXCALIDRAW_PLUGIN_ID, TLDRAW_PLUGIN_ID } from '../../constants/pluginIds';
 import { addFolderStyleChangeActions, addFolderStyleMenu } from './styleMenuBuilder';
@@ -77,7 +86,7 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
         // Select the newly created file in the list
         selectionDispatch({ type: 'SET_SELECTED_FILE', file });
         // Switch focus to the files pane to show the selection
-        uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+        uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
     };
 
     menu.addItem((item: MenuItem) => {
@@ -266,7 +275,13 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
         app,
         metadataService,
         folderPath: folder.path,
-        showFolderIcons: settings.showFolderIcons
+        showFolderIcons: settings.showFolderIcons,
+        defaultIcon: resolveNavigationFolderIcon({
+            interfaceIcons: settings.interfaceIcons,
+            isRoot: folder.path === '/',
+            hasChildren: hasSubfolders(folder, getActiveHiddenFolders(settings), services.visibility.showHiddenItems),
+            isExpanded: expandedFolders.has(folder.path)
+        })
     });
 
     addFolderStyleMenu({
@@ -501,31 +516,65 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                 });
             });
         }
+
+        const descendantExcludedPatterns = activeProfile.descendantExcludedFolders;
+        const isExcludedFromDescendants =
+            descendantExcludedPatterns.length > 0 &&
+            shouldExcludeFolderFromDescendants(folder.name, descendantExcludedPatterns, folder.path);
+        // Exact-path patterns for this folder; the form the "hide from parents" action writes
+        const exactDescendantExcludedPatterns = descendantExcludedPatterns.filter(pattern => {
+            const trimmed = pattern.trim();
+            return (
+                trimmed.startsWith('/') && !trimmed.includes('*') && casefold(normalizeHiddenFolderPath(trimmed)) === normalizedFolderPath
+            );
+        });
+        const remainingDescendantExcludedPatterns = descendantExcludedPatterns.filter(
+            pattern => !exactDescendantExcludedPatterns.includes(pattern)
+        );
+        // Only offer "show in parents" when removing the exact-path patterns actually un-excludes the folder.
+        // Folders excluded through name or wildcard patterns are managed in settings, matching the hidden-folder menu.
+        const canRemoveDescendantExclusion =
+            exactDescendantExcludedPatterns.length > 0 &&
+            !shouldExcludeFolderFromDescendants(folder.name, remainingDescendantExcludedPatterns, folder.path);
+
+        if (canRemoveDescendantExclusion) {
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.folder.includeInDescendants).setIcon('lucide-list-plus'), async () => {
+                    activeProfile.descendantExcludedFolders = activeProfile.descendantExcludedFolders.filter(
+                        pattern => !exactDescendantExcludedPatterns.includes(pattern)
+                    );
+                    await services.plugin.saveSettingsAndUpdate();
+
+                    showNotice(strings.fileSystem.notices.folderIncludedInDescendants.replace('{name}', folderDisplayName), {
+                        variant: 'success'
+                    });
+                });
+            });
+        } else if (!isExcludedFromDescendants) {
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.folder.excludeFromDescendants).setIcon('lucide-list-minus'), async () => {
+                    const folderPath = folder.path.startsWith('/') ? folder.path : `/${folder.path}`;
+                    activeProfile.descendantExcludedFolders = Array.from(new Set([...activeProfile.descendantExcludedFolders, folderPath]));
+                    await services.plugin.saveSettingsAndUpdate();
+
+                    showNotice(strings.fileSystem.notices.folderExcludedFromDescendants.replace('{name}', folderDisplayName), {
+                        variant: 'success'
+                    });
+                });
+            });
+        }
     }
 
-    // Rename folder
     menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.renameFolder).setIcon('lucide-pencil'), async () => {
-            // Handle root folder rename differently
-            if (folder.path === '/') {
-                const { InputModal } = await import('../../modals/InputModal');
-                const modal = new InputModal(
-                    app,
-                    strings.modals.fileSystem.renameVaultTitle,
-                    strings.modals.fileSystem.renameVaultPrompt,
-                    newName => {
-                        runAsyncAction(async () => {
-                            // Update custom vault name setting (allow empty string)
-                            services.plugin.settings.customVaultName = newName;
-                            await services.plugin.saveSettingsAndUpdate();
-                        });
-                    },
-                    settings.customVaultName
-                );
-                modal.open();
-            } else {
-                await fileSystemOps.renameFolder(folder, settings);
+        const menuItem = item.setTitle(strings.contextMenu.folder.renameFolder).setIcon('lucide-pencil');
+        const startInlineRename = options?.onStartInlineRename;
+
+        setAsyncOnClick(menuItem, async () => {
+            if (startInlineRename?.(folder)) {
+                return;
             }
+
+            await fileSystemOps.renameFolder(folder, settings);
         });
     });
 

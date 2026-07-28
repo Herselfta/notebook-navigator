@@ -88,6 +88,7 @@ export const STRINGS_TR = {
     navigationCalendar: {
         ariaLabel: 'Takvim',
         dailyNotesNotEnabled: 'Günlük notlar eklentisi etkin değil.',
+        noteHiddenByProfile: 'Takvim notu geçerli kasa profili tarafından gizleniyor.',
         createDailyNote: {
             title: 'Yeni günlük not',
             message: '{filename} dosyası mevcut değil. Oluşturmak ister misiniz?',
@@ -169,6 +170,7 @@ export const STRINGS_TR = {
     // Search input
     searchInput: {
         placeholder: 'Ara...', // Placeholder text for search input (English: Search...)
+        placeholderVault: 'Kasada ara...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Aramayı temizle', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'Filtre aramasına geç',
@@ -181,16 +183,16 @@ export const STRINGS_TR = {
         searchHelp: 'Arama sözdizimi',
         searchHelpTitle: 'Arama sözdizimi',
         searchHelpModal: {
-            intro: 'Dosya adlarını, özellikleri, etiketleri, tarihleri ve filtreleri tek bir sorguda birleştirin (örn. `meeting .status=active #work @thisweek`). Tam metin araması kullanmak için Omnisearch eklentisini yükleyin.',
+            intro: 'Görünen adları, takma adları, özellikleri, etiketleri, tarihleri ve filtreleri tek bir sorguda birleştirin (örn. `meeting .status=active #work @thisweek`). Tam metin araması kullanmak için Omnisearch eklentisini yükleyin.',
             introSwitching:
                 'Yukarı/aşağı ok tuşlarını kullanarak veya arama simgesine tıklayarak filtre araması ve Omnisearch arasında geçiş yapın.',
             sections: {
                 fileNames: {
-                    title: 'Dosya adları',
+                    title: 'Dosya adları ve takma adlar',
                     items: [
-                        '`word` Dosya adında "word" olan notları bul.',
-                        '`word1 word2` Her kelime dosya adıyla eşleşmeli.',
-                        '`-word` Dosya adında "word" olan notları hariç tut.'
+                        '`word` Görünen adında veya takma adlarından birinde "word" olan notları bul.',
+                        '`word1 word2` Her kelime görünen ad veya takma adlardan biriyle eşleşmeli.',
+                        '`-word` Görünen adında veya takma adlarından birinde "word" olan notları hariç tut.'
                     ]
                 },
                 tags: {
@@ -210,11 +212,11 @@ export const STRINGS_TR = {
                 properties: {
                     title: 'Özellikler',
                     items: [
-                        '`.key` Özellik anahtarına sahip notları dahil et.',
+                        '`.key` `key` ile başlayan bir özellik anahtarına sahip notları dahil et.',
                         '`.key=value` Özellik değeri `value` içeren notları dahil et.',
                         '`."Reading Status"` Boşluk içeren özellik anahtarına sahip notları dahil et.',
                         '`."Reading Status"="In Progress"` Boşluk içeren anahtarlar ve değerler çift tırnak içine alınmalıdır.',
-                        '`-.key` Özellik anahtarına sahip notları hariç tut.',
+                        '`-.key` `key` ile başlayan bir özellik anahtarına sahip notları hariç tut.',
                         '`-.key=value` Özellik değeri `value` içeren notları hariç tut.',
                         'Cmd/Ctrl+Tıklayarak özelliği AND ile ekleyin. Cmd/Ctrl+Shift+Tıklayarak OR ile ekleyin.'
                     ]
@@ -351,6 +353,9 @@ export const STRINGS_TR = {
             changeBackground: 'Arka planı değiştir',
             excludeFolder: 'Klasörü gizle',
             unhideFolder: 'Klasörü göster',
+            excludeFromDescendants: 'Üst klasörlerde gizle',
+            includeInDescendants: 'Üst klasörlerde göster',
+            hiddenFromParentsIndicator: 'Üst klasör listelerinde gizli',
             moveFolder: 'Klasörü taşı...',
             renameFolder: 'Klasörü yeniden adlandır',
             deleteFolder: 'Klasörü sil'
@@ -667,6 +672,7 @@ export const STRINGS_TR = {
         },
         navigationBanner: {
             placeholder: 'Görsel ara...',
+            svgMissingDimensions: 'Seçilen SVG dosyası genişlik, yükseklik veya viewBox tanımlamıyor.',
             instructions: {
                 navigate: 'gezinmek için',
                 select: 'afiş olarak ayarlamak için',
@@ -713,11 +719,11 @@ export const STRINGS_TR = {
         welcome: {
             title: '{pluginName} uygulamasına hoş geldiniz',
             introText:
-                'Merhaba! Başlamadan önce, panellerin ve "Alt klasörlerden notları göster" düğmesinin nasıl çalıştığını anlamak için aşağıdaki videonun ilk beş dakikasını izlemenizi şiddetle tavsiye ederim.',
+                "Merhaba ve Obsidian için daha iyi bir dosya tarayıcısı ve takvim olan Notebook Navigator'a hoş geldiniz. Başlamadan önce aşağıdaki Mastering Notebook Navigator videosunun en az ilk üç bölümünü izlemenizi gerçekten öneririm. Bu bölümler iki panelin nasıl çalıştığını tanıtır ve hızlıca kullanmaya başlamanıza yardımcı olur.",
             continueText:
-                'Beş dakikanız daha varsa, kompakt görüntüleme modlarını ve kısayolları ile önemli kısayol tuşlarını doğru şekilde nasıl ayarlayacağınızı anlamak için videoyu izlemeye devam edin.',
-            thanksText: 'İndirdiğiniz için çok teşekkürler, keyifli kullanımlar!',
-            videoAlt: 'Notebook Navigator kurulumu ve ustalaşma',
+                'Ardından on dakikanız daha varsa ilk kurulum ve günlük kullanım döngüsü bölümlerini izlemeye devam edin. Bunlar başlamak için ihtiyacınız olan her şeyi sunar; daha fazla ayrıntı için daha sonra geri dönebilirsiniz. Videonun bağlantısını Notebook Navigator ayarlarının üst kısmında bulabilirsiniz.',
+            thanksText: "Notebook Navigator'ı keyifle kullanın!",
+            videoAlt: 'Notebook Navigator 3 ustalığı',
             openVideoButton: 'Videoyu oynat',
             closeButton: 'Belki sonra'
         }
@@ -771,6 +777,8 @@ export const STRINGS_TR = {
         notices: {
             hideFolder: 'Klasör gizlendi: {name}',
             showFolder: 'Klasör gösterildi: {name}',
+            folderExcludedFromDescendants: 'Üst klasör listelerinde gizli: {name}',
+            folderIncludedInDescendants: 'Üst klasör listelerinde gösteriliyor: {name}',
             mergeNotes: '{count} not {name} içine birleştirildi'
         },
         notifications: {
@@ -855,7 +863,7 @@ export const STRINGS_TR = {
         openYearlyNote: 'Yıllık notu aç',
         revealFile: 'Dosyayı göster', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Ara', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: 'Kasa kökünde ara', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: 'Tüm kasada ara', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'Çift bölme düzenini aç/kapat', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Çift bölme yönünü değiştir', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Takvimi aç/kapat', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -895,7 +903,8 @@ export const STRINGS_TR = {
         removeTag: 'Seçili dosyalardan etiket kaldır', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'Seçili dosyalardan tüm etiketleri kaldır', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'Tüm dosyaları aç', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'Önbelleği yeniden oluştur' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'Önbelleği yeniden oluştur', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'Varsayılan ayarları geri yükle' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -904,7 +913,17 @@ export const STRINGS_TR = {
         calendarViewName: 'Takvim', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'Klasör notu', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: "Notebook Navigator'da göster" // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: "Notebook Navigator'da göster", // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'Notebook Navigator ayarlarını okuyamadı ve başlatılmadı. Kasanız eşitleniyorsa, eşitleme tamamlandıktan sonra Obsidian uygulamasını yeniden başlatın. Varsayılan ayarlarla yeniden başlamak için "Varsayılan ayarları geri yükle" komutunu çalıştırın.', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Varsayılan ayarları geri yükle', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Bu işlem Notebook Navigator ayar dosyasını varsayılan ayarlarla değiştirir. Kasanız hâlâ eşitleniyorsa, geri yüklenen varsayılanlar diğer cihazlarınızda kayıtlı ayarların üzerine yazabilir. Okunabilir bir ayar dosyası önce eklenti klasöründeki zaman damgalı bir yedeğe kopyalanır.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Varsayılanları geri yükle', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'Ayar kurtarma tamamlanamadı. Yerel tercihler korundu.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Varsayılan ayarlar geri yüklendi. Bitirmek için Obsidian uygulamasını yeniden başlatın.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -977,6 +996,7 @@ export const STRINGS_TR = {
                 vaultConfiguration: 'Kasa kurulumu',
                 templates: 'Şablonlar',
                 behavior: 'Davranış',
+                startup: 'Başlangıç',
                 keyboardNavigation: 'Klavye ile gezinme',
                 mouseButtons: 'Fare düğmeleri',
                 view: 'Görünüm',
@@ -1153,6 +1173,10 @@ export const STRINGS_TR = {
                 name: 'Alt klasör yollarını göster',
                 desc: 'Liste bölmesinde klasöre göre gruplarken, yalnızca klasör adları yerine alt klasör yollarını göster.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Öğe sayılarını göster',
+                desc: 'Liste bölmesindeki her grup başlığında öğe sayısını göster.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Klasör gruplama: geçerli klasör dosyaları altta',
                 desc: 'Varsayılan gruplama Klasör olduğunda, seçili klasörde doğrudan bulunan dosyaları alt klasör gruplarının altına taşı.'
@@ -1227,8 +1251,8 @@ export const STRINGS_TR = {
                 desc: 'Alt klasörlerdeki, etiketlerdeki veya özelliklerdeki notlar için üst klasör adını görüntüle.'
             },
             showParentFolderFullPath: {
-                name: 'Tam yolu göster',
-                desc: 'Yalnızca klasör adı yerine üst klasörün tam yolunu görüntüler.'
+                name: 'Klasör yolunu göster',
+                desc: 'Yalnızca klasör adı yerine seçili klasöre göre yolu görüntüle. Etiketler ve özellikler tam yolu gösterir.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Üst klasöre tıklayarak klasörü aç',
@@ -1299,7 +1323,7 @@ export const STRINGS_TR = {
             },
             startView: {
                 name: 'Varsayılan başlangıç görünümü',
-                desc: "Notebook Navigator'ı açarken hangi bölmenin görüntüleneceğini seçin. Gezinme bölmesi kısayolları, son dosyaları ve klasör ağacını gösterir. Liste bölmesi dosya listesini hemen gösterir.",
+                desc: 'Notebook Navigator açıldığında hangi bölmenin etkin olacağını seçin. Tek bölmeli düzen önce bu bölmeyi gösterir; çift bölmeli düzen klavye odağını bu bölmeye verir.',
                 options: {
                     navigation: 'Gezinme bölmesi',
                     files: 'Liste bölmesi'
@@ -1475,6 +1499,10 @@ export const STRINGS_TR = {
                 name: 'Öne çıkan görseli göster',
                 desc: 'Takvimdeki notların öne çıkan görsellerini göster.'
             },
+            calendarShowTasks: {
+                name: 'Görevleri göster',
+                desc: 'Tamamlanmamış görevleri olan gün, hafta ve aylarda bir gösterge gösterir.'
+            },
             calendarShowWeekNumber: {
                 name: 'Hafta numarasını göster',
                 desc: 'Hafta numarasıyla bir sütun ekle.'
@@ -1490,6 +1518,10 @@ export const STRINGS_TR = {
             calendarConfirmBeforeCreate: {
                 name: 'Oluşturmadan önce onayla',
                 desc: 'Yeni bir günlük not oluştururken onay iletişim kutusu göster.'
+            },
+            calendarShowHiddenItems: {
+                name: 'Gizli öğeleri göster',
+                desc: 'Etkinleştirildiğinde, takvim her zaman tüm takvim notlarını gösterir; kasa profili filtreleri tarafından gizlenen notlar da buna dahildir.'
             },
             calendarIntegrationMode: {
                 name: 'Günlük not kaynağı',
@@ -1590,6 +1622,12 @@ export const STRINGS_TR = {
                     editorDesc: 'Aşağıya JSON yapıştırın veya düzenleyin. Dahil edilmeyen ayarlar varsayılan değerlere sıfırlanır.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'İçe aktar',
+                    confirmTitle: 'Ayarlar içe aktarılsın mı?',
+                    confirmMessage: 'İçe aktarma, mevcut Notebook Navigator ayarlarını değiştirir.',
+                    backupToggleName: 'İçe aktarmadan önce mevcut ayarları kasa köküne kaydet',
+                    backupToggleDesc: 'Kasa kökünde zaman damgalı bir JSON dosyası oluşturur.',
+                    successWithBackupNotice: 'Ayarlar içe aktarıldı. Önceki ayarlar {path} konumuna kaydedildi.',
+                    backupError: 'Mevcut ayarlar kaydedilemedi: {message}',
                     successNotice: 'Ayarlar içe aktarıldı.',
                     errorNotice: 'Ayarlar içe aktarılamadı: {message}',
                     fileReadError: 'Dosya okunamadı: {message}'
@@ -1725,6 +1763,11 @@ export const STRINGS_TR = {
                 name: 'Klasörleri gizle (kasa profili)',
                 desc: 'Virgülle ayrılmış gizlenecek klasörler listesi. Ad desenleri: assets* (assets ile başlayan klasörler), *_temp (_temp ile biten). Yol desenleri: /archive (yalnızca kök arşiv), /res* (res ile başlayan kök klasörler), /*/temp (bir seviye derinlikte temp klasörleri), /projects/* (projects içindeki tüm klasörler).',
                 placeholder: 'şablonlar, assets*, /arşiv, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Klasörleri alt klasör notlarından hariç tut (kasa profili)',
+                desc: 'Alt klasörlerden notlar toplanırken atlanacak klasörlerin virgülle ayrılmış listesi. Klasörler görünür kalır ve birini seçmek yine notlarını gösterir. Klasörleri gizle ile aynı desenleri kullanır.',
+                placeholder: 'günlük, kaynaklar, /arşiv'
             },
             showFileDate: {
                 name: 'Tarihi göster',

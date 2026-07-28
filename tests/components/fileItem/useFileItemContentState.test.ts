@@ -20,10 +20,12 @@ import { App } from 'obsidian';
 import { describe, expect, it, vi } from 'vitest';
 import { createDefaultFileData, type FileData } from '../../../src/storage/IndexedDBStorage';
 import {
+    applyFileItemContentChangeToBox,
     loadFileItemCacheSnapshot,
     shouldRefreshFileItemMetadataVersionForContentChange,
     subscribeToFileItemContentState,
     type FileItemCacheSnapshot,
+    type FileItemContentBox,
     type FileItemContentDb
 } from '../../../src/components/fileItem/useFileItemContentState';
 import { createTestTFile } from '../../utils/createTestTFile';
@@ -43,6 +45,42 @@ function createContentDb(fileData: FileData | null): FileItemContentDb {
         onFileContentChange: () => () => {},
         ensurePreviewTextLoaded: async () => {},
         getFeatureImageBlob: async () => null
+    };
+}
+
+const LOAD_ALL_CONTENT = {
+    shouldLoadPreviewText: true,
+    shouldLoadTags: true,
+    shouldLoadFeatureImage: true,
+    shouldLoadProperties: true,
+    shouldLoadWordCount: true,
+    shouldLoadCharacterCount: true,
+    shouldLoadTaskUnfinished: true
+} as const;
+
+const SKIP_ALL_CONTENT = {
+    shouldLoadPreviewText: false,
+    shouldLoadTags: false,
+    shouldLoadFeatureImage: false,
+    shouldLoadProperties: false,
+    shouldLoadWordCount: false,
+    shouldLoadCharacterCount: false,
+    shouldLoadTaskUnfinished: false
+} as const;
+
+function createContentBox(patch?: Partial<FileItemContentBox>): FileItemContentBox {
+    return {
+        previewText: 'Old preview',
+        tags: ['work'],
+        featureImageKey: 'feature-1',
+        featureImageStatus: 'none',
+        properties: [{ fieldKey: 'status', value: 'open', valueKind: 'string' }],
+        wordCount: 100,
+        characterCountWithSpaces: 1000,
+        characterCountWithoutSpaces: 850,
+        taskUnfinished: 1,
+        metadataVersion: 3,
+        ...(patch ?? {})
     };
 }
 
@@ -256,6 +294,108 @@ describe('useFileItemContentState helpers', () => {
         expect(snapshot.previewText).toBe('');
         expect(snapshot.tags).toEqual([]);
         expect(snapshot.wordCount).toBe(999);
+    });
+
+    it('applies loaded content changes and clones mutable change payloads', () => {
+        const prev = createContentBox({
+            tags: ['work', 'important'],
+            properties: [{ fieldKey: 'status', value: 'open', valueKind: 'string' }]
+        });
+        const changedTags = ['work', 'urgent'];
+        const changedProperties = [{ fieldKey: 'status', value: 'done', valueKind: 'string' as const }];
+
+        const next = applyFileItemContentChangeToBox({
+            prev,
+            changes: {
+                preview: 'New preview',
+                featureImageKey: 'feature-2',
+                featureImageStatus: 'has',
+                tags: changedTags,
+                properties: changedProperties,
+                wordCount: 222,
+                characterCountWithSpaces: 1234,
+                characterCountWithoutSpaces: 999,
+                taskUnfinished: 4
+            },
+            ...LOAD_ALL_CONTENT,
+            showPreview: true,
+            fileExtension: 'md',
+            shouldRefreshMetadataVersion: false
+        });
+
+        expect(next).not.toBe(prev);
+        expect(next).toMatchObject({
+            previewText: 'New preview',
+            featureImageKey: 'feature-2',
+            featureImageStatus: 'has',
+            wordCount: 222,
+            characterCountWithSpaces: 1234,
+            characterCountWithoutSpaces: 999,
+            taskUnfinished: 4,
+            metadataVersion: 3
+        });
+        expect(next.tags).toEqual(changedTags);
+        expect(next.tags).not.toBe(changedTags);
+        expect(next.properties).toEqual(changedProperties);
+        expect(next.properties).not.toBe(changedProperties);
+        expect(prev.tags).toEqual(['work', 'important']);
+        expect(prev.properties).toEqual([{ fieldKey: 'status', value: 'open', valueKind: 'string' }]);
+    });
+
+    it('returns the same content box when loaded changes are equivalent', () => {
+        const prev = createContentBox();
+
+        const next = applyFileItemContentChangeToBox({
+            prev,
+            changes: {
+                preview: prev.previewText,
+                featureImageKey: prev.featureImageKey,
+                featureImageStatus: prev.featureImageStatus,
+                tags: [...prev.tags],
+                properties: prev.properties?.map(property => ({ ...property })) ?? null,
+                wordCount: prev.wordCount,
+                characterCountWithSpaces: prev.characterCountWithSpaces,
+                characterCountWithoutSpaces: prev.characterCountWithoutSpaces,
+                taskUnfinished: prev.taskUnfinished
+            },
+            ...LOAD_ALL_CONTENT,
+            showPreview: true,
+            fileExtension: 'md',
+            shouldRefreshMetadataVersion: false
+        });
+
+        expect(next).toBe(prev);
+    });
+
+    it('ignores unloaded content changes while preserving metadata refreshes', () => {
+        const prev = createContentBox();
+
+        const next = applyFileItemContentChangeToBox({
+            prev,
+            changes: {
+                preview: 'Ignored preview',
+                featureImageKey: 'ignored-feature',
+                featureImageStatus: 'has',
+                tags: ['ignored'],
+                properties: [{ fieldKey: 'status', value: 'ignored', valueKind: 'string' }],
+                wordCount: 999,
+                characterCountWithSpaces: 9999,
+                characterCountWithoutSpaces: 8888,
+                taskUnfinished: 9
+            },
+            ...SKIP_ALL_CONTENT,
+            showPreview: false,
+            fileExtension: 'md',
+            shouldRefreshMetadataVersion: true
+        });
+
+        expect(next).not.toBe(prev);
+        expect(next).toEqual({
+            ...prev,
+            metadataVersion: prev.metadataVersion + 1
+        });
+        expect(next.tags).toBe(prev.tags);
+        expect(next.properties).toBe(prev.properties);
     });
 
     it('versions direct image resource URLs by file mtime', () => {

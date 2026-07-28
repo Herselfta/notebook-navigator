@@ -23,6 +23,13 @@ import type { CSSPropertiesWithVars } from '../../types';
 import { getNavigationItemRenderKey } from '../../utils/navigationIndex';
 import { NavigationPaneHeader } from '../NavigationPaneHeader';
 import { VaultTitleArea } from '../VaultTitleArea';
+import type { NavigationInlineRenameTarget, NavigationPaneRowHotState } from './NavigationPaneItemRenderer.types';
+
+type RenderNavigationItemFn = (
+    item: CombinedNavigationItem,
+    adjacentFilledClassName: string | undefined,
+    hotState: NavigationPaneRowHotState
+) => React.ReactNode;
 
 interface NavigationPaneLayoutProps {
     navigationPaneRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -50,7 +57,8 @@ interface NavigationPaneLayoutProps {
     onShortcutRootDrop: (event: React.DragEvent<HTMLElement>) => void;
     pinnedShortcutsScrollRefCallback: (node: HTMLDivElement | null) => void;
     pinnedNavigationItems: CombinedNavigationItem[];
-    renderNavigationItem: (item: CombinedNavigationItem, adjacentFilledClassName?: string) => React.ReactNode;
+    renderNavigationItem: RenderNavigationItemFn;
+    getRowHotState: (item: CombinedNavigationItem) => NavigationPaneRowHotState;
     isNavigationItemFilled: (item: CombinedNavigationItem) => boolean;
     onPinnedShortcutsResizePointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
     scrollContainerRefCallback: (node: HTMLDivElement | null) => void;
@@ -65,6 +73,46 @@ interface NavigationPaneLayoutProps {
     shouldRenderBottomToolbarOutsidePanel: boolean;
     calendarOverlay: React.ReactNode;
 }
+
+interface NavigationPaneRowProps {
+    item: CombinedNavigationItem;
+    /** Virtual list position; omitted for pinned shortcut rows, which render in plain flow without a positioning wrapper */
+    index?: number;
+    top?: number;
+    adjacentFilledClassName: string | undefined;
+    isSelected: boolean;
+    isExpanded: boolean;
+    renameTarget: NavigationInlineRenameTarget | null;
+    isDragSource: boolean;
+    renderNavigationItem: RenderNavigationItemFn;
+}
+
+/**
+ * One navigation row. Memoized so commits that do not change a row's inputs
+ * (scroll range updates, selection or expansion changes on other rows) skip
+ * the row subtree entirely.
+ */
+const NavigationPaneRow = React.memo(function NavigationPaneRow({
+    item,
+    index,
+    top,
+    adjacentFilledClassName,
+    isSelected,
+    isExpanded,
+    renameTarget,
+    isDragSource,
+    renderNavigationItem
+}: NavigationPaneRowProps) {
+    const content = renderNavigationItem(item, adjacentFilledClassName, { isSelected, isExpanded, renameTarget, isDragSource });
+    if (index === undefined || top === undefined) {
+        return <>{content}</>;
+    }
+    return (
+        <div data-index={index} className="nn-virtual-nav-item" style={{ transform: `translateY(${top}px)` }}>
+            {content}
+        </div>
+    );
+});
 
 function getAdjacentFilledClassName(
     item: CombinedNavigationItem,
@@ -117,6 +165,7 @@ export function NavigationPaneLayout({
     pinnedShortcutsScrollRefCallback,
     pinnedNavigationItems,
     renderNavigationItem,
+    getRowHotState,
     isNavigationItemFilled,
     onPinnedShortcutsResizePointerDown,
     scrollContainerRefCallback,
@@ -163,14 +212,26 @@ export function NavigationPaneLayout({
                     >
                         <div className="nn-shortcut-pinned-scroll" ref={pinnedShortcutsScrollRefCallback}>
                             <div className="nn-shortcut-pinned-inner">
-                                {pinnedNavigationItems.map((pinnedItem, index) => (
-                                    <React.Fragment key={getNavigationItemRenderKey(pinnedItem)}>
-                                        {renderNavigationItem(
-                                            pinnedItem,
-                                            getAdjacentFilledClassName(pinnedItem, index, pinnedNavigationItems, isNavigationItemFilled)
-                                        )}
-                                    </React.Fragment>
-                                ))}
+                                {pinnedNavigationItems.map((pinnedItem, index) => {
+                                    const hotState = getRowHotState(pinnedItem);
+                                    return (
+                                        <NavigationPaneRow
+                                            key={getNavigationItemRenderKey(pinnedItem)}
+                                            item={pinnedItem}
+                                            adjacentFilledClassName={getAdjacentFilledClassName(
+                                                pinnedItem,
+                                                index,
+                                                pinnedNavigationItems,
+                                                isNavigationItemFilled
+                                            )}
+                                            isSelected={hotState.isSelected}
+                                            isExpanded={hotState.isExpanded}
+                                            renameTarget={hotState.renameTarget}
+                                            isDragSource={hotState.isDragSource}
+                                            renderNavigationItem={renderNavigationItem}
+                                        />
+                                    );
+                                })}
                             </div>
                         </div>
                         <div
@@ -216,20 +277,25 @@ export function NavigationPaneLayout({
                                                   return null;
                                               }
 
+                                              const hotState = getRowHotState(item);
                                               return (
-                                                  <div
+                                                  <NavigationPaneRow
                                                       key={virtualItem.key}
-                                                      data-index={virtualItem.index}
-                                                      className="nn-virtual-nav-item"
-                                                      style={{
-                                                          transform: `translateY(${Math.max(0, virtualItem.start - navigationScrollMargin)}px)`
-                                                      }}
-                                                  >
-                                                      {renderNavigationItem(
+                                                      item={item}
+                                                      index={virtualItem.index}
+                                                      top={Math.max(0, virtualItem.start - navigationScrollMargin)}
+                                                      adjacentFilledClassName={getAdjacentFilledClassName(
                                                           item,
-                                                          getAdjacentFilledClassName(item, virtualItem.index, items, isNavigationItemFilled)
+                                                          virtualItem.index,
+                                                          items,
+                                                          isNavigationItemFilled
                                                       )}
-                                                  </div>
+                                                      isSelected={hotState.isSelected}
+                                                      isExpanded={hotState.isExpanded}
+                                                      renameTarget={hotState.renameTarget}
+                                                      isDragSource={hotState.isDragSource}
+                                                      renderNavigationItem={renderNavigationItem}
+                                                  />
                                               );
                                           })}
                                       </div>

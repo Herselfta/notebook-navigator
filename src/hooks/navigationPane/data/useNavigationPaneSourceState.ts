@@ -61,6 +61,7 @@ export interface UseNavigationPaneSourceStateParams {
 export interface NavigationPaneSourceState {
     effectiveFrontmatterExclusions: string[];
     hiddenFolders: string[];
+    descendantExcludedFolders: string[];
     hiddenTags: string[];
     hiddenFileProperties: string[];
     hiddenFileNames: string[];
@@ -98,6 +99,7 @@ export interface NavigationPaneSourceState {
     folderExclusionByFolderNote: ((folder: TFolder) => boolean) | undefined;
     recentNotesHiddenFileMatcher: ReturnType<typeof createFileHiddenMatcher>;
     fileChangeVersion: number;
+    folderChangeVersion: number;
 }
 
 export function useNavigationPaneSourceState({
@@ -112,6 +114,7 @@ export function useNavigationPaneSourceState({
 }: UseNavigationPaneSourceStateParams): NavigationPaneSourceState {
     const {
         hiddenFolders: profileHiddenFolders,
+        descendantExcludedFolders,
         hiddenFileProperties,
         hiddenFileNames,
         hiddenTags,
@@ -137,6 +140,7 @@ export function useNavigationPaneSourceState({
         rootFolderOrderMap,
         missingRootFolderPaths,
         fileChangeVersion,
+        folderChangeVersion,
         metadataDecorationVersion,
         metadataVisibilityVersion,
         tagDataVersion,
@@ -248,6 +252,7 @@ export function useNavigationPaneSourceState({
         () => ({
             effectiveFrontmatterExclusions,
             hiddenFolders,
+            descendantExcludedFolders,
             hiddenTags,
             hiddenFileProperties,
             hiddenFileNames,
@@ -284,10 +289,12 @@ export function useNavigationPaneSourceState({
             getFolderSortName,
             folderExclusionByFolderNote,
             recentNotesHiddenFileMatcher,
-            fileChangeVersion
+            fileChangeVersion,
+            folderChangeVersion
         }),
         [
             effectiveFrontmatterExclusions,
+            descendantExcludedFolders,
             hiddenFolders,
             hiddenTags,
             hiddenFileProperties,
@@ -325,7 +332,8 @@ export function useNavigationPaneSourceState({
             getFolderSortName,
             folderExclusionByFolderNote,
             recentNotesHiddenFileMatcher,
-            fileChangeVersion
+            fileChangeVersion,
+            folderChangeVersion
         ]
     );
 }

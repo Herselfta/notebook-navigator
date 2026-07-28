@@ -19,12 +19,16 @@
 import { App, ButtonComponent, Modal, Setting } from 'obsidian';
 import type NotebookNavigatorPlugin from '../main';
 import { strings } from '../i18n';
-import { SETTINGS_TRANSFER_FILENAME } from '../settings/transfer';
+import { createSettingsTransferFilename } from '../settings/transfer';
+import { ConfirmModal } from './ConfirmModal';
+import { STORAGE_KEYS } from '../types';
 import { runAsyncAction } from '../utils/async';
 import { getErrorMessage } from '../utils/errorUtils';
+import { localStorage } from '../utils/localStorage';
 import { showNotice } from '../utils/noticeUtils';
 
 const SETTINGS_TRANSFER_FILE_ACCEPT = '.json,application/json,text/json';
+const DEFAULT_SETTINGS_IMPORT_BACKUP_TO_ROOT = true;
 
 function createEditorLabel(containerEl: HTMLElement, name: string, desc: string): void {
     const setting = new Setting(containerEl);
@@ -47,12 +51,21 @@ function downloadTransferFile(content: string): void {
     const objectUrl = URL.createObjectURL(blob);
     const linkEl = createEl('a');
     linkEl.href = objectUrl;
-    linkEl.download = SETTINGS_TRANSFER_FILENAME;
+    linkEl.download = createSettingsTransferFilename();
     linkEl.addClass('nn-visually-hidden');
     activeDocument.body.appendChild(linkEl);
     linkEl.click();
     linkEl.remove();
     window.setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
+}
+
+function loadSettingsImportBackupToRoot(): boolean {
+    const stored = localStorage.get<unknown>(STORAGE_KEYS.settingsImportBackupToRootKey);
+    return typeof stored === 'boolean' ? stored : DEFAULT_SETTINGS_IMPORT_BACKUP_TO_ROOT;
+}
+
+function persistSettingsImportBackupToRoot(value: boolean): void {
+    localStorage.set(STORAGE_KEYS.settingsImportBackupToRootKey, value);
 }
 
 export class SettingsImportModal extends Modal {
@@ -138,23 +151,74 @@ export class SettingsImportModal extends Modal {
                 return;
             }
 
-            runAsyncAction(async () => {
-                setBusyState(true);
-                try {
-                    const transferData: unknown = JSON.parse(editorEl.value);
-                    await this.plugin.importSettingsTransfer(transferData);
-                    showNotice(strings.settings.items.settingsTransfer.import.successNotice);
-                    this.close();
-                } catch (error) {
-                    console.error('Failed to import settings transfer', error);
-                    const message = getErrorMessage(error);
-                    showNotice(strings.settings.items.settingsTransfer.import.errorNotice.replace('{message}', message), {
-                        variant: 'warning'
-                    });
-                } finally {
-                    setBusyState(false);
+            let transferData: unknown;
+            try {
+                transferData = JSON.parse(editorEl.value);
+            } catch (error) {
+                console.error('Failed to parse settings transfer', error);
+                const message = getErrorMessage(error);
+                showNotice(strings.settings.items.settingsTransfer.import.errorNotice.replace('{message}', message), {
+                    variant: 'warning'
+                });
+                return;
+            }
+
+            let shouldSaveBackup = loadSettingsImportBackupToRoot();
+
+            new ConfirmModal(
+                this.app,
+                strings.settings.items.settingsTransfer.import.confirmTitle,
+                strings.settings.items.settingsTransfer.import.confirmMessage,
+                async () => {
+                    setBusyState(true);
+                    try {
+                        let backupPath: string | null = null;
+                        if (shouldSaveBackup) {
+                            try {
+                                backupPath = await this.plugin.saveSettingsTransferBackupToVaultRoot();
+                            } catch (error) {
+                                console.error('Failed to save settings transfer backup', error);
+                                const message = getErrorMessage(error);
+                                showNotice(strings.settings.items.settingsTransfer.import.backupError.replace('{message}', message), {
+                                    variant: 'warning'
+                                });
+                                return;
+                            }
+                        }
+
+                        await this.plugin.importSettingsTransfer(transferData);
+                        persistSettingsImportBackupToRoot(shouldSaveBackup);
+                        showNotice(
+                            backupPath
+                                ? strings.settings.items.settingsTransfer.import.successWithBackupNotice.replace('{path}', backupPath)
+                                : strings.settings.items.settingsTransfer.import.successNotice
+                        );
+                        this.close();
+                    } catch (error) {
+                        console.error('Failed to import settings transfer', error);
+                        const message = getErrorMessage(error);
+                        showNotice(strings.settings.items.settingsTransfer.import.errorNotice.replace('{message}', message), {
+                            variant: 'warning'
+                        });
+                    } finally {
+                        setBusyState(false);
+                    }
+                },
+                strings.settings.items.settingsTransfer.import.confirmButtonText,
+                {
+                    buildContent: containerEl => {
+                        new Setting(containerEl)
+                            .setName(strings.settings.items.settingsTransfer.import.backupToggleName)
+                            .setDesc(strings.settings.items.settingsTransfer.import.backupToggleDesc)
+                            .addToggle(toggle => {
+                                toggle.setValue(shouldSaveBackup).onChange(value => {
+                                    shouldSaveBackup = value;
+                                });
+                            });
+                    },
+                    confirmButtonClass: 'mod-warning'
                 }
-            });
+            ).open();
         });
 
         editorEl.focus();

@@ -55,8 +55,7 @@ function ensureResolverElement(container: HTMLElement): HTMLElement {
     }
 
     // Create new hidden resolver element
-    const doc = container.ownerDocument;
-    const resolver = doc.createElement('div');
+    const resolver = container.win.createDiv();
     resolver.classList.add('nn-color-resolver');
     resolver.setAttribute('aria-hidden', 'true');
     container.appendChild(resolver);

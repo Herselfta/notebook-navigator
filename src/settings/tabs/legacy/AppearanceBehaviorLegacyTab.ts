@@ -64,6 +64,7 @@ export function renderAppearanceBehaviorTab(context: SettingsTabContext): void {
     const createGroup = createSettingGroupFactory(context.containerEl);
 
     renderBehaviorSettings(context, createGroup);
+    renderStartupSettings(context, createGroup);
 
     if (!Platform.isMobile) {
         renderKeyboardNavigationSettings(context, createGroup);
@@ -134,6 +135,142 @@ function renderBehaviorSettings(context: SettingsTabContext, createGroup: Create
                 await plugin.saveSettingsAndUpdate();
             })
         );
+}
+
+function renderStartupSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
+    const { plugin } = context;
+    const startupGroup = createGroup(strings.settings.groups.general.startup);
+
+    startupGroup.addSetting(setting => {
+        setting
+            .setName(strings.settings.items.startView.name)
+            .setDesc(strings.settings.items.startView.desc)
+            .addDropdown(dropdown => {
+                dropdown
+                    .addOptions({
+                        navigation: strings.settings.items.startView.options.navigation,
+                        files: strings.settings.items.startView.options.files
+                    })
+                    .setValue(plugin.settings.startView)
+                    .onChange(async value => {
+                        const nextView = value === 'navigation' ? 'navigation' : 'files';
+                        plugin.settings.startView = nextView;
+                        await plugin.saveSettingsAndUpdate();
+                    });
+            });
+    });
+
+    const homepageSetting = startupGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.homepage.name);
+    });
+    homepageSetting.setDesc(strings.settings.items.homepage.desc).addDropdown(dropdown =>
+        dropdown
+            .addOption('none', strings.settings.items.homepage.options.none)
+            .addOption('file', strings.settings.items.homepage.options.file)
+            .addOption('daily-note', strings.settings.items.homepage.options.dailyNote)
+            .addOption('weekly-note', strings.settings.items.homepage.options.weeklyNote)
+            .addOption('monthly-note', strings.settings.items.homepage.options.monthlyNote)
+            .addOption('quarterly-note', strings.settings.items.homepage.options.quarterlyNote)
+            .addOption('yearly-note', strings.settings.items.homepage.options.yearlyNote)
+            .setValue(plugin.settings.homepage.source)
+            .onChange(async value => {
+                if (!isHomepageSource(value)) {
+                    return;
+                }
+
+                plugin.settings.homepage = {
+                    ...plugin.settings.homepage,
+                    source: value
+                };
+                renderHomepageDependentSettings();
+                await plugin.saveSettingsAndUpdate();
+            })
+    );
+
+    addSettingSyncModeToggle({ setting: homepageSetting, plugin, settingId: 'homepage' });
+
+    const homepageFileDependentSettingsEl = createDependentSettingsSection(homepageSetting);
+    const homepageFileSetting = new Setting(homepageFileDependentSettingsEl);
+    let homepageFileValueEl: HTMLDivElement | null = null;
+    let clearHomepageButton: ButtonComponent | null = null;
+
+    homepageFileSetting.setName(strings.settings.items.homepage.file.name);
+    homepageFileSetting.setDesc('');
+
+    const homepageFileDescEl = homepageFileSetting.descEl;
+    homepageFileDescEl.empty();
+    homepageFileValueEl = homepageFileDescEl.createDiv();
+
+    homepageFileSetting.addButton(button => {
+        button.setButtonText(strings.settings.items.homepage.chooseButton);
+        button.onClick(() => {
+            if (plugin.settings.homepage.source !== 'file') {
+                return;
+            }
+
+            new HomepageModal(context.app, file => {
+                plugin.settings.homepage = {
+                    ...plugin.settings.homepage,
+                    file: file.path
+                };
+                renderHomepageDependentSettings();
+                runAsyncAction(() => plugin.saveSettingsAndUpdate());
+            }).open();
+        });
+    });
+
+    homepageFileSetting.addButton(button => {
+        button.setButtonText(strings.common.clear);
+        clearHomepageButton = button;
+        button.onClick(() => {
+            runAsyncAction(async () => {
+                if (plugin.settings.homepage.source !== 'file' || !plugin.settings.homepage.file) {
+                    return;
+                }
+
+                plugin.settings.homepage = {
+                    ...plugin.settings.homepage,
+                    file: null
+                };
+                renderHomepageDependentSettings();
+                await plugin.saveSettingsAndUpdate();
+            });
+        });
+    });
+
+    const homepagePeriodicDependentSettingsEl = createDependentSettingsSection(homepageSetting);
+    new Setting(homepagePeriodicDependentSettingsEl)
+        .setName(strings.settings.items.homepage.createMissing.name)
+        .setDesc(strings.settings.items.homepage.createMissing.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.homepage.createMissingPeriodicNote).onChange(async value => {
+                plugin.settings.homepage = {
+                    ...plugin.settings.homepage,
+                    createMissingPeriodicNote: value
+                };
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    const renderHomepageDependentSettings = () => {
+        const isFileHomepage = plugin.settings.homepage.source === 'file';
+        setElementVisible(homepageFileDependentSettingsEl, isFileHomepage);
+        setElementVisible(homepagePeriodicDependentSettingsEl, isPeriodicHomepageSource(plugin.settings.homepage.source));
+
+        if (homepageFileValueEl) {
+            homepageFileValueEl.setText(
+                plugin.settings.homepage.file
+                    ? strings.settings.items.homepage.current.replace('{path}', plugin.settings.homepage.file)
+                    : strings.settings.items.homepage.file.empty
+            );
+        }
+
+        if (clearHomepageButton) {
+            clearHomepageButton.setDisabled(!plugin.settings.homepage.file);
+        }
+    };
+
+    renderHomepageDependentSettings();
 }
 
 function renderKeyboardNavigationSettings(context: SettingsTabContext, createGroup: CreateSettingGroup): void {
@@ -459,137 +596,6 @@ function renderViewSettings(context: SettingsTabContext, createGroup: CreateSett
     });
 
     addSettingSyncModeToggle({ setting: paneTransitionSetting, plugin, settingId: 'paneTransitionDuration' });
-
-    viewGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.startView.name)
-            .setDesc(strings.settings.items.startView.desc)
-            .addDropdown(dropdown => {
-                dropdown
-                    .addOptions({
-                        navigation: strings.settings.items.startView.options.navigation,
-                        files: strings.settings.items.startView.options.files
-                    })
-                    .setValue(plugin.settings.startView)
-                    .onChange(async value => {
-                        const nextView = value === 'navigation' ? 'navigation' : 'files';
-                        plugin.settings.startView = nextView;
-                        await plugin.saveSettingsAndUpdate();
-                    });
-            });
-    });
-
-    const homepageSetting = viewGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.homepage.name);
-    });
-    homepageSetting.setDesc(strings.settings.items.homepage.desc).addDropdown(dropdown =>
-        dropdown
-            .addOption('none', strings.settings.items.homepage.options.none)
-            .addOption('file', strings.settings.items.homepage.options.file)
-            .addOption('daily-note', strings.settings.items.homepage.options.dailyNote)
-            .addOption('weekly-note', strings.settings.items.homepage.options.weeklyNote)
-            .addOption('monthly-note', strings.settings.items.homepage.options.monthlyNote)
-            .addOption('quarterly-note', strings.settings.items.homepage.options.quarterlyNote)
-            .addOption('yearly-note', strings.settings.items.homepage.options.yearlyNote)
-            .setValue(plugin.settings.homepage.source)
-            .onChange(async value => {
-                if (!isHomepageSource(value)) {
-                    return;
-                }
-
-                plugin.settings.homepage = {
-                    ...plugin.settings.homepage,
-                    source: value
-                };
-                renderHomepageDependentSettings();
-                await plugin.saveSettingsAndUpdate();
-            })
-    );
-
-    addSettingSyncModeToggle({ setting: homepageSetting, plugin, settingId: 'homepage' });
-
-    const homepageFileDependentSettingsEl = createDependentSettingsSection(homepageSetting);
-    const homepageFileSetting = new Setting(homepageFileDependentSettingsEl);
-    let homepageFileValueEl: HTMLDivElement | null = null;
-    let clearHomepageButton: ButtonComponent | null = null;
-
-    homepageFileSetting.setName(strings.settings.items.homepage.file.name);
-    homepageFileSetting.setDesc('');
-
-    const homepageFileDescEl = homepageFileSetting.descEl;
-    homepageFileDescEl.empty();
-    homepageFileValueEl = homepageFileDescEl.createDiv();
-
-    homepageFileSetting.addButton(button => {
-        button.setButtonText(strings.settings.items.homepage.chooseButton);
-        button.onClick(() => {
-            if (plugin.settings.homepage.source !== 'file') {
-                return;
-            }
-
-            new HomepageModal(context.app, file => {
-                plugin.settings.homepage = {
-                    ...plugin.settings.homepage,
-                    file: file.path
-                };
-                renderHomepageDependentSettings();
-                runAsyncAction(() => plugin.saveSettingsAndUpdate());
-            }).open();
-        });
-    });
-
-    homepageFileSetting.addButton(button => {
-        button.setButtonText(strings.common.clear);
-        clearHomepageButton = button;
-        button.onClick(() => {
-            runAsyncAction(async () => {
-                if (plugin.settings.homepage.source !== 'file' || !plugin.settings.homepage.file) {
-                    return;
-                }
-
-                plugin.settings.homepage = {
-                    ...plugin.settings.homepage,
-                    file: null
-                };
-                renderHomepageDependentSettings();
-                await plugin.saveSettingsAndUpdate();
-            });
-        });
-    });
-
-    const homepagePeriodicDependentSettingsEl = createDependentSettingsSection(homepageSetting);
-    new Setting(homepagePeriodicDependentSettingsEl)
-        .setName(strings.settings.items.homepage.createMissing.name)
-        .setDesc(strings.settings.items.homepage.createMissing.desc)
-        .addToggle(toggle =>
-            toggle.setValue(plugin.settings.homepage.createMissingPeriodicNote).onChange(async value => {
-                plugin.settings.homepage = {
-                    ...plugin.settings.homepage,
-                    createMissingPeriodicNote: value
-                };
-                await plugin.saveSettingsAndUpdate();
-            })
-        );
-
-    const renderHomepageDependentSettings = () => {
-        const isFileHomepage = plugin.settings.homepage.source === 'file';
-        setElementVisible(homepageFileDependentSettingsEl, isFileHomepage);
-        setElementVisible(homepagePeriodicDependentSettingsEl, isPeriodicHomepageSource(plugin.settings.homepage.source));
-
-        if (homepageFileValueEl) {
-            homepageFileValueEl.setText(
-                plugin.settings.homepage.file
-                    ? strings.settings.items.homepage.current.replace('{path}', plugin.settings.homepage.file)
-                    : strings.settings.items.homepage.file.empty
-            );
-        }
-
-        if (clearHomepageButton) {
-            clearHomepageButton.setDisabled(!plugin.settings.homepage.file);
-        }
-    };
-
-    renderHomepageDependentSettings();
 
     viewGroup
         .addSetting(setting => {

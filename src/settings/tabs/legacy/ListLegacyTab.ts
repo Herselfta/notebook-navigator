@@ -42,11 +42,7 @@ import {
 import { formatPixelSliderValue, renderSliderSetting } from '../SliderSetting';
 
 type QuickActionSettingKey =
-    | 'quickActionRevealInFolder'
-    | 'quickActionAddTag'
-    | 'quickActionAddToShortcuts'
-    | 'quickActionPinNote'
-    | 'quickActionOpenInNewTab';
+    'quickActionRevealInFolder' | 'quickActionAddTag' | 'quickActionAddToShortcuts' | 'quickActionPinNote' | 'quickActionOpenInNewTab';
 
 interface QuickActionToggleConfig {
     key: QuickActionSettingKey;
@@ -266,6 +262,16 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         () => plugin.settings.showFolderGroupPaths,
         value => {
             plugin.settings.showFolderGroupPaths = value;
+        }
+    );
+
+    addToggleSetting(
+        groupHeadersGroup.addSetting,
+        strings.settings.items.showGroupHeaderItemCounts.name,
+        strings.settings.items.showGroupHeaderItemCounts.desc,
+        () => plugin.settings.showGroupHeaderItemCounts,
+        value => {
+            plugin.settings.showGroupHeaderItemCounts = value;
         }
     );
 

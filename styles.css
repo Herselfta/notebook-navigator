@@ -202,7 +202,7 @@ body {
     --nn-theme-calendar-day-today-color: var(--nn-theme-calendar-day-in-month-color);
     --nn-theme-calendar-day-today-bg: var(--text-selection);
     --nn-theme-calendar-day-active-border-color: var(--interactive-accent);
-    --nn-theme-calendar-day-active-border-width: 2px;
+    --nn-theme-calendar-day-active-border-width: 3px;
 
     /* -- Folder & Tag Items -- */
     --nn-theme-navitem-chevron-color: var(--nn-theme-foreground-muted);
@@ -364,6 +364,8 @@ body {
     background-color: var(--nn-theme-list-search-active-bg);
     color: inherit;
     border-radius: 3px;
+    padding: 0;
+    font-weight: 600;
 }
 
 /* Resets Obsidian's default view-content padding for cleaner integration */
@@ -2521,11 +2523,13 @@ button.nn-icon-button.nn-navitem-hover-action-button {
     --nn-calendar-note-indicator-center-offset: clamp(6px, calc(var(--nn-calendar-day-font-size) * 0.65), 12px);
     --nn-calendar-task-indicator-offset-x: clamp(5px, calc(var(--nn-calendar-day-font-size) * 0.42), 9px);
     --nn-calendar-weekend-corner-radius: 6px;
+    --nn-calendar-cell-radius: 6px;
     --nn-calendar-header-chip-bg: var(--nn-theme-nav-bg);
     --nn-calendar-note-indicator-color: var(--nn-theme-calendar-note-indicator-color);
     --nn-calendar-task-indicator-color: var(--nn-theme-calendar-unfinished-task-indicator-color);
     --nn-calendar-active-editor-border-color: var(--nn-theme-calendar-day-active-border-color);
     --nn-calendar-active-editor-border-width: var(--nn-theme-calendar-day-active-border-width);
+    --nn-calendar-active-editor-gap-color: var(--nn-theme-nav-bg);
 }
 
 .notebook-navigator-mobile :is(.nn-navigation-pane, .nn-list-pane, .nn-single-pane-calendar) {
@@ -2647,7 +2651,7 @@ button.nn-navigation-calendar-day {
     -webkit-appearance: none;
     appearance: none;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--nn-calendar-cell-radius);
     cursor: pointer;
     box-shadow: none;
     outline: none;
@@ -2953,8 +2957,9 @@ button.nn-navigation-calendar-year-month {
 .nn-navigation-calendar-year-month.has-feature-image::before {
     content: '';
     position: absolute;
-    inset: 0;
-    border-radius: inherit;
+    /* Extends 0.5px past the cell so the highlight ring covers the antialiased edge of the background image. */
+    inset: -0.5px;
+    border-radius: calc(var(--nn-calendar-cell-radius) + 0.5px);
     background:
         linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03) 24%, rgba(255, 255, 255, 0) 48%),
         linear-gradient(
@@ -2972,17 +2977,14 @@ button.nn-navigation-calendar-year-month {
 .nn-navigation-calendar-active-outline {
     display: none;
     position: absolute;
-    inset: 0;
+    /* Extends 0.5px past the cell so the border covers the antialiased edge of the background image. */
+    inset: -0.5px;
     box-sizing: border-box;
     border: var(--nn-calendar-active-editor-border-width) solid var(--nn-calendar-active-editor-border-color);
-    border-radius: inherit;
+    border-radius: calc(var(--nn-calendar-cell-radius) + 0.5px);
+    box-shadow: inset 0 0 0 1px var(--nn-calendar-active-editor-gap-color);
     pointer-events: none;
     z-index: 2;
-}
-
-.nn-navigation-calendar-day.has-feature-image.is-active-editor-file .nn-navigation-calendar-active-outline,
-.nn-navigation-calendar-year-month.has-feature-image.is-selected-month .nn-navigation-calendar-active-outline {
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
 }
 
 .nn-navigation-calendar-year-month-label {
@@ -3570,6 +3572,7 @@ button.nn-navigation-calendar-day {
 
 .nn-calendar-right-sidebar .nn-navigation-calendar {
     --nn-calendar-header-chip-bg: var(--nn-calendar-right-sidebar-bg);
+    --nn-calendar-active-editor-gap-color: var(--nn-calendar-right-sidebar-bg);
     --nn-calendar-header-font-size: 16px;
     --nn-calendar-today-font-size: 13px;
 }
@@ -4034,6 +4037,56 @@ button.nn-navigation-calendar-day {
 .nn-file-word-count-suffix {
     color: var(--nn-theme-file-word-count-color);
     font-weight: var(--nn-theme-file-word-count-font-weight);
+}
+
+/* Keep aliases in normal text flow so title clamping can reveal or wrap each value independently. */
+.nn-file-alias-match {
+    display: inline;
+    margin-inline-start: 5px;
+    color: var(--nn-theme-foreground-muted);
+    font-size: 0.85em;
+    font-weight: normal;
+    vertical-align: baseline;
+}
+
+.nn-file-alias-match-icon {
+    display: inline-flex;
+    width: 1em;
+    height: 1em;
+    margin-inline-end: 2px;
+    vertical-align: -0.125em;
+}
+
+.nn-file-alias-match-icon svg {
+    width: 1em;
+    height: 1em;
+}
+
+/* Property evidence appears only while an internal property search is active. */
+.nn-file-property-search-evidence {
+    display: inline;
+    margin-inline-start: 5px;
+    color: var(--nn-theme-foreground-muted);
+    font-size: 0.85em;
+    font-weight: normal;
+    vertical-align: baseline;
+}
+
+.nn-file-property-search-evidence-key {
+    font-weight: 600;
+}
+
+.nn-file-property-search-evidence-icon {
+    display: inline-flex;
+    width: 1em;
+    height: 1em;
+    margin-inline-end: 2px;
+    vertical-align: -0.125em;
+}
+
+.nn-file-property-search-evidence-icon svg {
+    width: 1em;
+    height: 1em;
 }
 
 .nn-file-icon {
@@ -4532,6 +4585,7 @@ button.nn-navigation-calendar-day {
     height: 100%;
 }
 
+/* Inset highlight overlay - masked by the thumbnail image so it only covers opaque pixels */
 .nn-file-thumbnail--inset-highlight::before {
     content: '';
     position: absolute;
@@ -4543,6 +4597,19 @@ button.nn-navigation-calendar-day {
         inset 0 -1px 0 rgba(255, 255, 255, 0.05);
     pointer-events: none;
     z-index: 1;
+    mask-image: var(--nn-file-thumbnail-mask-image, none);
+    mask-repeat: no-repeat;
+}
+
+/* Mask geometry mirrors the img object-fit and object-position per variant */
+.nn-file-thumbnail--square.nn-file-thumbnail--inset-highlight::before {
+    mask-size: cover;
+    mask-position: center top;
+}
+
+.nn-file-thumbnail--natural.nn-file-thumbnail--inset-highlight::before {
+    mask-size: contain;
+    mask-position: center;
 }
 
 .nn-file-thumbnail--square .nn-file-thumbnail-img {
@@ -4813,6 +4880,12 @@ button.nn-navigation-calendar-day {
 
 .nn-list-group-header-text--custom-color {
     font-weight: var(--nn-theme-navitem-custom-color-name-font-weight);
+}
+
+.nn-list-group-header-item-count {
+    flex: 0 0 auto;
+    font-weight: 400;
+    color: var(--nn-theme-foreground-muted);
 }
 
 .nn-list-group-header-path {
@@ -5436,6 +5509,33 @@ body.nn-resizing {
     margin-top: 16px;
 }
 
+/* YouTube play overlay shared by modal thumbnail links */
+.nn-youtube-play {
+    position: absolute;
+    top: var(--nn-youtube-play-y, 50%);
+    left: var(--nn-youtube-play-x, 50%);
+    width: 52px;
+    height: 36px;
+    transform: translate(-50%, -50%) scale(var(--nn-youtube-play-scale, 1));
+    border-radius: 8px;
+    background-color: #ff0000;
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.nn-youtube-play::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-40%, -50%);
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 0 8px 14px;
+    border-color: transparent transparent transparent #ffffff;
+}
+
 .nn-folder-note-type-modal .modal-content {
     padding-top: 16px;
 }
@@ -5866,6 +5966,7 @@ body.nn-resizing {
 }
 
 .nn-welcome-thumbnail-frame {
+    position: relative;
     display: block;
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -5880,6 +5981,16 @@ body.nn-resizing {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.nn-welcome-youtube-play {
+    --nn-youtube-play-x: 80%;
+    --nn-youtube-play-y: 49%;
+    --nn-youtube-play-scale: 1.8;
+}
+
+.nn-welcome-thumbnail-link:hover .nn-welcome-youtube-play {
+    background-color: #cc0000;
 }
 
 .nn-welcome-buttons {
@@ -6116,33 +6227,7 @@ body.nn-resizing {
     font-size: 13px;
 }
 
-.nn-whats-new-youtube-play {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 52px;
-    height: 36px;
-    transform: translate(-50%, -50%);
-    border-radius: 8px;
-    background-color: #ff0000;
-    opacity: 0.9;
-    pointer-events: none;
-}
-
-.nn-whats-new-youtube-play::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-40%, -50%);
-    width: 0;
-    height: 0;
-    border-style: solid;
-    border-width: 8px 0 8px 14px;
-    border-color: transparent transparent transparent #ffffff;
-}
-
-.nn-whats-new-youtube-link:hover .nn-whats-new-youtube-play {
+.nn-whats-new-youtube-link:hover .nn-youtube-play {
     background-color: #cc0000;
 }
 

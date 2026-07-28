@@ -50,7 +50,7 @@ interface ListPaneHeaderProps {
     showIcon: boolean;
 }
 
-export function ListPaneHeader({
+export const ListPaneHeader = React.memo(function ListPaneHeader({
     onHeaderClick,
     isSearchActive,
     onSearchToggle,
@@ -355,7 +355,7 @@ export function ListPaneHeader({
                         data-pane-toggle="navigation"
                         onClick={e => {
                             e.stopPropagation();
-                            uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'navigation' });
+                            uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
                         }}
                         tabIndex={-1}
                     >
@@ -382,8 +382,7 @@ export function ListPaneHeader({
                         className="nn-icon-button"
                         data-pane-toggle="navigation"
                         onClick={() => {
-                            uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'navigation' });
-                            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
+                            uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
                         }}
                         aria-label={strings.paneHeader.showFolders}
                         tabIndex={-1}
@@ -470,4 +469,4 @@ export function ListPaneHeader({
             </div>
         </div>
     );
-}
+});

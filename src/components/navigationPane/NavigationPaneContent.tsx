@@ -38,6 +38,8 @@ import { useSurfaceColorVariables } from '../../hooks/useSurfaceColorVariables';
 import { useNavigationPaneShortcuts } from '../../hooks/navigationPane/useNavigationPaneShortcuts';
 import { useNavigationPaneTreeInteractions } from '../../hooks/navigationPane/useNavigationPaneTreeInteractions';
 import { useNavigationSearchHighlights } from '../../hooks/navigationPane/useNavigationSearchHighlights';
+import { useStableHandlerFacade } from '../../hooks/useStableHandlerFacade';
+import { buildNavigationInlineRenameTarget, matchNavigationInlineRenameTarget, replacePathLeaf } from './navigationRenameTarget';
 import type { SearchNavFilterState } from '../../types/search';
 import type { NoteCountInfo } from '../../types/noteCounts';
 import type { InclusionOperator } from '../../utils/filterSearch';
@@ -47,9 +49,9 @@ import {
     NavigationPaneItemType,
     NavigationSectionId,
     NAVIGATION_PANE_DIMENSIONS,
+    RECENT_NOTES_VIRTUAL_FOLDER_ID,
+    SHORTCUTS_VIRTUAL_FOLDER_ID,
     TAGS_ROOT_VIRTUAL_FOLDER_ID,
-    TAGGED_TAG_ID,
-    UNTAGGED_TAG_ID,
     type CSSPropertiesWithVars
 } from '../../types';
 import { STORAGE_KEYS } from '../../types';
@@ -79,8 +81,12 @@ import { verticalAxisOnly } from '../../utils/dndConfig';
 import type { CombinedNavigationItem } from '../../types/virtualization';
 import { NavigationPaneItemRenderer } from './NavigationPaneItemRenderer';
 import { NavigationPaneLayout } from './NavigationPaneLayout';
-import type { NavigationInlineRenameTarget, NavigationPaneRowContext } from './NavigationPaneItemRenderer.types';
-import { isNavigationItemFilled } from './navigationPaneItemState';
+import type { NavigationInlineRenameTarget, NavigationPaneRowContext, NavigationPaneRowHotState } from './NavigationPaneItemRenderer.types';
+import { isNavigationItemFilled, isNavigationItemSelected } from './navigationPaneItemState';
+import type {
+    NavigationPaneShortcutRowHandlers,
+    NavigationPaneShortcutUiState
+} from '../../hooks/navigationPane/navigationPaneShortcutTypes';
 import type { NavigationRainbowState } from '../../hooks/useNavigationRainbowState';
 import type { NavigationPaneSourceState } from '../../hooks/navigationPane/data/useNavigationPaneSourceState';
 import type { NavigationPaneTreeSectionsResult } from '../../hooks/navigationPane/data/useNavigationPaneTreeSections';
@@ -88,17 +94,6 @@ import type { FolderDecorationModel } from '../../utils/folderDecoration';
 import { focusElementPreventScroll } from '../../utils/domUtils';
 
 const EMPTY_INDENT_GUIDE_MAP = new Map<string, number[]>();
-
-function getPathLeaf(path: string): string {
-    const slashIndex = path.lastIndexOf('/');
-    return slashIndex >= 0 ? path.slice(slashIndex + 1) : path;
-}
-
-function replacePathLeaf(path: string, nextLeaf: string): string {
-    const trimmedLeaf = nextLeaf.trim();
-    const slashIndex = path.lastIndexOf('/');
-    return slashIndex >= 0 ? `${path.slice(0, slashIndex)}/${trimmedLeaf}` : trimmedLeaf;
-}
 
 export interface NavigationPaneHandle {
     getIndexOfPath: (itemType: ItemType, path: string) => number;
@@ -372,6 +367,57 @@ export const NavigationPane = React.memo(
             onConfigurePropertyKeys: handleConfigurePropertyKeysFromSectionMenu
         });
 
+        const shortcutsRef = useRef(shortcuts);
+        shortcutsRef.current = shortcuts;
+
+        // Identity-stable facade; calls forward to the latest shortcut handlers through a ref.
+        // Only handler members may be listed here; values rows read during render belong in
+        // shortcutUiState so row memoization sees them change. The count getters read the same
+        // folder/tag/property count maps that rowContext depends on, so rows re-render through
+        // rowContext when counts change and these reads stay fresh.
+        const shortcutRowHandlers: NavigationPaneShortcutRowHandlers = useStableHandlerFacade(shortcuts, [
+            'removeShortcut',
+            'handleShortcutFolderActivate',
+            'handleShortcutFolderNoteClick',
+            'handleShortcutFolderNoteMouseDown',
+            'handleShortcutNoteActivate',
+            'handleShortcutNoteMouseDown',
+            'handleRecentNoteActivate',
+            'handleShortcutSearchActivate',
+            'handleShortcutTagActivate',
+            'handleShortcutPropertyActivate',
+            'handleShortcutContextMenu',
+            'handleRecentFileContextMenu',
+            'handleShortcutRootDragOver',
+            'handleShortcutRootDrop',
+            'buildShortcutExternalHandlers',
+            'getFolderShortcutCount',
+            'getTagShortcutCount',
+            'getPropertyShortcutCount',
+            'getMissingNoteLabel'
+        ]);
+
+        const shortcutUiState = useMemo<NavigationPaneShortcutUiState>(
+            () => ({
+                shouldUseShortcutDnd: shortcuts.shouldUseShortcutDnd,
+                allowEmptyShortcutDrop: shortcuts.allowEmptyShortcutDrop,
+                shortcutDragHandleConfig: shortcuts.shortcutDragHandleConfig,
+                shortcutHeaderTrailingAction: shortcuts.shortcutHeaderTrailingAction,
+                propertiesHeaderTrailingAction: shortcuts.propertiesHeaderTrailingAction,
+                shortcutNumberBadgesByKey: shortcuts.shortcutNumberBadgesByKey,
+                shouldShowShortcutCounts: shortcuts.shouldShowShortcutCounts
+            }),
+            [
+                shortcuts.shouldUseShortcutDnd,
+                shortcuts.allowEmptyShortcutDrop,
+                shortcuts.shortcutDragHandleConfig,
+                shortcuts.shortcutHeaderTrailingAction,
+                shortcuts.propertiesHeaderTrailingAction,
+                shortcuts.shortcutNumberBadgesByKey,
+                shortcuts.shouldShowShortcutCounts
+            ]
+        );
+
         const isVisible = uiState.dualPane || uiState.currentSinglePaneView === 'navigation';
         const {
             items,
@@ -527,12 +573,27 @@ export const NavigationPane = React.memo(
         });
         const activeNavRainbow = props.navRainbowState.navRainbow;
         const solidBackgroundCacheRef = useRef<Map<string, string | undefined>>(new Map());
-        useEffect(() => {
+        // Cache inputs are compared during render so the commit that changes the surface recomposites row backgrounds
+        const solidBackgroundCacheInputsRef = useRef<{
+            rainbow: typeof activeNavRainbow;
+            color: typeof navSurfaceColor;
+            version: number;
+        } | null>(null);
+        const solidBackgroundCacheInputs = solidBackgroundCacheInputsRef.current;
+        if (
+            !solidBackgroundCacheInputs ||
+            solidBackgroundCacheInputs.rainbow !== activeNavRainbow ||
+            solidBackgroundCacheInputs.color !== navSurfaceColor ||
+            solidBackgroundCacheInputs.version !== navSurfaceVersion
+        ) {
             solidBackgroundCacheRef.current.clear();
-        }, [activeNavRainbow, navSurfaceColor, navSurfaceVersion]);
+            solidBackgroundCacheInputsRef.current = { rainbow: activeNavRainbow, color: navSurfaceColor, version: navSurfaceVersion };
+        }
 
         const getSolidBackground = useCallback(
             (color?: string | null) => {
+                // Identity tracks navSurfaceVersion so memoized rows re-render when surface variables change
+                void navSurfaceVersion;
                 if (!color) {
                     return undefined;
                 }
@@ -549,7 +610,7 @@ export const NavigationPane = React.memo(
                 cache.set(trimmed, solidColor);
                 return solidColor;
             },
-            [navSurfaceColor]
+            [navSurfaceColor, navSurfaceVersion]
         );
 
         const {
@@ -766,47 +827,8 @@ export const NavigationPane = React.memo(
         ]);
 
         const buildRenameTarget = useCallback(
-            (item: CombinedNavigationItem): NavigationInlineRenameTarget | null => {
-                if (item.type === NavigationPaneItemType.FOLDER) {
-                    if (!(item.data instanceof TFolder)) {
-                        return null;
-                    }
-                    const folder = item.data;
-                    return {
-                        type: 'folder',
-                        id: folder.path,
-                        initialValue: fileSystemOps.getFolderDisplayNameRenameInput(folder).initialValue
-                    };
-                }
-
-                if (item.type === NavigationPaneItemType.TAG) {
-                    const tagNode = item.data;
-                    if (tagNode.path === TAGGED_TAG_ID || tagNode.path === UNTAGGED_TAG_ID) {
-                        return null;
-                    }
-                    return {
-                        type: 'tag',
-                        id: tagNode.path,
-                        displayPath: tagNode.displayPath,
-                        initialValue: getPathLeaf(tagNode.displayPath)
-                    };
-                }
-
-                if (item.type === NavigationPaneItemType.PROPERTY_KEY) {
-                    const propertyNode = item.data;
-                    if (propertyNode.kind !== 'key' || propertyNode.notesWithValue.size === 0) {
-                        return null;
-                    }
-                    return {
-                        type: 'property',
-                        id: propertyNode.id,
-                        normalizedKey: propertyNode.key,
-                        initialValue: propertyNode.name
-                    };
-                }
-
-                return null;
-            },
+            (item: CombinedNavigationItem): NavigationInlineRenameTarget | null =>
+                buildNavigationInlineRenameTarget(item, folder => fileSystemOps.getFolderDisplayNameRenameInput(folder).initialValue),
             [fileSystemOps]
         );
 
@@ -824,6 +846,34 @@ export const NavigationPane = React.memo(
             setInlineRenameTarget(target);
             return true;
         }, [buildRenameTarget, getSelectedRenderedItem]);
+
+        const handleStartFolderInlineRename = useCallback(
+            (folder: TFolder): boolean => {
+                if (isRootReorderMode) {
+                    return false;
+                }
+
+                const index = getNavigationIndex(pathToIndex, ItemType.FOLDER, folder.path);
+                if (index === undefined) {
+                    return false;
+                }
+
+                const item = items[index];
+                if (!item || item.type !== NavigationPaneItemType.FOLDER) {
+                    return false;
+                }
+
+                const target = buildRenameTarget(item);
+                if (!target) {
+                    return false;
+                }
+
+                setInlineRenameTarget(target);
+                requestScroll(folder.path, { align: 'auto', itemType: ItemType.FOLDER });
+                return true;
+            },
+            [buildRenameTarget, isRootReorderMode, items, pathToIndex, requestScroll]
+        );
 
         const handleCancelInlineRename = useCallback(() => {
             setInlineRenameTarget(null);
@@ -949,6 +999,8 @@ export const NavigationPane = React.memo(
 
         const handleSectionContextMenu = useCallback(
             (event: React.MouseEvent<HTMLDivElement>, sectionId: NavigationSectionId, options?: { allowSeparator?: boolean }) => {
+                // Menu contents come from the latest shortcuts state at open time
+                const currentShortcuts = shortcutsRef.current;
                 showNavigationSectionContextMenu({
                     app,
                     event,
@@ -957,22 +1009,22 @@ export const NavigationPane = React.memo(
                     metadataService,
                     settings,
                     plugin,
-                    pinToggleLabel: shortcuts.pinToggleLabel,
+                    pinToggleLabel: currentShortcuts.pinToggleLabel,
                     isShortcutsPinned: uiState.pinShortcuts,
-                    onToggleShortcutsPin: shortcuts.handleShortcutSplitToggle,
+                    onToggleShortcutsPin: currentShortcuts.handleShortcutSplitToggle,
                     onConfigurePropertyKeys: handleConfigurePropertyKeysFromSectionMenu,
                     shortcutActions: {
-                        shortcutsCount: shortcuts.shortcutsCount,
-                        tagShortcutKeysByPath: shortcuts.tagShortcutKeysByPath,
-                        propertyShortcutKeysByNodeId: shortcuts.propertyShortcutKeysByNodeId,
-                        addTagShortcut: shortcuts.addTagShortcut,
-                        addPropertyShortcut: shortcuts.addPropertyShortcut,
-                        removeShortcut: shortcuts.removeShortcut,
-                        clearShortcuts: shortcuts.clearShortcuts
+                        shortcutsCount: currentShortcuts.shortcutsCount,
+                        tagShortcutKeysByPath: currentShortcuts.tagShortcutKeysByPath,
+                        propertyShortcutKeysByNodeId: currentShortcuts.propertyShortcutKeysByNodeId,
+                        addTagShortcut: currentShortcuts.addTagShortcut,
+                        addPropertyShortcut: currentShortcuts.addPropertyShortcut,
+                        removeShortcut: currentShortcuts.removeShortcut,
+                        clearShortcuts: currentShortcuts.clearShortcuts
                     }
                 });
             },
-            [app, handleConfigurePropertyKeysFromSectionMenu, metadataService, plugin, settings, shortcuts, uiState.pinShortcuts]
+            [app, handleConfigurePropertyKeysFromSectionMenu, metadataService, plugin, settings, uiState.pinShortcuts]
         );
 
         const rowContext = useMemo<NavigationPaneRowContext>(
@@ -980,31 +1032,28 @@ export const NavigationPane = React.memo(
                 app,
                 settings,
                 isMobile,
-                expansionState,
-                expansionDispatch,
-                selectionState,
                 indentGuideLevelsByKey,
                 firstSectionId,
                 firstInlineFolderPath,
                 shouldPinShortcuts: uiState.pinShortcuts && settings.showShortcuts,
                 showHiddenItems,
-                shortcutsExpanded: shortcuts.shortcutsExpanded,
-                recentNotesExpanded: shortcuts.recentNotesExpanded,
                 folderCounts,
                 tagCounts,
                 propertyCounts,
                 vaultChangeVersion,
                 fileVisibility: activeProfile.fileVisibility,
                 hiddenFolders: activeProfile.hiddenFolders,
+                descendantExcludedFolders: activeProfile.descendantExcludedFolders,
                 getFileDisplayName,
                 getFileTimestamps,
                 getFileWordCount,
                 getSolidBackground,
-                shortcuts,
+                shortcuts: shortcutRowHandlers,
+                shortcutUiState,
                 tree,
                 searchHighlights,
                 inlineRename: {
-                    target: inlineRenameTarget,
+                    startFolder: handleStartFolderInlineRename,
                     commit: handleCommitInlineRename,
                     cancel: handleCancelInlineRename,
                     restoreFocus: restoreNavigationPaneFocus
@@ -1013,13 +1062,12 @@ export const NavigationPane = React.memo(
             }),
             [
                 app,
-                expansionDispatch,
-                expansionState,
                 firstInlineFolderPath,
                 firstSectionId,
                 folderCounts,
                 activeProfile.fileVisibility,
                 activeProfile.hiddenFolders,
+                activeProfile.descendantExcludedFolders,
                 getFileDisplayName,
                 getFileTimestamps,
                 getFileWordCount,
@@ -1027,20 +1075,77 @@ export const NavigationPane = React.memo(
                 handleSectionContextMenu,
                 handleCancelInlineRename,
                 handleCommitInlineRename,
+                handleStartFolderInlineRename,
                 indentGuideLevelsByKey,
-                inlineRenameTarget,
                 isMobile,
                 propertyCounts,
                 searchHighlights,
-                selectionState,
                 settings,
-                shortcuts,
+                shortcutRowHandlers,
+                shortcutUiState,
                 showHiddenItems,
                 tagCounts,
                 tree,
                 uiState.pinShortcuts,
                 restoreNavigationPaneFocus,
                 vaultChangeVersion
+            ]
+        );
+
+        const getRowHotState = useCallback(
+            (item: CombinedNavigationItem): NavigationPaneRowHotState => {
+                let isExpanded = false;
+                let isDragSource = false;
+                switch (item.type) {
+                    case NavigationPaneItemType.FOLDER:
+                        isExpanded = expansionState.expandedFolders.has(item.data.path);
+                        break;
+                    case NavigationPaneItemType.VIRTUAL_FOLDER: {
+                        const virtualFolderId = item.data.id;
+                        isExpanded =
+                            virtualFolderId === SHORTCUTS_VIRTUAL_FOLDER_ID
+                                ? shortcuts.shortcutsExpanded
+                                : virtualFolderId === RECENT_NOTES_VIRTUAL_FOLDER_ID
+                                  ? shortcuts.recentNotesExpanded
+                                  : expansionState.expandedVirtualFolders.has(virtualFolderId);
+                        break;
+                    }
+                    case NavigationPaneItemType.TAG:
+                    case NavigationPaneItemType.UNTAGGED:
+                        isExpanded = expansionState.expandedTags.has(item.data.path);
+                        break;
+                    case NavigationPaneItemType.PROPERTY_KEY:
+                    case NavigationPaneItemType.PROPERTY_VALUE:
+                        isExpanded = expansionState.expandedProperties.has(item.data.id);
+                        break;
+                    case NavigationPaneItemType.SHORTCUT_FOLDER:
+                    case NavigationPaneItemType.SHORTCUT_NOTE:
+                    case NavigationPaneItemType.SHORTCUT_SEARCH:
+                    case NavigationPaneItemType.SHORTCUT_TAG:
+                    case NavigationPaneItemType.SHORTCUT_PROPERTY:
+                        isDragSource = shortcuts.shouldUseShortcutDnd && shortcuts.activeShortcutId === item.key;
+                        break;
+                    default:
+                        break;
+                }
+
+                const renameTarget = inlineRenameTarget ? matchNavigationInlineRenameTarget(item, inlineRenameTarget) : null;
+
+                return {
+                    isSelected: isNavigationItemSelected(item, selectionState),
+                    isExpanded,
+                    renameTarget,
+                    isDragSource
+                };
+            },
+            [
+                expansionState,
+                inlineRenameTarget,
+                selectionState,
+                shortcuts.shortcutsExpanded,
+                shortcuts.recentNotesExpanded,
+                shortcuts.shouldUseShortcutDnd,
+                shortcuts.activeShortcutId
             ]
         );
 
@@ -1056,8 +1161,16 @@ export const NavigationPane = React.memo(
         );
 
         const renderNavigationItem = useCallback(
-            (item: CombinedNavigationItem, adjacentFilledClassName?: string) => (
-                <NavigationPaneItemRenderer item={item} context={rowContext} adjacentFilledClassName={adjacentFilledClassName} />
+            (item: CombinedNavigationItem, adjacentFilledClassName: string | undefined, hotState: NavigationPaneRowHotState) => (
+                <NavigationPaneItemRenderer
+                    item={item}
+                    context={rowContext}
+                    adjacentFilledClassName={adjacentFilledClassName}
+                    isSelected={hotState.isSelected}
+                    isExpanded={hotState.isExpanded}
+                    renameTarget={hotState.renameTarget}
+                    isDragSource={hotState.isDragSource}
+                />
             ),
             [rowContext]
         );
@@ -1132,6 +1245,7 @@ export const NavigationPane = React.memo(
                         pinnedShortcutsScrollRefCallback={pinnedShortcutsScrollRefCallback}
                         pinnedNavigationItems={pinnedNavigationItems}
                         renderNavigationItem={renderNavigationItem}
+                        getRowHotState={getRowHotState}
                         isNavigationItemFilled={isNavigationItemFilledForAdjacency}
                         onPinnedShortcutsResizePointerDown={handlePinnedShortcutsResizePointerDown}
                         scrollContainerRefCallback={scrollContainerRefCallback}

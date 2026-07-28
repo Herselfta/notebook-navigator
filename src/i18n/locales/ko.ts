@@ -87,6 +87,7 @@ export const STRINGS_KO = {
     navigationCalendar: {
         ariaLabel: '달력',
         dailyNotesNotEnabled: '데일리 노트 코어 플러그인이 활성화되어 있지 않습니다.',
+        noteHiddenByProfile: '캘린더 노트가 현재 보관함 프로필에서 숨겨져 있습니다.',
         createDailyNote: {
             title: '새 데일리 노트',
             message: '파일 {filename}이(가) 존재하지 않습니다. 생성하시겠습니까?',
@@ -168,6 +169,7 @@ export const STRINGS_KO = {
     // Search input
     searchInput: {
         placeholder: '검색...', // Placeholder text for search input (English: Search...)
+        placeholderVault: '보관소 검색...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: '검색 지우기', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: '필터 검색으로 전환',
@@ -180,15 +182,15 @@ export const STRINGS_KO = {
         searchHelp: '검색 구문',
         searchHelpTitle: '검색 구문',
         searchHelpModal: {
-            intro: '파일 이름, 속성, 태그, 날짜, 필터를 하나의 쿼리에서 결합 (예: `meeting .status=active #work @thisweek`). Omnisearch 플러그인을 설치하면 전체 텍스트 검색을 사용할 수 있습니다.',
+            intro: '표시 이름, 별칭, 속성, 태그, 날짜, 필터를 하나의 쿼리에서 결합 (예: `meeting .status=active #work @thisweek`). Omnisearch 플러그인을 설치하면 전체 텍스트 검색을 사용할 수 있습니다.',
             introSwitching: '위/아래 화살표 키 또는 검색 아이콘 클릭으로 필터 검색과 Omnisearch 간에 전환할 수 있습니다.',
             sections: {
                 fileNames: {
-                    title: '파일 이름',
+                    title: '파일 이름과 별칭',
                     items: [
-                        '`word` 파일 이름에 "word"가 포함된 노트 찾기.',
-                        '`word1 word2` 모든 단어가 파일 이름과 일치해야 합니다.',
-                        '`-word` 파일 이름에 "word"가 포함된 노트 제외.'
+                        '`word` 표시 이름 또는 별칭에 "word"가 포함된 노트 찾기.',
+                        '`word1 word2` 모든 단어가 표시 이름 또는 별칭 중 하나와 일치해야 합니다.',
+                        '`-word` 표시 이름 또는 별칭에 "word"가 포함된 노트 제외.'
                     ]
                 },
                 tags: {
@@ -208,11 +210,11 @@ export const STRINGS_KO = {
                 properties: {
                     title: '속성',
                     items: [
-                        '`.key` 속성 키가 있는 노트를 포함합니다.',
+                        '`.key` `key`로 시작하는 속성 키가 있는 노트를 포함합니다.',
                         '`.key=value` 속성 값에 `value`가 포함된 노트를 포함합니다.',
                         '`."Reading Status"` 공백이 포함된 속성 키가 있는 노트를 포함합니다.',
                         '`."Reading Status"="In Progress"` 공백이 포함된 키와 값은 큰따옴표로 묶어야 합니다.',
-                        '`-.key` 속성 키가 있는 노트를 제외합니다.',
+                        '`-.key` `key`로 시작하는 속성 키가 있는 노트를 제외합니다.',
                         '`-.key=value` 속성 값에 `value`가 포함된 노트를 제외합니다.',
                         'Cmd/Ctrl+클릭으로 속성을 AND로 추가. Cmd/Ctrl+Shift+클릭으로 OR로 추가.'
                     ]
@@ -349,6 +351,9 @@ export const STRINGS_KO = {
             changeBackground: '배경색 변경',
             excludeFolder: '폴더 숨기기',
             unhideFolder: '폴더 표시',
+            excludeFromDescendants: '상위 폴더에서 숨기기',
+            includeInDescendants: '상위 폴더에서 표시',
+            hiddenFromParentsIndicator: '상위 폴더 목록에서 숨김',
             moveFolder: '폴더 이동...',
             renameFolder: '폴더 이름 변경',
             deleteFolder: '폴더 삭제'
@@ -665,6 +670,7 @@ export const STRINGS_KO = {
         },
         navigationBanner: {
             placeholder: '이미지 검색...',
+            svgMissingDimensions: '선택한 SVG 파일에 너비, 높이 또는 viewBox가 정의되어 있지 않습니다.',
             instructions: {
                 navigate: '이동',
                 select: '배너 설정',
@@ -711,11 +717,11 @@ export const STRINGS_KO = {
         welcome: {
             title: '{pluginName}에 오신 것을 환영합니다',
             introText:
-                '안녕하세요! 시작하기 전에 아래 비디오의 첫 5분을 시청하여 패널과 토글 "하위 폴더의 노트 표시"가 어떻게 작동하는지 이해하는 것을 강력히 권장합니다.',
+                '안녕하세요. Obsidian을 위한 더 나은 파일 브라우저이자 캘린더인 Notebook Navigator에 오신 것을 환영합니다. 시작하기 전에 아래의 Mastering Notebook Navigator 영상에서 적어도 처음 세 챕터는 꼭 시청해 보시길 권합니다. 두 패널이 어떻게 작동하는지 소개하고 빠르게 사용을 시작할 수 있도록 안내합니다.',
             continueText:
-                '5분 더 있으시다면 비디오를 계속 시청하여 컴팩트 표시 모드와 바로가기 및 중요한 단축키를 올바르게 설정하는 방법을 이해해 주세요.',
-            thanksText: '다운로드해 주셔서 감사합니다. 즐겁게 사용하세요!',
-            videoAlt: 'Notebook Navigator 설치 및 마스터하기',
+                '10분 정도 더 여유가 있다면 초기 설정과 일상 사용 흐름 챕터도 이어서 시청하세요. 시작에 필요한 내용을 모두 익힌 뒤, 나중에 돌아와 자세한 내용을 더 볼 수 있습니다. 영상 링크는 Notebook Navigator 설정 상단에서도 찾을 수 있습니다.',
+            thanksText: 'Notebook Navigator를 즐겁게 사용하세요!',
+            videoAlt: 'Notebook Navigator 3 마스터하기',
             openVideoButton: '비디오 재생',
             closeButton: '나중에'
         }
@@ -770,6 +776,8 @@ export const STRINGS_KO = {
         notices: {
             hideFolder: '폴더 숨김: {name}',
             showFolder: '폴더 표시: {name}',
+            folderExcludedFromDescendants: '상위 폴더 목록에서 숨김: {name}',
+            folderIncludedInDescendants: '상위 폴더 목록에 표시됨: {name}',
             mergeNotes: '{count}개 노트를 {name}에 병합했습니다'
         },
         notifications: {
@@ -854,7 +862,7 @@ export const STRINGS_KO = {
         openYearlyNote: '연간 노트 열기',
         revealFile: '파일 표시', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '검색', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: '보관소 루트에서 검색', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: '보관소 전체 검색', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: '이중 창 레이아웃 전환', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: '이중 창 방향 전환', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: '캘린더 전환', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -894,7 +902,8 @@ export const STRINGS_KO = {
         removeTag: '선택한 파일에서 태그 제거', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: '선택한 파일에서 모든 태그 제거', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: '모든 파일 열기', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: '캐시 다시 빌드' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: '캐시 다시 빌드', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: '기본 설정 복원' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -903,7 +912,17 @@ export const STRINGS_KO = {
         calendarViewName: '캘린더', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: '폴더 노트', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'Notebook Navigator에서 표시' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'Notebook Navigator에서 표시', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'Notebook Navigator가 설정을 읽을 수 없어 시작되지 않았습니다. 보관소가 동기화 중이라면 동기화가 끝난 후 Obsidian을 다시 시작하세요. 기본 설정으로 새로 시작하려면 "기본 설정 복원" 명령을 실행하세요.', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: '기본 설정 복원', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Notebook Navigator 설정 파일을 기본 설정으로 교체합니다. 보관소가 아직 동기화 중이라면 복원된 기본 설정이 다른 기기에 저장된 설정을 덮어쓸 수 있습니다. 읽을 수 있는 설정 파일은 교체 전에 플러그인 폴더의 타임스탬프가 포함된 백업으로 복사됩니다.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: '기본값 복원', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: '설정 복원을 완료할 수 없습니다. 로컬 환경설정은 유지되었습니다.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: '기본 설정이 복원되었습니다. 완료하려면 Obsidian을 다시 시작하세요.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -976,6 +995,7 @@ export const STRINGS_KO = {
                 vaultConfiguration: '보관소 설정',
                 templates: '템플릿',
                 behavior: '동작',
+                startup: '시작',
                 keyboardNavigation: '키보드 탐색',
                 mouseButtons: '마우스 버튼',
                 view: '모양',
@@ -1152,6 +1172,10 @@ export const STRINGS_KO = {
                 name: '하위 폴더 경로 표시',
                 desc: '목록 창에서 폴더별로 그룹화할 때 폴더 이름만 표시하는 대신 하위 폴더 경로를 표시합니다.'
             },
+            showGroupHeaderItemCounts: {
+                name: '항목 수 표시',
+                desc: '목록 창의 각 그룹 헤더에 항목 수를 표시합니다.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: '폴더 그룹화: 현재 폴더 파일을 하단에 표시',
                 desc: '기본 그룹화가 폴더인 경우 선택한 폴더 바로 아래의 파일을 하위 폴더 그룹 아래로 이동합니다.'
@@ -1226,8 +1250,8 @@ export const STRINGS_KO = {
                 desc: '하위 폴더, 태그 또는 속성의 노트에 상위 폴더 이름을 표시합니다.'
             },
             showParentFolderFullPath: {
-                name: '전체 경로 표시',
-                desc: '폴더 이름만이 아니라 상위 폴더의 전체 경로를 표시합니다.'
+                name: '폴더 경로 표시',
+                desc: '폴더 이름만 표시하는 대신 선택한 폴더를 기준으로 한 상대 경로를 표시합니다. 태그와 속성에서는 전체 경로를 표시합니다.'
             },
             parentFolderClickRevealsFile: {
                 name: '상위 폴더 클릭 시 폴더 열기',
@@ -1298,7 +1322,7 @@ export const STRINGS_KO = {
             },
             startView: {
                 name: '기본 시작 보기',
-                desc: 'Notebook Navigator를 열 때 표시할 창을 선택하세요. 탐색 창은 바로가기, 최근 파일, 폴더 구조를 표시합니다. 목록 창은 파일 목록을 표시합니다.',
+                desc: 'Notebook Navigator를 열 때 활성화되는 창을 선택하세요. 단일 창 레이아웃에서는 이 창이 먼저 표시되고, 이중 창 레이아웃에서는 이 창에 키보드 포커스가 이동합니다.',
                 options: {
                     navigation: '탐색 창',
                     files: '목록 창'
@@ -1473,6 +1497,10 @@ export const STRINGS_KO = {
                 name: '대표 이미지 표시',
                 desc: '캘린더에서 노트의 대표 이미지를 표시합니다.'
             },
+            calendarShowTasks: {
+                name: '작업 표시',
+                desc: '미완료 작업이 있는 일, 주, 월에 표시기를 표시합니다.'
+            },
             calendarShowWeekNumber: {
                 name: '주 번호 표시',
                 desc: '주 번호 열을 추가합니다.'
@@ -1488,6 +1516,10 @@ export const STRINGS_KO = {
             calendarConfirmBeforeCreate: {
                 name: '생성 전 확인',
                 desc: '새 데일리 노트를 생성할 때 확인 대화 상자를 표시합니다.'
+            },
+            calendarShowHiddenItems: {
+                name: '숨겨진 항목 표시',
+                desc: '활성화하면 캘린더에 항상 모든 캘린더 노트가 표시되며, 보관함 프로필 필터로 숨겨진 노트도 포함됩니다.'
             },
             calendarIntegrationMode: {
                 name: '데일리 노트 소스',
@@ -1588,6 +1620,12 @@ export const STRINGS_KO = {
                     editorDesc: '아래에 JSON을 붙여넣거나 편집하세요. 포함되지 않은 설정은 기본값으로 초기화됩니다.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: '가져오기',
+                    confirmTitle: '설정을 가져오시겠습니까?',
+                    confirmMessage: '가져오면 현재 Notebook Navigator 설정이 대체됩니다.',
+                    backupToggleName: '가져오기 전에 현재 설정을 보관소 루트에 저장',
+                    backupToggleDesc: '보관소 루트에 타임스탬프가 있는 JSON 파일을 만듭니다.',
+                    successWithBackupNotice: '설정을 가져왔습니다. 이전 설정은 {path}에 저장되었습니다.',
+                    backupError: '현재 설정을 저장할 수 없습니다: {message}',
                     successNotice: '설정을 가져왔습니다.',
                     errorNotice: '설정 가져오기에 실패했습니다: {message}',
                     fileReadError: '파일을 읽을 수 없습니다: {message}'
@@ -1723,6 +1761,11 @@ export const STRINGS_KO = {
                 name: '폴더 숨기기 (볼트 프로필)',
                 desc: '숨길 폴더의 쉼표로 구분된 목록입니다. 이름 패턴: assets* (assets로 시작하는 폴더), *_temp (_temp로 끝나는). 경로 패턴: /archive (루트 archive만), /res* (res로 시작하는 루트 폴더), /*/temp (한 레벨 깊이의 temp 폴더), /projects/* (projects 내부의 모든 폴더).',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: '하위 폴더 노트에서 폴더 제외(볼트 프로필)',
+                desc: '하위 폴더에서 노트를 모을 때 제외할 폴더의 쉼표로 구분된 목록입니다. 폴더는 계속 표시되며, 선택하면 해당 노트가 계속 표시됩니다. 폴더 숨기기와 같은 패턴을 사용합니다.',
+                placeholder: '일지, 자료, /archive'
             },
             showFileDate: {
                 name: '날짜 표시',

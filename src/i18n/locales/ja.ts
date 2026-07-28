@@ -87,6 +87,7 @@ export const STRINGS_JA = {
     navigationCalendar: {
         ariaLabel: 'カレンダー',
         dailyNotesNotEnabled: 'デイリーノートプラグインが有効になっていません。',
+        noteHiddenByProfile: 'カレンダーノートは現在の保管庫プロファイルで非表示になっています。',
         createDailyNote: {
             title: '新規デイリーノート',
             message: 'ファイル {filename} は存在しません。作成しますか？',
@@ -168,6 +169,7 @@ export const STRINGS_JA = {
     // Search input
     searchInput: {
         placeholder: '検索...', // Placeholder text for search input (English: Search...)
+        placeholderVault: '保管庫を検索...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: '検索をクリア', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'フィルター検索に切り替え',
@@ -180,15 +182,15 @@ export const STRINGS_JA = {
         searchHelp: '検索構文',
         searchHelpTitle: '検索構文',
         searchHelpModal: {
-            intro: 'ファイル名、プロパティ、タグ、日付、フィルターを1つのクエリで組み合わせ可能（例：`meeting .status=active #work @thisweek`）。Omnisearch プラグインをインストールすると全文検索が使用できます。',
+            intro: '表示名、エイリアス、プロパティ、タグ、日付、フィルターを1つのクエリで組み合わせ可能（例：`meeting .status=active #work @thisweek`）。Omnisearch プラグインをインストールすると全文検索が使用できます。',
             introSwitching: '上下矢印キーまたは検索アイコンのクリックで、フィルター検索と Omnisearch を切り替えられます。',
             sections: {
                 fileNames: {
-                    title: 'ファイル名',
+                    title: 'ファイル名とエイリアス',
                     items: [
-                        '`word` ファイル名に「word」を含むノートを検索。',
-                        '`word1 word2` すべての単語がファイル名に一致する必要があります。',
-                        '`-word` ファイル名に「word」を含むノートを除外。'
+                        '`word` 表示名またはエイリアスに「word」を含むノートを検索。',
+                        '`word1 word2` すべての単語が表示名またはエイリアスのいずれかに一致する必要があります。',
+                        '`-word` 表示名またはエイリアスに「word」を含むノートを除外。'
                     ]
                 },
                 tags: {
@@ -208,11 +210,11 @@ export const STRINGS_JA = {
                 properties: {
                     title: 'プロパティ',
                     items: [
-                        '`.key` プロパティキーを持つノートを含める。',
+                        '`.key` `key` で始まるプロパティキーを持つノートを含める。',
                         '`.key=value` プロパティ値に `value` を含むノートを含める。',
                         '`."Reading Status"` 空白を含むプロパティキーを持つノートを含める。',
                         '`."Reading Status"="In Progress"` 空白を含むキーと値はダブルクォートで囲む必要があります。',
-                        '`-.key` プロパティキーを持つノートを除外する。',
+                        '`-.key` `key` で始まるプロパティキーを持つノートを除外する。',
                         '`-.key=value` プロパティ値に `value` を含むノートを除外する。',
                         'Cmd/Ctrl+クリックでプロパティをANDで追加。Cmd/Ctrl+Shift+クリックでORで追加。'
                     ]
@@ -350,6 +352,9 @@ export const STRINGS_JA = {
             changeBackground: '背景色を変更',
             excludeFolder: 'フォルダを非表示',
             unhideFolder: 'フォルダを表示',
+            excludeFromDescendants: '親フォルダで非表示',
+            includeInDescendants: '親フォルダで表示',
+            hiddenFromParentsIndicator: '親フォルダのリストから非表示',
             moveFolder: 'フォルダを移動先...',
             renameFolder: 'フォルダの名前を変更',
             deleteFolder: 'フォルダを削除'
@@ -666,6 +671,7 @@ export const STRINGS_JA = {
         },
         navigationBanner: {
             placeholder: '画像を検索...',
+            svgMissingDimensions: '選択したSVGファイルには幅、高さ、またはviewBoxが定義されていません。',
             instructions: {
                 navigate: 'でナビゲート',
                 select: 'でバナーを設定',
@@ -712,11 +718,11 @@ export const STRINGS_JA = {
         welcome: {
             title: '{pluginName}へようこそ',
             introText:
-                'こんにちは！始める前に、下のビデオの最初の5分間を見て、ペインとトグル「サブフォルダからノートを表示」の仕組みを理解することを強くお勧めします。',
+                'こんにちは。Obsidianのファイルブラウザとカレンダーをより使いやすくするNotebook Navigatorへようこそ。使い始める前に、下の動画「Mastering Notebook Navigator」の最初の3章だけでもぜひご覧ください。2つのペインの仕組みが分かり、すぐに使い始められます。',
             continueText:
-                'さらに5分あれば、ビデオを続けて見て、コンパクト表示モードとショートカットや重要なホットキーの適切な設定方法を理解してください。',
-            thanksText: 'ダウンロードいただきありがとうございます。お楽しみください！',
-            videoAlt: 'Notebook Navigatorのインストールとマスター',
+                'さらに10分ほど時間があれば、初回セットアップと日常の使い方の章も続けてご覧ください。使い始めるために必要な内容がひととおり分かり、細かい部分はあとから見直せます。動画へのリンクはNotebook Navigator設定の上部にもあります。',
+            thanksText: 'Notebook Navigatorを楽しんでお使いください！',
+            videoAlt: 'Notebook Navigator 3をマスターする',
             openVideoButton: 'ビデオを再生',
             closeButton: 'また今度'
         }
@@ -772,6 +778,8 @@ export const STRINGS_JA = {
         notices: {
             hideFolder: 'フォルダを非表示: {name}',
             showFolder: 'フォルダを表示: {name}',
+            folderExcludedFromDescendants: '親フォルダのリストから非表示: {name}',
+            folderIncludedInDescendants: '親フォルダのリストに表示: {name}',
             mergeNotes: '{count} 個のノートを {name} に結合しました'
         },
         notifications: {
@@ -856,7 +864,7 @@ export const STRINGS_JA = {
         openYearlyNote: '年間ノートを開く',
         revealFile: 'ファイルを表示', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '検索', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: '保管庫のルートで検索', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: '保管庫全体を検索', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'デュアルペインレイアウトを切り替え', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'デュアルペインの向きを切り替え', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'カレンダーの切り替え', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -896,7 +904,8 @@ export const STRINGS_JA = {
         removeTag: '選択したファイルからタグを削除', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: '選択したファイルからすべてのタグを削除', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'すべてのファイルを開く', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'キャッシュを再構築' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'キャッシュを再構築', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'デフォルト設定を復元' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -905,7 +914,17 @@ export const STRINGS_JA = {
         calendarViewName: 'カレンダー', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'フォルダノート', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'ノートブックナビゲーター', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'ノートブックナビゲーターで表示' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'ノートブックナビゲーターで表示', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'ノートブックナビゲーターは設定を読み込めなかったため起動しませんでした。保管庫が同期中の場合は、同期完了後に Obsidian を再起動してください。デフォルト設定でやり直すには、コマンド「デフォルト設定を復元」を実行してください。', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'デフォルト設定を復元', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'ノートブックナビゲーターの設定ファイルをデフォルト設定で置き換えます。保管庫がまだ同期中の場合、復元されたデフォルト設定が他のデバイスに保存されている設定を上書きすることがあります。読み取り可能な設定ファイルは、置き換える前にプラグインフォルダー内の日時付きバックアップにコピーされます。', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'デフォルトを復元', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: '設定の復元を完了できませんでした。ローカル設定は保持されています。', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'デフォルト設定を復元しました。完了するには Obsidian を再起動してください。' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -978,6 +997,7 @@ export const STRINGS_JA = {
                 vaultConfiguration: '保管庫のセットアップ',
                 templates: 'テンプレート',
                 behavior: '動作',
+                startup: '起動',
                 keyboardNavigation: 'キーボード操作',
                 mouseButtons: 'マウスボタン',
                 view: '外観',
@@ -1154,6 +1174,10 @@ export const STRINGS_JA = {
                 name: 'サブフォルダーのパスを表示',
                 desc: 'リストペインでフォルダー別にグループ化する場合、フォルダー名だけでなくサブフォルダーのパスを表示します。'
             },
+            showGroupHeaderItemCounts: {
+                name: '項目数を表示',
+                desc: 'リストペインの各グループヘッダーに項目数を表示します。'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'フォルダーグループ化: 現在のフォルダーのファイルを下部に表示',
                 desc: 'デフォルトのグループ化がフォルダーの場合、選択したフォルダー直下のファイルをサブフォルダーグループの下に移動します。'
@@ -1228,8 +1252,8 @@ export const STRINGS_JA = {
                 desc: 'サブフォルダ、タグ、またはプロパティ内のノートに親フォルダ名を表示します。'
             },
             showParentFolderFullPath: {
-                name: 'フルパスを表示',
-                desc: 'フォルダ名のみではなく親フォルダのフルパスを表示します。'
+                name: 'フォルダパスを表示',
+                desc: 'フォルダ名のみではなく、選択中のフォルダからの相対パスを表示します。タグとプロパティではフルパスを表示します。'
             },
             parentFolderClickRevealsFile: {
                 name: '親フォルダクリックでフォルダを開く',
@@ -1300,7 +1324,7 @@ export const STRINGS_JA = {
             },
             startView: {
                 name: 'デフォルト起動ビュー',
-                desc: 'Notebook Navigator を開いたときに表示するペインを選択します。ナビゲーションペインはショートカット、最近のファイル、フォルダ構造を表示します。リストペインはファイル一覧を表示します。',
+                desc: 'Notebook Navigator を開いたときにアクティブになるペインを選択します。シングルペインレイアウトではこのペインが最初に表示され、デュアルペインレイアウトではこのペインにキーボードフォーカスが移ります。',
                 options: {
                     navigation: 'ナビゲーションペイン',
                     files: 'リストペイン'
@@ -1475,6 +1499,10 @@ export const STRINGS_JA = {
                 name: 'アイキャッチ画像を表示',
                 desc: 'カレンダーでノートのアイキャッチ画像を表示します。'
             },
+            calendarShowTasks: {
+                name: 'タスクを表示',
+                desc: '未完了のタスクがある日、週、月にインジケーターを表示します。'
+            },
             calendarShowWeekNumber: {
                 name: '週番号を表示',
                 desc: '週番号の列を追加します。'
@@ -1490,6 +1518,10 @@ export const STRINGS_JA = {
             calendarConfirmBeforeCreate: {
                 name: '作成前に確認',
                 desc: '新しいデイリーノートを作成する際に確認ダイアログを表示します。'
+            },
+            calendarShowHiddenItems: {
+                name: '非表示項目を表示',
+                desc: '有効にすると、カレンダーには常にすべてのカレンダーノートが表示され、保管庫プロファイルのフィルターで非表示になっているノートも含まれます。'
             },
             calendarIntegrationMode: {
                 name: 'デイリーノートのソース',
@@ -1590,6 +1622,12 @@ export const STRINGS_JA = {
                     editorDesc: '下にJSONを貼り付けまたは編集してください。含まれていない設定はデフォルトにリセットされます。',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'インポート',
+                    confirmTitle: '設定をインポートしますか？',
+                    confirmMessage: 'インポートすると、現在の Notebook Navigator 設定が置き換えられます。',
+                    backupToggleName: 'インポート前に現在の設定をボールトのルートに保存',
+                    backupToggleDesc: 'ボールトのルートにタイムスタンプ付きの JSON ファイルを作成します。',
+                    successWithBackupNotice: '設定がインポートされました。以前の設定は {path} に保存されました。',
+                    backupError: '現在の設定を保存できませんでした: {message}',
                     successNotice: '設定がインポートされました。',
                     errorNotice: '設定のインポートに失敗しました: {message}',
                     fileReadError: 'ファイルを読み込めませんでした: {message}'
@@ -1693,6 +1731,11 @@ export const STRINGS_JA = {
                 name: 'フォルダを非表示 (ボルトプロファイル)',
                 desc: '非表示にするフォルダのカンマ区切りリスト。名前パターン: assets*（assetsで始まるフォルダ）、*_temp（_tempで終わる）。パスパターン: /archive（ルートのアーカイブのみ）、/res*（resで始まるルートフォルダ）、/*/temp（1階層下のtempフォルダ）、/projects/*（projects内のすべてのフォルダ）。',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'サブフォルダのノートからフォルダを除外（保管庫プロファイル）',
+                desc: 'サブフォルダからノートを収集するときに除外するフォルダのカンマ区切りリスト。フォルダは表示されたままで、選択するとそのノートは引き続き表示されます。「フォルダを非表示」と同じパターンを使用します。',
+                placeholder: '日記, リソース, /archive'
             },
             fileVisibility: {
                 name: 'ファイルタイプを表示 (ボルトプロファイル)',

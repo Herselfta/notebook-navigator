@@ -18,11 +18,29 @@
 
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
-import { applyModifiedSettingsTransfer, createModifiedSettingsTransfer } from '../../src/settings/transfer';
+import {
+    applyModifiedSettingsTransfer,
+    createModifiedSettingsTransfer,
+    createSettingsTransferBaseName,
+    createSettingsTransferFilename
+} from '../../src/settings/transfer';
+
+describe('createSettingsTransferFilename', () => {
+    it('formats settings transfer filenames with a sortable local timestamp', () => {
+        const date = new Date(2026, 6, 3, 14, 22, 33);
+
+        expect(createSettingsTransferBaseName(date)).toBe('notebook-navigator-settings_20260703-142233');
+        expect(createSettingsTransferFilename(date)).toBe('notebook-navigator-settings_20260703-142233.json');
+    });
+});
 
 describe('createModifiedSettingsTransfer', () => {
-    it('returns an empty object when settings match defaults', () => {
-        expect(createModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS))).toEqual({});
+    it('returns an envelope with an empty settings object when settings match defaults', () => {
+        expect(createModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS), '3.2.3')).toEqual({
+            plugin: 'notebook-navigator',
+            pluginVersion: '3.2.3',
+            settings: {}
+        });
     });
 
     it('ignores legacy top-level keys that are not part of current settings', () => {
@@ -31,7 +49,7 @@ describe('createModifiedSettingsTransfer', () => {
         settings.fileIconColors = {};
         settings.numRecentNotes = 3;
 
-        expect(createModifiedSettingsTransfer(settings as unknown as typeof DEFAULT_SETTINGS)).toEqual({});
+        expect(createModifiedSettingsTransfer(settings as unknown as typeof DEFAULT_SETTINGS, '3.2.3').settings).toEqual({});
     });
 
     it('exports only transferable settings that differ from defaults', () => {
@@ -39,7 +57,7 @@ describe('createModifiedSettingsTransfer', () => {
         settings.folderSortOrder = 'alpha-desc';
         settings.searchProvider = 'omnisearch';
 
-        expect(createModifiedSettingsTransfer(settings)).toEqual({
+        expect(createModifiedSettingsTransfer(settings, '3.2.3').settings).toEqual({
             folderSortOrder: 'alpha-desc'
         });
     });
@@ -66,13 +84,77 @@ describe('applyModifiedSettingsTransfer', () => {
         );
     });
 
+    it('accepts an empty bare legacy diff', () => {
+        const currentSettings = structuredClone(DEFAULT_SETTINGS);
+        currentSettings.searchProvider = 'omnisearch';
+
+        const nextSettings = applyModifiedSettingsTransfer(currentSettings, {});
+
+        expect(nextSettings.folderSortOrder).toBe(DEFAULT_SETTINGS.folderSortOrder);
+        expect(nextSettings.searchProvider).toBe('omnisearch');
+    });
+
+    it('unwraps enveloped exports produced by createModifiedSettingsTransfer', () => {
+        const settings = structuredClone(DEFAULT_SETTINGS);
+        settings.folderSortOrder = 'alpha-desc';
+
+        const transferData = createModifiedSettingsTransfer(settings, '3.2.3');
+        const nextSettings = applyModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS), transferData);
+
+        expect(nextSettings.folderSortOrder).toBe('alpha-desc');
+    });
+
+    it('rejects envelopes from other plugins', () => {
+        expect(() =>
+            applyModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS), {
+                plugin: 'other-plugin',
+                settings: { folderSortOrder: 'alpha-desc' }
+            })
+        ).toThrow('Not a Notebook Navigator settings export.');
+    });
+
+    it('rejects envelopes without a settings object', () => {
+        expect(() =>
+            applyModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS), {
+                plugin: 'notebook-navigator',
+                pluginVersion: '3.2.3'
+            })
+        ).toThrow('Settings import must contain a settings object.');
+    });
+
+    it('rejects bare objects without a transferable settings key', () => {
+        expect(() =>
+            applyModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS), {
+                unrelated: true
+            })
+        ).toThrow('Settings import must contain Notebook Navigator settings.');
+    });
+
+    it('rejects bare objects with only non-transferable settings', () => {
+        expect(() =>
+            applyModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS), {
+                searchProvider: 'omnisearch'
+            })
+        ).toThrow('Settings import must contain Notebook Navigator settings.');
+    });
+
+    it('rejects envelopes without a transferable settings key', () => {
+        expect(() =>
+            applyModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS), {
+                plugin: 'notebook-navigator',
+                pluginVersion: '3.2.3',
+                settings: { unrelated: true }
+            })
+        ).toThrow('Settings import must contain Notebook Navigator settings.');
+    });
+
     it('ignores unknown top-level keys during import', () => {
         const nextSettings = applyModifiedSettingsTransfer(structuredClone(DEFAULT_SETTINGS), {
             defaultListAppearance: 'slim',
             folderSortOrder: 'alpha-desc'
         });
 
-        expect((nextSettings as unknown as Record<string, unknown>).defaultListAppearance).toBeUndefined();
+        expect(nextSettings.defaultListAppearance).toBeUndefined();
         expect(nextSettings.folderSortOrder).toBe('alpha-desc');
     });
 
@@ -85,8 +167,8 @@ describe('applyModifiedSettingsTransfer', () => {
             folderSortOrder: 'alpha-desc'
         });
 
-        expect((nextSettings as unknown as Record<string, unknown>).legacyField).toBeUndefined();
-        expect((nextSettings as unknown as Record<string, unknown>).searchProvider).toBe('omnisearch');
+        expect(nextSettings.legacyField).toBeUndefined();
+        expect(nextSettings.searchProvider).toBe('omnisearch');
         expect(nextSettings.folderSortOrder).toBe('alpha-desc');
     });
 
@@ -110,6 +192,7 @@ describe('applyModifiedSettingsTransfer', () => {
             ]
         });
 
-        expect(nextSettings.vaultProfiles[0]?.navigationBanner).toBeNull();
+        const profiles = nextSettings.vaultProfiles as { navigationBanner: unknown }[];
+        expect(profiles[0]?.navigationBanner).toBeNull();
     });
 });

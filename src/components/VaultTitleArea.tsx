@@ -16,6 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import React from 'react';
 import { useServices } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useVaultProfileMenu } from '../hooks/useVaultProfileMenu';
@@ -23,7 +24,7 @@ import { strings } from '../i18n';
 import { resolveUXIcon } from '../utils/uxIcons';
 import { ServiceIcon } from './ServiceIcon';
 
-export function VaultTitleArea() {
+export const VaultTitleArea = React.memo(function VaultTitleArea() {
     const { isMobile, plugin } = useServices();
     const settings = useSettingsState();
 
@@ -56,4 +57,4 @@ export function VaultTitleArea() {
             </div>
         </div>
     );
-}
+});

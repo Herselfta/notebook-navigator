@@ -23,6 +23,7 @@ import { ItemType, PROPERTIES_ROOT_VIRTUAL_FOLDER_ID, TAGGED_TAG_ID, UNTAGGED_TA
 import {
     createFrontmatterPropertyExclusionMatcher,
     shouldExcludeFolder,
+    shouldExcludeFolderFromDescendants,
     shouldExcludeFileWithMatcher,
     createHiddenFileNameMatcherForVisibility,
     getFilteredDocumentFiles,
@@ -33,13 +34,15 @@ import {
 import { shouldDisplayFile, FILE_VISIBILITY } from './fileTypeUtils';
 import { getEffectiveListSort, getPropertySortValueFromRecord, isPropertySortOption, sortFiles, type EffectiveListSort } from './sortUtils';
 import { getDBInstanceOrNull } from '../storage/fileOperations';
-import { extractMetadata } from '../utils/metadataExtractor';
+import { extractMetadata, type ProcessedMetadata } from '../utils/metadataExtractor';
+import { extractCurrentFrontmatterMetadataFromFileData } from './frontmatterMetadataCache';
 import { METADATA_SENTINEL } from '../storage/IndexedDBStorage';
 import { getFileDisplayName as getDisplayName } from './fileNameUtils';
 import { getFolderNote, getFolderNoteDetectionSettings } from './folderNoteLookup';
 import { createHiddenTagVisibility, normalizeTagPathValue } from './tagPrefixMatcher';
 import {
     getActiveFileVisibility,
+    getActiveDescendantExcludedFolders,
     getActiveHiddenFileNames,
     getActiveHiddenFileTags,
     getActiveHiddenFileProperties,
@@ -205,11 +208,18 @@ function sortNavigationFiles(files: TFile[], settings: NotebookNavigatorSettings
         isPropertySort && propertySortKey.length > 0 ? createPropertySortValueGetter(app, propertySortKey) : undefined;
 
     if (settings.useFrontmatterMetadata) {
-        const metadataCache = new Map<string, ReturnType<typeof extractMetadata>>();
+        const db = getDBInstanceOrNull();
+        const metadataCache = new Map<string, ProcessedMetadata>();
         const getCached = (file: TFile) => {
+            if (file.extension !== 'md') {
+                return {};
+            }
+
             let metadata = metadataCache.get(file.path);
             if (!metadata) {
-                metadata = extractMetadata(app, file, settings);
+                metadata =
+                    extractCurrentFrontmatterMetadataFromFileData(file, db?.getFile(file.path) ?? null, settings) ??
+                    extractMetadata(app, file, settings);
                 metadataCache.set(file.path, metadata);
             }
             return metadata;
@@ -349,6 +359,7 @@ export function getFilesForFolder(
 ): TFile[] {
     const files: TFile[] = [];
     const excludedFolderPatterns = getActiveHiddenFolders(settings);
+    const descendantExcludedFolderPatterns = getActiveDescendantExcludedFolders(settings);
     const excludedFileProperties = getActiveHiddenFileProperties(settings);
     const excludedFilePropertyMatcher = createFrontmatterPropertyExclusionMatcher(excludedFileProperties);
     const excludedFileNamePatterns = getActiveHiddenFileNames(settings);
@@ -386,7 +397,10 @@ export function getFilesForFolder(
                 if (excludedFolderPatterns.length > 0 && shouldExcludeFolder(child.name, excludedFolderPatterns, child.path)) {
                     childHidden = true;
                 }
-                const shouldTraverse = showHiddenFolders || !childHidden;
+                const childExcludedFromDescendants =
+                    descendantExcludedFolderPatterns.length > 0 &&
+                    shouldExcludeFolderFromDescendants(child.name, descendantExcludedFolderPatterns, child.path);
+                const shouldTraverse = (showHiddenFolders || !childHidden) && !childExcludedFromDescendants;
                 if (shouldTraverse) {
                     collectFiles(child, childHidden);
                 }

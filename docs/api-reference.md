@@ -1,6 +1,6 @@
 # Notebook Navigator API Reference
 
-Updated: April 30, 2026
+Updated: July 1, 2026
 
 The Notebook Navigator plugin exposes a public API for other plugins and scripts to interact with navigator features.
 
@@ -27,8 +27,10 @@ The Notebook Navigator plugin exposes a public API for other plugins and scripts
 
 ### Accessing the API
 
-The Notebook Navigator API is available at runtime through the Obsidian app object. Here's a practical example using
-Templater:
+The Notebook Navigator API is available at runtime through the Obsidian app object. The plugin manifest id is
+`notebook-navigator`; the current manifest requires Obsidian `1.11.0` or newer and sets `isDesktopOnly` to `false`.
+
+Here's a practical example using Templater:
 
 ```javascript
 <%* // Templater script to pin the current file in Notebook Navigator
@@ -109,8 +111,9 @@ Customize folder, tag, and property node appearance, manage pinned files.
   identifiers are stored as snake case internally).
 - **Unsupported providers**: Setter methods ignore values outside the frontmatter icon format and supported legacy
   Iconize compact IDs. Existing unsupported or malformed settings values may be returned unchanged.
-- **Color values**: Any string is accepted and saved. Invalid CSS colors will not render correctly but won't throw
-  errors.
+- **Color values**: Folder color and background updates use the folder metadata service in normal runtime. The service
+  accepts common CSS color formats and named colors; invalid folder color values are ignored. Tag and property color
+  values are saved as provided. Invalid tag or property CSS colors will not render correctly but won't throw errors.
 - **Tag normalization**: The `getTagMeta()` and `setTagMeta()` methods automatically normalize tags:
   - Both `'work'` and `'#work'` are accepted as input
   - Tags are case-insensitive: `'#Work'` and `'#work'` refer to the same tag
@@ -136,7 +139,8 @@ Customize folder, tag, and property node appearance, manage pinned files.
 
 When `useFrontmatterMetadata` is enabled, `getFolderMeta()` resolves current folder display data through
 `MetadataService`. `setFolderMeta()` writes through `metadataService.setFolderStyle(...)` whenever `MetadataService` is
-available. Folder metadata can therefore reflect folder-note frontmatter, not only the raw settings maps.
+available, so folder updates can write folder-note frontmatter when frontmatter metadata and folder notes are enabled,
+or settings otherwise. Folder metadata can therefore reflect folder-note frontmatter, not only the raw settings maps.
 
 #### Property Update Behavior
 
@@ -228,6 +232,7 @@ for (const [path, context] of pinned) {
 
 When calling `reveal(file)`:
 
+- **Accepts either a `TFile` or a file path string**
 - **Opens the Notebook Navigator view** if it is not already open
 - **Switches to the file's parent folder** in the navigation pane
 - **Expands parent folders** as needed to make the folder visible

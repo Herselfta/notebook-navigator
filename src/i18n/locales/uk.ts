@@ -89,6 +89,7 @@ export const STRINGS_UK = {
     navigationCalendar: {
         ariaLabel: 'Календар',
         dailyNotesNotEnabled: 'Плагін щоденних нотаток не увімкнено.',
+        noteHiddenByProfile: 'Нотатку календаря приховано поточним профілем сховища.',
         createDailyNote: {
             title: 'Нова щоденна нотатка',
             message: 'Файл {filename} не існує. Бажаєте створити його?',
@@ -170,6 +171,7 @@ export const STRINGS_UK = {
     // Search input
     searchInput: {
         placeholder: 'Пошук...', // Placeholder text for search input (English: Search...)
+        placeholderVault: 'Пошук у сховищі...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Очистити пошук', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'Перемкнути на пошук з фільтром',
@@ -182,16 +184,16 @@ export const STRINGS_UK = {
         searchHelp: 'Синтаксис пошуку',
         searchHelpTitle: 'Синтаксис пошуку',
         searchHelpModal: {
-            intro: 'Комбінуйте імена файлів, властивості, теги, дати та фільтри в одному запиті (напр. `meeting .status=active #work @thisweek`). Встановіть плагін Omnisearch для повнотекстового пошуку.',
+            intro: 'Комбінуйте відображувані імена, псевдоніми, властивості, теги, дати та фільтри в одному запиті (напр. `meeting .status=active #work @thisweek`). Встановіть плагін Omnisearch для повнотекстового пошуку.',
             introSwitching:
                 'Перемикайтеся між пошуком за фільтром та Omnisearch за допомогою клавіш стрілок вгору/вниз або натиснувши на значок пошуку.',
             sections: {
                 fileNames: {
-                    title: 'Імена файлів',
+                    title: 'Імена файлів і псевдоніми',
                     items: [
-                        '`word` Знайти нотатки зі словом "word" в імені файлу.',
-                        '`word1 word2` Кожне слово має відповідати імені файлу.',
-                        '`-word` Виключити нотатки зі словом "word" в імені файлу.'
+                        '`word` Знайти нотатки зі словом "word" у відображуваному імені або псевдонімі.',
+                        '`word1 word2` Кожне слово має зустрічатися у відображуваному імені або псевдонімах.',
+                        '`-word` Виключити нотатки зі словом "word" у відображуваному імені або псевдонімі.'
                     ]
                 },
                 tags: {
@@ -211,11 +213,11 @@ export const STRINGS_UK = {
                 properties: {
                     title: 'Властивості',
                     items: [
-                        '`.key` Включити нотатки з ключем властивості.',
+                        '`.key` Включити нотатки з ключем властивості, що починається з `key`.',
                         '`.key=value` Включити нотатки, у яких значення властивості містить `value`.',
                         '`."Reading Status"` Включити нотатки з ключем властивості, що містить пробіли.',
                         '`."Reading Status"="In Progress"` Ключі та значення з пробілами повинні бути в подвійних лапках.',
-                        '`-.key` Виключити нотатки з ключем властивості.',
+                        '`-.key` Виключити нотатки з ключем властивості, що починається з `key`.',
                         '`-.key=value` Виключити нотатки, у яких значення властивості містить `value`.',
                         'Cmd/Ctrl+Клік на властивість для додавання з AND. Cmd/Ctrl+Shift+Клік для додавання з OR.'
                     ]
@@ -352,6 +354,9 @@ export const STRINGS_UK = {
             changeBackground: 'Змінити фон',
             excludeFolder: 'Сховати папку',
             unhideFolder: 'Показати папку',
+            excludeFromDescendants: 'Сховати в батьківських папках',
+            includeInDescendants: 'Показати в батьківських папках',
+            hiddenFromParentsIndicator: 'Сховано зі списків батьківських папок',
             moveFolder: 'Перемістити папку...',
             renameFolder: 'Перейменувати папку',
             deleteFolder: 'Видалити папку'
@@ -666,6 +671,7 @@ export const STRINGS_UK = {
         },
         navigationBanner: {
             placeholder: 'Пошук зображень...',
+            svgMissingDimensions: 'Вибраний SVG-файл не задає ширину, висоту або viewBox.',
             instructions: {
                 navigate: 'для навігації',
                 select: 'для встановлення банера',
@@ -712,11 +718,11 @@ export const STRINGS_UK = {
         welcome: {
             title: 'Ласкаво просимо до {pluginName}',
             introText:
-                "Привіт! Перш ніж почати, наполегливо рекомендую переглянути перші п'ять хвилин відео нижче, щоб зрозуміти, як працюють панелі та перемикач «Показувати нотатки з підпапок».",
+                'Вітаю! Ласкаво просимо до Notebook Navigator, удосконаленого браузера файлів і календаря для Obsidian. Перед початком я дуже раджу переглянути принаймні перші три розділи відео нижче, Mastering Notebook Navigator. Вони познайомлять вас із роботою двох панелей і допоможуть швидко розпочати.',
             continueText:
-                "Якщо у вас є ще п'ять хвилин, продовжуйте перегляд відео, щоб зрозуміти компактні режими відображення та як правильно налаштувати закладки та важливі гарячі клавіші.",
-            thanksText: 'Дуже дякую за завантаження, насолоджуйтесь!',
-            videoAlt: 'Встановлення та освоєння Notebook Navigator',
+                'Потім, якщо маєте ще десять хвилин, перегляньте розділи про початкове налаштування та щоденну роботу. У них є все необхідне для початку, а до подробиць можна повернутися пізніше. Посилання на відео розташоване у верхній частині налаштувань Notebook Navigator.',
+            thanksText: 'Користуйтеся Notebook Navigator із задоволенням!',
+            videoAlt: 'Опановуємо Notebook Navigator 3',
             openVideoButton: 'Відтворити відео',
             closeButton: 'Можливо, пізніше'
         }
@@ -770,6 +776,8 @@ export const STRINGS_UK = {
         notices: {
             hideFolder: 'Папку сховано: {name}',
             showFolder: 'Папку показано: {name}',
+            folderExcludedFromDescendants: 'Сховано зі списків батьківських папок: {name}',
+            folderIncludedInDescendants: 'Показано у списках батьківських папок: {name}',
             mergeNotes: 'Об’єднано {count} нотаток у {name}'
         },
         notifications: {
@@ -854,7 +862,7 @@ export const STRINGS_UK = {
         openYearlyNote: 'Відкрити щорічну нотатку',
         revealFile: 'Показати файл', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Пошук', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: 'Пошук у корені сховища', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: 'Пошук у всьому сховищі', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'Перемкнути подвійну панель', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Перемкнути орієнтацію подвійної панелі', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Перемкнути календар', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -894,7 +902,8 @@ export const STRINGS_UK = {
         removeTag: 'Вилучити тег з вибраних файлів', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'Вилучити всі теги з вибраних файлів', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'Відкрити всі файли', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'Перебудувати кеш' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'Перебудувати кеш', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'Відновити типові налаштування' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -903,7 +912,17 @@ export const STRINGS_UK = {
         calendarViewName: 'Календар', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'Нотатка папки', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'Показати в Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'Показати в Notebook Navigator', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'Notebook Navigator не зміг прочитати свої налаштування і не запустився. Якщо сховище синхронізується, перезапустіть Obsidian після завершення синхронізації. Щоб почати заново з типовими налаштуваннями, виконайте команду «Відновити типові налаштування».', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Відновити типові налаштування', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Це замінить файл налаштувань Notebook Navigator типовими налаштуваннями. Якщо сховище все ще синхронізується, відновлені типові налаштування можуть перезаписати налаштування, збережені на інших ваших пристроях. Читабельний файл налаштувань спочатку копіюється до резервної копії з позначкою часу в теці плагіна.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Відновити типові', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'Не вдалося завершити відновлення налаштувань. Локальні параметри збережено.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Типові налаштування відновлено. Перезапустіть Obsidian, щоб завершити.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -976,6 +995,7 @@ export const STRINGS_UK = {
                 vaultConfiguration: 'Налаштування сховища',
                 templates: 'Шаблони',
                 behavior: 'Поведінка',
+                startup: 'Запуск',
                 keyboardNavigation: 'Навігація з клавіатури',
                 mouseButtons: 'Кнопки миші',
                 view: 'Вигляд',
@@ -1152,6 +1172,10 @@ export const STRINGS_UK = {
                 name: 'Показувати шляхи підпапок',
                 desc: 'Під час групування за папкою на панелі списку показувати шляхи підпапок замість лише назв папок.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Показувати кількість елементів',
+                desc: 'Відображає кількість елементів у кожному заголовку групи на панелі списку.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Групування за папками: файли поточної папки внизу',
                 desc: 'Коли для групування за замовчуванням вибрано «Папка», файли безпосередньо у вибраній папці буде показано нижче груп підпапок.'
@@ -1226,8 +1250,8 @@ export const STRINGS_UK = {
                 desc: 'Відображати назву батьківської папки для нотаток у підпапках, тегах або властивостях.'
             },
             showParentFolderFullPath: {
-                name: 'Показувати повний шлях',
-                desc: 'Відображати повний шлях батьківської папки замість лише назви папки.'
+                name: 'Показувати шлях до папки',
+                desc: 'Відображати шлях відносно вибраної папки, а не лише назву папки. Теги та властивості показують повний шлях.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Натискання на батьківську папку відкриває папку',
@@ -1298,7 +1322,7 @@ export const STRINGS_UK = {
             },
             startView: {
                 name: 'Вигляд при запуску за замовчуванням',
-                desc: 'Виберіть, яку панель відображати при відкритті Notebook Navigator. Панель навігації показує ярлики, останні файли та дерево папок. Панель списку одразу показує список файлів.',
+                desc: 'Виберіть, яка панель активна при відкритті Notebook Navigator. В однопанельному режимі ця панель показується першою; у двопанельному режимі вона отримує фокус клавіатури.',
                 options: {
                     navigation: 'Панель навігації',
                     files: 'Панель списку'
@@ -1474,6 +1498,10 @@ export const STRINGS_UK = {
                 name: 'Показати обкладинку',
                 desc: 'Відображати зображення-обкладинки нотаток у календарі.'
             },
+            calendarShowTasks: {
+                name: 'Показувати завдання',
+                desc: 'Показувати індикатор на днях, тижнях і місяцях із незавершеними завданнями.'
+            },
             calendarShowWeekNumber: {
                 name: 'Показати номер тижня',
                 desc: 'Додати колонку з номером тижня.'
@@ -1489,6 +1517,10 @@ export const STRINGS_UK = {
             calendarConfirmBeforeCreate: {
                 name: 'Підтвердити перед створенням',
                 desc: 'Показати діалог підтвердження при створенні нової щоденної нотатки.'
+            },
+            calendarShowHiddenItems: {
+                name: 'Показати приховані елементи',
+                desc: 'При увімкненні календар завжди показує всі нотатки календаря, включно з нотатками, прихованими фільтрами профілю сховища.'
             },
             calendarIntegrationMode: {
                 name: 'Джерело щоденних нотаток',
@@ -1589,6 +1621,12 @@ export const STRINGS_UK = {
                     editorDesc: 'Вставте або відредагуйте JSON нижче. Не включені налаштування скидаються до значень за замовчуванням.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'Імпортувати',
+                    confirmTitle: 'Імпортувати налаштування?',
+                    confirmMessage: 'Імпорт замінить поточні налаштування Notebook Navigator.',
+                    backupToggleName: 'Зберегти поточні налаштування в корені сховища перед імпортом',
+                    backupToggleDesc: 'Створює JSON-файл із часовою позначкою в корені сховища.',
+                    successWithBackupNotice: 'Налаштування імпортовано. Попередні налаштування збережено в {path}.',
+                    backupError: 'Не вдалося зберегти поточні налаштування: {message}',
                     successNotice: 'Налаштування імпортовано.',
                     errorNotice: 'Не вдалося імпортувати налаштування: {message}',
                     fileReadError: 'Не вдалося прочитати файл: {message}'
@@ -1724,6 +1762,11 @@ export const STRINGS_UK = {
                 name: 'Приховати папки (профіль сховища)',
                 desc: 'Список папок для приховування, розділених комами. Шаблони назв: assets* (папки, що починаються з assets), *_temp (закінчуються на _temp). Шаблони шляхів: /archive (лише кореневий архів), /res* (кореневі папки, що починаються з res), /*/temp (папки temp на один рівень вглиб), /projects/* (всі папки всередині projects).',
                 placeholder: 'шаблони, assets*, /архів, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Виключати папки з нотаток підпапок (профіль сховища)',
+                desc: 'Список папок, розділених комами, які пропускаються під час збирання нотаток із підпапок. Папки залишаються видимими, і вибір папки й надалі показує її нотатки. Використовує ті самі шаблони, що й Сховати папки.',
+                placeholder: 'щоденні, ресурси, /archive'
             },
             showFileDate: {
                 name: 'Показувати дату',

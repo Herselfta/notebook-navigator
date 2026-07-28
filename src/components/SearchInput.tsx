@@ -18,7 +18,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { ServiceIcon } from './ServiceIcon';
-import { useUIDispatch, useUIState } from '../context/UIStateContext';
+import { useUIDispatch } from '../context/UIStateContext';
 import { useSettingsState } from '../context/SettingsContext';
 import { useServices } from '../context/ServicesContext';
 import { strings } from '../i18n';
@@ -36,6 +36,8 @@ interface SearchInputProps {
     onSearchQueryChange: (query: string) => void;
     onClose: () => void;
     onFocusFiles?: () => void;
+    onEmptySearchExit?: () => void;
+    isWholeVaultSearch?: boolean;
     shouldFocus?: boolean;
     onFocusComplete?: () => void;
     /** Root container to scope DOM queries within this navigator instance */
@@ -52,6 +54,8 @@ export function SearchInput({
     onSearchQueryChange,
     onClose,
     onFocusFiles,
+    onEmptySearchExit,
+    isWholeVaultSearch = false,
     shouldFocus,
     onFocusComplete,
     containerRef,
@@ -66,22 +70,37 @@ export function SearchInput({
     const dateSuggestRef = useRef<SearchDateInputSuggest | null>(null);
     const { isMobile, omnisearchService, app, tagTreeService, plugin } = useServices();
     const settings = useSettingsState();
-    const uiState = useUIState();
     const uiDispatch = useUIDispatch();
 
     const activeProvider = searchProvider ?? settings.searchProvider ?? 'internal';
     const isOmnisearchAvailable = omnisearchService?.isAvailable() ?? false;
     const isOmnisearchActive = activeProvider === 'omnisearch' && isOmnisearchAvailable;
+    const showWholeVaultSearchIcon = isWholeVaultSearch && !isOmnisearchActive;
     const shortcutIconId = useMemo(() => resolveUXIcon(settings.interfaceIcons, 'nav-shortcuts'), [settings.interfaceIcons]);
     const searchIconId = useMemo(
-        () => (isOmnisearchActive ? 'text-search' : resolveUXIcon(settings.interfaceIcons, 'list-search')),
-        [isOmnisearchActive, settings.interfaceIcons]
+        () =>
+            isOmnisearchActive
+                ? 'text-search'
+                : showWholeVaultSearchIcon
+                  ? 'folder-search'
+                  : resolveUXIcon(settings.interfaceIcons, 'list-search'),
+        [isOmnisearchActive, settings.interfaceIcons, showWholeVaultSearchIcon]
     );
-    const placeholderText = isOmnisearchActive ? strings.searchInput.placeholderOmnisearch : strings.searchInput.placeholder;
+    const placeholderText = isOmnisearchActive
+        ? strings.searchInput.placeholderOmnisearch
+        : showWholeVaultSearchIcon
+          ? strings.searchInput.placeholderVault
+          : strings.searchInput.placeholder;
     const hasQuery = searchQuery.trim().length > 0;
     const showShortcutButton = hasQuery && Boolean(onSaveShortcut || (isShortcutSaved && onRemoveShortcut));
     const shortcutButtonDisabled = isShortcutDisabled || (!isShortcutSaved && !onSaveShortcut) || (isShortcutSaved && !onRemoveShortcut);
     const searchContainerClassName = `nn-search-input-container${showShortcutButton ? ' nn-search-input-container--has-shortcut' : ''}`;
+
+    const notifyEmptySearchExit = useCallback(() => {
+        if (!hasQuery) {
+            onEmptySearchExit?.();
+        }
+    }, [hasQuery, onEmptySearchExit]);
 
     const restoreSearchInputFocus = useCallback((selection?: { start: number | null; end: number | null }) => {
         const input = inputRef.current;
@@ -245,25 +264,23 @@ export function SearchInput({
         if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.SEARCH_CLOSE)) {
             e.preventDefault();
             onClose();
-            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
             focusListPane();
             return;
         }
 
         if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.SEARCH_FOCUS_NAVIGATION)) {
-            if (!uiState.singlePane && !isMobile) {
-                e.preventDefault();
-                uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'navigation' });
-            }
+            e.preventDefault();
+            notifyEmptySearchExit();
+            uiDispatch({ type: 'ACTIVATE_PANE', target: 'navigation' });
             return;
         }
 
         if (matchesShortcut(nativeEvent, shortcuts, KeyboardShortcutAction.SEARCH_FOCUS_LIST)) {
             e.preventDefault();
-            uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+            notifyEmptySearchExit();
+            uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
 
             if (isMobile) {
-                uiDispatch({ type: 'SET_SINGLE_PANE_VIEW', view: 'files' });
                 focusListPane();
                 return;
             }
@@ -278,7 +295,7 @@ export function SearchInput({
 
     // Set focus state to search when clicking on search field
     const handleSearchClick = () => {
-        uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'search' });
+        uiDispatch({ type: 'ACTIVATE_PANE', target: 'search' });
     };
 
     // Opens the search syntax help modal, closing any active suggest popups first
@@ -341,6 +358,7 @@ export function SearchInput({
                     onChange={e => onSearchQueryChange(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onClick={handleSearchClick}
+                    onBlur={notifyEmptySearchExit}
                 />
                 {!hasQuery && settings.showInfoButtons && (
                     <div

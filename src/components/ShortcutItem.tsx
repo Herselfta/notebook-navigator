@@ -44,6 +44,8 @@ interface ShortcutItemProps {
     countInfo?: NoteCountInfo;
     badge?: string;
     forceShowCount?: boolean;
+    /** Folder shortcuts whose notes are omitted from parent folder lists render the count in parentheses */
+    isHiddenFromParents?: boolean;
     isExcluded?: boolean;
     onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
     onRemove?: () => void;
@@ -83,6 +85,7 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     countInfo,
     badge,
     forceShowCount,
+    isHiddenFromParents,
     isExcluded,
     onClick,
     onRemove,
@@ -107,7 +110,17 @@ export const ShortcutItem = React.memo(function ShortcutItem({
     const uxPreferences = useUXPreferences();
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     // Build formatted display object with label based on note count settings
-    const countDisplay = buildNoteCountDisplay(countInfo, includeDescendantNotes, includeDescendantNotes && settings.separateNoteCounts);
+    const baseCountDisplay = buildNoteCountDisplay(
+        countInfo,
+        includeDescendantNotes,
+        includeDescendantNotes && settings.separateNoteCounts
+    );
+    // Parentheses around the count mark folders whose notes are omitted from parent folder lists,
+    // matching the indicator FolderItem renders. Applies only while descendant notes are shown.
+    const countDisplay =
+        Boolean(isHiddenFromParents) && includeDescendantNotes && baseCountDisplay.shouldDisplay
+            ? { shouldDisplay: true, label: `(${baseCountDisplay.label})` }
+            : baseCountDisplay;
     // Check if this item type supports displaying note counts
     const supportsCount = type === 'folder' || type === 'tag' || type === 'property';
     const hasBadge = typeof badge === 'string' && badge.length > 0;

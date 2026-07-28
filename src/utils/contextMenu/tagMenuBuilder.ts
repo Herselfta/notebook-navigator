@@ -25,7 +25,7 @@ import { normalizeTagPath } from '../tagUtils';
 import { setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { addStyleMenu } from './styleMenuBuilder';
-import { resolveUXIconForMenu } from '../uxIcons';
+import { resolveUXIcon, resolveUXIconForMenu } from '../uxIcons';
 import { getVirtualTagCollection, isVirtualTagCollectionId } from '../virtualTagCollections';
 import { getActiveHiddenTags, getActiveVaultProfile } from '../vaultProfiles';
 import { resolveDisplayTagPath } from '../../services/tagOperations/TagOperationUtils';
@@ -67,7 +67,7 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
         }
 
         selectionDispatch({ type: 'SET_SELECTED_FILE', file });
-        uiDispatch({ type: 'SET_FOCUSED_PANE', pane: 'files' });
+        uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
     };
 
     if (!isVirtualTag) {
@@ -99,6 +99,7 @@ export function buildTagMenu(params: TagMenuBuilderParams): void {
             title: `#${tagPath}`,
             metadataService,
             initialTab,
+            defaultIcon: settings.showTagIcons ? resolveUXIcon(settings.interfaceIcons, 'nav-tag') : null,
             icon: settings.showTagIcons
                 ? {
                       initial: metadataService.getTagIcon(tagPath) ?? null,

@@ -87,6 +87,7 @@ export const STRINGS_ZH_TW = {
     navigationCalendar: {
         ariaLabel: '導覽日曆',
         dailyNotesNotEnabled: '未啟用每日筆記。請在 Obsidian 設定 → 核心外掛中啟用每日筆記。',
+        noteHiddenByProfile: '日曆筆記已被目前的倉庫設定檔隱藏。',
         createDailyNote: {
             title: '建立每日筆記',
             message: '每日筆記 {filename} 不存在。是否建立？',
@@ -168,6 +169,7 @@ export const STRINGS_ZH_TW = {
     // Search input
     searchInput: {
         placeholder: '搜尋...',
+        placeholderVault: '搜尋保險庫...',
         placeholderOmnisearch: 'Omnisearch...',
         clearSearch: '清除搜尋',
         switchToFilterSearch: '切換到篩選搜尋',
@@ -180,15 +182,15 @@ export const STRINGS_ZH_TW = {
         searchHelp: '搜尋語法',
         searchHelpTitle: '搜尋語法',
         searchHelpModal: {
-            intro: '在一個查詢中組合檔案名稱、屬性、標籤、日期和篩選器（例如：`meeting .status=active #work @thisweek`）。安裝 Omnisearch 外掛程式以使用全文搜尋。',
+            intro: '在一個查詢中組合顯示名稱、別名、屬性、標籤、日期和篩選器（例如：`meeting .status=active #work @thisweek`）。安裝 Omnisearch 外掛程式以使用全文搜尋。',
             introSwitching: '使用上/下箭頭鍵或點擊搜尋圖示在篩選搜尋和 Omnisearch 之間切換。',
             sections: {
                 fileNames: {
-                    title: '檔案名稱',
+                    title: '檔案名稱和別名',
                     items: [
-                        '`word` 尋找檔案名稱中含有 "word" 的筆記。',
-                        '`word1 word2` 每個詞都必須符合檔案名稱。',
-                        '`-word` 排除檔案名稱中含有 "word" 的筆記。'
+                        '`word` 尋找顯示名稱或別名中含有 "word" 的筆記。',
+                        '`word1 word2` 每個詞都必須在顯示名稱或別名中符合。',
+                        '`-word` 排除顯示名稱或別名中含有 "word" 的筆記。'
                     ]
                 },
                 tags: {
@@ -208,11 +210,11 @@ export const STRINGS_ZH_TW = {
                 properties: {
                     title: '屬性',
                     items: [
-                        '`.key` 包含具有屬性鍵的筆記。',
+                        '`.key` 包含屬性鍵以 `key` 開頭的筆記。',
                         '`.key=value` 包含屬性值含有 `value` 的筆記。',
                         '`."Reading Status"` 包含屬性鍵包含空格的筆記。',
                         '`."Reading Status"="In Progress"` 包含空格的鍵和值必須用雙引號括起來。',
-                        '`-.key` 排除具有屬性鍵的筆記。',
+                        '`-.key` 排除屬性鍵以 `key` 開頭的筆記。',
                         '`-.key=value` 排除屬性值含有 `value` 的筆記。',
                         'Cmd/Ctrl+點擊屬性以 AND 方式新增。Cmd/Ctrl+Shift+點擊以 OR 方式新增。'
                     ]
@@ -350,6 +352,9 @@ export const STRINGS_ZH_TW = {
             changeBackground: '變更背景',
             excludeFolder: '隱藏資料夾',
             unhideFolder: '顯示資料夾',
+            excludeFromDescendants: '在父資料夾中隱藏',
+            includeInDescendants: '在父資料夾中顯示',
+            hiddenFromParentsIndicator: '已從父資料夾列表中隱藏',
             moveFolder: '移動資料夾至...',
             renameFolder: '重新命名資料夾',
             deleteFolder: '刪除資料夾'
@@ -661,6 +666,7 @@ export const STRINGS_ZH_TW = {
         },
         navigationBanner: {
             placeholder: '搜尋圖片...',
+            svgMissingDimensions: '所選 SVG 檔案未定義寬度、高度或 viewBox。',
             instructions: {
                 navigate: '導覽',
                 select: '設為橫幅',
@@ -705,10 +711,12 @@ export const STRINGS_ZH_TW = {
         },
         welcome: {
             title: '歡迎使用 {pluginName}',
-            introText: '您好！在開始之前，強烈建議您觀看下方影片的前五分鐘，以了解面板和「顯示子資料夾中的筆記」開關是如何運作的。',
-            continueText: '如果您還有五分鐘時間，請繼續觀看影片以了解精簡顯示模式以及如何正確設定捷徑和重要的快速鍵。',
-            thanksText: '非常感謝您的下載，祝您使用愉快！',
-            videoAlt: '安裝與精通 Notebook Navigator',
+            introText:
+                '您好，歡迎使用 Notebook Navigator，一款更好用的 Obsidian 檔案瀏覽器和日曆。在開始之前，強烈建議您至少觀看下方《Mastering Notebook Navigator》影片的前三章。影片會介紹兩個面板的運作方式，協助您快速上手。',
+            continueText:
+                '如果您還有十分鐘，請繼續觀看初次設定和日常使用流程這兩個章節。看完後，您就掌握了入門所需的全部內容，之後還可以回來了解更多細節。Notebook Navigator 設定頂部提供了該影片的連結。',
+            thanksText: '祝您使用 Notebook Navigator 愉快！',
+            videoAlt: '精通 Notebook Navigator 3',
             openVideoButton: '播放影片',
             closeButton: '以後再說'
         }
@@ -763,6 +771,8 @@ export const STRINGS_ZH_TW = {
         notices: {
             hideFolder: '已隱藏資料夾：{name}',
             showFolder: '已顯示資料夾：{name}',
+            folderExcludedFromDescendants: '已從父資料夾列表中隱藏：{name}',
+            folderIncludedInDescendants: '已在父資料夾列表中顯示：{name}',
             mergeNotes: '已將 {count} 則筆記合併到 {name}'
         },
         notifications: {
@@ -847,7 +857,7 @@ export const STRINGS_ZH_TW = {
         openYearlyNote: '開啟每年筆記',
         revealFile: '定位檔案',
         search: '搜尋',
-        searchVaultRoot: '在保險庫根目錄搜尋',
+        searchVaultRoot: '搜尋整個保險庫',
         toggleDualPane: '切換雙窗格布局',
         toggleDualPaneOrientation: '切換雙窗格方向', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: '切換日曆',
@@ -887,7 +897,8 @@ export const STRINGS_ZH_TW = {
         removeTag: '從選定檔案移除標籤',
         removeAllTags: '從選定檔案移除所有標籤',
         openAllFiles: '開啟所有檔案',
-        rebuildCache: '重建快取'
+        rebuildCache: '重建快取',
+        restoreDefaultSettings: '還原預設設定' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -896,7 +907,17 @@ export const STRINGS_ZH_TW = {
         calendarViewName: '日曆',
         folderNoteSidebarViewName: '資料夾筆記',
         ribbonTooltip: '筆記本導覽器',
-        revealInNavigator: '在筆記本導覽器中定位'
+        revealInNavigator: '在筆記本導覽器中定位',
+        settingsUnavailableNotice:
+            '筆記本導覽器無法讀取其設定,因此未啟動。如果儲存庫正在同步,請在同步完成後重新啟動 Obsidian。若要以預設設定重新開始,請執行命令「還原預設設定」。', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: '還原預設設定', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                '此操作會將筆記本導覽器的設定檔替換為預設設定。如果儲存庫仍在同步,還原的預設設定可能會覆寫其他裝置上儲存的設定。可讀取的設定檔會先複製到外掛資料夾中帶有時間戳記的備份檔。', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: '還原預設', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: '無法完成設定還原。已保留本機偏好設定。', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: '已還原預設設定。請重新啟動 Obsidian 以完成。' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -969,6 +990,7 @@ export const STRINGS_ZH_TW = {
                 vaultConfiguration: '保險庫設定',
                 templates: '範本',
                 behavior: '行為',
+                startup: '啟動',
                 keyboardNavigation: '鍵盤導覽',
                 mouseButtons: '滑鼠按鈕',
                 view: '外觀',
@@ -1142,6 +1164,10 @@ export const STRINGS_ZH_TW = {
                 name: '顯示子資料夾路徑',
                 desc: '在列表窗格中按資料夾分組時，顯示子資料夾路徑，而不是僅顯示資料夾名稱。'
             },
+            showGroupHeaderItemCounts: {
+                name: '顯示項目計數',
+                desc: '在列表窗格的每個群組標題中顯示項目數量。'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: '資料夾分組：目前資料夾檔案置底',
                 desc: '當預設分組為資料夾時，將所選資料夾中的直屬檔案移到子資料夾分組下方。'
@@ -1216,8 +1242,8 @@ export const STRINGS_ZH_TW = {
                 desc: '為子資料夾、標籤或屬性中的筆記顯示父資料夾名稱。'
             },
             showParentFolderFullPath: {
-                name: '顯示完整路徑',
-                desc: '顯示父資料夾的完整路徑而非僅顯示資料夾名稱。'
+                name: '顯示資料夾路徑',
+                desc: '顯示相對於所選資料夾的路徑，而不是僅顯示資料夾名稱。標籤和屬性顯示完整路徑。'
             },
             parentFolderClickRevealsFile: {
                 name: '點按父資料夾開啟資料夾',
@@ -1288,7 +1314,7 @@ export const STRINGS_ZH_TW = {
             },
             startView: {
                 name: '預設啟動檢視',
-                desc: '選擇開啟 Notebook Navigator 時顯示的窗格。導覽窗格顯示捷徑、最近檔案和資料夾結構。列表窗格顯示檔案列表。',
+                desc: '選擇開啟 Notebook Navigator 時處於作用中的窗格。單窗格版面配置會優先顯示此窗格；雙窗格版面配置會將鍵盤焦點移至此窗格。',
                 options: {
                     navigation: '導覽窗格',
                     files: '列表窗格'
@@ -1463,6 +1489,10 @@ export const STRINGS_ZH_TW = {
                 name: '顯示特色圖片',
                 desc: '在日曆中顯示筆記的特色圖片。'
             },
+            calendarShowTasks: {
+                name: '顯示任務',
+                desc: '在包含未完成任務的日、週和月上顯示指示器。'
+            },
             calendarShowWeekNumber: {
                 name: '顯示週號',
                 desc: '在每行開頭顯示週號。'
@@ -1478,6 +1508,10 @@ export const STRINGS_ZH_TW = {
             calendarConfirmBeforeCreate: {
                 name: '建立前確認',
                 desc: '點按沒有筆記的日期時顯示確認對話方塊。'
+            },
+            calendarShowHiddenItems: {
+                name: '顯示隱藏項目',
+                desc: '啟用時，日曆一律顯示所有日曆筆記，包括被倉庫設定檔篩選器隱藏的筆記。'
             },
             calendarIntegrationMode: {
                 name: '日記來源',
@@ -1577,6 +1611,12 @@ export const STRINGS_ZH_TW = {
                     editorDesc: '在下方貼上或編輯 JSON。未包含的設定將重設為預設值。',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: '匯入',
+                    confirmTitle: '匯入設定？',
+                    confirmMessage: '匯入會取代目前的 Notebook Navigator 設定。',
+                    backupToggleName: '匯入前將目前設定儲存到保險庫根目錄',
+                    backupToggleDesc: '在保險庫根目錄中建立含時間戳的 JSON 檔案。',
+                    successWithBackupNotice: '設定已匯入。先前的設定已儲存到 {path}。',
+                    backupError: '無法儲存目前設定: {message}',
                     successNotice: '設定已匯入。',
                     errorNotice: '匯入設定失敗: {message}',
                     fileReadError: '無法讀取檔案: {message}'
@@ -1679,6 +1719,11 @@ export const STRINGS_ZH_TW = {
                 name: '隱藏資料夾（保險庫設定檔）',
                 desc: '逗號分隔的要隱藏的資料夾列表。名稱模式：assets*（以 assets 開頭的資料夾），*_temp（以 _temp 結尾）。路徑模式：/archive（僅根目錄 archive），/res*（以 res 開頭的根資料夾），/*/temp（一級目錄下的 temp 資料夾），/projects/*（projects 內的所有資料夾）。',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: '從子資料夾筆記中排除資料夾（保險庫設定檔）',
+                desc: '逗號分隔的資料夾列表，用於在收集子資料夾中的筆記時略過這些資料夾。資料夾仍會顯示，選取該資料夾時仍會顯示其中的筆記。使用與隱藏資料夾相同的模式。',
+                placeholder: '日記, 資源, /archive'
             },
             fileVisibility: {
                 name: '顯示檔案類型（保險庫設定檔）',

@@ -7,6 +7,8 @@ Visual previews. Full keyboard navigation. Dual-pane layout. Mobile optimized. W
 
 If you love using Notebook Navigator, please consider [☕️ Buying me a coffee](https://buymeacoffee.com/johansan) or [Sponsor on GitHub ❤️](https://github.com/sponsors/johansan).
 
+Coming from another app? Read the switching guides for [Evernote](https://notebooknavigator.com/evernote/), [Apple Notes](https://notebooknavigator.com/apple-notes/), [Bear](https://notebooknavigator.com/bear/), [OneNote](https://notebooknavigator.com/onenote/) and [Day One](https://notebooknavigator.com/day-one/).
+
 <br/>
 
 ![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22notebook-navigator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![Obsidian Compatibility](https://img.shields.io/badge/Obsidian-v1.11.0+-483699?logo=obsidian&style=flat-square) [![Discord](https://img.shields.io/discord/1405458145974943846?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/6eeSUvzEJr)
@@ -30,7 +32,7 @@ If you love using Notebook Navigator, please consider [☕️ Buying me a coffee
 
 Here is the official tutorial for learning and mastering Notebook Navigator:
 
-[![Mastering Notebook Navigator](https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-thumbnail.jpg)](https://www.youtube.com/watch?v=BewIlG8wLAM)
+[![Mastering Notebook Navigator](https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-thumbnail.jpg)](https://www.youtube.com/watch?v=m2maDNtho7Y)
 
 The video has subtitles in 21 languages.
 
@@ -56,10 +58,9 @@ Notebook Navigator runs locally, but some features make documented HTTP requests
 - [9 Commands](#9-commands)
 - [10 Features](#10-features)
 - [11 Network and Diagnostics Disclosure](#11-network-and-diagnostics-disclosure)
-- [12 Star History](#12-star-history)
-- [13 Contact](#13-contact)
-- [14 Questions or issues?](#14-questions-or-issues)
-- [15 License](#15-license)
+- [12 Contact](#12-contact)
+- [13 Questions or issues?](#13-questions-or-issues)
+- [14 License](#14-license)
 
 <br/>
 
@@ -89,25 +90,25 @@ Notebook Navigator runs locally, but some features make documented HTTP requests
 
 ## 5 Keyboard shortcuts
 
-| Key                                         | Action                                                                                                                                  |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| ↑/↓                                         | Navigate up/down in current pane                                                                                                        |
-| ←                                           | In navigation pane: collapse or go to parent<br>In list pane: switch to navigation pane                                                 |
-| →                                           | In navigation pane: expand or switch to list pane<br>In list pane: switch to editor                                                     |
-| Tab                                         | In navigation pane: switch to list pane<br>In list pane: switch to editor<br>In search field: switch to list pane                       |
-| Shift+Tab                                   | In list pane: switch to navigation pane<br>In search field: switch to navigation pane                                                   |
-| Enter (macOS)<br>F2 (Windows/Linux)         | Rename item inline in navigation pane or list pane                                                                                      |
-| Enter                                       | Windows/Linux: open folder note in navigation pane or selected file in list pane (when enabled)<br>In search field: switch to list pane |
-| Escape                                      | In search field: close search and focus list pane                                                                                       |
-| PageUp/PageDown                             | Scroll up/down in navigation pane and list pane                                                                                         |
-| Home/End                                    | Jump to first/last item in current pane                                                                                                 |
-| Delete (Windows/Linux)<br>Backspace (macOS) | Delete selected item                                                                                                                    |
-| Cmd/Ctrl+A                                  | Select all notes in current folder                                                                                                      |
-| Cmd/Ctrl+Click                              | Toggle notes selection                                                                                                                  |
-| Shift+Click                                 | Select a range of notes                                                                                                                 |
-| Shift+Home/End                              | Select from current position to first/last item                                                                                         |
-| Shift+↑/↓                                   | Extend selection up/down                                                                                                                |
-| Cmd/Ctrl+↑/↓                                | Rearrange selected files up/down in manual sort mode                                                                                    |
+| Key                                 | Action                                                                                                                                                                                    |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ↑/↓                                 | Navigate up/down in current pane                                                                                                                                                          |
+| ←                                   | In navigation pane: collapse or go to parent<br>In list pane: switch to navigation pane                                                                                                   |
+| →                                   | In navigation pane: expand or switch to list pane<br>In list pane: switch to editor                                                                                                       |
+| Tab                                 | In navigation pane: switch to list pane<br>In list pane: switch to editor<br>In search field: switch to list pane                                                                         |
+| Shift+Tab                           | In list pane: switch to navigation pane<br>In search field: switch to navigation pane                                                                                                     |
+| Enter (macOS)<br>F2 (Windows/Linux) | Rename item inline in navigation pane or list pane                                                                                                                                        |
+| Enter                               | In navigation pane: open folder note on Windows/Linux by default (when enabled)<br>In list pane: open selected file on all systems (when enabled)<br>In search field: switch to list pane |
+| Escape                              | In search field: close search and focus list pane                                                                                                                                         |
+| PageUp/PageDown                     | Scroll up/down in navigation pane and list pane                                                                                                                                           |
+| Home/End                            | Jump to first/last item in current pane                                                                                                                                                   |
+| Delete<br>Backspace                 | Delete selected item                                                                                                                                                                      |
+| Cmd/Ctrl+A                          | Select all notes in current folder                                                                                                                                                        |
+| Cmd/Ctrl+Click                      | Toggle notes selection                                                                                                                                                                    |
+| Shift+Click                         | Select a range of notes                                                                                                                                                                   |
+| Shift+Home/End                      | Select from current position to first/last item                                                                                                                                           |
+| Shift+↑/↓                           | Extend selection up/down                                                                                                                                                                  |
+| Cmd/Ctrl+↑/↓                        | Rearrange selected files up/down in manual sort mode                                                                                                                                      |
 
 **Note:** All keyboard shortcuts can be customized. See [section 8 - Custom hotkeys](#8-custom-hotkeys) for details on adding VIM-style navigation (h,j,k,l), alternate keys, and modifier combinations.
 
@@ -141,13 +142,13 @@ Notebook Navigator has two search modes: filter search and Omnisearch. Switch be
 
 ### 7.1 Filter search
 
-Filters files by name, tags, properties, dates, folders, extensions, and tasks within the current folder and subfolders. Default search mode.
+Filters files by display name, alias, tags, properties, dates, folders, extensions, and tasks within the current folder and subfolders. Default search mode.
 
-**File names**
+**File names and aliases**
 
-- `word` - Match notes with "word" in the file name
-- `word1 word2` - Require every word to match the file name
-- `-word` - Exclude notes with "word" in the file name
+- `word` - Match notes with "word" in the display name or an alias
+- `word1 word2` - Require every word to match across the display name and aliases
+- `-word` - Exclude notes with "word" in the display name or an alias
 
 **Tags**
 
@@ -163,11 +164,11 @@ Filters files by name, tags, properties, dates, folders, extensions, and tasks w
 
 **Properties**
 
-- `.key` - Include notes with property key
+- `.key` - Include notes with a property key that starts with `key`
 - `.key=value` - Include notes where the property value contains `value`
 - `."Reading Status"` - Property key with whitespace (double-quoted)
 - `."Reading Status"="In Progress"` - Keys and values with whitespace must be double-quoted
-- `-.key` - Exclude notes with property key
+- `-.key` - Exclude notes with a property key that starts with `key`
 - `-.key=value` - Exclude notes where the property value contains `value`
 - Cmd/Ctrl+Click a property to add with AND. Cmd/Ctrl+Shift+Click to add with OR
 
@@ -216,7 +217,7 @@ Note previews show Omnisearch result excerpts instead of the default preview tex
 **Known limitations**
 
 - **Performance** - Can be slow when searching for fewer than 3 characters in large vaults
-- **Path bug** - Cannot search in paths with non-ASCII characters and does not search subpaths correctly
+- **Path filters** - Folder scoping is sent to Omnisearch only for simple ASCII paths. Other paths are filtered after Omnisearch returns results
 - **Limited results** - Omnisearch searches the entire vault and returns a limited number of results before filtering, so relevant files from the current folder may not appear if many matches exist elsewhere
 - **Preview text** - Note previews are replaced with Omnisearch result excerpts, which may not show the actual search match highlight if it appears elsewhere in the file
 
@@ -281,6 +282,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Toggle left sidebar` Toggles the left sidebar. When opening, sets the left sidebar view to Notebook Navigator (unlike Obsidian's built-in "Toggle left sidebar" command which restores the previous left sidebar view)
 - `Notebook Navigator: Open homepage` Opens the Notebook Navigator view and loads the homepage target configured in settings
 - `Notebook Navigator: Select vault profile` Opens modal to switch between vault profiles
+- `Notebook Navigator: Select vault profile 1-3` Activates a vault profile by its position. Opens the profile selection modal when no profile exists at that position
 - `Notebook Navigator: Reveal file` Reveals current file in navigator. Expands parent folders and scrolls to file. This command is useful if you have the setting `Auto-reveal active note` switched off and want to reveal notes manually. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+R` to quickly change the selected folder or tag to the current file
 - `Notebook Navigator: Open all files` Opens all notes in the currently selected folder or tag. When opening 15 or more files, shows a confirmation dialog
 - `Notebook Navigator: Navigate to folder` Search dialog to jump to any folder
@@ -291,7 +293,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Add to shortcuts` Adds or removes the current file, folder, tag, or property from shortcuts
 - `Notebook Navigator: Open shortcut 1-9` Opens shortcut by its position in the shortcuts list
 - `Notebook Navigator: Search` Opens quick search field or focuses it if already open. Search persists between sessions. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+S` for quick file filtering
-- `Notebook Navigator: Search in vault root` Selects the vault root folder and opens search (requires `Show root folder` enabled)
+- `Notebook Navigator: Search whole vault` Selects the vault root folder and opens search with subfolders included (requires `Show root folder` enabled)
 
 **Selection**
 
@@ -303,8 +305,8 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Toggle dual pane layout` Toggle single/dual-pane layout (desktop). **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+A` to quickly switch between single-pane and dual-pane layout
 - `Notebook Navigator: Toggle dual pane orientation` Toggle dual-pane orientation between horizontal and vertical
 - `Notebook Navigator: Toggle descendants` Toggle subfolders / descendants notes display for folders and tags. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+D` to quickly toggle display of notes from subfolders / descendants
-- `Notebook Navigator: Toggle hidden items` Show or hide hidden folders, tags, and notes
-- `Notebook Navigator: Toggle tag sort` Toggle between alphabetical and frequency-based tag sorting
+- `Notebook Navigator: Toggle hidden folders, tags, and notes` Show or hide hidden folders, tags, and notes
+- `Notebook Navigator: Toggle tag sort order` Toggle between alphabetical and frequency-based tag sorting
 - `Notebook Navigator: Toggle tags by selection` Toggle limiting tags to those found in notes within the selected folder or property
 - `Notebook Navigator: Toggle properties by selection` Toggle limiting properties to those found in notes within the selected folder or tag
 - `Notebook Navigator: Toggle compact mode` Toggle list mode between standard and compact
@@ -332,7 +334,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Convert to folder note` Create a folder matching the file name and move the file inside as the folder note
 - `Notebook Navigator: Set as folder note` Rename the active file to its folder note name
 - `Notebook Navigator: Detach folder note` Detach the folder note in the selected folder and rename it
-- `Notebook Navigator: Pin all folder notes` Pin all folder notes in all folders. Command is only visible when folder notes are enabled and at least one unpinned folder note exists
+- `Notebook Navigator: Pin all folder notes` Pin all folder notes in all folders. Command is only visible when folder notes are enabled
 - `Notebook Navigator: Delete files` Delete selected files. Selects next file in current folder
 
 **Tag operations**
@@ -345,70 +347,72 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 **Maintenance**
 
 - `Notebook Navigator: Rebuild cache` Rebuilds the local Notebook Navigator cache. Use this if you experience missing tags, incorrect previews or missing feature images
+- `Notebook Navigator: Restore default settings` Replaces the settings file with verified defaults after saving a timestamped backup. This command is only available when Notebook Navigator cannot read its settings and stops during startup
 
 ### 9.1 Command IDs
 
-| Command ID                                          | Command name                                                                                         |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `notebook-navigator:open`                           | Notebook Navigator: Open                                                                             |
-| `notebook-navigator:toggle-left-sidebar`            | Notebook Navigator: Toggle left sidebar                                                              |
-| `notebook-navigator:open-homepage`                  | Notebook Navigator: Open homepage                                                                    |
-| `notebook-navigator:select-profile`                 | Notebook Navigator: Select vault profile                                                             |
-| `notebook-navigator:select-profile-1`               | Notebook Navigator: Select vault profile 1                                                           |
-| `notebook-navigator:select-profile-2`               | Notebook Navigator: Select vault profile 2                                                           |
-| `notebook-navigator:select-profile-3`               | Notebook Navigator: Select vault profile 3                                                           |
-| `notebook-navigator:reveal-file`                    | Notebook Navigator: Reveal file                                                                      |
-| `notebook-navigator:open-all-files`                 | Notebook Navigator: Open all files                                                                   |
-| `notebook-navigator:navigate-to-folder`             | Notebook Navigator: Navigate to folder                                                               |
-| `notebook-navigator:navigate-to-tag`                | Notebook Navigator: Navigate to tag                                                                  |
-| `notebook-navigator:navigate-to-property`           | Notebook Navigator: Navigate to property                                                             |
-| `notebook-navigator:navigate-back`                  | Notebook Navigator: Navigate back                                                                    |
-| `notebook-navigator:navigate-forward`               | Notebook Navigator: Navigate forward                                                                 |
-| `notebook-navigator:add-shortcut`                   | Notebook Navigator: Add to shortcuts                                                                 |
-| `notebook-navigator:open-shortcut-1`                | Notebook Navigator: Open shortcut 1                                                                  |
-| `notebook-navigator:open-shortcut-2`                | Notebook Navigator: Open shortcut 2                                                                  |
-| `notebook-navigator:open-shortcut-3`                | Notebook Navigator: Open shortcut 3                                                                  |
-| `notebook-navigator:open-shortcut-4`                | Notebook Navigator: Open shortcut 4                                                                  |
-| `notebook-navigator:open-shortcut-5`                | Notebook Navigator: Open shortcut 5                                                                  |
-| `notebook-navigator:open-shortcut-6`                | Notebook Navigator: Open shortcut 6                                                                  |
-| `notebook-navigator:open-shortcut-7`                | Notebook Navigator: Open shortcut 7                                                                  |
-| `notebook-navigator:open-shortcut-8`                | Notebook Navigator: Open shortcut 8                                                                  |
-| `notebook-navigator:open-shortcut-9`                | Notebook Navigator: Open shortcut 9                                                                  |
-| `notebook-navigator:search`                         | Notebook Navigator: Search                                                                           |
-| `notebook-navigator:search-vault`                   | Notebook Navigator: Search in vault root                                                             |
-| `notebook-navigator:toggle-dual-pane`               | Notebook Navigator: Toggle dual pane layout                                                          |
-| `notebook-navigator:toggle-dual-pane-orientation`   | Notebook Navigator: Toggle dual pane orientation                                                     |
-| `notebook-navigator:toggle-calendar`                | Notebook Navigator: Toggle calendar                                                                  |
-| `notebook-navigator:open-daily-note`                | Notebook Navigator: Open daily note                                                                  |
-| `notebook-navigator:open-weekly-note`               | Notebook Navigator: Open weekly note                                                                 |
-| `notebook-navigator:open-monthly-note`              | Notebook Navigator: Open monthly note                                                                |
-| `notebook-navigator:open-quarterly-note`            | Notebook Navigator: Open quarterly note                                                              |
-| `notebook-navigator:open-yearly-note`               | Notebook Navigator: Open yearly note                                                                 |
-| `notebook-navigator:toggle-descendants`             | Notebook Navigator: Toggle descendants                                                               |
-| `notebook-navigator:toggle-hidden`                  | Notebook Navigator: Toggle hidden items (folders, tags, notes)                                       |
-| `notebook-navigator:toggle-tag-sort`                | Notebook Navigator: Toggle tag sort                                                                  |
-| `notebook-navigator:toggle-tags-by-selection`       | Notebook Navigator: Toggle tags by selection                                                         |
-| `notebook-navigator:toggle-properties-by-selection` | Notebook Navigator: Toggle properties by selection                                                   |
-| `notebook-navigator:toggle-compact-mode`            | Notebook Navigator: Toggle compact mode                                                              |
-| `notebook-navigator:toggle-pinned-section`          | Notebook Navigator: Toggle pinned section                                                            |
-| `notebook-navigator:collapse-expand`                | Notebook Navigator: Collapse / expand all items                                                      |
-| `notebook-navigator:collapse-expand-selected-item`  | Notebook Navigator: Collapse / expand selected item                                                  |
-| `notebook-navigator:new-note`                       | Notebook Navigator: Create new note                                                                  |
-| `notebook-navigator:new-note-from-template`         | Notebook Navigator: Create new note from template                                                    |
-| `notebook-navigator:move-files`                     | Notebook Navigator: Move files                                                                       |
-| `notebook-navigator:merge-notes`                    | Notebook Navigator: Merge notes                                                                      |
-| `notebook-navigator:select-next-file`               | Notebook Navigator: Select next file                                                                 |
-| `notebook-navigator:select-previous-file`           | Notebook Navigator: Select previous file                                                             |
-| `notebook-navigator:convert-to-folder-note`         | Notebook Navigator: Convert to folder note                                                           |
-| `notebook-navigator:set-as-folder-note`             | Notebook Navigator: Set as folder note                                                               |
-| `notebook-navigator:detach-folder-note`             | Notebook Navigator: Detach folder note                                                               |
-| `notebook-navigator:pin-all-folder-notes`           | Notebook Navigator: Pin all folder notes (requires folder notes enabled and an unpinned folder note) |
-| `notebook-navigator:delete-files`                   | Notebook Navigator: Delete files                                                                     |
-| `notebook-navigator:add-tag`                        | Notebook Navigator: Add tag to selected files                                                        |
-| `notebook-navigator:set-property`                   | Notebook Navigator: Set property on selected files                                                   |
-| `notebook-navigator:remove-tag`                     | Notebook Navigator: Remove tag from selected files                                                   |
-| `notebook-navigator:remove-all-tags`                | Notebook Navigator: Remove all tags from selected files                                              |
-| `notebook-navigator:rebuild-cache`                  | Notebook Navigator: Rebuild cache                                                                    |
+| Command ID                                          | Command name                                               |
+| --------------------------------------------------- | ---------------------------------------------------------- |
+| `notebook-navigator:open`                           | Notebook Navigator: Open                                   |
+| `notebook-navigator:toggle-left-sidebar`            | Notebook Navigator: Toggle left sidebar                    |
+| `notebook-navigator:open-homepage`                  | Notebook Navigator: Open homepage                          |
+| `notebook-navigator:select-profile`                 | Notebook Navigator: Select vault profile                   |
+| `notebook-navigator:select-profile-1`               | Notebook Navigator: Select vault profile 1                 |
+| `notebook-navigator:select-profile-2`               | Notebook Navigator: Select vault profile 2                 |
+| `notebook-navigator:select-profile-3`               | Notebook Navigator: Select vault profile 3                 |
+| `notebook-navigator:reveal-file`                    | Notebook Navigator: Reveal file                            |
+| `notebook-navigator:open-all-files`                 | Notebook Navigator: Open all files                         |
+| `notebook-navigator:navigate-to-folder`             | Notebook Navigator: Navigate to folder                     |
+| `notebook-navigator:navigate-to-tag`                | Notebook Navigator: Navigate to tag                        |
+| `notebook-navigator:navigate-to-property`           | Notebook Navigator: Navigate to property                   |
+| `notebook-navigator:navigate-back`                  | Notebook Navigator: Navigate back                          |
+| `notebook-navigator:navigate-forward`               | Notebook Navigator: Navigate forward                       |
+| `notebook-navigator:add-shortcut`                   | Notebook Navigator: Add to shortcuts                       |
+| `notebook-navigator:open-shortcut-1`                | Notebook Navigator: Open shortcut 1                        |
+| `notebook-navigator:open-shortcut-2`                | Notebook Navigator: Open shortcut 2                        |
+| `notebook-navigator:open-shortcut-3`                | Notebook Navigator: Open shortcut 3                        |
+| `notebook-navigator:open-shortcut-4`                | Notebook Navigator: Open shortcut 4                        |
+| `notebook-navigator:open-shortcut-5`                | Notebook Navigator: Open shortcut 5                        |
+| `notebook-navigator:open-shortcut-6`                | Notebook Navigator: Open shortcut 6                        |
+| `notebook-navigator:open-shortcut-7`                | Notebook Navigator: Open shortcut 7                        |
+| `notebook-navigator:open-shortcut-8`                | Notebook Navigator: Open shortcut 8                        |
+| `notebook-navigator:open-shortcut-9`                | Notebook Navigator: Open shortcut 9                        |
+| `notebook-navigator:search`                         | Notebook Navigator: Search                                 |
+| `notebook-navigator:search-vault`                   | Notebook Navigator: Search whole vault                     |
+| `notebook-navigator:toggle-dual-pane`               | Notebook Navigator: Toggle dual pane layout                |
+| `notebook-navigator:toggle-dual-pane-orientation`   | Notebook Navigator: Toggle dual pane orientation           |
+| `notebook-navigator:toggle-calendar`                | Notebook Navigator: Toggle calendar                        |
+| `notebook-navigator:open-daily-note`                | Notebook Navigator: Open daily note                        |
+| `notebook-navigator:open-weekly-note`               | Notebook Navigator: Open weekly note                       |
+| `notebook-navigator:open-monthly-note`              | Notebook Navigator: Open monthly note                      |
+| `notebook-navigator:open-quarterly-note`            | Notebook Navigator: Open quarterly note                    |
+| `notebook-navigator:open-yearly-note`               | Notebook Navigator: Open yearly note                       |
+| `notebook-navigator:toggle-descendants`             | Notebook Navigator: Toggle descendants                     |
+| `notebook-navigator:toggle-hidden`                  | Notebook Navigator: Toggle hidden folders, tags, and notes |
+| `notebook-navigator:toggle-tag-sort`                | Notebook Navigator: Toggle tag sort order                  |
+| `notebook-navigator:toggle-tags-by-selection`       | Notebook Navigator: Toggle tags by selection               |
+| `notebook-navigator:toggle-properties-by-selection` | Notebook Navigator: Toggle properties by selection         |
+| `notebook-navigator:toggle-compact-mode`            | Notebook Navigator: Toggle compact mode                    |
+| `notebook-navigator:toggle-pinned-section`          | Notebook Navigator: Toggle pinned section                  |
+| `notebook-navigator:collapse-expand`                | Notebook Navigator: Collapse / expand all items            |
+| `notebook-navigator:collapse-expand-selected-item`  | Notebook Navigator: Collapse / expand selected item        |
+| `notebook-navigator:new-note`                       | Notebook Navigator: Create new note                        |
+| `notebook-navigator:new-note-from-template`         | Notebook Navigator: Create new note from template          |
+| `notebook-navigator:move-files`                     | Notebook Navigator: Move files                             |
+| `notebook-navigator:merge-notes`                    | Notebook Navigator: Merge notes                            |
+| `notebook-navigator:select-next-file`               | Notebook Navigator: Select next file                       |
+| `notebook-navigator:select-previous-file`           | Notebook Navigator: Select previous file                   |
+| `notebook-navigator:convert-to-folder-note`         | Notebook Navigator: Convert to folder note                 |
+| `notebook-navigator:set-as-folder-note`             | Notebook Navigator: Set as folder note                     |
+| `notebook-navigator:detach-folder-note`             | Notebook Navigator: Detach folder note                     |
+| `notebook-navigator:pin-all-folder-notes`           | Notebook Navigator: Pin all folder notes                   |
+| `notebook-navigator:delete-files`                   | Notebook Navigator: Delete files                           |
+| `notebook-navigator:add-tag`                        | Notebook Navigator: Add tag to selected files              |
+| `notebook-navigator:set-property`                   | Notebook Navigator: Set property on selected files         |
+| `notebook-navigator:remove-tag`                     | Notebook Navigator: Remove tag from selected files         |
+| `notebook-navigator:remove-all-tags`                | Notebook Navigator: Remove all tags from selected files    |
+| `notebook-navigator:rebuild-cache`                  | Notebook Navigator: Rebuild cache                          |
+| `notebook-navigator:restore-default-settings`       | Notebook Navigator: Restore default settings               |
 
 <br/>
 
@@ -427,7 +431,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 ### 10.2 Navigation
 
 - **Vault profiles** - Multiple filtered views with per-profile hidden folders/tags/notes, file visibility, banner, and shortcuts
-- **Shortcuts** - Notes, folders, tags, and saved searches with pinning and reordering
+- **Shortcuts** - Notes, folders, tags, properties, and saved searches with pinning and reordering
 - **Recent notes/files** - Recent items section stored per vault profile, optionally pinned with shortcuts
 - **Calendar** - Daily notes calendar with day selection, feature image previews, and vertical split support
 - **Folder tree** - Expand/collapse navigation with manual root folder ordering
@@ -444,13 +448,14 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - **Custom sort and grouping** - Override sort/group settings per folder or tag
 - **Per-folder/tag appearances** - Title rows, preview rows, compact mode, descendants toggle
 - **Hidden content** - Hidden folders/tags/notes/files with patterns, frontmatter properties, and tag-based filtering per vault profile
+- **Exclude folders from descendants** - Omit folders when collecting notes from subfolders, per vault profile; excluded folders stay visible and show their notes when selected
 - **Color and icon system** - Folder/tag/property/file colors, icon packs, emoji/Lucide icons, frontmatter read/write, icon mapping by file name and file type category
 - **Name warnings** - Warn about forbidden filesystem characters and characters that break Obsidian links when naming files and folders
 
 ### 10.4 File display
 
 - **Note previews** - 1–5 preview lines with optional HTML stripping
-- **Thumbnails** - Featured images plus auto-generated thumbnails stored in the metadata cache
+- **Thumbnails** - Featured images plus auto-generated thumbnails for PDF, SVG, and drawing files stored in the metadata cache
 - **External images** - Optional downloads for external images and YouTube thumbnails
 - **Date grouping** - Group notes by Today, Yesterday, Previous 7 days, Previous 30 days, months, and years when sorted by date
 - **Frontmatter support** - Read note names and timestamps from frontmatter fields
@@ -462,7 +467,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 
 ### 10.5 Productivity
 
-- **Search** - Filter by file name, tags, properties, dates, folders, extensions, and tasks with AND/OR/exclusions
+- **Search** - Filter by file name, aliases, tags, properties, dates, folders, extensions, and tasks with AND/OR/exclusions
 - **Omnisearch integration** - Full-text search via [Omnisearch](https://github.com/scambier/obsidian-omnisearch)
 - **Drag and drop** - File moves, tagging, shortcut assignment, tag tree reparenting, spring-loaded folders
 - **Context menus** - Create notes/folders/canvases/bases/drawings and run file/tag actions
@@ -493,7 +498,7 @@ Notebook Navigator runs locally, but some features make HTTP requests from Obsid
 ### 11.3 External images, videos, and YouTube thumbnails
 
 - **Feature images (Optional):** Controlled by the "Download external images" setting. Downloads remote images and YouTube thumbnails for feature images and stores them locally in IndexedDB.
-- **Welcome modal (First launch):** Loads a static thumbnail from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/youtube-thumbnail.jpg`.
+- **Welcome modal (First launch):** Loads a YouTube thumbnail from `https://img.youtube.com/vi/<id>/...`.
 - **What's new modal (On update / when opened):** Loads release banner images from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/version-banners/<id>.jpg` for release notes that include a banner.
 - **What's new modal (On update / when opened):** Loads release videos from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/version-banners/<id>.mp4` for release notes that include a video.
 - **What's new modal (When opening a release video):** Opens release videos from `https://cdn.jsdelivr.net/gh/johansan/notebook-navigator@main/images/version-banners/<id>.mp4` so browsers can play the video directly.
@@ -515,13 +520,7 @@ Notebook Navigator runs locally, but some features make HTTP requests from Obsid
 
 <br/>
 
-## 12 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=johansan/notebook-navigator&type=date&legend=top-left)](https://www.star-history.com/#johansan/notebook-navigator&type=date&legend=top-left)
-
-<br/>
-
-## 13 Contact
+## 12 Contact
 
 Notebook Navigator is built and maintained by [Johan Sanneblad](https://www.linkedin.com/in/johansan/). Johan has a PhD in Software Development and has worked with innovation development for companies such as Apple, Electronic Arts, Google, Microsoft, Lego, SKF, Volvo Cars, Volvo Group and Yamaha.
 
@@ -529,7 +528,9 @@ Feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/johansan/
 
 <br/>
 
-## 14 Questions or issues?
+## 13 Questions or issues?
+
+Read the [FAQ](FAQ.md) for answers to common questions.
 
 **[Join our Discord](https://discord.gg/6eeSUvzEJr)** for support and discussions, or open an issue on the
 [GitHub repository](https://github.com/johansan/notebook-navigator).
@@ -538,6 +539,6 @@ Feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/johansan/
 
 <br/>
 
-## 15 License
+## 14 License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](https://github.com/johansan/notebook-navigator/blob/main/LICENSE) file for details.

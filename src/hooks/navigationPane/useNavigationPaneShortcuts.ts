@@ -124,7 +124,7 @@ export function useNavigationPaneShortcuts({
 
     const includeDescendantNotes = uxPreferences.includeDescendantNotes;
     const showHiddenItems = uxPreferences.showHiddenItems;
-    const { hiddenFolders, hiddenFileNames, hiddenFileTags, fileVisibility } = activeProfile;
+    const { hiddenFolders, descendantExcludedFolders, hiddenFileNames, hiddenFileTags, fileVisibility } = activeProfile;
     const effectiveFrontmatterExclusions = getEffectiveFrontmatterExclusions(settings, showHiddenItems);
     const effectiveFrontmatterExclusionMatcher = useMemo(() => {
         return createFrontmatterPropertyExclusionMatcher(effectiveFrontmatterExclusions);
@@ -238,6 +238,7 @@ export function useNavigationPaneShortcuts({
         fileVisibility,
         noteCountDB,
         hiddenFolders,
+        descendantExcludedFolders,
         effectiveFrontmatterExclusions,
         effectiveFrontmatterExclusionMatcher,
         folderCountFileNameMatcher,

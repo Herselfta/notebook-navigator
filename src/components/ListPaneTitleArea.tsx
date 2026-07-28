@@ -30,7 +30,7 @@ interface ListPaneTitleAreaProps {
     desktopTitle: string;
 }
 
-export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
+export const ListPaneTitleArea = React.memo(function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
     const { app, isMobile, plugin } = useServices();
     const commandQueue = useCommandQueue();
     const settings = useSettingsState();
@@ -143,4 +143,4 @@ export function ListPaneTitleArea({ desktopTitle }: ListPaneTitleAreaProps) {
             </div>
         </div>
     );
-}
+});

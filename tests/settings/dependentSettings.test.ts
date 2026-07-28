@@ -118,11 +118,15 @@ class FakeDocument {
 class FakeHTMLElement extends FakeNode {
     readonly classList = new FakeClassList();
     readonly ownerDocument: Document;
+    readonly win: Window;
     hidden = false;
 
     constructor(ownerDocument: FakeDocument, label: string) {
         super(label);
         this.ownerDocument = ownerDocument as unknown as Document;
+        this.win = {
+            createDiv: () => ownerDocument.createElement('div') as unknown as HTMLDivElement
+        } as unknown as Window;
     }
 
     addClass(className: string): void {

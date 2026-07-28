@@ -88,6 +88,7 @@ export const STRINGS_PL = {
     navigationCalendar: {
         ariaLabel: 'Kalendarz',
         dailyNotesNotEnabled: 'Wbudowana wtyczka Dziennik jest wyłączona.',
+        noteHiddenByProfile: 'Notatka kalendarza jest ukryta przez bieżący profil magazynu.',
         createDailyNote: {
             title: 'Nowy dziennik',
             message: 'Plik {filename} nie istnieje. Czy chcesz go utworzyć?',
@@ -169,6 +170,7 @@ export const STRINGS_PL = {
     // Search input
     searchInput: {
         placeholder: 'Szukaj...', // Placeholder text for search input (English: Search...)
+        placeholderVault: 'Szukaj w sejfie...',
         placeholderOmnisearch: 'Omnisearch...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'Wyczyść wyszukiwanie', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'Przełącz na wyszukiwanie z filtrem',
@@ -181,16 +183,16 @@ export const STRINGS_PL = {
         searchHelp: 'Składnia wyszukiwania',
         searchHelpTitle: 'Składnia wyszukiwania',
         searchHelpModal: {
-            intro: 'Połącz nazwy plików, atrybuty, tagi, daty i filtry w jednym zapytaniu (np. „meeting .status=active #work @thisweek”). Zainstaluj wtyczkę Omnisearch, aby korzystać z wyszukiwania pełnotekstowego.',
+            intro: 'Połącz nazwy wyświetlane, aliasy, atrybuty, tagi, daty i filtry w jednym zapytaniu (np. „meeting .status=active #work @thisweek”). Zainstaluj wtyczkę Omnisearch, aby korzystać z wyszukiwania pełnotekstowego.',
             introSwitching:
                 'Przełączaj się między wyszukiwaniem z filtrem a Omnisearch za pomocą strzałek w górę i w dół lub klikając ikonę wyszukiwania.',
             sections: {
                 fileNames: {
-                    title: 'Nazwy plików',
+                    title: 'Nazwy plików i aliasy',
                     items: [
-                        '`word` Dopasuj notatki ze słowem "word" w nazwie pliku.',
-                        '`word1 word2` Każde słowo musi pasować do nazwy pliku.',
-                        '`-word` Wyklucz notatki zawierające słowo "word" w nazwie pliku.'
+                        '`word` Dopasuj notatki ze słowem "word" w nazwie wyświetlanej lub aliasie.',
+                        '`word1 word2` Każde słowo musi występować w nazwie wyświetlanej lub aliasach.',
+                        '`-word` Wyklucz notatki zawierające słowo "word" w nazwie wyświetlanej lub aliasie.'
                     ]
                 },
                 tags: {
@@ -210,11 +212,11 @@ export const STRINGS_PL = {
                 properties: {
                     title: 'Atrybuty',
                     items: [
-                        '`.key` Uwzględnij notatki z atrybutem.',
+                        '`.key` Uwzględnij notatki z kluczem właściwości zaczynającym się od `key`.',
                         '`.key=value` Uwzględnij notatki, których wartość atrybutu zawiera `value`.',
                         '`."Reading Status"` Uwzględnij notatki z atrybutem zawierającym spacje.',
                         '`."Reading Status"="In Progress"` Atrybuty i ich wartości ze spacjami muszą być w podwójnych cudzysłowach.',
-                        '`-.key` Wyklucz notatki z atrybutem.',
+                        '`-.key` Wyklucz notatki z kluczem właściwości zaczynającym się od `key`.',
                         '`-.key=value` Wyklucz notatki, których wartość atrybutu zawiera `value`.',
                         'Kliknij atrybut z Cmd/Ctrl, aby dodać go operatorem AND. Kliknij atrybut z Cmd/Ctrl+Shift, aby dodać go operatorem OR.'
                     ]
@@ -351,6 +353,9 @@ export const STRINGS_PL = {
             changeBackground: 'Zmień tło',
             excludeFolder: 'Ukryj folder',
             unhideFolder: 'Pokaż folder',
+            excludeFromDescendants: 'Ukryj w folderach nadrzędnych',
+            includeInDescendants: 'Pokaż w folderach nadrzędnych',
+            hiddenFromParentsIndicator: 'Ukryte na listach folderów nadrzędnych',
             moveFolder: 'Przenieś folder do...',
             renameFolder: 'Zmień nazwę folderu',
             deleteFolder: 'Usuń folder'
@@ -670,6 +675,7 @@ export const STRINGS_PL = {
         },
         navigationBanner: {
             placeholder: 'Wyszukaj obrazy...',
+            svgMissingDimensions: 'Wybrany plik SVG nie definiuje szerokości, wysokości ani viewBox.',
             instructions: {
                 navigate: 'aby przejść',
                 select: 'aby ustawić baner',
@@ -716,11 +722,11 @@ export const STRINGS_PL = {
         welcome: {
             title: 'Witaj w {pluginName}',
             introText:
-                'Cześć! Zanim zaczniesz, gorąco polecam obejrzenie pierwszych pięciu minut poniższego filmu, aby zrozumieć, jak działają panele i przełącznik „Pokaż notatki z podfolderów”.',
+                'Cześć i witaj w Notebook Navigator, lepszej przeglądarce plików i kalendarzu dla Obsidian. Zanim zaczniesz, naprawdę polecam obejrzeć co najmniej trzy pierwsze rozdziały poniższego filmu Mastering Notebook Navigator. Poznasz w nich sposób działania dwóch paneli i szybko rozpoczniesz pracę.',
             continueText:
-                'Jeśli masz jeszcze pięć minut, obejrzyj film, aby zrozumieć kompaktowe tryby wyświetlania oraz dowiedzieć się, jak prawidłowo skonfigurować skróty i ważne kombinacje klawiszy.',
-            thanksText: 'Dziękujemy za pobranie i życzymy miłego korzystania!',
-            videoAlt: 'Instalacja i obsługa Notebook Navigator',
+                'Jeśli masz jeszcze dziesięć minut, obejrzyj także rozdziały o pierwszej konfiguracji i codziennej pracy. Dowiesz się z nich wszystkiego, czego potrzebujesz na początek, a do szczegółów możesz wrócić później. Łącze do filmu znajdziesz u góry ustawień Notebook Navigator.',
+            thanksText: 'Miłego korzystania z Notebook Navigator!',
+            videoAlt: 'Opanuj Notebook Navigator 3',
             openVideoButton: 'Odtwórz wideo',
             closeButton: 'Może później'
         }
@@ -776,6 +782,8 @@ export const STRINGS_PL = {
         notices: {
             hideFolder: 'Ukryty folder: {name}',
             showFolder: 'Widoczny folder: {name}',
+            folderExcludedFromDescendants: 'Ukryte na listach folderów nadrzędnych: {name}',
+            folderIncludedInDescendants: 'Pokazane na listach folderów nadrzędnych: {name}',
             mergeNotes: 'Scalono {count} notatek w {name}'
         },
         notifications: {
@@ -860,7 +868,7 @@ export const STRINGS_PL = {
         openYearlyNote: 'Otwórz notatkę roku',
         revealFile: 'Pokaż plik', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Szukaj', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: 'Szukaj w katalogu głównym sejfu', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: 'Szukaj w całym sejfie', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'Przełącz układ podwójnego panelu', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'Przełącz orientację podwójnego panelu', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'Przełącz kalendarz', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -900,7 +908,8 @@ export const STRINGS_PL = {
         removeTag: 'Usuń tag z wybranych plików', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'Usuń wszystkie tagi z wybranych plików', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'Otwórz wszystkie pliki', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'Odbuduj pamięć podręczną' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'Odbuduj pamięć podręczną', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'Przywróć ustawienia domyślne' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -909,7 +918,17 @@ export const STRINGS_PL = {
         calendarViewName: 'Kalendarz', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'Notatka folderu', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'Notebook Navigator', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'Pokaż w Notebook Navigator' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'Pokaż w Notebook Navigator', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'Notebook Navigator nie mógł odczytać swoich ustawień i nie został uruchomiony. Jeśli sejf jest synchronizowany, uruchom ponownie Obsidian po zakończeniu synchronizacji. Aby zacząć od nowa z ustawieniami domyślnymi, uruchom polecenie „Przywróć ustawienia domyślne”.', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'Przywróć ustawienia domyślne', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'Ta operacja zastępuje plik ustawień Notebook Navigator ustawieniami domyślnymi. Jeśli sejf jest nadal synchronizowany, przywrócone ustawienia domyślne mogą nadpisać ustawienia zapisane na innych urządzeniach. Czytelny plik ustawień jest najpierw kopiowany do kopii zapasowej ze znacznikiem czasu w folderze wtyczki.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'Przywróć domyślne', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'Nie udało się dokończyć odzyskiwania ustawień. Lokalne preferencje zostały zachowane.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'Przywrócono ustawienia domyślne. Uruchom ponownie Obsidian, aby zakończyć.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -982,6 +1001,7 @@ export const STRINGS_PL = {
                 vaultConfiguration: 'Konfiguracja sejfu',
                 templates: 'Szablony',
                 behavior: 'Zachowanie',
+                startup: 'Uruchamianie',
                 keyboardNavigation: 'Nawigacja klawiaturą',
                 mouseButtons: 'Przyciski myszy',
                 view: 'Wygląd',
@@ -1158,6 +1178,10 @@ export const STRINGS_PL = {
                 name: 'Pokaż ścieżki podfolderów',
                 desc: 'Podczas grupowania według folderu w panelu listy pokazuj ścieżki podfolderów zamiast samych nazw folderów.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'Pokaż liczbę elementów',
+                desc: 'Wyświetla liczbę elementów w każdym nagłówku grupy w panelu listy.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'Grupowanie folderów: pliki bieżącego folderu na dole',
                 desc: 'Gdy domyślne grupowanie to Folder, przenieś pliki znajdujące się bezpośrednio w wybranym folderze pod grupy podfolderów.'
@@ -1232,8 +1256,8 @@ export const STRINGS_PL = {
                 desc: 'Wyświetla nazwę folderu nadrzędnego dla notatek w podfolderach, tagach lub właściwościach.'
             },
             showParentFolderFullPath: {
-                name: 'Pokaż pełną ścieżkę',
-                desc: 'Wyświetla pełną ścieżkę folderu nadrzędnego zamiast tylko nazwy folderu.'
+                name: 'Pokaż ścieżkę folderu',
+                desc: 'Wyświetla ścieżkę względem wybranego folderu zamiast samej nazwy folderu. Tagi i właściwości pokazują pełną ścieżkę.'
             },
             parentFolderClickRevealsFile: {
                 name: 'Kliknięcie folderu nadrzędnego otwiera folder',
@@ -1304,7 +1328,7 @@ export const STRINGS_PL = {
             },
             startView: {
                 name: 'Domyślny widok początkowy',
-                desc: 'Wybierz, który panel ma być widoczny po otwarciu Notebook Navigator. Panel nawigacji pokazuje skróty, ostatnie pliki i strukturę folderów. Panel listy od razu pokazuje listę plików.',
+                desc: 'Wybierz, który panel jest aktywny po otwarciu Notebook Navigator. Układ jednopanelowy pokazuje ten panel jako pierwszy; układ dwupanelowy przenosi na niego fokus klawiatury.',
                 options: {
                     navigation: 'Panel nawigacji',
                     files: 'Panel listy'
@@ -1480,6 +1504,10 @@ export const STRINGS_PL = {
                 name: 'Pokaż wyróżniony obraz',
                 desc: 'Wyświetla wyróżnione obrazy notatek w kalendarzu.'
             },
+            calendarShowTasks: {
+                name: 'Pokaż zadania',
+                desc: 'Wyświetla wskaźnik przy dniach, tygodniach i miesiącach z niezakończonymi zadaniami.'
+            },
             calendarShowWeekNumber: {
                 name: 'Pokaż numer tygodnia',
                 desc: 'Dodaje kolumnę z numerem tygodnia.'
@@ -1495,6 +1523,10 @@ export const STRINGS_PL = {
             calendarConfirmBeforeCreate: {
                 name: 'Potwierdź przed utworzeniem',
                 desc: 'Wyświetla możliwość potwierdzenia podczas tworzenia nowej notatki dziennika.'
+            },
+            calendarShowHiddenItems: {
+                name: 'Pokaż ukryte elementy',
+                desc: 'Po włączeniu kalendarz zawsze pokazuje wszystkie notatki kalendarza, w tym notatki ukryte przez filtry profilu magazynu.'
             },
             calendarIntegrationMode: {
                 name: 'Źródło notatek',
@@ -1595,6 +1627,12 @@ export const STRINGS_PL = {
                     editorDesc: 'Wklej lub edytuj JSON poniżej. Nieuwzględnione ustawienia zostaną zresetowane do wartości domyślnych.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'Importuj',
+                    confirmTitle: 'Zaimportować ustawienia?',
+                    confirmMessage: 'Importowanie zastąpi bieżące ustawienia Notebook Navigator.',
+                    backupToggleName: 'Zapisz bieżące ustawienia w katalogu głównym sejfu przed importem',
+                    backupToggleDesc: 'Tworzy plik JSON ze znacznikiem czasu w katalogu głównym sejfu.',
+                    successWithBackupNotice: 'Ustawienia zaimportowane. Poprzednie ustawienia zapisano w {path}.',
+                    backupError: 'Nie można zapisać bieżących ustawień: {message}',
                     successNotice: 'Ustawienia zaimportowane.',
                     errorNotice: 'Nie udało się zaimportować ustawień: {message}',
                     fileReadError: 'Nie można odczytać pliku: {message}'
@@ -1731,6 +1769,11 @@ export const STRINGS_PL = {
                 name: 'Ukryj foldery (profil sejfu)',
                 desc: 'Lista folderów rozdzielonych przecinkami. Wzory nazw: assets* (foldery zaczynające się od assets), *_temp (kończące się na _temp). Wzory ścieżek: /archive (folder nadrzędny o nazwie archive), /res* (folder nadrzędny o nazwie zaczynającej się od res), /*/temp (foldery podrzędne o nazwie temp), /projects/* (wszystkie foldery wewnątrz folderu projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'Wyklucz foldery z notatek z podfolderów (profil skarbca)',
+                desc: 'Lista folderów oddzielonych przecinkami, które mają być pomijane podczas zbierania notatek z podfolderów. Foldery pozostają widoczne, a wybranie folderu nadal pokazuje jego notatki. Używa tych samych wzorców co Ukryj foldery.',
+                placeholder: 'dzienne, zasoby, /archiwum'
             },
             showFileDate: {
                 name: 'Pokaż datę',

@@ -88,6 +88,7 @@ export const STRINGS_AR = {
     navigationCalendar: {
         ariaLabel: 'التقويم',
         dailyNotesNotEnabled: 'إضافة الملاحظات اليومية غير مفعلة.',
+        noteHiddenByProfile: 'ملاحظة التقويم مخفية بواسطة ملف تعريف الخزنة الحالي.',
         createDailyNote: {
             title: 'ملاحظة يومية جديدة',
             message: 'الملف {filename} غير موجود. هل تريد إنشاءه؟',
@@ -169,6 +170,7 @@ export const STRINGS_AR = {
     // Search input
     searchInput: {
         placeholder: 'بحث...', // Placeholder text for search input (English: Search...)
+        placeholderVault: 'البحث في الخزنة...',
         placeholderOmnisearch: 'بحث شامل...', // Placeholder text when Omnisearch provider is active (English: Omnisearch...)
         clearSearch: 'مسح البحث', // Tooltip for clear search button (English: Clear search)
         switchToFilterSearch: 'التبديل إلى البحث بالتصفية',
@@ -181,15 +183,15 @@ export const STRINGS_AR = {
         searchHelp: 'صيغة البحث',
         searchHelpTitle: 'صيغة البحث',
         searchHelpModal: {
-            intro: 'ادمج أسماء الملفات والخصائص والوسوم والتواريخ والمرشحات في استعلام واحد (مثال: `meeting .status=active #work @thisweek`). قم بتثبيت إضافة Omnisearch لاستخدام البحث في النص الكامل.',
+            intro: 'ادمج أسماء العرض والأسماء المستعارة والخصائص والوسوم والتواريخ والمرشحات في استعلام واحد (مثال: `meeting .status=active #work @thisweek`). قم بتثبيت إضافة Omnisearch لاستخدام البحث في النص الكامل.',
             introSwitching: 'التبديل بين البحث بالتصفية و Omnisearch باستخدام مفاتيح الأسهم لأعلى/لأسفل أو بالنقر على أيقونة البحث.',
             sections: {
                 fileNames: {
-                    title: 'أسماء الملفات',
+                    title: 'أسماء الملفات والأسماء المستعارة',
                     items: [
-                        '`word` البحث عن ملاحظات تحتوي على "word" في اسم الملف.',
-                        '`word1 word2` يجب أن تتطابق كل كلمة مع اسم الملف.',
-                        '`-word` استبعاد الملاحظات التي تحتوي على "word" في اسم الملف.'
+                        '`word` البحث عن ملاحظات تحتوي على "word" في اسم العرض أو أحد الأسماء المستعارة.',
+                        '`word1 word2` يجب أن تتطابق كل كلمة عبر اسم العرض والأسماء المستعارة.',
+                        '`-word` استبعاد الملاحظات التي تحتوي على "word" في اسم العرض أو أحد الأسماء المستعارة.'
                     ]
                 },
                 tags: {
@@ -209,11 +211,11 @@ export const STRINGS_AR = {
                 properties: {
                     title: 'الخصائص',
                     items: [
-                        '`.key` تضمين الملاحظات التي تحتوي على مفتاح خاصية.',
+                        '`.key` تضمين الملاحظات التي يبدأ مفتاح الخاصية فيها بـ `key`.',
                         '`.key=value` تضمين الملاحظات التي تحتوي قيمة الخاصية فيها على `value`.',
                         '`."Reading Status"` تضمين الملاحظات التي تحتوي على مفتاح خاصية يتضمن مسافات.',
                         '`."Reading Status"="In Progress"` المفاتيح والقيم التي تحتوي على مسافات يجب وضعها بين علامات اقتباس مزدوجة.',
-                        '`-.key` استبعاد الملاحظات التي تحتوي على مفتاح خاصية.',
+                        '`-.key` استبعاد الملاحظات التي يبدأ مفتاح الخاصية فيها بـ `key`.',
                         '`-.key=value` استبعاد الملاحظات التي تحتوي قيمة الخاصية فيها على `value`.',
                         'Cmd/Ctrl+انقر على خاصية للإضافة بـ AND. Cmd/Ctrl+Shift+انقر للإضافة بـ OR.'
                     ]
@@ -350,6 +352,9 @@ export const STRINGS_AR = {
             changeBackground: 'تغيير الخلفية',
             excludeFolder: 'إخفاء المجلد',
             unhideFolder: 'إظهار المجلد',
+            excludeFromDescendants: 'إخفاء من المجلدات الأصلية',
+            includeInDescendants: 'إظهار في المجلدات الأصلية',
+            hiddenFromParentsIndicator: 'مخفى من قوائم المجلدات الأصلية',
             moveFolder: 'نقل المجلد إلى...',
             renameFolder: 'إعادة تسمية المجلد',
             deleteFolder: 'حذف المجلد'
@@ -664,6 +669,7 @@ export const STRINGS_AR = {
         },
         navigationBanner: {
             placeholder: 'البحث عن صور...',
+            svgMissingDimensions: 'ملف SVG المحدد لا يحدد عرضًا أو ارتفاعًا أو viewBox.',
             instructions: {
                 navigate: 'للتنقل',
                 select: 'لتعيين الشعار',
@@ -710,11 +716,11 @@ export const STRINGS_AR = {
         welcome: {
             title: 'مرحباً بك في {pluginName}',
             introText:
-                'مرحباً! قبل البدء، أوصي بشدة بمشاهدة الدقائق الخمس الأولى من الفيديو أدناه لفهم كيفية عمل اللوحات ومفتاح التبديل "عرض الملاحظات من المجلدات الفرعية".',
+                'مرحباً وأهلاً بك في Notebook Navigator، متصفح ملفات وتقويم أفضل لـ Obsidian. قبل أن تبدأ، أوصي حقاً بمشاهدة الفصول الثلاثة الأولى على الأقل من الفيديو أدناه، Mastering Notebook Navigator. ستتعرف من خلالها على كيفية عمل اللوحتين وكيف تبدأ الاستخدام بسرعة.',
             continueText:
-                'إذا كان لديك خمس دقائق إضافية، تابع مشاهدة الفيديو لفهم أوضاع العرض المضغوط وكيفية إعداد الاختصارات ومفاتيح الاختصار المهمة بشكل صحيح.',
-            thanksText: 'شكراً جزيلاً على التحميل، واستمتع!',
-            videoAlt: 'تثبيت وإتقان Notebook Navigator',
+                'وإذا كان لديك عشر دقائق إضافية، فتابع مشاهدة فصلي الإعداد عند التشغيل الأول وروتين الاستخدام اليومي. سيمنحك ذلك كل ما تحتاج إليه للبدء، ويمكنك العودة لاحقاً لمشاهدة مزيد من التفاصيل. ستجد رابطاً للفيديو في أعلى إعدادات Notebook Navigator.',
+            thanksText: 'استمتع باستخدام Notebook Navigator!',
+            videoAlt: 'إتقان Notebook Navigator 3',
             openVideoButton: 'تشغيل الفيديو',
             closeButton: 'ربما لاحقاً'
         }
@@ -768,6 +774,8 @@ export const STRINGS_AR = {
         notices: {
             hideFolder: 'تم إخفاء المجلد: {name}',
             showFolder: 'تم إظهار المجلد: {name}',
+            folderExcludedFromDescendants: 'مخفى من قوائم المجلدات الأصلية: {name}',
+            folderIncludedInDescendants: 'ظاهر في قوائم المجلدات الأصلية: {name}',
             mergeNotes: 'تم دمج {count} ملاحظة في {name}'
         },
         notifications: {
@@ -852,7 +860,7 @@ export const STRINGS_AR = {
         openYearlyNote: 'فتح الملاحظة السنوية',
         revealFile: 'الكشف عن الملف', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'بحث', // Command palette: Toggle search in the file list (English: Search)
-        searchVaultRoot: 'بحث في جذر الخزنة', // Command palette: Selects the vault root folder and focuses search (English: Search in vault root)
+        searchVaultRoot: 'البحث في الخزنة بالكامل', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
         toggleDualPane: 'تبديل تخطيط اللوحتين', // Command palette: Toggles between single-pane and dual-pane layout (English: Toggle dual pane layout)
         toggleDualPaneOrientation: 'تبديل اتجاه اللوحتين', // Command palette: Toggles dual-pane orientation between horizontal and vertical (English: Toggle dual pane orientation)
         toggleCalendar: 'تبديل التقويم', // Command palette: Toggles showing the calendar overlay in the navigation pane (English: Toggle calendar)
@@ -892,7 +900,8 @@ export const STRINGS_AR = {
         removeTag: 'إزالة وسم من الملفات المحددة', // Command palette: Opens a dialog to remove a tag from selected files (English: Remove tag from selected files)
         removeAllTags: 'إزالة جميع الوسوم من الملفات المحددة', // Command palette: Removes all tags from selected files (English: Remove all tags from selected files)
         openAllFiles: 'فتح جميع الملفات', // Command palette: Opens all files in the current folder or tag (English: Open all files)
-        rebuildCache: 'إعادة بناء الذاكرة المؤقتة' // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        rebuildCache: 'إعادة بناء الذاكرة المؤقتة', // Command palette: Rebuilds the local Notebook Navigator cache (English: Rebuild cache)
+        restoreDefaultSettings: 'استعادة الإعدادات الافتراضية' // Command palette: Replaces the settings file with defaults after startup was aborted (English: Restore default settings)
     },
 
     // Plugin UI
@@ -901,7 +910,17 @@ export const STRINGS_AR = {
         calendarViewName: 'تقويم', // Name shown in the view header/tab (English: Calendar)
         folderNoteSidebarViewName: 'ملاحظة المجلد', // Name shown in the folder note sidebar tab (English: Folder note)
         ribbonTooltip: 'متصفح الدفتر', // Tooltip for the ribbon icon in the left sidebar (English: Notebook Navigator)
-        revealInNavigator: 'الكشف في متصفح الدفتر' // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        revealInNavigator: 'الكشف في متصفح الدفتر', // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
+        settingsUnavailableNotice:
+            'تعذر على متصفح الدفتر قراءة إعداداته ولم يبدأ التشغيل. إذا كان القبو قيد المزامنة، أعد تشغيل Obsidian بعد اكتمال المزامنة. للبدء من جديد بالإعدادات الافتراضية، شغّل الأمر "استعادة الإعدادات الافتراضية".', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsRecovery: {
+            confirmTitle: 'استعادة الإعدادات الافتراضية', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
+            confirmMessage:
+                'يستبدل هذا ملف إعدادات متصفح الدفتر بالإعدادات الافتراضية. إذا كان القبو لا يزال قيد المزامنة، فقد تحل الإعدادات الافتراضية المستعادة محل الإعدادات المخزنة على أجهزتك الأخرى. يتم أولاً نسخ ملف الإعدادات القابل للقراءة إلى نسخة احتياطية مؤرخة في مجلد الإضافة.', // Body of the confirmation dialog for the settings recovery command
+            confirmButton: 'استعادة الافتراضية', // Confirm button label in the settings recovery dialog (English: Restore defaults)
+            failedNotice: 'تعذر إكمال استعادة الإعدادات. تم الاحتفاظ بالتفضيلات المحلية.', // Notice shown when settings recovery cannot be completed (English: Could not complete settings recovery. Local preferences were kept.)
+            completedNotice: 'تمت استعادة الإعدادات الافتراضية. أعد تشغيل Obsidian للإنهاء.' // Notice shown after the settings file was replaced with defaults (English: Default settings restored. Restart Obsidian to finish.)
+        }
     },
 
     // Tooltips
@@ -974,6 +993,7 @@ export const STRINGS_AR = {
                 vaultConfiguration: 'إعداد الخزنة',
                 templates: 'قوالب',
                 behavior: 'السلوك',
+                startup: 'بدء التشغيل',
                 keyboardNavigation: 'التنقل بلوحة المفاتيح',
                 mouseButtons: 'أزرار الفأرة',
                 view: 'المظهر',
@@ -1150,6 +1170,10 @@ export const STRINGS_AR = {
                 name: 'إظهار مسارات المجلدات الفرعية',
                 desc: 'عند التجميع حسب المجلد في لوحة القائمة، اعرض مسارات المجلدات الفرعية بدلاً من أسماء المجلدات فقط.'
             },
+            showGroupHeaderItemCounts: {
+                name: 'إظهار عدد العناصر',
+                desc: 'عرض عدد العناصر في كل رأس مجموعة في لوحة القائمة.'
+            },
             showCurrentFolderFilesAtBottom: {
                 name: 'تجميع المجلدات: ملفات المجلد الحالي في الأسفل',
                 desc: 'عندما يكون التجميع الافتراضي هو المجلد، انقل الملفات الموجودة مباشرة في المجلد المحدد أسفل مجموعات المجلدات الفرعية.'
@@ -1224,8 +1248,8 @@ export const STRINGS_AR = {
                 desc: 'عرض اسم المجلد الأصلي للملاحظات في المجلدات الفرعية أو الوسوم أو الخصائص.'
             },
             showParentFolderFullPath: {
-                name: 'إظهار المسار الكامل',
-                desc: 'عرض المسار الكامل للمجلد الأصلي بدلاً من اسم المجلد فقط.'
+                name: 'إظهار مسار المجلد',
+                desc: 'اعرض المسار نسبةً إلى المجلد المحدد بدلاً من اسم المجلد فقط. تعرض الوسوم والخصائص المسار الكامل.'
             },
             parentFolderClickRevealsFile: {
                 name: 'النقر على المجلد الأصلي يفتح المجلد',
@@ -1296,7 +1320,7 @@ export const STRINGS_AR = {
             },
             startView: {
                 name: 'عرض البدء الافتراضي',
-                desc: 'اختر اللوحة التي تعرض عند فتح متصفح الدفتر. لوحة التنقل تعرض الاختصارات والملفات الحديثة وشجرة المجلدات. لوحة القائمة تعرض قائمة الملفات فورًا.',
+                desc: 'اختر اللوحة النشطة عند فتح متصفح الدفتر. في تخطيط اللوحة الواحدة تظهر هذه اللوحة أولًا، وفي تخطيط اللوحتين تحصل على تركيز لوحة المفاتيح.',
                 options: {
                     navigation: 'لوحة التنقل',
                     files: 'لوحة القائمة'
@@ -1471,6 +1495,10 @@ export const STRINGS_AR = {
                 name: 'عرض صورة الميزة',
                 desc: 'عرض صور الميزات للملاحظات في التقويم.'
             },
+            calendarShowTasks: {
+                name: 'إظهار المهام',
+                desc: 'عرض مؤشر على الأيام والأسابيع والأشهر التي تحتوي على مهام غير مكتملة.'
+            },
             calendarShowWeekNumber: {
                 name: 'عرض رقم الأسبوع',
                 desc: 'إضافة عمود برقم الأسبوع.'
@@ -1486,6 +1514,10 @@ export const STRINGS_AR = {
             calendarConfirmBeforeCreate: {
                 name: 'تأكيد قبل الإنشاء',
                 desc: 'عرض مربع حوار تأكيد عند إنشاء ملاحظة يومية جديدة.'
+            },
+            calendarShowHiddenItems: {
+                name: 'إظهار العناصر المخفية',
+                desc: 'عند التمكين، يعرض التقويم دائمًا جميع ملاحظات التقويم، بما في ذلك الملاحظات المخفية بواسطة مرشحات ملف تعريف الخزنة.'
             },
             calendarIntegrationMode: {
                 name: 'مصدر الملاحظات اليومية',
@@ -1586,6 +1618,12 @@ export const STRINGS_AR = {
                     editorDesc: 'الصق أو عدّل JSON أدناه. الإعدادات غير المضمنة تُعاد إلى القيم الافتراضية.',
                     placeholder: '{\n  "folderSortOrder": "alpha-desc"\n}',
                     confirmButtonText: 'استيراد',
+                    confirmTitle: 'استيراد الإعدادات؟',
+                    confirmMessage: 'سيؤدي الاستيراد إلى استبدال إعدادات Notebook Navigator الحالية.',
+                    backupToggleName: 'حفظ الإعدادات الحالية في جذر الخزنة قبل الاستيراد',
+                    backupToggleDesc: 'ينشئ ملف JSON مختومًا بالوقت في جذر الخزنة.',
+                    successWithBackupNotice: 'تم استيراد الإعدادات. حُفظت الإعدادات السابقة في {path}.',
+                    backupError: 'تعذّر حفظ الإعدادات الحالية: {message}',
                     successNotice: 'تم استيراد الإعدادات.',
                     errorNotice: 'فشل استيراد الإعدادات: {message}',
                     fileReadError: 'تعذّر قراءة الملف: {message}'
@@ -1721,6 +1759,11 @@ export const STRINGS_AR = {
                 name: 'إخفاء المجلدات (ملف الخزنة)',
                 desc: 'قائمة مفصولة بفاصلة من المجلدات لإخفائها. أنماط الاسم: assets* (المجلدات التي تبدأ بـ assets)، *_temp (التي تنتهي بـ _temp). أنماط المسار: /archive (الأرشيف الجذري فقط)، /res* (المجلدات الجذرية التي تبدأ بـ res)، /*/temp (مجلدات temp بمستوى واحد)، /projects/* (جميع المجلدات داخل projects).',
                 placeholder: 'templates, assets*, /archive, /res*'
+            },
+            descendantExcludedFolders: {
+                name: 'استبعاد المجلدات من ملاحظات المجلدات الفرعية (ملف تعريف الخزنة)',
+                desc: 'قائمة مفصولة بفواصل للمجلدات التي يتم تجاهلها عند جمع الملاحظات من المجلدات الفرعية. تبقى المجلدات مرئية، ويظل تحديدها يعرض ملاحظاتها. تستخدم نفس أنماط إخفاء المجلدات.',
+                placeholder: 'يومي، موارد، /archive'
             },
             showFileDate: {
                 name: 'إظهار التاريخ',

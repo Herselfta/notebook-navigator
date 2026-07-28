@@ -53,6 +53,7 @@ type SettingsStateValue = NotebookNavigatorSettings & { dualPaneOrientation: Dua
 export interface ActiveProfileState {
     profile: VaultProfile;
     hiddenFolders: string[];
+    descendantExcludedFolders: string[];
     hiddenFileProperties: string[];
     hiddenFileNames: string[];
     hiddenTags: string[];
@@ -341,6 +342,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             nextSettings.vaultProfiles = plugin.settings.vaultProfiles.map(profile => ({
                 ...profile,
                 hiddenFolders: Array.isArray(profile.hiddenFolders) ? [...profile.hiddenFolders] : [],
+                descendantExcludedFolders: Array.isArray(profile.descendantExcludedFolders) ? [...profile.descendantExcludedFolders] : [],
                 hiddenFileProperties: Array.isArray(profile.hiddenFileProperties) ? [...profile.hiddenFileProperties] : [],
                 hiddenFileNames: Array.isArray(profile.hiddenFileNames) ? [...profile.hiddenFileNames] : [],
                 hiddenTags: Array.isArray(profile.hiddenTags) ? [...profile.hiddenTags] : [],
@@ -382,6 +384,10 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         const isSameProfile = previous?.profile.id === profile.id;
 
         const hiddenFoldersEqual = areStringArraysEqual(previous?.profile.hiddenFolders ?? [], profile.hiddenFolders);
+        const descendantExcludedFoldersEqual = areStringArraysEqual(
+            previous?.profile.descendantExcludedFolders ?? [],
+            profile.descendantExcludedFolders
+        );
         const hiddenFilePropertiesEqual = areStringArraysEqual(previous?.profile.hiddenFileProperties ?? [], profile.hiddenFileProperties);
         const hiddenFileNamesEqual = areStringArraysEqual(previous?.profile.hiddenFileNames ?? [], profile.hiddenFileNames);
         const hiddenTagsEqual = areStringArraysEqual(previous?.profile.hiddenTags ?? [], profile.hiddenTags);
@@ -398,6 +404,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         if (
             isSameProfile &&
             hiddenFoldersEqual &&
+            descendantExcludedFoldersEqual &&
             hiddenFilePropertiesEqual &&
             hiddenFileNamesEqual &&
             hiddenTagsEqual &&
@@ -417,6 +424,7 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         const nextActiveProfile: ActiveProfileState = {
             profile,
             hiddenFolders: profile.hiddenFolders,
+            descendantExcludedFolders: profile.descendantExcludedFolders,
             hiddenFileProperties: profile.hiddenFileProperties,
             hiddenFileNames: profile.hiddenFileNames,
             hiddenTags: profile.hiddenTags,

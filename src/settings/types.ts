@@ -507,6 +507,7 @@ export interface VaultProfile {
     fileVisibility: FileVisibility;
     propertyKeys: VaultProfilePropertyKey[];
     hiddenFolders: string[];
+    descendantExcludedFolders: string[];
     hiddenTags: string[];
     hiddenFileNames: string[];
     hiddenFileTags: string[];
@@ -672,6 +673,7 @@ export interface NotebookNavigatorSettings {
     showSelectedNavigationPills: boolean;
     stickyGroupHeaders: boolean;
     showFolderGroupPaths: boolean;
+    showGroupHeaderItemCounts: boolean;
     showCurrentFolderFilesAtBottom: boolean;
     filterPinnedByFolder: boolean;
     compactItemHeight: number;
@@ -751,11 +753,13 @@ export interface NotebookNavigatorSettings {
     calendarEnabled: boolean;
     calendarPlacement: CalendarPlacement;
     calendarConfirmBeforeCreate: boolean;
+    calendarShowHiddenItems: boolean;
     calendarLocale: string;
     calendarWeekendDays: CalendarWeekendDays;
     calendarMonthHeadingFormat: CalendarMonthHeadingFormat;
     calendarHighlightToday: boolean;
     calendarShowFeatureImage: boolean;
+    calendarShowTasks: boolean;
     calendarMonthHighlights: Record<string, string>;
     calendarShowWeekNumber: boolean;
     calendarShowQuarter: boolean;
