@@ -38,7 +38,7 @@ import {
 } from '../../types';
 import type { PropertyTreeNode, TagTreeNode } from '../../types/storage';
 import type { InclusionOperator } from '../../utils/filterSearch';
-import { getFolderNote, openFolderNoteFile, type FolderNoteOpenContext } from '../../utils/folderNotes';
+import { getFolderNote, openFolderNoteFile, revealFolderNoteInNavigator, type FolderNoteOpenContext } from '../../utils/folderNotes';
 import { runAsyncAction } from '../../utils/async';
 import { resolveFolderNoteClickOpenContext, resolveFolderNoteDefaultOpenContext } from '../../utils/keyboardOpenContext';
 import { findTagNode } from '../../utils/tagTree';
@@ -49,6 +49,8 @@ import {
     getFolderAncestorPaths,
     getPropertyAncestorNodeIds,
     getTagAncestorPaths,
+    isFolderEffectivelyExpanded,
+    isFolderExpansionLocked,
     toggleNavigationExpansionTarget
 } from '../../utils/navigationExpansion';
 import { useStableHandlerFacade } from '../useStableHandlerFacade';
@@ -67,7 +69,6 @@ interface UIStateLike {
 interface UseNavigationPaneTreeInteractionsProps {
     app: App;
     commandQueue: CommandQueueService | null;
-    isMobile: boolean;
     settings: NotebookNavigatorSettings;
     uiState: UIStateLike;
     expansionState: ExpansionStateLike;
@@ -108,7 +109,6 @@ export interface NavigationPaneTreeInteractionsResult {
 export function useNavigationPaneTreeInteractions({
     app,
     commandQueue,
-    isMobile,
     settings,
     uiState,
     expansionState,
@@ -140,6 +140,10 @@ export function useNavigationPaneTreeInteractions({
 
     const handleFolderToggle = useCallback(
         (path: string) => {
+            if (isFolderExpansionLocked(path, settings.showRootFolder)) {
+                return;
+            }
+
             if (settings.collapseOtherBranchesOnExpand) {
                 const folder = app.vault.getFolderByPath(path);
                 if (folder) {
@@ -148,7 +152,7 @@ export function useNavigationPaneTreeInteractions({
                             type: 'folder',
                             id: path,
                             hasChildren: folder.children.some(child => child instanceof TFolder),
-                            ancestorIds: getFolderAncestorPaths(folder)
+                            ancestorIds: getFolderAncestorPaths(folder, { includeRootFolder: settings.showRootFolder })
                         },
                         expansionState,
                         expansionDispatch,
@@ -161,7 +165,7 @@ export function useNavigationPaneTreeInteractions({
 
             expansionDispatch({ type: 'TOGGLE_FOLDER_EXPANDED', folderPath: path });
         },
-        [app.vault, expansionDispatch, expansionState, settings.collapseOtherBranchesOnExpand]
+        [app.vault, expansionDispatch, expansionState, settings.collapseOtherBranchesOnExpand, settings.showRootFolder]
     );
 
     const handleFolderClick = useCallback(
@@ -171,7 +175,7 @@ export function useNavigationPaneTreeInteractions({
             }
 
             const hasChildFolders = folder.children.some(child => child instanceof TFolder);
-            const isExpanded = expansionState.expandedFolders.has(folder.path);
+            const isExpanded = isFolderEffectivelyExpanded(folder.path, expansionState.expandedFolders, settings.showRootFolder);
             const isSelectedFolder =
                 selectionState.selectionType === ItemType.FOLDER && selectionState.selectedFolder?.path === folder.path;
             const shouldCollapseOnSelect =
@@ -233,14 +237,16 @@ export function useNavigationPaneTreeInteractions({
 
             // Folder-note name clicks stop before the row click handler, so automatic expansion must run in this branch.
             const hasChildFolders = folder.children.some(child => child instanceof TFolder);
-            if (settings.autoExpandNavItems && hasChildFolders && !expansionState.expandedFolders.has(folder.path)) {
+            const isExpanded = isFolderEffectivelyExpanded(folder.path, expansionState.expandedFolders, settings.showRootFolder);
+            if (settings.autoExpandNavItems && hasChildFolders && !isExpanded) {
                 handleFolderToggle(folder.path);
             }
 
             const openContext = event
-                ? resolveFolderNoteClickOpenContext(event, settings.folderNoteOpenLocation, settings.multiSelectModifier, isMobile)
+                ? resolveFolderNoteClickOpenContext(event, settings.folderNoteOpenLocation, settings.multiSelectModifier)
                 : resolveFolderNoteDefaultOpenContext(settings.folderNoteOpenLocation);
             focusListPaneAfterRightSidebarFolderNoteSelection(openContext);
+            revealFolderNoteInNavigator(selectionDispatch, folderNote);
 
             if (openContext === 'right-sidebar' && settings.showNearestFolderNoteInSidebar && !wasSelectedFolder) {
                 return;
@@ -264,7 +270,6 @@ export function useNavigationPaneTreeInteractions({
             focusListPaneAfterRightSidebarFolderNoteSelection,
             handleFolderClick,
             handleFolderToggle,
-            isMobile,
             openFolderNoteInRightSidebar,
             selectionDispatch,
             selectionState.selectedFolder,
@@ -288,8 +293,17 @@ export function useNavigationPaneTreeInteractions({
             event.stopPropagation();
 
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
+            revealFolderNoteInNavigator(selectionDispatch, folderNote);
 
-            runAsyncAction(() => openFolderNoteFile({ app, commandQueue, folder, folderNote, context: 'tab' }));
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder,
+                    folderNote,
+                    context: 'tab'
+                })
+            );
         },
         [app, commandQueue, selectionDispatch, settings]
     );
@@ -526,7 +540,7 @@ export function useNavigationPaneTreeInteractions({
             }
 
             const isVirtualCollection = isVirtualTagCollectionId(canonicalPath);
-            const operator = getTagSearchModifierOperator(event ?? null, settings.multiSelectModifier, isMobile);
+            const operator = getTagSearchModifierOperator(event ?? null, settings.multiSelectModifier);
             if (operator && !isVirtualCollection && canonicalPath !== UNTAGGED_TAG_ID) {
                 if (event) {
                     event.preventDefault();
@@ -565,7 +579,6 @@ export function useNavigationPaneTreeInteractions({
             expansionState.expandedTags,
             expansionState.expandedVirtualFolders,
             handleTagToggle,
-            isMobile,
             onModifySearchWithTag,
             selectionDispatch,
             selectionState.selectedTag,
@@ -619,7 +632,7 @@ export function useNavigationPaneTreeInteractions({
 
     const handlePropertyClick = useCallback(
         (propertyNode: PropertyTreeNode, event?: React.MouseEvent, options?: { fromShortcut?: boolean }) => {
-            const operator = getTagSearchModifierOperator(event ?? null, settings.multiSelectModifier, isMobile);
+            const operator = getTagSearchModifierOperator(event ?? null, settings.multiSelectModifier);
             if (operator) {
                 if (event) {
                     event.preventDefault();
@@ -654,7 +667,6 @@ export function useNavigationPaneTreeInteractions({
             applyTreeSelection,
             expansionState.expandedProperties,
             handlePropertyToggle,
-            isMobile,
             onModifySearchWithProperty,
             selectionDispatch,
             selectionState.selectedProperty,
@@ -665,6 +677,12 @@ export function useNavigationPaneTreeInteractions({
 
     const handleFolderToggleAllSiblings = useCallback(
         (folder: TFolder) => {
+            // Recursive toggle includes the row itself, so a root that is locked open cannot
+            // perform either half of the operation without leaving the tree in a mixed state.
+            if (isFolderExpansionLocked(folder.path, settings.showRootFolder)) {
+                return;
+            }
+
             const isCurrentlyExpanded = expansionState.expandedFolders.has(folder.path);
             handleFolderToggle(folder.path);
             const descendantPaths = getAllDescendantFolders(folder);
@@ -672,7 +690,7 @@ export function useNavigationPaneTreeInteractions({
                 expansionDispatch({ type: 'TOGGLE_DESCENDANT_FOLDERS', descendantPaths, expand: !isCurrentlyExpanded });
             }
         },
-        [expansionDispatch, expansionState.expandedFolders, getAllDescendantFolders, handleFolderToggle]
+        [expansionDispatch, expansionState.expandedFolders, getAllDescendantFolders, handleFolderToggle, settings.showRootFolder]
     );
 
     const handleTagToggleAllSiblings = useCallback(

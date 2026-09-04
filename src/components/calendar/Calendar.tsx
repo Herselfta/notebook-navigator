@@ -41,6 +41,7 @@ import { useLocalDayKey } from '../../hooks/useLocalDayKey';
 import { extractFrontmatterName } from '../../utils/metadataExtractor';
 import { type CalendarNoteKind } from '../../utils/calendarNotes';
 import { escapeMomentLiteralPath } from '../../utils/calendarCustomNotePatterns';
+import { usesMobileChrome } from '../../utils/paneLayout';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
 import { createFileVisibilityChecker } from '../../utils/fileFilters';
 import type { CalendarWeeksToShow } from '../../settings/types';
@@ -87,6 +88,16 @@ export interface CalendarProps {
 }
 
 type HeaderPeriodKind = Extract<CalendarNoteKind, 'month' | 'quarter' | 'year'>;
+
+// Days outside the displayed month render as empty cells when they are hidden, so they carry no note.
+// Every lookup built from the week days (feature images, task indicators, frontmatter titles, visible
+// note files) therefore skips them, and no content is loaded for cells that are not rendered.
+const HIDDEN_DAY_NOTE_TARGET: CalendarNoteTarget = {
+    existingFile: null,
+    visibleFile: null,
+    isHidden: false,
+    targetPath: null
+};
 
 interface CalendarYearMonthBaseEntry {
     date: MomentInstance;
@@ -190,6 +201,10 @@ export function Calendar({
     const hasTagVisibilityRules = activeProfile.hiddenFileTags.length > 0;
     const customCalendarRootFolderSettings = useMemo(() => ({ calendarCustomRootFolder: periodicNotesFolder }), [periodicNotesFolder]);
     const weeksToShowSetting = weeksToShowOverride ?? settings.calendarWeeksToShow;
+    // Only the full month grid starts at the first week of the month, so hiding days from the previous
+    // and next month leaves the remaining days on their weekday columns. Shorter week windows are
+    // centered on the cursor date and would blank most of their cells, so they always show every day.
+    const hideOutsideMonthDays = !settings.calendarShowOutsideMonthDays && clamp(weeksToShowSetting, 1, 6) === 6;
     const fileCache = useFileCacheOptional();
     const [dbFallback, setDbFallback] = useState(() => getDBInstanceOrNull());
     const db = fileCache?.getDB() ?? dbFallback;
@@ -918,7 +933,7 @@ export function Calendar({
                 const date = weekStart.clone().add(dayOffset, 'day').locale(displayLocale);
                 const inMonth = date.month() === targetMonth && date.year() === targetYear;
                 const iso = formatIsoDate(date);
-                const note = getExistingDayNoteTarget(date);
+                const note = !inMonth && hideOutsideMonthDays ? HIDDEN_DAY_NOTE_TARGET : getExistingDayNoteTarget(date);
 
                 days.push({ date, iso, inMonth, note });
             }
@@ -937,6 +952,7 @@ export function Calendar({
         displayLocale,
         effectiveWeekMode,
         getExistingDayNoteTarget,
+        hideOutsideMonthDays,
         isRightSidebar,
         momentApi,
         vaultVersion,
@@ -1193,7 +1209,7 @@ export function Calendar({
                 return false;
             }
 
-            if (!isDateFilterModifierPressed(event, settings.multiSelectModifier, isMobile)) {
+            if (!isDateFilterModifierPressed(event, settings.multiSelectModifier)) {
                 return false;
             }
 
@@ -1208,7 +1224,7 @@ export function Calendar({
             onAddDateFilter(dateToken);
             return true;
         },
-        [clearHoverTooltip, onAddDateFilter, settings.multiSelectModifier, isMobile]
+        [clearHoverTooltip, onAddDateFilter, settings.multiSelectModifier]
     );
 
     const handleSelectYearMonth = useCallback(
@@ -1310,7 +1326,9 @@ export function Calendar({
     const highlightToday = settings.calendarHighlightToday;
     const useRightSidebarYearHeaderInlineDetails = isRightSidebar && showYearCalendar;
     const showYearInHeader = !isRightSidebar || !showYearCalendar;
-    const showHeaderHelpButton = settings.showInfoButtons && !isMobile && useRightSidebarYearHeaderInlineDetails;
+    // Desktop chrome (desktop and tablets) shows the help button; the modal it opens
+    // documents the modifier click gestures, which also work on tablets
+    const showHeaderHelpButton = settings.showInfoButtons && !usesMobileChrome() && useRightSidebarYearHeaderInlineDetails;
     const showInlineMonthNavigation = false;
     const showCompactQuarterInMonthRow = useRightSidebarYearHeaderInlineDetails && settings.calendarShowQuarter;
     const showHeaderPeriodDetails = !useRightSidebarYearHeaderInlineDetails;
@@ -2015,6 +2033,7 @@ export function Calendar({
                     weekStartsOn={weekStartsOn}
                     trailingSpacerWeekCount={trailingSpacerWeekCount}
                     weeks={weeks}
+                    hideOutsideMonthDays={hideOutsideMonthDays}
                     weekNotesEnabled={weekNotesEnabled}
                     weekNoteTargetsByKey={weekNoteTargetsByKey}
                     weekUnfinishedTaskCountByKey={weekUnfinishedTaskCountByKey}

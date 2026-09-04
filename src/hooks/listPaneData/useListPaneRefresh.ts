@@ -20,6 +20,7 @@ import { useEffect, useRef } from 'react';
 import { TFile } from 'obsidian';
 import { debounce } from 'obsidian';
 import type { App, TFolder } from 'obsidian';
+import { getPropertyGroupingKey } from '../../settings/types';
 import type { ListNoteGroupingOption, NotebookNavigatorSettings, PropertySortSecondaryOption, SortOption } from '../../settings/types';
 import { TIMEOUTS } from '../../types/obsidian-extended';
 import { OperationType, type CommandQueueService } from '../../services/CommandQueueService';
@@ -27,7 +28,8 @@ import { shouldExcludeFileWithMatcher } from '../../utils/fileFilters';
 import { shouldRefreshOnFileModifyForSort, shouldRefreshOnMetadataChangeForSort } from '../../utils/sortUtils';
 import type { FileContentChange, IndexedDBStorage } from '../../storage/IndexedDBStorage';
 import type { IPropertyTreeProvider } from '../../interfaces/IPropertyTreeProvider';
-import { ItemType } from '../../types';
+import type { ITagTreeProvider } from '../../interfaces/ITagTreeProvider';
+import { ItemType, TAGGED_TAG_ID, UNTAGGED_TAG_ID } from '../../types';
 import type { PropertySelectionNodeId } from '../../utils/propertyTree';
 import { createFrontmatterPropertyExclusionMatcher } from '../../utils/fileFilters';
 import { getCachedManualSortGroupHeader } from '../../utils/manualSort';
@@ -36,6 +38,7 @@ import { DateUtils } from '../../utils/dateUtils';
 interface UseListPaneRefreshArgs {
     app: App;
     basePathSet: ReadonlySet<string>;
+    cachedCustomGroupHeaderFilePaths: ReadonlySet<string>;
     commandQueue: CommandQueueService | null;
     customGroupHeaderFilePaths: ReadonlySet<string>;
     dayKey: string;
@@ -52,16 +55,29 @@ interface UseListPaneRefreshArgs {
     manualSortGroupHeaderPropertyKey: string | null;
     onRefresh: () => void;
     propertyTreeService: IPropertyTreeProvider | null;
+    tagTreeService: ITagTreeProvider | null;
     selectedFolder: TFolder | null;
     selectedProperty: PropertySelectionNodeId | null;
     selectedTag: string | null;
     selectionType: ItemType | null;
     settings: NotebookNavigatorSettings;
     shouldRefreshOnCustomGroupHeaderMetadataChange: boolean;
+    /** Effective date visibility for the current selection, including per-selection appearance overrides */
+    showFileDate: boolean;
     showHiddenItems: boolean;
     sortOption: SortOption;
     propertySortKey: string;
     propertySortSecondary: PropertySortSecondaryOption;
+}
+
+interface CustomGroupHeaderMetadataRefreshArgs {
+    app: App;
+    basePathSet: ReadonlySet<string>;
+    cachedCustomGroupHeaderFilePaths: ReadonlySet<string>;
+    customGroupHeaderFilePaths: ReadonlySet<string>;
+    file: TFile;
+    manualSortGroupHeaderPropertyKey: string | null;
+    shouldRefreshOnCustomGroupHeaderMetadataChange: boolean;
 }
 
 export function getModifiedSortBoundaryRefreshKey(params: {
@@ -119,6 +135,35 @@ export function hasPropertySearchContentChange(changes: readonly FileContentChan
     return changes.some(change => change.changes.properties !== undefined && basePathSet.has(change.path));
 }
 
+/**
+ * Current metadata detects added headers, while the rendered and count-snapshot paths detect removals
+ * after the header property no longer identifies the file as an owner.
+ */
+export function shouldRefreshForCustomGroupHeaderMetadataChange({
+    app,
+    basePathSet,
+    cachedCustomGroupHeaderFilePaths,
+    customGroupHeaderFilePaths,
+    file,
+    manualSortGroupHeaderPropertyKey,
+    shouldRefreshOnCustomGroupHeaderMetadataChange
+}: CustomGroupHeaderMetadataRefreshArgs): boolean {
+    if (
+        !shouldRefreshOnCustomGroupHeaderMetadataChange ||
+        manualSortGroupHeaderPropertyKey === null ||
+        file.extension !== 'md' ||
+        !basePathSet.has(file.path)
+    ) {
+        return false;
+    }
+
+    if (customGroupHeaderFilePaths.has(file.path) || cachedCustomGroupHeaderFilePaths.has(file.path)) {
+        return true;
+    }
+
+    return getCachedManualSortGroupHeader(app, file, manualSortGroupHeaderPropertyKey) !== null;
+}
+
 function fileIsWithinSelectedFolder(file: TFile, includeDescendantNotes: boolean, selectedFolder: TFolder | null): boolean {
     if (!selectedFolder) {
         return false;
@@ -141,6 +186,7 @@ function fileIsWithinSelectedFolder(file: TFile, includeDescendantNotes: boolean
 export function useListPaneRefresh({
     app,
     basePathSet,
+    cachedCustomGroupHeaderFilePaths,
     commandQueue,
     customGroupHeaderFilePaths,
     dayKey,
@@ -157,12 +203,14 @@ export function useListPaneRefresh({
     manualSortGroupHeaderPropertyKey,
     onRefresh,
     propertyTreeService,
+    tagTreeService,
     selectedFolder,
     selectedProperty,
     selectedTag,
     selectionType,
     settings,
     shouldRefreshOnCustomGroupHeaderMetadataChange,
+    showFileDate,
     showHiddenItems,
     sortOption,
     propertySortKey,
@@ -266,23 +314,42 @@ export function useListPaneRefresh({
         }
         flushPendingWhenIdle();
 
+        // Property and concrete tag lists collect candidate paths from their derived trees. A vault
+        // rename can refresh the list before the corresponding tree replaces the old path, so the
+        // tree update must trigger a second refresh or the renamed note can remain absent.
         let unsubscribePropertyTree: (() => void) | null = null;
         if (selectionType === ItemType.PROPERTY && selectedProperty && propertyTreeService) {
             unsubscribePropertyTree = propertyTreeService.addTreeUpdateListener(() => {
                 queueRefresh();
             });
         }
+        let unsubscribeTagTree: (() => void) | null = null;
+        if (
+            selectionType === ItemType.TAG &&
+            selectedTag &&
+            selectedTag !== TAGGED_TAG_ID &&
+            selectedTag !== UNTAGGED_TAG_ID &&
+            tagTreeService
+        ) {
+            unsubscribeTagTree = tagTreeService.addTreeUpdateListener(() => {
+                queueRefresh();
+            });
+        }
 
         const shouldRefreshOnFileModify = shouldRefreshOnFileModifyForSort(sortOption, propertySortSecondary);
-        const shouldRefreshOnMetadataChange = shouldRefreshOnMetadataChangeForSort({
-            sortOption,
-            propertySortKey,
-            propertySortSecondary,
-            useFrontmatterMetadata: settings.useFrontmatterMetadata,
-            frontmatterNameField: settings.frontmatterNameField,
-            frontmatterCreatedField: settings.frontmatterCreatedField,
-            frontmatterModifiedField: settings.frontmatterModifiedField
-        });
+        // Property grouping reads frontmatter at list build time, so an edited grouping value must
+        // rebuild group membership even when the active sort ignores metadata changes.
+        const shouldRefreshOnMetadataChange =
+            getPropertyGroupingKey(groupBy) !== null ||
+            shouldRefreshOnMetadataChangeForSort({
+                sortOption,
+                propertySortKey,
+                propertySortSecondary,
+                useFrontmatterMetadata: settings.useFrontmatterMetadata,
+                frontmatterNameField: settings.frontmatterNameField,
+                frontmatterCreatedField: settings.frontmatterCreatedField,
+                frontmatterModifiedField: settings.frontmatterModifiedField
+            });
 
         const vaultEvents = [
             app.vault.on('create', () => {
@@ -317,7 +384,7 @@ export function useListPaneRefresh({
                             previousBoundaryRefreshKey,
                             boundaryRefreshKey,
                             hasDateSearchFilters,
-                            showFileDate: settings.showFileDate,
+                            showFileDate,
                             showTooltips: settings.showTooltips
                         })
                     ) {
@@ -347,6 +414,23 @@ export function useListPaneRefresh({
                 const isCurrentlyExcluded = shouldExcludeFileWithMatcher(file, hiddenFilePropertyMatcher, app);
                 return isCurrentlyExcluded !== wasExcluded;
             };
+
+            // This check must precede the selection-specific returns because cached search grouping
+            // applies to every selection; otherwise tag and property events leave stale boundaries.
+            if (
+                shouldRefreshForCustomGroupHeaderMetadataChange({
+                    app,
+                    basePathSet,
+                    cachedCustomGroupHeaderFilePaths,
+                    customGroupHeaderFilePaths,
+                    file,
+                    manualSortGroupHeaderPropertyKey,
+                    shouldRefreshOnCustomGroupHeaderMetadataChange
+                })
+            ) {
+                queueRefresh();
+                return;
+            }
 
             if (selectionType === ItemType.TAG && selectedTag) {
                 if (file.extension !== 'md') {
@@ -382,17 +466,6 @@ export function useListPaneRefresh({
 
             if (selectionType !== ItemType.FOLDER || !fileIsWithinSelectedFolder(file, includeDescendantNotes, selectedFolder)) {
                 return;
-            }
-
-            if (shouldRefreshOnCustomGroupHeaderMetadataChange && file.extension === 'md' && basePathSet.has(file.path)) {
-                const hadVisibleHeader = customGroupHeaderFilePaths.has(file.path);
-                const hasCurrentHeader =
-                    manualSortGroupHeaderPropertyKey !== null &&
-                    getCachedManualSortGroupHeader(app, file, manualSortGroupHeaderPropertyKey) !== null;
-                if (hadVisibleHeader || hasCurrentHeader) {
-                    queueRefresh();
-                    return;
-                }
             }
 
             if (hiddenFilePropertyMatcher.hasCriteria && file.extension === 'md') {
@@ -488,11 +561,13 @@ export function useListPaneRefresh({
             dbUnsubscribe();
             unsubscribeOperationQueue?.();
             unsubscribePropertyTree?.();
+            unsubscribeTagTree?.();
             scheduleRefresh.cancel();
         };
     }, [
         app,
         basePathSet,
+        cachedCustomGroupHeaderFilePaths,
         commandQueue,
         customGroupHeaderFilePaths,
         dayKey,
@@ -508,6 +583,7 @@ export function useListPaneRefresh({
         includeDescendantNotes,
         manualSortGroupHeaderPropertyKey,
         propertyTreeService,
+        tagTreeService,
         selectedFolder,
         selectedProperty,
         selectedTag,
@@ -519,7 +595,7 @@ export function useListPaneRefresh({
         propertySortKey,
         propertySortSecondary,
         settings.showFileBackgroundUnfinishedTask,
-        settings.showFileDate,
+        showFileDate,
         settings.showTooltips,
         settings.useFrontmatterMetadata,
         settings.wordCountTargetProperty,

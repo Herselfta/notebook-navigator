@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { DropdownComponent, Platform } from 'obsidian';
+import { DropdownComponent } from 'obsidian';
 import type { Setting, SettingDefinitionGroup } from 'obsidian';
 import { strings } from '../../i18n';
 import { EditVaultProfilesModal } from '../../modals/EditVaultProfilesModal';
@@ -31,16 +31,13 @@ import {
     validateVaultProfileNameOrNotify
 } from '../../utils/vaultProfiles';
 import { showNotice } from '../../utils/noticeUtils';
+import { usesMobileChrome } from '../../utils/paneLayout';
 import { addSettingSyncModeToggle } from '../syncModeToggle';
 import type { VaultProfilePropertyKey } from '../types';
 import { isVaultTitleOption } from '../types';
 import { createGroupDefinition, createRenderDefinition } from '../nativeSettingControls';
 import { createSettingGroupFactory } from '../settingGroups';
 import type { SettingsTabContext } from './SettingsTabContext';
-
-interface VaultSetupSectionOptions {
-    heading?: string;
-}
 
 interface VaultSetupRenderers {
     renderProfileSetting(setting: Setting): void;
@@ -51,19 +48,19 @@ interface VaultSetupRenderers {
 
 /** Renders the vault setup section inside the General settings page. */
 export function renderGeneralVaultSetupSection(context: SettingsTabContext): void {
-    renderVaultSetupSection(context, {
-        heading: strings.settings.groups.general.vaultConfiguration
-    });
+    renderVaultSetupSection(context);
 }
 
-function renderVaultSetupSection(context: SettingsTabContext, options: VaultSetupSectionOptions): void {
+function renderVaultSetupSection(context: SettingsTabContext): void {
     const { containerEl } = context;
     const renderers = createVaultSetupRenderers(context);
     const createGroup = createSettingGroupFactory(containerEl);
-    const vaultSetupGroup = createGroup(options.heading);
+    const vaultSetupGroup = createGroup(undefined);
 
     vaultSetupGroup.addSetting(setting => renderers.renderProfileSetting(setting));
-    if (!Platform.isMobile) {
+    // The vault title places the profile selector in the desktop chrome (desktop and
+    // tablets); phones render the profile trigger in the mobile header instead
+    if (!usesMobileChrome()) {
         vaultSetupGroup.addSetting(setting => renderers.renderVaultTitleSetting(setting));
     }
     vaultSetupGroup.addSetting(setting => renderers.renderFileVisibilitySetting(setting));
@@ -79,30 +76,32 @@ export function createVaultSetupSettingDefinitions(context: SettingsTabContext):
             render: setting => renderers.renderProfileSetting(setting)
         }),
         createRenderDefinition({
-            name: strings.settings.items.fileVisibility.name,
-            desc: strings.settings.items.fileVisibility.desc,
+            name: strings.settings.items.showFileTypes.name,
+            desc: strings.settings.items.showFileTypes.desc,
             render: setting => renderers.renderFileVisibilitySetting(setting)
         }),
         createRenderDefinition({
-            name: strings.settings.items.propertyFields.name,
-            desc: strings.settings.items.propertyFields.desc,
+            name: strings.settings.items.propertyKeys.name,
+            desc: strings.settings.items.propertyKeys.desc,
             render: setting => renderers.renderPropertyKeysSetting(setting)
         })
     ];
 
-    if (!Platform.isMobile) {
+    // The vault title places the profile selector in the desktop chrome (desktop and
+    // tablets); phones render the profile trigger in the mobile header instead
+    if (!usesMobileChrome()) {
         items.splice(
             1,
             0,
             createRenderDefinition({
-                name: strings.settings.items.vaultTitle.name,
-                desc: strings.settings.items.vaultTitle.desc,
+                name: strings.settings.items.vaultTitlePlacement.name,
+                desc: strings.settings.items.vaultTitlePlacement.desc,
                 render: setting => renderers.renderVaultTitleSetting(setting)
             })
         );
     }
 
-    return [createGroupDefinition(strings.settings.groups.general.vaultConfiguration, items)];
+    return [createGroupDefinition(undefined, items)];
 }
 
 function createVaultSetupRenderers(context: SettingsTabContext): VaultSetupRenderers {
@@ -131,16 +130,16 @@ function createVaultSetupRenderers(context: SettingsTabContext): VaultSetupRende
         const configuredKeys = propertyKeys.map(entry => entry.key.trim()).filter(key => key.length > 0);
         const configuredCount = configuredKeys.length;
         if (configuredCount === 0) {
-            return strings.settings.items.propertyFields.noneConfigured;
+            return strings.settings.items.propertyKeys.noneConfigured;
         }
 
         const visibleKeys = configuredKeys.slice(0, 5);
         const keyList = configuredCount > visibleKeys.length ? `${visibleKeys.join(', ')}, ...` : visibleKeys.join(', ');
         if (configuredCount === 1) {
-            return strings.settings.items.propertyFields.singleConfigured.replace('{properties}', keyList);
+            return strings.settings.items.propertyKeys.singleConfigured.replace('{properties}', keyList);
         }
 
-        return strings.settings.items.propertyFields.multipleConfigured
+        return strings.settings.items.propertyKeys.multipleConfigured
             .replace('{count}', configuredCount.toString())
             .replace('{properties}', keyList);
     };
@@ -278,12 +277,12 @@ function createVaultSetupRenderers(context: SettingsTabContext): VaultSetupRende
 
     const renderVaultTitleSetting = (setting: Setting): void => {
         setting
-            .setName(strings.settings.items.vaultTitle.name)
-            .setDesc(strings.settings.items.vaultTitle.desc)
+            .setName(strings.settings.items.vaultTitlePlacement.name)
+            .setDesc(strings.settings.items.vaultTitlePlacement.desc)
             .addDropdown(dropdown =>
                 dropdown
-                    .addOption('header', strings.settings.items.vaultTitle.options.header)
-                    .addOption('navigation', strings.settings.items.vaultTitle.options.navigation)
+                    .addOption('header', strings.settings.items.vaultTitlePlacement.options.header)
+                    .addOption('navigation', strings.settings.items.vaultTitlePlacement.options.navigation)
                     .setValue(plugin.settings.vaultTitle)
                     .onChange(async value => {
                         if (!isVaultTitleOption(value)) {
@@ -297,14 +296,14 @@ function createVaultSetupRenderers(context: SettingsTabContext): VaultSetupRende
 
     const renderFileVisibilitySetting = (setting: Setting): void => {
         setting
-            .setName(strings.settings.items.fileVisibility.name)
-            .setDesc(strings.settings.items.fileVisibility.desc)
+            .setName(strings.settings.items.showFileTypes.name)
+            .setDesc(strings.settings.items.showFileTypes.desc)
             .addDropdown(dropdown => {
                 fileVisibilityDropdown = dropdown;
                 dropdown
-                    .addOption(FILE_VISIBILITY.DOCUMENTS, strings.settings.items.fileVisibility.options.documents)
-                    .addOption(FILE_VISIBILITY.SUPPORTED, strings.settings.items.fileVisibility.options.supported)
-                    .addOption(FILE_VISIBILITY.ALL, strings.settings.items.fileVisibility.options.all)
+                    .addOption(FILE_VISIBILITY.DOCUMENTS, strings.settings.items.showFileTypes.options.documents)
+                    .addOption(FILE_VISIBILITY.SUPPORTED, strings.settings.items.showFileTypes.options.supported)
+                    .addOption(FILE_VISIBILITY.ALL, strings.settings.items.showFileTypes.options.all)
                     .setValue(getActiveProfile()?.fileVisibility ?? FILE_VISIBILITY.SUPPORTED)
                     .onChange(async value => {
                         if (!isFileVisibility(value)) {
@@ -322,7 +321,7 @@ function createVaultSetupRenderers(context: SettingsTabContext): VaultSetupRende
     };
 
     const renderPropertyKeysSetting = (propertyKeysSetting: Setting): void => {
-        propertyKeysSetting.setName(strings.settings.items.propertyFields.name).setDesc(strings.settings.items.propertyFields.desc);
+        propertyKeysSetting.setName(strings.settings.items.propertyKeys.name).setDesc(strings.settings.items.propertyKeys.desc);
 
         const propertyKeysCountLineEl = propertyKeysSetting.descEl.createDiv({
             cls: 'nn-setting-property-keys-count-line'
@@ -330,7 +329,7 @@ function createVaultSetupRenderers(context: SettingsTabContext): VaultSetupRende
         propertyKeysSummaryTextEl = propertyKeysCountLineEl.createSpan({ cls: 'nn-setting-property-keys-summary-text' });
 
         propertyKeysSetting.addButton(button =>
-            button.setButtonText(strings.settings.items.propertyFields.addButtonTooltip).onClick(() => {
+            button.setButtonText(strings.settings.items.propertyKeys.addButtonTooltip).onClick(() => {
                 const activeProfile = getActiveProfile();
                 if (!activeProfile) {
                     return;

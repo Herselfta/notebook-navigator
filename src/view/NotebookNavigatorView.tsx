@@ -33,6 +33,7 @@ import { UIStateProvider } from '../context/UIStateContext';
 import { ShortcutsProvider } from '../context/ShortcutsContext';
 import { RecentDataProvider } from '../context/RecentDataContext';
 import { InternalDragSessionProvider } from '../context/InternalDragContext';
+import { TooltipProvider } from '../context/TooltipContext';
 import { strings } from '../i18n';
 import type NotebookNavigatorPlugin from '../main';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
@@ -49,15 +50,11 @@ export const IOS_FLOATING_TOOLBARS_CLASS = 'notebook-navigator-ios-floating-tool
 
 let viewInstanceCounter = 0;
 
-export function setupNotebookNavigatorViewContainer(
-    container: HTMLElement,
-    options?: { useFloatingToolbars?: boolean }
-): { isMobile: boolean } {
+export function setupNotebookNavigatorViewContainer(container: HTMLElement, options?: { useFloatingToolbars?: boolean }): void {
     container.empty();
     container.classList.add('notebook-navigator');
 
-    const isMobile = Platform.isMobile;
-    if (isMobile) {
+    if (Platform.isMobile) {
         container.classList.add('notebook-navigator-mobile');
 
         if (Platform.isAndroidApp) {
@@ -73,7 +70,6 @@ export function setupNotebookNavigatorViewContainer(
     }
 
     ensureNotebookNavigatorSvgFilters();
-    return { isMobile };
 }
 
 export function teardownNotebookNavigatorViewContainer(container: HTMLElement): void {
@@ -177,7 +173,7 @@ export class NotebookNavigatorView extends ItemView {
         this.componentHandle = null;
         this.viewContainer = container;
         this.wasMobileContainerVisible = false;
-        const { isMobile } = setupNotebookNavigatorViewContainer(container, {
+        setupNotebookNavigatorViewContainer(container, {
             useFloatingToolbars: this.plugin.settings.useFloatingToolbars
         });
 
@@ -206,11 +202,12 @@ export class NotebookNavigatorView extends ItemView {
                                                     this.plugin.registerFileRenameListener(listenerId, callback)
                                                 }
                                                 onFileRenameUnsubscribe={listenerId => this.plugin.unregisterFileRenameListener(listenerId)}
-                                                isMobile={isMobile}
                                             >
-                                                <UIStateProvider isMobile={isMobile}>
+                                                <UIStateProvider>
                                                     <InternalDragSessionProvider>
-                                                        <NotebookNavigatorContainer ref={this.setComponentHandle} />
+                                                        <TooltipProvider>
+                                                            <NotebookNavigatorContainer ref={this.setComponentHandle} />
+                                                        </TooltipProvider>
                                                     </InternalDragSessionProvider>
                                                 </UIStateProvider>
                                             </SelectionProvider>
@@ -544,6 +541,13 @@ export class NotebookNavigatorView extends ItemView {
      */
     triggerCollapse(): void {
         this.componentHandle?.triggerCollapse();
+    }
+
+    /**
+     * Trigger list-pane group header collapse/expand
+     */
+    triggerListGroupCollapse(): boolean {
+        return this.componentHandle?.triggerListGroupCollapse() ?? false;
     }
 
     /**

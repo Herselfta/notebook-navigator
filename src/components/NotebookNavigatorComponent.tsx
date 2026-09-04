@@ -56,7 +56,13 @@ import { deleteSelectedFiles } from '../utils/deleteOperations';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
 import { getNavigationPaneSizing } from '../utils/paneSizing';
 import { getAndroidFontScale } from '../utils/androidFontScale';
-import { getBackgroundClasses } from '../utils/paneLayout';
+import {
+    getBackgroundClasses,
+    getSinglePaneEntryView,
+    isDualPaneSupported,
+    isResolvedDualPaneLayout,
+    supportsKeyboardInteractions
+} from '../utils/paneLayout';
 import { confirmRemoveAllTagsFromFiles, openAddTagToFilesModal, removeTagFromFilesWithPrompt } from '../utils/tagModalHelpers';
 import { normalizeTagPath } from '../utils/tagUtils';
 import { getTemplaterCreateNewNoteFromTemplate } from '../utils/templaterIntegration';
@@ -166,6 +172,7 @@ export interface NotebookNavigatorHandle {
     toggleSearch: () => void;
     searchWithDescendants: () => void;
     triggerCollapse: () => void;
+    triggerListGroupCollapse: () => boolean;
     triggerSelectedItemCollapse: () => boolean;
     stopContentProcessing: () => void;
     rebuildCache: () => Promise<void>;
@@ -230,7 +237,6 @@ export const NotebookNavigatorComponent = React.memo(
             selectedFolderFileVersionForFolderNoteSidebar,
             selectedFolderForFolderNoteSidebar,
             settings.enableFolderNotes,
-            settings.folderNoteName,
             settings.folderNoteNamePattern,
             settings.folderNoteOpenLocation,
             settings.showNearestFolderNoteInSidebar
@@ -281,7 +287,9 @@ export const NotebookNavigatorComponent = React.memo(
         const [suppressPaneTransitions, setSuppressPaneTransitions] = useState(false);
         const navigationPaneRef = useRef<NavigationPaneHandle | null>(null);
         const listPaneRef = useRef<ListPaneHandle | null>(null);
-        const lastDualPaneRef = useRef(uiState.dualPane);
+        // Layout is provisional until the container is measured. Recording that initial
+        // calculation as dual pane would make a narrow startup look like a later resize.
+        const lastDualPaneRef = useRef(isResolvedDualPaneLayout(uiState.dualPane, uiState.containerWidth));
         const auxClickStateRef = useRef<AuxClickState>({
             mouseBackForwardAction: settings.mouseBackForwardAction,
             singlePane: uiState.singlePane,
@@ -398,6 +406,12 @@ export const NotebookNavigatorComponent = React.memo(
             }
 
             const reportWidth = (width: number) => {
+                // Mobile drawers report zero width while hidden. Keeping the last real width
+                // prevents the narrow-sidebar fallback from switching layouts while the drawer
+                // is closed and switching back when it reopens.
+                if (width <= 0) {
+                    return;
+                }
                 uiDispatch({ type: 'SET_CONTAINER_WIDTH', width });
             };
 
@@ -430,12 +444,13 @@ export const NotebookNavigatorComponent = React.memo(
         const hasInitializedSinglePane = useRef(false);
         const preferredSinglePaneView = useRef<'navigation' | 'files'>(settings.startView === 'navigation' ? 'navigation' : 'files');
 
-        // Switch to preferred view when entering single pane (desktop only)
+        // Switch to preferred view when entering single pane. Runs only where dual pane is
+        // supported (desktop and tablet); phones are always single pane and track the visible
+        // view through user navigation instead.
         useLayoutEffect(() => {
             const wasDualPane = lastDualPaneRef.current;
-            lastDualPaneRef.current = uiState.dualPane;
 
-            if (isMobile) {
+            if (!isDualPaneSupported()) {
                 return;
             }
 
@@ -449,21 +464,35 @@ export const NotebookNavigatorComponent = React.memo(
             }
 
             hasInitializedSinglePane.current = true;
+            const targetView = getSinglePaneEntryView({
+                preferredView: preferredSinglePaneView.current,
+                wasDualPane
+            });
 
             if (wasDualPane) {
                 setSuppressPaneTransitions(true);
                 const raf = window.requestAnimationFrame(() => {
                     setSuppressPaneTransitions(false);
                 });
-                uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
+                uiDispatch({ type: 'ACTIVATE_PANE', target: targetView });
                 return () => {
                     window.cancelAnimationFrame(raf);
                 };
             }
 
-            const preferredView = preferredSinglePaneView.current;
-            uiDispatch({ type: 'ACTIVATE_PANE', target: preferredView });
-        }, [isMobile, uiDispatch, uiState.dualPane]);
+            uiDispatch({ type: 'ACTIVATE_PANE', target: targetView });
+        }, [uiDispatch, uiState.dualPane]);
+
+        useLayoutEffect(() => {
+            if (uiState.containerWidth === null) {
+                return;
+            }
+
+            // This effect must remain after the entry effect because that effect reads the previous
+            // resolved layout. It also records the first measurement when dualPane stays unchanged;
+            // otherwise the next responsive fallback would still be mistaken for startup.
+            lastDualPaneRef.current = isResolvedDualPaneLayout(uiState.dualPane, uiState.containerWidth);
+        }, [uiState.containerWidth, uiState.dualPane]);
 
         useEffect(() => {
             if (!uiState.singlePane) {
@@ -942,7 +971,7 @@ export const NotebookNavigatorComponent = React.memo(
                     }
                     return navHandle.openShortcutByNumber(shortcutNumber);
                 },
-                isDualPaneAutoFallbackActive: () => plugin.useDualPane() && !isMobile && uiState.singlePane,
+                isDualPaneAutoFallbackActive: () => plugin.useDualPane() && isDualPaneSupported() && uiState.singlePane,
                 deleteSelectedFiles: () => {
                     runAsyncAction(async () => {
                         if (!selectionState.selectedFile && selectionState.selectedFiles.size === 0) {
@@ -1276,6 +1305,9 @@ export const NotebookNavigatorComponent = React.memo(
                         ensureSelectedNavigationItemVisible();
                     });
                 },
+                triggerListGroupCollapse: () => {
+                    return listPaneRef.current?.toggleGroupExpansion() ?? false;
+                },
                 triggerSelectedItemCollapse: () => {
                     const didToggle = navigationPaneRef.current?.triggerSelectedItemCollapse() ?? false;
                     if (didToggle) {
@@ -1300,7 +1332,6 @@ export const NotebookNavigatorComponent = React.memo(
             uiState.singlePane,
             uiState.currentSinglePaneView,
             preserveNavigationFocusForModal,
-            isMobile,
             app,
             settings,
             plugin,
@@ -1502,7 +1533,7 @@ export const NotebookNavigatorComponent = React.memo(
                     data-focus-pane={
                         uiState.singlePane ? (uiState.currentSinglePaneView === 'navigation' ? 'navigation' : 'files') : uiState.focusedPane
                     }
-                    data-navigator-focused={isMobile ? 'true' : isNavigatorFocused}
+                    data-navigator-focused={supportsKeyboardInteractions() ? isNavigatorFocused : 'true'}
                     data-nav-count-leader-style={settings.navCountLeaderStyle}
                     tabIndex={-1}
                     onKeyDown={() => {
@@ -1526,6 +1557,8 @@ export const NotebookNavigatorComponent = React.memo(
                         navigationSourceState={navigationSourceState}
                         navigationTreeSections={navigationTreeSections}
                         folderDecorationModel={folderDecorationModel}
+                        fileItemPillDecorationModel={fileItemPillDecorationModel}
+                        fileItemPillOrderModel={fileItemPillOrderModel}
                         navRainbowState={navRainbowState}
                         searchNavFilters={searchNavFilters}
                         onExecuteSearchShortcut={handleSearchShortcutExecution}

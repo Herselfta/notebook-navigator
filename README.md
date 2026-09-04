@@ -149,6 +149,8 @@ Filters files by display name, alias, tags, properties, dates, folders, extensio
 - `word` - Match notes with "word" in the display name or an alias
 - `word1 word2` - Require every word to match across the display name and aliases
 - `-word` - Exclude notes with "word" in the display name or an alias
+- `".F"` - Match text literally; a term that opens with a double quote is never interpreted as a tag, property, date, or filter (e.g., `".F"` matches names containing `.F` instead of filtering on a property)
+- `-".F"` - Exclude notes with the literal text in the display name or an alias
 
 **Tags**
 
@@ -217,8 +219,8 @@ Note previews show Omnisearch result excerpts instead of the default preview tex
 **Known limitations**
 
 - **Performance** - Can be slow when searching for fewer than 3 characters in large vaults
-- **Path filters** - Folder scoping is sent to Omnisearch only for simple ASCII paths. Other paths are filtered after Omnisearch returns results
-- **Limited results** - Omnisearch searches the entire vault and returns a limited number of results before filtering, so relevant files from the current folder may not appear if many matches exist elsewhere
+- **Path filters** - Folder scoping is sent to Omnisearch for all folder paths except names containing `"` or `,`. Folder names with non-ASCII characters require Omnisearch 1.30.0 or later. Results are always filtered to the current view after Omnisearch returns
+- **Limited results** - Omnisearch returns at most 50 results. When searching in a folder, the limit covers the folder and its subfolders, so subfolder matches count toward the limit even when `Show notes from subfolders` is disabled
 - **Preview text** - Note previews are replaced with Omnisearch result excerpts, which may not show the actual search match highlight if it appears elsewhere in the file
 
 <br/>
@@ -293,7 +295,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Add to shortcuts` Adds or removes the current file, folder, tag, or property from shortcuts
 - `Notebook Navigator: Open shortcut 1-9` Opens shortcut by its position in the shortcuts list
 - `Notebook Navigator: Search` Opens quick search field or focuses it if already open. Search persists between sessions. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+S` for quick file filtering
-- `Notebook Navigator: Search whole vault` Selects the vault root folder and opens search with subfolders included (requires `Show root folder` enabled)
+- `Notebook Navigator: Search whole vault` Selects the vault root folder and opens search with subfolders included (available when either `Show root folder` or `Show hidden items` is enabled)
 
 **Selection**
 
@@ -302,7 +304,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 
 **Layout & display**
 
-- `Notebook Navigator: Toggle dual pane layout` Toggle single/dual-pane layout (desktop). **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+A` to quickly switch between single-pane and dual-pane layout
+- `Notebook Navigator: Toggle dual pane layout` Toggle single/dual-pane layout (desktop and tablet). **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+A` to quickly switch between single-pane and dual-pane layout
 - `Notebook Navigator: Toggle dual pane orientation` Toggle dual-pane orientation between horizontal and vertical
 - `Notebook Navigator: Toggle descendants` Toggle subfolders / descendants notes display for folders and tags. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+D` to quickly toggle display of notes from subfolders / descendants
 - `Notebook Navigator: Toggle hidden folders, tags, and notes` Show or hide hidden folders, tags, and notes
@@ -311,7 +313,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Toggle properties by selection` Toggle limiting properties to those found in notes within the selected folder or tag
 - `Notebook Navigator: Toggle compact mode` Toggle list mode between standard and compact
 - `Notebook Navigator: Toggle pinned section` Show or hide pinned notes in the list pane
-- `Notebook Navigator: Collapse / expand all items` Collapse or expand all items based on the current state. When `Keep selected item expanded` is enabled (default on), all folders except the current one will be collapsed. This is handy to keep the navigation tree tidy when searching for documents
+- `Notebook Navigator: Collapse / expand all navigation items` Collapse or expand all navigation items based on the current state. When `Keep selected item expanded` is enabled (default on), all folders except the current one will be collapsed. This is handy to keep the navigation tree tidy when searching for documents
 - `Notebook Navigator: Collapse / expand selected item` Collapse or expand the selected navigation item
 
 **Calendar**
@@ -394,7 +396,8 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 | `notebook-navigator:toggle-properties-by-selection` | Notebook Navigator: Toggle properties by selection         |
 | `notebook-navigator:toggle-compact-mode`            | Notebook Navigator: Toggle compact mode                    |
 | `notebook-navigator:toggle-pinned-section`          | Notebook Navigator: Toggle pinned section                  |
-| `notebook-navigator:collapse-expand`                | Notebook Navigator: Collapse / expand all items            |
+| `notebook-navigator:collapse-expand-list-groups`    | Notebook Navigator: Collapse / expand all list groups      |
+| `notebook-navigator:collapse-expand`                | Notebook Navigator: Collapse / expand all navigation items |
 | `notebook-navigator:collapse-expand-selected-item`  | Notebook Navigator: Collapse / expand selected item        |
 | `notebook-navigator:new-note`                       | Notebook Navigator: Create new note                        |
 | `notebook-navigator:new-note-from-template`         | Notebook Navigator: Create new note from template          |
@@ -424,7 +427,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - **Single-pane mode** - Navigation and list views with animated transitions
 - **Resizable panes** - Horizontal or vertical split orientation
 - **Independent UI zoom** - Scale Notebook Navigator without changing Obsidian zoom
-- **Startup view** - Navigation-first or list-first
+- **Single-pane startup view** - Navigation pane or list pane
 - **Multi-language support** - 21 languages with RTL layout support
 - **Interface icon set** - Customizable UI icons across the plugin
 
@@ -458,8 +461,10 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - **Thumbnails** - Featured images plus auto-generated thumbnails for PDF, SVG, and drawing files stored in the metadata cache
 - **External images** - Optional downloads for external images and YouTube thumbnails
 - **Date grouping** - Group notes by Today, Yesterday, Previous 7 days, Previous 30 days, months, and years when sorted by date
+- **Property grouping** - Group notes by a frontmatter property value, matching group by in Obsidian Bases: notes sharing the same value collect under one header, notes without the property go into a trailing None group, and groups sort by value with natural ordering
 - **Frontmatter support** - Read note names and timestamps from frontmatter fields
 - **Note metadata** - Show modification date and tags in the file list
+- **Task status** - Show task progress in standard rows and optionally replace file icons for unfinished tasks in compact or all display modes
 - **Custom properties** - Display frontmatter properties or word count in file list with per-folder/tag overrides and custom colors
 - **Parent folder display** - Optional parent folder name and icon in file list
 - **Compact mode** - Compact display when preview, date, and images are disabled
@@ -499,7 +504,7 @@ Notebook Navigator runs locally, but some features make HTTP requests from Obsid
 
 - **Feature images (Optional):** Controlled by the "Download external images" setting. Downloads remote images and YouTube thumbnails for feature images and stores them locally in IndexedDB.
 - **Welcome modal (First launch):** Loads a YouTube thumbnail from `https://img.youtube.com/vi/<id>/...`.
-- **What's new modal (On update / when opened):** Loads release banner images from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/version-banners/<id>.jpg` for release notes that include a banner.
+- **What's new modal (On update / when opened):** Loads release banner images from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/version-banners/<filename>` using the filename and extension declared by the release note.
 - **What's new modal (On update / when opened):** Loads release videos from `https://raw.githubusercontent.com/johansan/notebook-navigator/main/images/version-banners/<id>.mp4` for release notes that include a video.
 - **What's new modal (When opening a release video):** Opens release videos from `https://cdn.jsdelivr.net/gh/johansan/notebook-navigator@main/images/version-banners/<id>.mp4` so browsers can play the video directly.
 - **What's new modal (On update / when opened):** Loads YouTube thumbnails from `https://img.youtube.com/vi/<id>/...` for release notes that include a YouTube link.

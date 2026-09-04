@@ -21,6 +21,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1
 - Generates icon constants from `icon.svg`
 - Runs ESLint to check for code quality issues
 - Runs Stylelint and regenerates `styles.css`
+- Checks for unused localization keys and locale schema mismatches
 - Validates TypeScript types
 - Checks for unused imports and dead code
 - Formats code with Prettier
@@ -33,7 +34,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1
 
 - The build MUST complete with zero errors and zero warnings
 - The build summary must show "✅ No warnings"
-- Any lint, type-check, test, or warning failure will abort the deployment
+- Any lint, localization, type-check, test, or warning failure will abort the deployment
 - Node.js `>=24.0.0` is required by `package.json`
 
 ## build-icons.mjs
@@ -66,6 +67,8 @@ npm run build:styles
 
 - Reads import order from `src/styles/index.css`
 - Concatenates files from `src/styles/sections/*`
+- Validates theming variables, defaults, grouping, ordering, Style Settings exclusions, and the complete example against
+  `docs/theming-guide.md`
 - Writes the generated `styles.css` file only when content changes
 - Used by `npm run build`, `npm run lint:styles`, and `./scripts/build.sh`
 
@@ -175,11 +178,14 @@ cp main.js manifest.json styles.css ~/Documents/ObsidianVault/.obsidian/plugins/
 Finds unused i18n keys in `src/i18n/locales/en.ts` by scanning for `strings.<keyPath>` usage across `src` (excluding `src/i18n/locales`). Also validates that every locale file matches the English locale shape.
 
 ```bash
+npm run check:strings
 node scripts/check-unused-strings.mjs          # Report and prompt before removing unused keys
 node scripts/check-unused-strings.mjs --check  # Exit non-zero if unused keys or locale shape issues exist
 node scripts/check-unused-strings.mjs --fix    # Remove unused keys without prompting
 node scripts/check-unused-strings.mjs --project-root /path/to/project-root
 ```
+
+`npm run build` runs `npm run check:strings` before TypeScript validation and bundling. This also covers the main build scripts and release workflow.
 
 To keep an intentionally dynamic key, add an allowlist comment:
 
@@ -223,39 +229,3 @@ Runs the icon pack updater from `icon-assets/scripts/update-icon-packs.ts`.
 - Uses `npx tsx` to run the TypeScript updater
 - Supports updating all packs or selected pack IDs
 - Supports check-only, forced update, and local manifest regeneration modes
-
-## benchmark-startup.mjs
-
-Builds a temporary production bundle and measures plugin startup load paths with Obsidian and Electron mocked.
-
-**Usage:**
-
-```bash
-node scripts/benchmark-startup.mjs
-node scripts/benchmark-startup.mjs --samples=100 --language=zh-CN
-node scripts/benchmark-startup.mjs --mode=onload
-node scripts/benchmark-startup.mjs --target=es2022 --charset=utf8
-```
-
-**Features:**
-
-- Defaults to `--samples=25`, `--language=en`, `--mode=require`, `--target=es2022`, and `--charset=utf8`
-- Reports bundle bytes, gzip bytes, timing summaries, top input groups, and top input files as JSON
-- Uses `--mode=onload` to include mocked plugin `onload()` execution
-
-## benchmark-edit-hotpath.mjs
-
-Runs local benchmarks for edit-time metadata, list refresh, and calendar refresh hot paths.
-
-**Usage:**
-
-```bash
-node scripts/benchmark-edit-hotpath.mjs
-node scripts/benchmark-edit-hotpath.mjs --samples=100
-```
-
-**Features:**
-
-- Defaults to `--samples=50`
-- Bundles a temporary runner with the test Obsidian stub
-- Reports median, p95, mean, min, and max timings for each scenario

@@ -29,7 +29,7 @@ import { resolvePropertyShortcutNodeId } from '../../utils/propertyTree';
 import { resolveCanonicalTagPath } from '../../utils/tagUtils';
 import { runAsyncAction } from '../../utils/async';
 import { openFileInContext } from '../../utils/openFileInContext';
-import { getFolderNote, openFolderNoteFile, type FolderNoteOpenContext } from '../../utils/folderNotes';
+import { getFolderNote, openFolderNoteFile, revealFolderNoteInNavigator, type FolderNoteOpenContext } from '../../utils/folderNotes';
 import { resolveFolderNoteClickOpenContext, shouldOpenNoteClickInNewTab } from '../../utils/keyboardOpenContext';
 import { ItemType } from '../../types';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../useNavigatorReveal';
@@ -170,13 +170,9 @@ export function useNavigationPaneShortcutActions({
 
             const wasSelectedFolder = selectionType === ItemType.FOLDER && selectedFolder?.path === folder.path;
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
-            const openContext = resolveFolderNoteClickOpenContext(
-                event,
-                settings.folderNoteOpenLocation,
-                settings.multiSelectModifier,
-                isMobile
-            );
+            const openContext = resolveFolderNoteClickOpenContext(event, settings.folderNoteOpenLocation, settings.multiSelectModifier);
             focusListPaneAfterRightSidebarFolderNoteSelection(openContext);
+            revealFolderNoteInNavigator(selectionDispatch, folderNote);
             if (openContext === 'right-sidebar' && settings.showNearestFolderNoteInSidebar && !wasSelectedFolder) {
                 scheduleShortcutRelease();
                 return;
@@ -199,7 +195,6 @@ export function useNavigationPaneShortcutActions({
             commandQueue,
             focusListPaneAfterRightSidebarFolderNoteSelection,
             handleShortcutFolderActivate,
-            isMobile,
             openFolderNoteInRightSidebar,
             scheduleShortcutRelease,
             selectedFolder,
@@ -224,14 +219,23 @@ export function useNavigationPaneShortcutActions({
             event.preventDefault();
             event.stopPropagation();
             selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder, autoSelectedFile: null });
-            runAsyncAction(() => openFolderNoteFile({ app, commandQueue, folder, folderNote, context: 'tab' }));
+            revealFolderNoteInNavigator(selectionDispatch, folderNote);
+            runAsyncAction(() =>
+                openFolderNoteFile({
+                    app,
+                    commandQueue,
+                    folder,
+                    folderNote,
+                    context: 'tab'
+                })
+            );
         },
         [app, commandQueue, selectionDispatch, settings]
     );
 
     const handleShortcutNoteActivate = useCallback(
         (note: TFile, shortcutKey: string, event?: React.MouseEvent<HTMLDivElement>) => {
-            if (event && shouldOpenNoteClickInNewTab(event, settings.multiSelectModifier, isMobile)) {
+            if (event && shouldOpenNoteClickInNewTab(event, settings.multiSelectModifier)) {
                 runAsyncAction(() => openFileInContext({ app, commandQueue, file: note, context: 'tab' }));
                 return;
             }
@@ -244,6 +248,9 @@ export function useNavigationPaneShortcutActions({
             }
 
             openNotePreview(note);
+            // Closes the drawer so the opened note is visible. Safe with dual pane on
+            // tablets: Obsidian no-ops WorkspaceMobileDrawer.collapse() while the sidebar
+            // is pinned (see src/utils/paneLayout.ts), so only the overlay drawer closes.
             if (isMobile && app.workspace.leftSplit) {
                 app.workspace.leftSplit.collapse();
             }
@@ -284,7 +291,7 @@ export function useNavigationPaneShortcutActions({
 
     const handleRecentNoteActivate = useCallback(
         (note: TFile, event?: React.MouseEvent<HTMLDivElement>) => {
-            if (event && shouldOpenNoteClickInNewTab(event, settings.multiSelectModifier, isMobile)) {
+            if (event && shouldOpenNoteClickInNewTab(event, settings.multiSelectModifier)) {
                 runAsyncAction(() => openFileInContext({ app, commandQueue, file: note, context: 'tab' }));
                 return;
             }
@@ -296,6 +303,9 @@ export function useNavigationPaneShortcutActions({
             }
 
             openNotePreview(note);
+            // Closes the drawer so the opened note is visible. Safe with dual pane on
+            // tablets: Obsidian no-ops WorkspaceMobileDrawer.collapse() while the sidebar
+            // is pinned (see src/utils/paneLayout.ts), so only the overlay drawer closes.
             if (isMobile && app.workspace.leftSplit) {
                 app.workspace.leftSplit.collapse();
             }

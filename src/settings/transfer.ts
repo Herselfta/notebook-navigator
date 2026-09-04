@@ -28,6 +28,9 @@ const NON_TRANSFERABLE_SETTING_KEYS = new Set([
     'recentColors',
     'lastReleaseCheckAt',
     'latestKnownRelease',
+    // Importing another device's release marker could mark unseen notes as shown or regress the
+    // shared high-water mark before the local floor repairs it.
+    'lastShownVersion',
     'searchProvider',
     'showCalendar',
     'calendarCustomPromptForTitle',
@@ -138,6 +141,21 @@ function validateSettingsTransferDiff(transferSettings: Record<string, unknown>)
     }
 
     throw new Error('Settings import must contain Notebook Navigator settings.');
+}
+
+function migrateLegacyFolderNoteNameTransfer(transferSettings: Record<string, unknown>): Record<string, unknown> {
+    const migratedSettings = structuredClone(transferSettings);
+    const legacyFixedName = migratedSettings['folderNoteName'];
+    const pattern = migratedSettings['folderNoteNamePattern'];
+
+    // Older exports store fixed names separately and may contain no current transferable key.
+    // Convert before validation so importing an export whose only change was `index` still works.
+    if ((typeof pattern !== 'string' || pattern.length === 0) && typeof legacyFixedName === 'string' && legacyFixedName.length > 0) {
+        migratedSettings['folderNoteNamePattern'] = legacyFixedName;
+    }
+    delete migratedSettings['folderNoteName'];
+
+    return migratedSettings;
 }
 
 function areEquivalentValues(left: unknown, right: unknown): boolean {
@@ -258,11 +276,16 @@ export function createModifiedSettingsTransfer(settings: NotebookNavigatorSettin
     const currentSnapshot = createTransferableSettingsSnapshot(settings);
     const defaultSnapshot = createTransferableSettingsSnapshot(DEFAULT_SETTINGS);
     const diff = createSettingsDiff(defaultSnapshot, currentSnapshot);
+    const transferSettings = isRecord(diff) ? diff : {};
+    // propertyGroupKey is exported even when it matches the default: its absence marks an export
+    // created before the sorting/grouping property split, so import can seed the grouping list
+    // from the exported sorting list without misreading an intentionally empty grouping list.
+    transferSettings['propertyGroupKey'] = currentSnapshot['propertyGroupKey'];
 
     return {
         plugin: SETTINGS_TRANSFER_PLUGIN_ID,
         pluginVersion,
-        settings: isRecord(diff) ? diff : {}
+        settings: transferSettings
     };
 }
 
@@ -270,8 +293,9 @@ export function createModifiedSettingsTransfer(settings: NotebookNavigatorSettin
 // treated as bare diffs from exports created before the envelope format.
 function unwrapSettingsTransfer(transferData: Record<string, unknown>): Record<string, unknown> {
     if (!hasOwnKey(transferData, 'plugin')) {
-        validateSettingsTransferDiff(transferData);
-        return transferData;
+        const migratedSettings = migrateLegacyFolderNoteNameTransfer(transferData);
+        validateSettingsTransferDiff(migratedSettings);
+        return migratedSettings;
     }
 
     if (transferData.plugin !== SETTINGS_TRANSFER_PLUGIN_ID) {
@@ -283,9 +307,10 @@ function unwrapSettingsTransfer(transferData: Record<string, unknown>): Record<s
         throw new Error('Settings import must contain a settings object.');
     }
 
-    validateSettingsTransferDiff(transferSettings);
+    const migratedSettings = migrateLegacyFolderNoteNameTransfer(transferSettings);
+    validateSettingsTransferDiff(migratedSettings);
 
-    return transferSettings;
+    return migratedSettings;
 }
 
 export function applyModifiedSettingsTransfer(currentSettings: NotebookNavigatorSettings, transferData: unknown): Record<string, unknown> {
@@ -301,6 +326,13 @@ export function applyModifiedSettingsTransfer(currentSettings: NotebookNavigator
     const mergedSnapshot = mergeSettingsDiff(defaultSnapshot, transferSettings);
     if (!isRecord(mergedSnapshot)) {
         throw new Error('Settings import must be a JSON object.');
+    }
+
+    // Exports created before the sorting/grouping property split carry no propertyGroupKey while
+    // post-split exports always include it. Seeding the grouping list from the restored sorting
+    // list keeps pre-split grouping defaults and overrides working, mirroring the load migration.
+    if (!hasOwnKey(transferSettings, 'propertyGroupKey')) {
+        mergedSnapshot['propertyGroupKey'] = mergedSnapshot['propertySortKey'];
     }
 
     const nextSettingsRecord = createImportBaseSettings(currentSettings);

@@ -52,14 +52,7 @@ import { useFileCache } from '../context/StorageContext';
 import { ListPaneItemType, OVERSCAN } from '../types';
 import { Align, ListScrollIntent, getListAlign, rankListPending } from '../types/scroll';
 import type { ListPaneItem } from '../types/virtualization';
-import {
-    showsCharacterCount,
-    showsWordCount,
-    type ListDisplayMode,
-    type ListNoteGroupingOption,
-    type NotebookNavigatorSettings,
-    type SortOption
-} from '../settings/types';
+import { showsCharacterCount, showsWordCount, type NotebookNavigatorSettings, type SortOption } from '../settings/types';
 import type { FileContentChange, FileData, IndexedDBStorage } from '../storage/IndexedDBStorage';
 import type { SelectionDispatch, SelectionState } from '../context/SelectionContext';
 import { calculateCompactListMetrics } from '../utils/listPaneMetrics';
@@ -75,7 +68,8 @@ import {
     getPropertyRowCount,
     shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
-    shouldShowFileItemParentFolderLine
+    shouldShowFileItemParentFolderLine,
+    shouldShowFileItemTaskProgress
 } from '../utils/listPaneMeasurements';
 import type { PropertySelectionNodeId } from '../utils/propertyTree';
 import { getCachedFileTags } from '../utils/tagUtils';
@@ -84,6 +78,7 @@ import { getDrawingFeatureImageSource, resolveDrawingFeatureImageFileForProvider
 import { useThemeMode } from './useThemeMode';
 import type { ThemeMode } from '../utils/themeMode';
 import { getListSortOverrideForSelection, resolveListSort } from '../utils/sortUtils';
+import type { ListPaneAppearanceSettings } from '../settings/listPaneAppearance';
 
 /**
  * Parameters for the useListPaneScroll hook
@@ -106,15 +101,7 @@ interface UseListPaneScrollParams {
     /** Plugin settings */
     settings: NotebookNavigatorSettings;
     /** Effective settings for the current folder */
-    folderSettings: {
-        mode: ListDisplayMode;
-        titleRows: number;
-        previewRows: number;
-        showDate: boolean;
-        showPreview: boolean;
-        showImage: boolean;
-        groupBy: ListNoteGroupingOption;
-    };
+    folderSettings: ListPaneAppearanceSettings;
     /** Whether the list pane is currently visible */
     isVisible: boolean;
     /** Current selection state */
@@ -153,21 +140,37 @@ interface UseListPaneScrollParams {
 }
 
 type ListPaneAppearanceLayoutSettings = UseListPaneScrollParams['folderSettings'];
+type PendingScroll =
+    | {
+          type: 'file';
+          filePath: string;
+          reason?: ListScrollIntent;
+          minIndexVersion?: number;
+      }
+    | {
+          type: 'top';
+          reason?: ListScrollIntent;
+          minIndexVersion?: number;
+      };
+
+/**
+ * A file request becomes stale when selection moves to another file or is cleared. A current
+ * selection can remain absent from the index while an asynchronous search finishes or a collapsed group expands.
+ */
+export function isPendingFileScrollStale(pending: PendingScroll, selectedFilePath: string | null): boolean {
+    return pending.type === 'file' && pending.filePath !== selectedFilePath;
+}
+
 type ListLayoutSignatureSettings = Pick<
     NotebookNavigatorSettings,
     | 'compactItemHeight'
     | 'compactItemHeightScaleText'
-    | 'showFileProperties'
     | 'showFilePropertiesInCompactMode'
     | 'showPropertiesOnSeparateRows'
-    | 'textCountDisplay'
     | 'textCountPlacement'
     | 'characterCountSpaces'
-    | 'showFileTags'
-    | 'showFileTagsInCompactMode'
-    | 'showParentFolder'
+    | 'hideFileTaskProgressWhenComplete'
     | 'showSelectedNavigationPills'
-    | 'showTags'
 >;
 
 export interface ListFileRowSizingConfig extends FileRowHeightConfig {
@@ -183,6 +186,8 @@ export interface ListFileRowSizingConfig extends FileRowHeightConfig {
     showFilePropertiesInCompactMode: boolean;
     characterCountSpaces: NotebookNavigatorSettings['characterCountSpaces'];
     showParentFolder: boolean;
+    showTaskProgress: boolean;
+    hideTaskProgressWhenComplete: boolean;
     selectionType: SelectionState['selectionType'];
     includeDescendantNotes: boolean;
     selectedTagToHide: string | null;
@@ -201,6 +206,8 @@ export type ListRowHeightAffectingContentChangeConfig = Pick<
     | 'showWordCountProperty'
     | 'showCharacterCountProperty'
     | 'characterCountSpaces'
+    | 'showTaskProgress'
+    | 'hideTaskProgressWhenComplete'
 >;
 
 interface ResolveListFileRowHeightInputsParams {
@@ -313,22 +320,22 @@ function getListLayoutSignature({
             previewRows: folderSettings.previewRows,
             groupBy: folderSettings.groupBy,
             showDate: folderSettings.showDate,
+            showParentFolder: folderSettings.showParentFolder,
             showPreview: folderSettings.showPreview,
-            showImage: folderSettings.showImage
+            showImage: folderSettings.showImage,
+            showTags: folderSettings.showTags,
+            showProperties: folderSettings.showProperties,
+            showTaskProgress: folderSettings.showTaskProgress,
+            textCountDisplay: folderSettings.textCountDisplay
         },
         rowContent: {
-            showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
-            textCountDisplay: settings.textCountDisplay,
             textCountPlacement: settings.textCountPlacement,
             characterCountSpaces: settings.characterCountSpaces,
             showSelectedNavigationPills: settings.showSelectedNavigationPills,
             visiblePropertyKeySignature,
-            showParentFolder: settings.showParentFolder,
-            showTags: settings.showTags,
-            showFileTags: settings.showFileTags,
-            showFileTagsInCompactMode: settings.showFileTagsInCompactMode,
+            hideFileTaskProgressWhenComplete: settings.hideFileTaskProgressWhenComplete,
             selectionType: selectionType ?? null,
             selectedTagToHide,
             selectedPropertyValueNodeIdToHide,
@@ -403,6 +410,27 @@ export function isListRowHeightAffectingContentChange(
         return true;
     }
 
+    if (config.showTaskProgress && change.previousTaskCounters) {
+        const previousTaskCounters = change.previousTaskCounters;
+        // Notifications publish only changed counters, so retain the previous value when a field is absent. Null is
+        // an explicit pending state and must not be treated as an absent field.
+        const nextTaskTotal = changes.taskTotal !== undefined ? changes.taskTotal : previousTaskCounters.taskTotal;
+        const nextTaskUnfinished = changes.taskUnfinished !== undefined ? changes.taskUnfinished : previousTaskCounters.taskUnfinished;
+        const wasTaskProgressVisible = shouldShowFileItemTaskProgress({
+            showTaskProgress: true,
+            hideWhenComplete: config.hideTaskProgressWhenComplete,
+            taskTotal: previousTaskCounters.taskTotal,
+            taskUnfinished: previousTaskCounters.taskUnfinished
+        });
+        const isTaskProgressVisible = shouldShowFileItemTaskProgress({
+            showTaskProgress: true,
+            hideWhenComplete: config.hideTaskProgressWhenComplete,
+            taskTotal: nextTaskTotal,
+            taskUnfinished: nextTaskUnfinished
+        });
+        return wasTaskProgressVisible !== isTaskProgressVisible;
+    }
+
     return false;
 }
 
@@ -457,6 +485,10 @@ function shouldReadFileRecordForRowEstimate(item: ListPaneItem, config: ListFile
     }
 
     if (config.propertyRowsPossible) {
+        return true;
+    }
+
+    if (config.showTaskProgress) {
         return true;
     }
 
@@ -534,6 +566,14 @@ export function resolveListFileRowHeightInputs({
         fileParentPath: file.parent?.path ?? null
     });
 
+    // Task counts are only produced for markdown files; other extensions never show the progress element.
+    const showTaskProgressLine = shouldShowFileItemTaskProgress({
+        showTaskProgress: config.showTaskProgress,
+        hideWhenComplete: config.hideTaskProgressWhenComplete,
+        taskTotal: file.extension === 'md' ? (fileRecord?.taskTotal ?? null) : null,
+        taskUnfinished: file.extension === 'md' ? (fileRecord?.taskUnfinished ?? null) : null
+    });
+
     const propertyRowCount =
         !showDrawingMissingFeatureImage && config.propertyRowsPossible
             ? getPropertyRowCount({
@@ -561,6 +601,7 @@ export function resolveListFileRowHeightInputs({
         showFeatureImageArea,
         showExtensionBadgeThumbnail,
         showParentFolderLine,
+        showTaskProgressLine,
         visiblePillRowCount: (hasTagRow ? 1 : 0) + propertyRowCount
     };
 }
@@ -631,21 +672,12 @@ export function useListPaneScroll({
     const prevGroupCollapseStateSignatureRef = useRef<string>(groupCollapseStateSignature);
 
     // ========== Scroll Orchestration ==========
-    // Scroll reasons determine priority and alignment behavior
-    type ScrollReason = ListScrollIntent;
-
-    // Pending scroll stores requests until list is ready
-    type PendingScroll = {
-        type: 'file' | 'top'; // Scroll to specific file or top of list
-        filePath?: string; // Target file path (for type='file')
-        reason?: ScrollReason; // Why this scroll was requested
-        minIndexVersion?: number; // Don't execute until indexVersion >= this
-    };
     const pendingScrollRef = useRef<PendingScroll | null>(null);
     const [pendingScrollVersion, setPendingScrollVersion] = useState(0); // Triggers effect re-run
     // Tracks the currently selected file path to detect stale pending scrolls
-    const selectedFilePathRef = useRef<string | null>(selectedFile ? selectedFile.path : null);
-    selectedFilePathRef.current = selectedFile?.path ?? null;
+    const selectedFilePath = selectedFile?.path ?? null;
+    const selectedFilePathRef = useRef<string | null>(selectedFilePath);
+    selectedFilePathRef.current = selectedFilePath;
 
     // ========== Index Version Tracking ==========
     // Increments when list rebuilds to ensure scrolls execute with correct indices
@@ -702,11 +734,11 @@ export function useListPaneScroll({
         [selectionState.selectedProperty, selectionState.selectionType, settings.showSelectedNavigationPills]
     );
     const rowSizingConfig = useMemo<ListFileRowSizingConfig>(() => {
-        const showTextCountProperty = settings.textCountDisplay !== 'none' && settings.textCountPlacement === 'property';
-        const showWordCountProperty = showTextCountProperty && showsWordCount(settings.textCountDisplay);
-        const showCharacterCountProperty = showTextCountProperty && showsCharacterCount(settings.textCountDisplay);
+        const showTextCountProperty = folderSettings.textCountDisplay !== 'none' && settings.textCountPlacement === 'property';
+        const showWordCountProperty = showTextCountProperty && showsWordCount(folderSettings.textCountDisplay);
+        const showCharacterCountProperty = showTextCountProperty && showsCharacterCount(folderSettings.textCountDisplay);
         const canShowPropertiesInCurrentMode = !isCompactMode || settings.showFilePropertiesInCompactMode;
-        const showFrontmatterPropertyRows = settings.showFileProperties && visiblePropertyKeys.size > 0;
+        const showFrontmatterPropertyRows = folderSettings.showProperties && visiblePropertyKeys.size > 0;
         const frontmatterPropertyRowsPossible = canShowPropertiesInCurrentMode && showFrontmatterPropertyRows;
 
         return {
@@ -718,17 +750,21 @@ export function useListPaneScroll({
             showImage: folderSettings.showImage,
             compactPaddingTotal: isMobile ? compactListMetrics.mobilePaddingTotal : compactListMetrics.desktopPaddingTotal,
             isCompactMode,
-            tagsBaseEnabled: settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode),
+            tagsBaseEnabled: folderSettings.showTags,
             frontmatterPropertyRowsPossible,
             propertyRowsPossible: canShowPropertiesInCurrentMode && (showFrontmatterPropertyRows || showTextCountProperty),
             showTextCountProperty,
             showWordCountProperty,
             showCharacterCountProperty,
-            showFileProperties: settings.showFileProperties,
+            showFileProperties: folderSettings.showProperties,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             characterCountSpaces: settings.characterCountSpaces,
-            showParentFolder: settings.showParentFolder,
+            showParentFolder: folderSettings.showParentFolder,
+            // Compact mode never renders the metadata line, so disabling the flag there skips
+            // per-row record reads during height estimation and task-driven remeasurements.
+            showTaskProgress: folderSettings.showTaskProgress,
+            hideTaskProgressWhenComplete: settings.hideFileTaskProgressWhenComplete,
             selectionType: selectionState.selectionType,
             includeDescendantNotes,
             selectedTagToHide,
@@ -743,7 +779,12 @@ export function useListPaneScroll({
         folderSettings.previewRows,
         folderSettings.showDate,
         folderSettings.showImage,
+        folderSettings.showParentFolder,
         folderSettings.showPreview,
+        folderSettings.showProperties,
+        folderSettings.showTags,
+        folderSettings.showTaskProgress,
+        folderSettings.textCountDisplay,
         folderSettings.titleRows,
         hiddenTagVisibility,
         includeDescendantNotes,
@@ -754,14 +795,9 @@ export function useListPaneScroll({
         selectedTagToHide,
         selectionState.selectionType,
         settings.characterCountSpaces,
-        settings.showFileProperties,
         settings.showFilePropertiesInCompactMode,
-        settings.showFileTags,
-        settings.showFileTagsInCompactMode,
-        settings.showParentFolder,
+        settings.hideFileTaskProgressWhenComplete,
         settings.showPropertiesOnSeparateRows,
-        settings.showTags,
-        settings.textCountDisplay,
         settings.textCountPlacement,
         themeMode,
         visiblePropertyKeys
@@ -924,32 +960,22 @@ export function useListPaneScroll({
         () => ({
             compactItemHeight: settings.compactItemHeight,
             compactItemHeightScaleText: settings.compactItemHeightScaleText,
-            showFileProperties: settings.showFileProperties,
             showFilePropertiesInCompactMode: settings.showFilePropertiesInCompactMode,
             showPropertiesOnSeparateRows: settings.showPropertiesOnSeparateRows,
-            textCountDisplay: settings.textCountDisplay,
             textCountPlacement: settings.textCountPlacement,
             characterCountSpaces: settings.characterCountSpaces,
-            showFileTags: settings.showFileTags,
-            showFileTagsInCompactMode: settings.showFileTagsInCompactMode,
-            showParentFolder: settings.showParentFolder,
-            showSelectedNavigationPills: settings.showSelectedNavigationPills,
-            showTags: settings.showTags
+            hideFileTaskProgressWhenComplete: settings.hideFileTaskProgressWhenComplete,
+            showSelectedNavigationPills: settings.showSelectedNavigationPills
         }),
         [
             settings.compactItemHeight,
             settings.compactItemHeightScaleText,
-            settings.showFileProperties,
             settings.showFilePropertiesInCompactMode,
             settings.showPropertiesOnSeparateRows,
-            settings.textCountDisplay,
             settings.textCountPlacement,
             settings.characterCountSpaces,
-            settings.showFileTags,
-            settings.showFileTagsInCompactMode,
-            settings.showParentFolder,
-            settings.showSelectedNavigationPills,
-            settings.showTags
+            settings.hideFileTaskProgressWhenComplete,
+            settings.showSelectedNavigationPills
         ]
     );
     const listLayoutSignature = useMemo(
@@ -1154,17 +1180,8 @@ export function useListPaneScroll({
                     return true;
                 }
 
-                if (
-                    isStructuralChange &&
-                    pending.filePath &&
-                    selectedFilePathRef.current &&
-                    pending.filePath !== selectedFilePathRef.current
-                ) {
+                if (isPendingFileScrollStale(pending, selectedFilePathRef.current)) {
                     return true;
-                }
-
-                if (!pending.filePath) {
-                    return false;
                 }
 
                 const index = getSelectionIndex(pending.filePath);
@@ -1260,7 +1277,7 @@ export function useListPaneScroll({
         if (executePendingScroll(pending)) {
             pendingScrollRef.current = null;
         }
-    }, [executePendingScroll, rowVirtualizer, isScrollContainerReady, pendingScrollVersion]);
+    }, [executePendingScroll, rowVirtualizer, isScrollContainerReady, pendingScrollVersion, selectedFilePath]);
 
     /**
      * Subscribe to database content changes and refresh virtualizer size estimates when needed.

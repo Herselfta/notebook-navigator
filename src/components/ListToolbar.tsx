@@ -31,6 +31,9 @@ interface ListToolbarProps {
     onSearchToggle?: () => void;
     onManualSortStart?: (propertyKey: string) => void;
     getManualSortNewFileContext?: () => ManualSortNewFilePlacementContext | null;
+    canToggleGroupExpansion: boolean;
+    shouldCollapseGroups: boolean;
+    onToggleGroupExpansion: () => boolean;
     useFloatingLayout?: boolean;
 }
 
@@ -39,6 +42,9 @@ export function ListToolbar({
     onSearchToggle,
     onManualSortStart,
     getManualSortNewFileContext,
+    canToggleGroupExpansion,
+    shouldCollapseGroups,
+    onToggleGroupExpansion,
     useFloatingLayout = false
 }: ListToolbarProps) {
     const uxPreferences = useUXPreferences();
@@ -66,14 +72,20 @@ export function ListToolbar({
 
     const showSearchButton = listVisibility.search;
     const showDescendantsButton = listVisibility.descendants;
+    const showGroupExpansionButton = listVisibility.groupExpansion;
     const showSortButton = listVisibility.sort;
     const showAppearanceButton = listVisibility.appearance;
     const showNewNoteButton = listVisibility.newNote;
     const hasNavigationSelection = Boolean(selectionState.selectedFolder || selectionState.selectedTag || selectionState.selectedProperty);
 
-    const leftButtonCount = [showSearchButton, showRevealButton, showDescendantsButton, showSortButton, showAppearanceButton].filter(
-        Boolean
-    ).length;
+    const leftButtonCount = [
+        showSearchButton,
+        showRevealButton,
+        showDescendantsButton,
+        showGroupExpansionButton,
+        showSortButton,
+        showAppearanceButton
+    ].filter(Boolean).length;
     const totalButtonCount = leftButtonCount + (showNewNoteButton ? 1 : 0);
     const leftGroupClassName = leftButtonCount === 1 ? 'nn-mobile-toolbar-circle' : 'nn-mobile-toolbar-pill';
     const leftButtonBaseClassName =
@@ -122,6 +134,22 @@ export function ListToolbar({
                 <ServiceIcon iconId={resolveUXIcon(settings.interfaceIcons, 'list-descendants')} />
             </button>
         ) : null,
+        showGroupExpansionButton ? (
+            <button
+                key="group-expansion"
+                className={leftButtonBaseClassName}
+                aria-label={shouldCollapseGroups ? strings.paneHeader.collapseAllListGroups : strings.paneHeader.expandAllListGroups}
+                onClick={() => {
+                    onToggleGroupExpansion();
+                }}
+                disabled={!canToggleGroupExpansion}
+                tabIndex={-1}
+            >
+                <ServiceIcon
+                    iconId={resolveUXIcon(settings.interfaceIcons, shouldCollapseGroups ? 'list-collapse-all' : 'list-expand-all')}
+                />
+            </button>
+        ) : null,
         showSortButton ? (
             <button
                 key="sort"
@@ -138,7 +166,8 @@ export function ListToolbar({
             <button
                 key="appearance"
                 className={`${leftButtonBaseClassName}${hasCustomAppearance ? ' nn-mobile-toolbar-button-active' : ''}`}
-                aria-label={strings.paneHeader.changeAppearance}
+                aria-label={hasCustomAppearance ? strings.paneHeader.changeAppearanceCustomized : strings.paneHeader.changeAppearance}
+                aria-haspopup="menu"
                 onClick={handleAppearanceMenu}
                 disabled={!hasAppearanceOrSortSelection}
                 tabIndex={-1}

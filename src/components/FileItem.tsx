@@ -38,29 +38,31 @@
  */
 
 import React, { useRef, useMemo, useEffect, useState, useCallback, useId } from 'react';
-import { TFile, TFolder, setTooltip, setIcon } from 'obsidian';
+import { TFile, TFolder, setIcon } from 'obsidian';
 import { useServices } from '../context/ServicesContext';
 import { useMetadataService } from '../context/ServicesContext';
 import { useSettingsState } from '../context/SettingsContext';
 import type { FolderDecorationModel } from '../utils/folderDecoration';
-import type { ListPaneAppearanceSettings } from '../hooks/useListPaneAppearance';
+import type { ListPaneAppearanceSettings } from '../settings/listPaneAppearance';
 import { strings } from '../i18n';
 import type { SortOption } from '../settings/types';
 import { ItemType, type NavigationItemType } from '../types';
 import { DateUtils } from '../utils/dateUtils';
 import { runAsyncAction } from '../utils/async';
-import { getTooltipPlacement } from '../utils/domUtils';
 import { openFileInContext } from '../utils/openFileInContext';
 import { FILE_VISIBILITY, getExtensionSuffix, isRasterImageFile, shouldDisplayFile } from '../utils/fileTypeUtils';
 import { resolveFolderDecorationColors } from '../utils/folderDecoration';
 import { resolveFileDragIconId, resolveFileIconId } from '../utils/fileIconUtils';
-import { buildFileTooltip } from '../utils/navigationTooltipUtils';
+import { hasCachedMarkdownWordCountConsumer } from '../utils/markdownPipelineContentTypes';
+import { isInsideNativeTooltipTarget, useTooltip } from '../context/TooltipContext';
+import { FileTooltipContent } from './FileTooltipContent';
 import { getFoldedSearchHighlightRanges } from '../utils/searchHighlight';
 import {
     getFileItemLayoutState,
     shouldShowExtensionBadgeThumbnail,
     shouldShowFeatureImageArea,
-    shouldShowFileItemParentFolderLine
+    shouldShowFileItemParentFolderLine,
+    shouldShowFileItemTaskProgress
 } from '../utils/listPaneMeasurements';
 import { getIconService, useIconServiceVersion } from '../services/icons';
 import type { AliasSearchMatch, PropertySearchMatch, SearchResultMeta } from '../types/search';
@@ -82,6 +84,8 @@ import { renderTextWithHighlightRanges } from './fileItem/searchHighlightRenderi
 import { ServiceIcon } from './ServiceIcon';
 import { getDrawingFeatureImageSource } from '../utils/drawingFeatureImages';
 import { useDrawingFeatureImage } from '../hooks/useDrawingFeatureImage';
+import { useThemeMode } from '../hooks/useThemeMode';
+import { useMarkdownWordCountConsumerChanges } from '../hooks/useMarkdownWordCountConsumerChanges';
 import { resolveFileRowBackgroundColor } from '../utils/colorUtils';
 import { formatTextCount, getWordCountDisplayText } from '../utils/wordCountUtils';
 import { showsCharacterCount, showsWordCount } from '../settings/types';
@@ -151,8 +155,8 @@ export interface FileItemPaneProps {
     onFileClick: (file: TFile, fileIndex: number | undefined, event: React.MouseEvent) => void;
     selectionType?: NavigationItemType | null;
     sortOption?: SortOption;
-    /** Active search query for highlighting matches in the file name */
-    searchQuery?: string;
+    /** Folded name tokens from the active internal filter search for highlighting the file name */
+    searchHighlightTerms?: readonly string[];
     /** Modifies the active search query with a tag token when modifier clicking */
     onModifySearchWithTag?: (tag: string, operator: InclusionOperator) => void;
     /** Modifies the active search query with a property token when modifier clicking */
@@ -220,55 +224,53 @@ export interface FileItemStorageHelpers {
  * Computes merged highlight ranges for all occurrences of search segments.
  * Overlapping ranges are merged to avoid nested highlights.
  */
-function getMergedHighlightRanges(text: string, query?: string, searchMeta?: SearchResultMeta): NumericRange[] {
+function getMergedHighlightRanges(text: string, foldedTerms?: readonly string[], searchMeta?: SearchResultMeta): NumericRange[] {
     if (!text) return [];
 
-    const lower = text.toLowerCase();
-    const ranges: NumericRange[] = [];
-    const seenTokens = new Set<string>();
-
-    const addTokenRanges = (rawToken: string | undefined) => {
-        if (!rawToken) return;
-        const token = rawToken.toLowerCase();
-        if (!token || seenTokens.has(token)) return;
-        seenTokens.add(token);
-
-        let idx = lower.indexOf(token);
-        while (idx !== -1) {
-            ranges.push({ start: idx, end: idx + token.length });
-            idx = lower.indexOf(token, idx + token.length);
-        }
-    };
-
+    // When Omnisearch metadata is present, highlight strictly from provider tokens.
+    // This avoids filter-term fallback highlighting for path/ext-only filters.
     if (searchMeta) {
+        const lower = text.toLowerCase();
+        const ranges: NumericRange[] = [];
+        const seenTokens = new Set<string>();
+
+        const addTokenRanges = (rawToken: string | undefined) => {
+            if (!rawToken) return;
+            const token = rawToken.toLowerCase();
+            if (!token || seenTokens.has(token)) return;
+            seenTokens.add(token);
+
+            let idx = lower.indexOf(token);
+            while (idx !== -1) {
+                ranges.push({ start: idx, end: idx + token.length });
+                idx = lower.indexOf(token, idx + token.length);
+            }
+        };
+
         searchMeta.matches.forEach(match => addTokenRanges(match.text));
         searchMeta.terms.forEach(term => addTokenRanges(term));
-    }
 
-    // When Omnisearch metadata is present, highlight strictly from provider tokens.
-    // This avoids raw-query fallback highlighting for path/ext-only filters.
-    if (!searchMeta && ranges.length === 0 && query) {
-        const normalizedQuery = query.trim().toLowerCase();
-        if (normalizedQuery) {
-            normalizedQuery
-                .split(/\s+/)
-                .filter(Boolean)
-                .forEach(segment => addTokenRanges(segment));
+        if (ranges.length === 0) {
+            return [];
         }
+
+        return mergeRanges(ranges);
     }
 
-    if (ranges.length === 0) {
-        return [];
+    // Internal filter search passes pre-folded name tokens, so fold-aware range mapping keeps
+    // highlights aligned with the source text the same way alias highlighting does.
+    if (foldedTerms && foldedTerms.length > 0) {
+        return getFoldedSearchHighlightRanges(text, foldedTerms);
     }
 
-    return mergeRanges(ranges);
+    return [];
 }
 
 /**
  * Splits text into plain and highlighted parts based on merged ranges.
  */
-function renderHighlightedText(text: string, query?: string, searchMeta?: SearchResultMeta): React.ReactNode {
-    return renderTextWithHighlightRanges(text, getMergedHighlightRanges(text, query, searchMeta));
+function renderHighlightedText(text: string, foldedTerms?: readonly string[], searchMeta?: SearchResultMeta): React.ReactNode {
+    return renderTextWithHighlightRanges(text, getMergedHighlightRanges(text, foldedTerms, searchMeta));
 }
 
 function renderAliasSearchMatch(matchedAlias: AliasSearchMatch): React.ReactNode {
@@ -375,6 +377,33 @@ function ParentFolderLabel({
     );
 }
 
+interface TaskProgressMeta {
+    completed: number;
+    total: number;
+    percent: number;
+    isComplete: boolean;
+}
+
+/**
+ * Builds display data for the task progress element.
+ * Returns null when the note has no tasks or task counts are not cached yet.
+ */
+function buildTaskProgressMeta(taskTotal: number | null, taskUnfinished: number | null): TaskProgressMeta | null {
+    if (typeof taskTotal !== 'number' || taskTotal <= 0 || typeof taskUnfinished !== 'number') {
+        return null;
+    }
+
+    const completed = Math.min(Math.max(taskTotal - taskUnfinished, 0), taskTotal);
+    return {
+        completed,
+        total: taskTotal,
+        // Unrounded so the bar width reaches 100% only when every task is completed;
+        // rounding would render 999/1000 as a full bar.
+        percent: (completed / taskTotal) * 100,
+        isComplete: completed >= taskTotal
+    };
+}
+
 /**
  * Memoized FileItem component.
  * Renders an individual file item in the file list with preview text and metadata.
@@ -410,7 +439,7 @@ export const FileItem = React.memo(function FileItem({
         onFileClick,
         selectionType,
         sortOption,
-        searchQuery,
+        searchHighlightTerms,
         onModifySearchWithTag,
         onModifySearchWithProperty,
         localDayReference,
@@ -432,33 +461,54 @@ export const FileItem = React.memo(function FileItem({
     // === Hooks (all hooks together at the top) ===
     const { app, isMobile, plugin, commandQueue, fileSystemOps, tagOperations } = useServices();
     const settings = useSettingsState();
+    useMarkdownWordCountConsumerChanges(app);
     const metadataService = useMetadataService();
     const { getFileDisplayName, getDB, getFileTimestamps, hasPreview, regenerateFeatureImageForFile } = fileItemStorage;
     const isCompactMode = appearanceSettings.mode === 'compact';
-    const shouldShowWordCount = showsWordCount(settings.textCountDisplay);
-    const shouldShowCharacterCount = showsCharacterCount(settings.textCountDisplay);
+    const shouldShowWordCount = showsWordCount(appearanceSettings.textCountDisplay);
+    const shouldShowCharacterCount = showsCharacterCount(appearanceSettings.textCountDisplay);
     const isMarkdownFile = file.extension === 'md';
     const canShowPropertyPills = isMarkdownFile && (!isCompactMode || settings.showFilePropertiesInCompactMode);
+    // Tooltip tags reuse the pill tag data, so tags load even when tag pills are hidden. The tag
+    // cache only exists while the navigation tags section is enabled, so the tooltip branch checks
+    // that setting instead of acting as a separate tag consumer.
     const shouldLoadTags =
-        isMarkdownFile && settings.showTags && settings.showFileTags && (!isCompactMode || settings.showFileTagsInCompactMode);
+        isMarkdownFile &&
+        (appearanceSettings.showTags || (!isMobile && settings.showTags && settings.showTooltips && settings.showTooltipTags));
     const shouldLoadWordCountForDisplay =
         isMarkdownFile &&
         shouldShowWordCount &&
         (settings.textCountPlacement === 'title' || (settings.textCountPlacement === 'property' && canShowPropertyPills));
+    // The tooltip reads a word count only while a display setting keeps the markdown pipeline
+    // extracting counts, because the tooltip setting is not a pipeline consumer and a cached
+    // count without a consumer would go stale after edits.
     const shouldLoadWordCount =
-        shouldLoadWordCountForDisplay || (isMarkdownFile && !isMobile && settings.showTooltips && settings.showTooltipWordCount);
+        shouldLoadWordCountForDisplay ||
+        (isMarkdownFile &&
+            !isMobile &&
+            settings.showTooltips &&
+            settings.showTooltipWordCount &&
+            hasCachedMarkdownWordCountConsumer(settings, app));
     const shouldLoadCharacterCount =
         isMarkdownFile &&
         shouldShowCharacterCount &&
         (settings.textCountPlacement === 'title' || (settings.textCountPlacement === 'property' && canShowPropertyPills));
     const shouldLoadProperties =
         isMarkdownFile &&
-        ((canShowPropertyPills && settings.showFileProperties && visiblePropertyKeys.size > 0) ||
+        ((canShowPropertyPills && appearanceSettings.showProperties && visiblePropertyKeys.size > 0) ||
             (shouldLoadWordCountForDisplay && settings.wordCountTargetProperty.trim().length > 0) ||
             (matchedProperties?.length ?? 0) > 0);
-    const shouldLoadTaskUnfinished =
+    const unfinishedTaskIconAppliesToMode =
+        settings.unfinishedTaskIcon === 'all' || (settings.unfinishedTaskIcon === 'compact' && isCompactMode);
+    const shouldLoadUnfinishedTaskIcon = settings.showFileIcons && unfinishedTaskIconAppliesToMode;
+    // Compact mode never renders task progress, but the replacement icon, background, and tooltip
+    // still consume task data there. Task progress mirrors the estimator gating in useListPaneScroll.
+    const shouldLoadTaskCounts =
         isMarkdownFile &&
-        (settings.showFileIconUnfinishedTask || settings.showFileBackgroundUnfinishedTask || (!isMobile && settings.showTooltips));
+        (shouldLoadUnfinishedTaskIcon ||
+            appearanceSettings.showTaskProgress ||
+            settings.showFileBackgroundUnfinishedTask ||
+            (!isMobile && settings.showTooltips));
     const shouldRefreshMetadataVersionOnFeatureImageChange = isMarkdownFile && appearanceSettings.showImage;
     const fileStatMtime = useImageFileResourceVersion(app, file, appearanceSettings.showImage && isRasterImageFile(file));
     const drawingFeatureImageSource = getDrawingFeatureImageSource(app, file);
@@ -473,6 +523,7 @@ export const FileItem = React.memo(function FileItem({
         wordCount,
         characterCountWithSpaces,
         characterCountWithoutSpaces,
+        taskTotal,
         taskUnfinished,
         metadataVersion
     } = useFileItemContentState({
@@ -491,7 +542,7 @@ export const FileItem = React.memo(function FileItem({
             loadProperties: shouldLoadProperties,
             loadWordCount: shouldLoadWordCount,
             loadCharacterCount: shouldLoadCharacterCount,
-            loadTaskUnfinished: shouldLoadTaskUnfinished
+            loadTaskCounts: shouldLoadTaskCounts
         },
         refreshMetadataVersionOnFeatureImageChange: shouldRefreshMetadataVersionOnFeatureImageChange
     });
@@ -536,21 +587,24 @@ export const FileItem = React.memo(function FileItem({
         shouldShowOpenInNewTab || shouldShowPinNote || shouldShowRevealIcon || shouldShowAddTagAction || shouldShowShortcutAction;
     const hasShortcut = typeof shortcutKey === 'string';
     const iconServiceVersion = useIconServiceVersion();
+    // The theme mode only selects the unfinished-task background color, so theme-change
+    // subscriptions are skipped while that setting is off; enabling it re-runs the hook effect,
+    // which re-syncs the mode before the value is consumed.
+    const themeMode = useThemeMode(app, settings.showFileBackgroundUnfinishedTask);
     const showFileIcons = settings.showFileIcons;
     const hasUnfinishedTasks = typeof taskUnfinished === 'number' && taskUnfinished > 0;
-    const showFileIconUnfinishedTask = settings.showFileIconUnfinishedTask && hasUnfinishedTasks;
+    const showFileIconUnfinishedTask = showFileIcons && unfinishedTaskIconAppliesToMode && hasUnfinishedTasks;
     const unfinishedTaskIconId = resolveUXIcon(settings.interfaceIcons, 'file-unfinished-task');
-    const unfinishedTaskLabel = strings.modals.interfaceIcons.items['file-unfinished-task'];
     const unfinishedTaskTooltipText =
-        hasUnfinishedTasks && typeof taskUnfinished === 'number' ? `${unfinishedTaskLabel}: ${taskUnfinished}` : null;
+        hasUnfinishedTasks && typeof taskUnfinished === 'number' ? `${strings.tooltips.unfinishedTasks}: ${taskUnfinished}` : null;
 
     // Get display name from RAM cache (handles frontmatter title)
     const displayName = getFileDisplayName(file);
 
     // Highlight matches in display name when search is active
     const highlightedName = useMemo(
-        () => renderHighlightedText(displayName, searchQuery, searchMeta),
-        [displayName, searchQuery, searchMeta]
+        () => renderHighlightedText(displayName, searchHighlightTerms, searchMeta),
+        [displayName, searchHighlightTerms, searchMeta]
     );
 
     // Decide whether to render an inline extension suffix after the name
@@ -560,7 +614,7 @@ export const FileItem = React.memo(function FileItem({
     const parentFolderSource = file.parent;
     const hasParentFolderSource = parentFolderSource instanceof TFolder;
     const shouldShowParentFolderLine = shouldShowFileItemParentFolderLine({
-        showParentFolder: settings.showParentFolder,
+        showParentFolder: appearanceSettings.showParentFolder,
         isPinned,
         selectionType,
         includeDescendantNotes,
@@ -571,10 +625,9 @@ export const FileItem = React.memo(function FileItem({
     const shouldShowParentFolderIcon = shouldBuildParentFolderMeta && settings.showParentFolderIcon;
     const shouldShowParentFolderColor = shouldBuildParentFolderMeta && settings.showParentFolderColor;
     const shouldResolveParentFolderDisplayName = shouldBuildParentFolderMeta && !settings.showParentFolderFullPath;
-    const canUseFolderFileDecoration = !showFileIconUnfinishedTask;
-    const shouldResolveFolderIcon = canUseFolderFileDecoration && settings.useFolderIconForFiles && !fileIconId && hasParentFolderSource;
+    const shouldResolveFolderIcon = !showFileIconUnfinishedTask && settings.useFolderIconForFiles && !fileIconId && hasParentFolderSource;
     const shouldResolveFolderColorForFileDecoration =
-        canUseFolderFileDecoration &&
+        !showFileIconUnfinishedTask &&
         !fileColor &&
         hasParentFolderSource &&
         (settings.useFolderColorForTitles || settings.useFolderIconForFiles);
@@ -611,7 +664,8 @@ export const FileItem = React.memo(function FileItem({
         customBackgroundColor: customFileBackgroundColor,
         taskUnfinished,
         showUnfinishedTaskBackground: settings.showFileBackgroundUnfinishedTask,
-        unfinishedTaskBackgroundColor: settings.unfinishedTaskBackgroundColor,
+        unfinishedTaskBackgroundColor:
+            themeMode === 'dark' ? settings.unfinishedTaskBackgroundColorDark : settings.unfinishedTaskBackgroundColor,
         getSolidBackground
     });
     const fileExtension = file.extension.toLowerCase();
@@ -712,26 +766,35 @@ export const FileItem = React.memo(function FileItem({
         [file, fileSystemOps, inlineRename]
     );
     const propertySearchEvidenceIconId = resolveUXIcon(settings.interfaceIcons, 'nav-property');
-    const { shouldShowFileTags, hasVisiblePillRows, propertySearchEvidenceGroups, propertySearchEvidenceHiddenGroupCount, pillRows } =
-        useFileItemPills({
-            file,
-            isCompactMode,
-            tags,
-            properties,
-            wordCount,
-            characterCount: selectedCharacterCount,
-            wordCountDisplayText,
-            characterCountDisplayText,
-            settings,
-            visiblePropertyKeys,
-            visibleNavigationPropertyKeys,
-            matchedProperties,
-            hiddenTagVisibility,
-            onModifySearchWithTag,
-            onModifySearchWithProperty,
-            fileItemPillDecorationModel,
-            fileItemPillOrderModel
-        });
+    const {
+        shouldShowFileTags,
+        hasVisiblePillRows,
+        propertySearchEvidenceGroups,
+        propertySearchEvidenceHiddenGroupCount,
+        tooltipTagRow,
+        pillRows
+    } = useFileItemPills({
+        file,
+        isCompactMode,
+        tags,
+        properties,
+        wordCount,
+        characterCount: selectedCharacterCount,
+        wordCountDisplayText,
+        characterCountDisplayText,
+        settings,
+        showTags: appearanceSettings.showTags,
+        showProperties: appearanceSettings.showProperties,
+        textCountDisplay: appearanceSettings.textCountDisplay,
+        visiblePropertyKeys,
+        visibleNavigationPropertyKeys,
+        matchedProperties,
+        hiddenTagVisibility,
+        onModifySearchWithTag,
+        onModifySearchWithProperty,
+        fileItemPillDecorationModel,
+        fileItemPillOrderModel
+    });
     const fileTitleElement = (() => {
         if (inlineRename && renameInputOptions) {
             return (
@@ -773,46 +836,49 @@ export const FileItem = React.memo(function FileItem({
                     } as React.CSSProperties
                 }
             >
-                {highlightedName}
-                {matchedAliases && matchedAliases.length > 0 ? (
-                    <span className="nn-file-alias-match">
-                        <ObsidianIcon name="lucide-forward" className="nn-file-alias-match-icon" aria-hidden={true} />
-                        <span>
-                            {matchedAliases.map((matchedAlias, index) => (
-                                <React.Fragment key={`${matchedAlias.value}-${index}`}>
-                                    {index > 0 ? ', ' : null}
-                                    {renderAliasSearchMatch(matchedAlias)}
-                                </React.Fragment>
-                            ))}
-                        </span>
-                    </span>
-                ) : null}
-                {propertySearchEvidenceGroups.length > 0 ? (
-                    <span className="nn-file-property-search-evidence">
-                        <ServiceIcon
-                            iconId={propertySearchEvidenceIconId}
-                            className="nn-file-property-search-evidence-icon"
-                            aria-hidden={true}
-                        />
-                        {propertySearchEvidenceGroups.map((group, groupIndex) => (
-                            <React.Fragment key={casefold(group.propertyKey)}>
-                                {groupIndex > 0 ? '; ' : null}
-                                <span className="nn-file-property-search-evidence-key">{renderPropertySearchEvidenceKey(group)}</span>
-                                {group.values.length > 0 ? ': ' : null}
-                                {group.values.map((value, valueIndex) => (
-                                    <React.Fragment key={`${value.displayValue}-${valueIndex}`}>
-                                        {valueIndex > 0 ? ', ' : null}
-                                        {renderPropertySearchEvidenceValue(value)}
+                {/* Keep the label and suffix separate so CSS snippets can lay them out independently. */}
+                <span className="nn-file-name-label">
+                    {highlightedName}
+                    {matchedAliases && matchedAliases.length > 0 ? (
+                        <span className="nn-file-alias-match">
+                            <ObsidianIcon name="lucide-forward" className="nn-file-alias-match-icon" aria-hidden={true} />
+                            <span>
+                                {matchedAliases.map((matchedAlias, index) => (
+                                    <React.Fragment key={`${matchedAlias.value}-${index}`}>
+                                        {index > 0 ? ', ' : null}
+                                        {renderAliasSearchMatch(matchedAlias)}
                                     </React.Fragment>
                                 ))}
-                                {group.hiddenValueCount > 0 ? ` +${group.hiddenValueCount}` : null}
-                            </React.Fragment>
-                        ))}
-                        {propertySearchEvidenceHiddenGroupCount > 0 ? `; +${propertySearchEvidenceHiddenGroupCount}` : null}
-                    </span>
-                ) : null}
-                {shouldShowCountInTitle ? <span className="nn-file-word-count-suffix"> ({titleCountDisplayText})</span> : null}
-                {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
+                            </span>
+                        </span>
+                    ) : null}
+                    {propertySearchEvidenceGroups.length > 0 ? (
+                        <span className="nn-file-property-search-evidence">
+                            <ServiceIcon
+                                iconId={propertySearchEvidenceIconId}
+                                className="nn-file-property-search-evidence-icon"
+                                aria-hidden={true}
+                            />
+                            {propertySearchEvidenceGroups.map((group, groupIndex) => (
+                                <React.Fragment key={casefold(group.propertyKey)}>
+                                    {groupIndex > 0 ? '; ' : null}
+                                    <span className="nn-file-property-search-evidence-key">{renderPropertySearchEvidenceKey(group)}</span>
+                                    {group.values.length > 0 ? ': ' : null}
+                                    {group.values.map((value, valueIndex) => (
+                                        <React.Fragment key={`${value.displayValue}-${valueIndex}`}>
+                                            {valueIndex > 0 ? ', ' : null}
+                                            {renderPropertySearchEvidenceValue(value)}
+                                        </React.Fragment>
+                                    ))}
+                                    {group.hiddenValueCount > 0 ? ` +${group.hiddenValueCount}` : null}
+                                </React.Fragment>
+                            ))}
+                            {propertySearchEvidenceHiddenGroupCount > 0 ? `; +${propertySearchEvidenceHiddenGroupCount}` : null}
+                        </span>
+                    ) : null}
+                    {extensionSuffix.length > 0 && <span className="nn-file-ext-suffix">{extensionSuffix}</span>}
+                </span>
+                {shouldShowCountInTitle ? <span className="nn-file-name-suffix"> ({titleCountDisplayText})</span> : null}
             </div>
         );
     })();
@@ -860,9 +926,9 @@ export const FileItem = React.memo(function FileItem({
     const hasPreviewAccordingToStatus = appearanceSettings.showPreview && file.extension === 'md' ? hasPreview(file.path) : false;
     const hasPreviewContent = hasPreviewAccordingToStatus || effectivePreviewText.length > 0;
     const highlightedPreview = useMemo(
-        // Only Omnisearch trigger highlighting in preview, not regular filter
-        () => (searchMeta ? renderHighlightedText(effectivePreviewText, searchQuery, searchMeta) : effectivePreviewText),
-        [effectivePreviewText, searchMeta, searchQuery]
+        // Only Omnisearch triggers highlighting in preview, not regular filter
+        () => (searchMeta ? renderHighlightedText(effectivePreviewText, undefined, searchMeta) : effectivePreviewText),
+        [effectivePreviewText, searchMeta]
     );
     const pinnedPreviewRows = isPinned ? 1 : appearanceSettings.previewRows;
 
@@ -949,7 +1015,48 @@ export const FileItem = React.memo(function FileItem({
                 onReveal={settings.parentFolderClickRevealsFile ? revealFileInNavigation : undefined}
             />
         ) : null;
-    const shouldShowMetadataLine = shouldShowDateForItem || parentFolderMeta !== null;
+
+    // Visibility must match the virtualizer height estimate in resolveListFileRowHeightInputs.
+    const taskProgressMeta = shouldShowFileItemTaskProgress({
+        showTaskProgress: appearanceSettings.showTaskProgress,
+        hideWhenComplete: settings.hideFileTaskProgressWhenComplete,
+        taskTotal,
+        taskUnfinished
+    })
+        ? buildTaskProgressMeta(taskTotal, taskUnfinished)
+        : null;
+
+    // Render task icon plus optional progress bar and completed/total count if the note contains tasks.
+    // The icon always renders; its color follows the complete state through the container color.
+    const renderTaskProgress = (showDotSeparator: boolean) => {
+        if (!taskProgressMeta) {
+            return null;
+        }
+
+        const showBar = settings.showFileTaskProgressBar;
+        const showCount = settings.showFileTaskProgressCount;
+        return (
+            <div
+                className={taskProgressMeta.isComplete ? 'nn-file-task-progress nn-file-task-progress--complete' : 'nn-file-task-progress'}
+                style={showBar ? ({ '--nn-file-task-progress-width': `${taskProgressMeta.percent}%` } as React.CSSProperties) : undefined}
+                // Standard rows separate task progress from the date with a dot. Pinned rows pass false because
+                // their preview follows task progress directly on the shared secondary line.
+                data-dot-separator={showDotSeparator ? 'true' : 'false'}
+            >
+                <ServiceIcon iconId={unfinishedTaskIconId} className="nn-file-task-progress-icon" aria-hidden={true} />
+                {showBar ? (
+                    <div className="nn-file-task-progress-track">
+                        <div className="nn-file-task-progress-fill" />
+                    </div>
+                ) : null}
+                {showCount ? (
+                    <span className="nn-file-task-progress-count">{`${taskProgressMeta.completed}/${taskProgressMeta.total}`}</span>
+                ) : null}
+            </div>
+        );
+    };
+    const shouldShowMetadataLine = shouldShowDateForItem || taskProgressMeta !== null || parentFolderMeta !== null;
+    const shouldShowPinnedSecondaryLine = isPinned && (taskProgressMeta !== null || shouldShowMultilinePreview);
 
     // Reset image hidden state when the feature image URL changes
     useEffect(() => {
@@ -1059,43 +1166,50 @@ export const FileItem = React.memo(function FileItem({
         }
     }, [effectiveFeatureImageUrl, useSquareFeatureImage]);
 
-    // Add Obsidian tooltip (desktop only)
-    useEffect(() => {
-        if (!fileRef.current) return;
+    // Locals for the mutable TFile fields so the tooltip memo re-runs on rename and on
+    // timestamp changes; the TFile identity itself is stable across those mutations.
+    const fileName = file.name;
+    const fileCreatedTime = file.stat.ctime;
+    const fileModifiedTime = file.stat.mtime;
 
-        // Skip tooltips on mobile
-        if (isMobile) return;
+    // Hover tooltip content (desktop only). Null disables the tooltip entirely. The element is
+    // recreated when any input changes because the tooltip refreshes on content identity.
+    const tooltipContent = useMemo((): React.ReactNode => {
+        // The tooltip reads file.name, the stat timestamps, and metadata-derived colors at
+        // render time, so those inputs are dependencies even though they are not referenced.
+        void metadataVersion;
+        void fileName;
+        void fileCreatedTime;
+        void fileModifiedTime;
 
-        // Remove tooltip if disabled
-        if (!showTooltips) {
-            setTooltip(fileRef.current, '');
-            return;
+        if (isMobile || !showTooltips) {
+            return null;
         }
 
-        const tooltip = buildFileTooltip({
-            file,
-            displayName,
-            extensionSuffix,
-            settings: {
-                dateFormat: settings.dateFormat,
-                timeFormat: settings.timeFormat,
-                showTooltipPath: settings.showTooltipPath,
-                showTooltipWordCount: settings.showTooltipWordCount
-            },
-            getFileTimestamps,
-            sortOption,
-            unfinishedTaskTooltipText,
-            wordCount
-        });
-
-        setTooltip(fileRef.current, tooltip, {
-            placement: getTooltipPlacement()
-        });
+        return (
+            <FileTooltipContent
+                file={file}
+                displayName={displayName}
+                extensionSuffix={extensionSuffix}
+                settings={{
+                    dateFormat: settings.dateFormat,
+                    timeFormat: settings.timeFormat,
+                    showTooltipPath: settings.showTooltipPath,
+                    showTooltipWordCount: settings.showTooltipWordCount
+                }}
+                getFileTimestamps={getFileTimestamps}
+                sortOption={sortOption}
+                unfinishedTaskTooltipText={unfinishedTaskTooltipText}
+                wordCount={wordCount}
+                tagRow={tooltipTagRow}
+            />
+        );
     }, [
         isMobile,
         file,
-        file.stat.ctime,
-        file.stat.mtime,
+        fileCreatedTime,
+        fileModifiedTime,
+        fileName,
         showTooltips,
         settings.dateFormat,
         settings.timeFormat,
@@ -1106,10 +1220,62 @@ export const FileItem = React.memo(function FileItem({
         getFileTimestamps,
         sortOption,
         metadataVersion,
-        file.name,
+        tooltipTagRow,
         unfinishedTaskTooltipText,
         wordCount
     ]);
+
+    const tooltip = useTooltip();
+
+    const handleTooltipMouseOver = useCallback(
+        (event: React.MouseEvent) => {
+            const row = fileRef.current;
+            if (!row || tooltipContent === null) {
+                return;
+            }
+            // Descendants with native tooltips (quick actions) own the hover; hiding the row
+            // tooltip mirrors how Obsidian shows only the innermost labelled element's tooltip.
+            // The mouseover refire when leaving the descendant restores the row tooltip.
+            if (isInsideNativeTooltipTarget(row, event.target)) {
+                tooltip.hideTooltip(row);
+                return;
+            }
+            tooltip.showTooltip(row, tooltipContent);
+        },
+        [tooltip, tooltipContent]
+    );
+
+    const handleTooltipMouseLeave = useCallback(() => {
+        const row = fileRef.current;
+        if (row) {
+            tooltip.hideTooltip(row);
+        }
+    }, [tooltip]);
+
+    // Refresh a visible or pending tooltip when lazily loaded content (word count, tags,
+    // task counts) arrives while the pointer rests on the row.
+    useEffect(() => {
+        const row = fileRef.current;
+        if (!row) {
+            return;
+        }
+        if (tooltipContent === null) {
+            tooltip.hideTooltip(row);
+            return;
+        }
+        tooltip.updateTooltip(row, tooltipContent);
+    }, [tooltip, tooltipContent]);
+
+    // Hide the tooltip when the row unmounts, otherwise a virtualized scroll can leave a
+    // tooltip anchored to a detached element.
+    useEffect(() => {
+        const row = fileRef.current;
+        return () => {
+            if (row) {
+                tooltip.hideTooltip(row);
+            }
+        };
+    }, [tooltip]);
 
     // Reveals the file by selecting its folder in navigation pane and showing the file in list pane
     const revealFileInNavigation = () => {
@@ -1343,6 +1509,8 @@ export const FileItem = React.memo(function FileItem({
             data-drag-icon-color={dragIconColor}
             onClick={handleItemClick}
             onMouseDown={handleMouseDown}
+            onMouseOver={tooltipContent !== null ? handleTooltipMouseOver : undefined}
+            onMouseLeave={tooltipContent !== null ? handleTooltipMouseLeave : undefined}
             draggable={!isMobile && !disableNativeDrag}
             role="listitem"
             aria-describedby={hiddenDescription ? hiddenDescriptionId : undefined}
@@ -1406,8 +1574,23 @@ export const FileItem = React.memo(function FileItem({
                             <div className="nn-file-text-content">
                                 {fileTitleElement}
 
-                                {/* Multi-row preview clamps to the configured row count. */}
-                                {shouldShowMultilinePreview && (
+                                {/* Pinned task progress and preview share one line without a dot separator. */}
+                                {shouldShowPinnedSecondaryLine && (
+                                    <div className="nn-file-second-line nn-file-second-line--pinned">
+                                        {renderTaskProgress(false)}
+                                        {shouldShowMultilinePreview && (
+                                            <div
+                                                className="nn-file-preview"
+                                                style={{ '--preview-rows': pinnedPreviewRows } as React.CSSProperties}
+                                            >
+                                                {highlightedPreview}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Non-pinned previews clamp to the configured row count. */}
+                                {!isPinned && shouldShowMultilinePreview && (
                                     <div className="nn-file-preview" style={{ '--preview-rows': pinnedPreviewRows } as React.CSSProperties}>
                                         {highlightedPreview}
                                     </div>
@@ -1416,9 +1599,10 @@ export const FileItem = React.memo(function FileItem({
                                 {/* Pills */}
                                 {renderedPillRows}
 
-                                {/* Date + Parent folder share the metadata line */}
-                                {shouldShowMetadataLine && (
+                                {/* Task progress + Date + Parent folder share the metadata line */}
+                                {!isPinned && shouldShowMetadataLine && (
                                     <div className="nn-file-second-line">
+                                        {renderTaskProgress(shouldShowDateForItem)}
                                         {shouldShowDateForItem && <div className="nn-file-date">{displayDate}</div>}
                                         {renderParentFolder()}
                                     </div>

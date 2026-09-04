@@ -66,6 +66,7 @@ interface UseFolderNavigationSourceStateParams {
     settings: NotebookNavigatorSettings;
     activeProfile: ActiveProfileState;
     metadataService: MetadataService;
+    showHiddenItems: boolean;
     onFileChange?: (change: RootFileChangeEvent) => void;
 }
 
@@ -74,6 +75,7 @@ export function useFolderNavigationSourceState({
     settings,
     activeProfile,
     metadataService,
+    showHiddenItems,
     onFileChange
 }: UseFolderNavigationSourceStateParams): FolderNavigationSourceState {
     const { hiddenFolders, hiddenFileProperties, hiddenFileNames, hiddenFileTags } = activeProfile;
@@ -87,10 +89,9 @@ export function useFolderNavigationSourceState({
     const folderNoteSettings = useMemo(() => {
         return getFolderNoteDetectionSettings({
             enableFolderNotes: settings.enableFolderNotes,
-            folderNoteName: settings.folderNoteName,
             folderNoteNamePattern: settings.folderNoteNamePattern
         });
-    }, [settings.enableFolderNotes, settings.folderNoteName, settings.folderNoteNamePattern]);
+    }, [settings.enableFolderNotes, settings.folderNoteNamePattern]);
     const shouldEvaluateFolderNoteExclusions = useMemo(() => {
         return (
             settings.enableFolderNotes &&
@@ -182,6 +183,7 @@ export function useFolderNavigationSourceState({
 
     const { rootFolders, rootLevelFolders, rootFolderOrderMap, missingRootFolderPaths } = useRootFolderOrder({
         settings,
+        showHiddenItems,
         onFileChange: handleRootFileChange,
         onFolderChange: handleRootFolderChange
     });

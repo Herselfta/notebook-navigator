@@ -16,30 +16,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { DropdownComponent, Platform, Setting, setIcon } from 'obsidian';
+import { Platform, Setting, setIcon } from 'obsidian';
 import { strings } from '../../../i18n';
 import { DEFAULT_SETTINGS } from '../../defaultSettings';
-import {
-    isListDisplayMode,
-    isListNoteGroupingOption,
-    isListPaneTitleOption,
-    isManualSortNewNotePlacement,
-    isPropertySortSecondaryOption,
-    isSortOption
-} from '../../types';
-import { MANUAL_SORT_NEW_NOTE_PLACEMENT_OPTIONS, PROPERTY_SORT_SECONDARY_OPTIONS, SORT_OPTIONS } from '../../types';
+import { isListDisplayMode, isListPaneTitleOption, isManualSortNewNotePlacement, isPropertySortSecondaryOption } from '../../types';
+import { MANUAL_SORT_NEW_NOTE_PLACEMENT_OPTIONS, PROPERTY_SORT_SECONDARY_OPTIONS } from '../../types';
 import type { SettingsTabContext } from '../SettingsTabContext';
+import {
+    getManualSortNewNotePlacementOptionLabel,
+    getPropertySecondarySortOptionLabel,
+    reconcileDefaultsAfterPropertyKeysEdit,
+    renderDefaultFolderSortSetting,
+    renderNoteGroupingSetting,
+    renderPropertyGroupKeySetting
+} from '../ListTab';
 import { runAsyncAction } from '../../../utils/async';
+import { usesMobileChrome } from '../../../utils/paneLayout';
 import { createSettingGroupFactory } from '../../settingGroups';
 import { addSettingSyncModeToggle } from '../../syncModeToggle';
 import { createDependentSettingsSection, setElementVisible } from '../../dependentSettings';
+import { appendSettingText } from '../../settingText';
 import { pruneUnavailablePropertySortOverrides } from '../../../utils/sortUtils';
+import { pruneUnavailablePropertyGroupingOverrides } from '../../../utils/listGrouping';
 import {
     getManualSortGroupHeaderPropertyKey,
     isValidManualSortPropertyKey,
     normalizeManualSortPropertyKey
 } from '../../../utils/manualSort';
 import { formatPixelSliderValue, renderSliderSetting } from '../SliderSetting';
+import { renderToolbarButtonsSetting } from '../ToolbarButtonsSetting';
 
 type QuickActionSettingKey =
     'quickActionRevealInFolder' | 'quickActionAddTag' | 'quickActionAddToShortcuts' | 'quickActionPinNote' | 'quickActionOpenInNewTab';
@@ -50,45 +55,16 @@ interface QuickActionToggleConfig {
     label: string;
 }
 
-const STRONG_TEXT_PATTERN = /\*\*([^*]+)\*\*/g;
-
-function appendStrongText(container: HTMLElement, value: string): void {
-    let currentIndex = 0;
-
-    for (const match of value.matchAll(STRONG_TEXT_PATTERN)) {
-        const matchText = match[0];
-        const strongText = match[1];
-        if (!matchText || strongText === undefined) {
-            continue;
-        }
-
-        const matchIndex = match.index ?? -1;
-        if (matchIndex === -1) {
-            break;
-        }
-
-        if (matchIndex > currentIndex) {
-            container.appendText(value.slice(currentIndex, matchIndex));
-        }
-
-        container.createEl('strong', { text: strongText });
-        currentIndex = matchIndex + matchText.length;
-    }
-
-    if (currentIndex < value.length) {
-        container.appendText(value.slice(currentIndex));
-    }
-}
-
 /** Legacy settings renderer used only by Obsidian versions before native 1.13 setting definitions. */
 export function renderListPaneTab(context: SettingsTabContext): void {
     const { containerEl, plugin, addToggleSetting, addInfoSetting } = context;
     const createGroup = createSettingGroupFactory(containerEl);
 
     const renderAppearanceGroup = (): void => {
-        const appearanceGroup = createGroup(strings.settings.groups.list.display);
+        const appearanceGroup = createGroup(strings.settings.pages.listPane.groups.appearance);
 
-        if (!Platform.isMobile) {
+        // The list pane title only renders with the desktop chrome (desktop and tablets)
+        if (!usesMobileChrome()) {
             appearanceGroup.addSetting(setting => {
                 setting
                     .setName(strings.settings.items.listPaneTitle.name)
@@ -96,7 +72,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                     .addDropdown(dropdown =>
                         dropdown
                             .addOption('header', strings.settings.items.listPaneTitle.options.header)
-                            .addOption('list', strings.settings.items.listPaneTitle.options.list)
+                            .addOption('list', strings.settings.items.listPaneTitle.options.listPane)
                             .addOption('hidden', strings.settings.items.listPaneTitle.options.hidden)
                             .setValue(plugin.settings.listPaneTitle)
                             .onChange(async value => {
@@ -163,8 +139,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
         addToggleSetting(
             appearanceGroup.addSetting,
-            strings.settings.items.showSelectedNavigationPills.name,
-            strings.settings.items.showSelectedNavigationPills.desc,
+            strings.settings.items.alwaysShowAllTagAndPropertyPills.name,
+            strings.settings.items.alwaysShowAllTagAndPropertyPills.desc,
             () => plugin.settings.showSelectedNavigationPills,
             value => {
                 plugin.settings.showSelectedNavigationPills = value;
@@ -173,6 +149,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
     };
 
     const organizationGroup = createGroup(undefined);
+
+    renderToolbarButtonsSetting(createSetting => organizationGroup.addSetting(createSetting), plugin, 'list');
 
     const includeDescendantNotesSetting = organizationGroup.addSetting(setting => {
         setting
@@ -188,53 +166,78 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
     addSettingSyncModeToggle({ setting: includeDescendantNotesSetting, plugin, settingId: 'includeDescendantNotes' });
 
-    organizationGroup.addSetting(setting => {
+    const sortAndGroupGroup = createGroup(strings.settings.pages.listPane.groups.sortAndGroup);
+    let refreshPropertySortSecondaryVisibility = (): void => {};
+
+    sortAndGroupGroup.addSetting(setting => {
+        renderDefaultFolderSortSetting(setting, context);
+    });
+
+    sortAndGroupGroup.addSetting(setting => {
+        renderNoteGroupingSetting(setting, context);
+    });
+
+    const propertySortKeySetting = sortAndGroupGroup.addSetting(setting => {
         setting
-            .setName(strings.settings.items.sortNotesBy.name)
-            .setDesc(strings.settings.items.sortNotesBy.desc)
-            .addDropdown((dropdown: DropdownComponent) => {
-                SORT_OPTIONS.forEach(option => {
-                    if (option === 'property-asc' || option === 'property-desc') {
+            .setName(strings.settings.items.sortingProperties.name)
+            .setDesc(strings.settings.items.sortingProperties.desc)
+            .addText(text => {
+                const commitPropertySortKey = async (): Promise<void> => {
+                    const value = text.getValue();
+                    if (plugin.settings.propertySortKey === value) {
                         return;
                     }
-                    dropdown.addOption(option, strings.settings.items.sortNotesBy.options[option]);
-                });
-                const defaultFolderSort =
-                    plugin.settings.defaultFolderSort === 'property-asc' || plugin.settings.defaultFolderSort === 'property-desc'
-                        ? DEFAULT_SETTINGS.defaultFolderSort
-                        : plugin.settings.defaultFolderSort;
-                return dropdown.setValue(defaultFolderSort).onChange(async value => {
-                    if (!isSortOption(value)) {
-                        return;
-                    }
-                    plugin.settings.defaultFolderSort = value;
+                    plugin.settings.propertySortKey = value;
+                    pruneUnavailablePropertySortOverrides(plugin.settings);
+                    reconcileDefaultsAfterPropertyKeysEdit(plugin.settings);
+                    refreshPropertySortSecondaryVisibility();
                     await plugin.saveSettingsAndUpdate();
+                };
+
+                text.inputEl.addEventListener('blur', () => {
+                    runAsyncAction(commitPropertySortKey);
                 });
+                text.inputEl.addEventListener('keydown', event => {
+                    if (event.key !== 'Enter') {
+                        return;
+                    }
+                    event.preventDefault();
+                    runAsyncAction(commitPropertySortKey);
+                    text.inputEl.blur();
+                });
+
+                return text.setPlaceholder(strings.settings.items.sortingProperties.placeholder).setValue(plugin.settings.propertySortKey);
             });
     });
 
-    organizationGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.groupNotes.name)
-            .setDesc(strings.settings.items.groupNotes.desc)
-            .addDropdown(dropdown =>
-                dropdown
-                    .addOption('custom', strings.settings.items.groupNotes.options.custom)
-                    .addOption('date', strings.settings.items.groupNotes.options.date)
-                    .addOption('folder', strings.settings.items.groupNotes.options.folder)
-                    .setValue(plugin.settings.noteGrouping)
-                    .onChange(async value => {
-                        if (!isListNoteGroupingOption(value)) {
-                            return;
-                        }
-                        plugin.settings.noteGrouping = value;
-                        await plugin.saveSettingsAndUpdate();
-                    })
-            );
+    const propertySortSecondarySettingsEl = createDependentSettingsSection(propertySortKeySetting);
+    refreshPropertySortSecondaryVisibility = (): void => {
+        setElementVisible(propertySortSecondarySettingsEl, plugin.settings.propertySortKey.trim().length > 0);
+    };
+
+    new Setting(propertySortSecondarySettingsEl)
+        .setName(strings.settings.items.propertySecondarySort.name)
+        .setDesc(strings.settings.items.propertySecondarySort.desc)
+        .addDropdown(dropdown => {
+            PROPERTY_SORT_SECONDARY_OPTIONS.forEach(option => {
+                dropdown.addOption(option, getPropertySecondarySortOptionLabel(option));
+            });
+            return dropdown.setValue(plugin.settings.propertySortSecondary).onChange(async value => {
+                if (!isPropertySortSecondaryOption(value)) {
+                    return;
+                }
+                plugin.settings.propertySortSecondary = value;
+                await plugin.saveSettingsAndUpdate();
+            });
+        });
+    refreshPropertySortSecondaryVisibility();
+
+    sortAndGroupGroup.addSetting(setting => {
+        renderPropertyGroupKeySetting(setting, context);
     });
 
     addToggleSetting(
-        organizationGroup.addSetting,
+        sortAndGroupGroup.addSetting,
         strings.settings.items.showCurrentFolderFilesAtBottom.name,
         strings.settings.items.showCurrentFolderFilesAtBottom.desc,
         () => plugin.settings.showCurrentFolderFilesAtBottom,
@@ -243,7 +246,17 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         }
     );
 
-    const groupHeadersGroup = createGroup(strings.settings.groups.list.groupHeaders);
+    addInfoSetting(sortAndGroupGroup.addSetting, ['nn-setting-info-container', 'nn-setting-info-list'], descEl => {
+        const info = strings.settings.items.propertySortInstructions;
+        descEl.createDiv({ text: info.intro });
+        const listEl = descEl.createEl('ol');
+        info.items.forEach(item => {
+            const itemEl = listEl.createEl('li');
+            appendSettingText(itemEl, item);
+        });
+    });
+
+    const groupHeadersGroup = createGroup(strings.settings.pages.listPane.groups.groupHeaders);
 
     addToggleSetting(
         groupHeadersGroup.addSetting,
@@ -257,8 +270,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
     addToggleSetting(
         groupHeadersGroup.addSetting,
-        strings.settings.items.showFolderGroupPaths.name,
-        strings.settings.items.showFolderGroupPaths.desc,
+        strings.settings.items.showSubfolderPaths.name,
+        strings.settings.items.showSubfolderPaths.desc,
         () => plugin.settings.showFolderGroupPaths,
         value => {
             plugin.settings.showFolderGroupPaths = value;
@@ -277,8 +290,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
     groupHeadersGroup.addSetting(setting => {
         setting
-            .setName(strings.settings.items.manualSortGroupHeaderProperty.name)
-            .setDesc(strings.settings.items.manualSortGroupHeaderProperty.desc)
+            .setName(strings.settings.items.groupHeaderProperty.name)
+            .setDesc(strings.settings.items.groupHeaderProperty.desc)
             .addText(text => {
                 const commitGroupHeaderProperty = async (): Promise<void> => {
                     const value = text.getValue().trim();
@@ -324,77 +337,16 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         const listEl = descEl.createEl('ol');
         info.items.forEach(item => {
             const itemEl = listEl.createEl('li');
-            appendStrongText(itemEl, item);
+            appendSettingText(itemEl, item);
         });
     });
 
-    const propertySortGroup = createGroup(strings.settings.groups.list.propertySort);
-    let refreshPropertySortSecondaryVisibility = (): void => {};
-
-    const propertySortKeySetting = propertySortGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.propertySortKey.name)
-            .setDesc(strings.settings.items.propertySortKey.desc)
-            .addText(text => {
-                const commitPropertySortKey = async (): Promise<void> => {
-                    const value = text.getValue();
-                    if (plugin.settings.propertySortKey === value) {
-                        return;
-                    }
-                    plugin.settings.propertySortKey = value;
-                    pruneUnavailablePropertySortOverrides(plugin.settings);
-                    refreshPropertySortSecondaryVisibility();
-                    await plugin.saveSettingsAndUpdate();
-                };
-
-                text.inputEl.addEventListener('blur', () => {
-                    runAsyncAction(commitPropertySortKey);
-                });
-                text.inputEl.addEventListener('keydown', event => {
-                    if (event.key !== 'Enter') {
-                        return;
-                    }
-                    event.preventDefault();
-                    runAsyncAction(commitPropertySortKey);
-                    text.inputEl.blur();
-                });
-
-                return text.setPlaceholder(strings.settings.items.propertySortKey.placeholder).setValue(plugin.settings.propertySortKey);
-            });
-    });
-
-    const propertySortSecondarySettingsEl = createDependentSettingsSection(propertySortKeySetting);
-    refreshPropertySortSecondaryVisibility = (): void => {
-        setElementVisible(propertySortSecondarySettingsEl, plugin.settings.propertySortKey.trim().length > 0);
-    };
-
-    new Setting(propertySortSecondarySettingsEl)
-        .setName(strings.settings.items.propertySortSecondary.name)
-        .setDesc(strings.settings.items.propertySortSecondary.desc)
-        .addDropdown(dropdown => {
-            PROPERTY_SORT_SECONDARY_OPTIONS.forEach(option => {
-                dropdown.addOption(option, strings.settings.items.propertySortSecondary.options[option]);
-            });
-            return dropdown.setValue(plugin.settings.propertySortSecondary).onChange(async value => {
-                if (!isPropertySortSecondaryOption(value)) {
-                    return;
-                }
-                plugin.settings.propertySortSecondary = value;
-                await plugin.saveSettingsAndUpdate();
-            });
-        });
-    refreshPropertySortSecondaryVisibility();
-
-    addInfoSetting(propertySortGroup.addSetting, 'nn-setting-info-container', descEl => {
-        descEl.createDiv({ text: strings.settings.items.propertySortInstructions.intro });
-    });
-
-    const manualSortGroup = createGroup(strings.settings.groups.list.manualSort);
+    const manualSortGroup = createGroup(strings.settings.pages.listPane.groups.manualSort);
 
     manualSortGroup.addSetting(setting => {
         setting
-            .setName(strings.settings.items.manualSortPropertyKey.name)
-            .setDesc(strings.settings.items.manualSortPropertyKey.desc)
+            .setName(strings.settings.items.manualSortProperty.name)
+            .setDesc(strings.settings.items.manualSortProperty.desc)
             .addText(text => {
                 const commitManualSortPropertyKey = async (): Promise<void> => {
                     const value = normalizeManualSortPropertyKey(text.getValue());
@@ -408,6 +360,8 @@ export function renderListPaneTab(context: SettingsTabContext): void {
                     }
                     plugin.settings.manualSortPropertyKey = value;
                     pruneUnavailablePropertySortOverrides(plugin.settings);
+                    pruneUnavailablePropertyGroupingOverrides(plugin.settings);
+                    reconcileDefaultsAfterPropertyKeysEdit(plugin.settings);
                     await plugin.saveSettingsAndUpdate();
                 };
 
@@ -433,7 +387,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
             .setDesc(strings.settings.items.manualSortNewNotePlacement.desc)
             .addDropdown(dropdown => {
                 MANUAL_SORT_NEW_NOTE_PLACEMENT_OPTIONS.forEach(option => {
-                    dropdown.addOption(option, strings.settings.items.manualSortNewNotePlacement.options[option]);
+                    dropdown.addOption(option, getManualSortNewNotePlacementOptionLabel(option));
                 });
                 return dropdown.setValue(plugin.settings.manualSortNewNotePlacement).onChange(async value => {
                     if (!isManualSortNewNotePlacement(value)) {
@@ -461,16 +415,16 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         const listEl = descEl.createEl('ol');
         info.items.forEach(item => {
             const itemEl = listEl.createEl('li');
-            appendStrongText(itemEl, item);
+            appendSettingText(itemEl, item);
         });
     });
 
-    const pinnedNotesGroup = createGroup(strings.settings.groups.list.pinnedNotes);
+    const pinnedNotesGroup = createGroup(strings.settings.pages.listPane.groups.pinnedNotes);
 
     addToggleSetting(
         pinnedNotesGroup.addSetting,
-        strings.settings.items.limitPinnedToCurrentFolder.name,
-        strings.settings.items.limitPinnedToCurrentFolder.desc,
+        strings.settings.items.filterPinnedNotesByFolder.name,
+        strings.settings.items.filterPinnedNotesByFolder.desc,
         () => plugin.settings.filterPinnedByFolder,
         value => {
             plugin.settings.filterPinnedByFolder = value;
@@ -479,12 +433,12 @@ export function renderListPaneTab(context: SettingsTabContext): void {
 
     renderAppearanceGroup();
 
-    const behaviorGroup = createGroup(strings.settings.groups.general.behavior);
+    const behaviorGroup = createGroup(strings.settings.pages.listPane.groups.behavior);
 
     addToggleSetting(
         behaviorGroup.addSetting,
-        strings.settings.items.revealFileOnListChanges.name,
-        strings.settings.items.revealFileOnListChanges.desc,
+        strings.settings.items.scrollToSelectedFileOnListChanges.name,
+        strings.settings.items.scrollToSelectedFileOnListChanges.desc,
         () => plugin.settings.revealFileOnListChanges,
         value => {
             plugin.settings.revealFileOnListChanges = value;
@@ -578,12 +532,12 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         updateButtonsDisabledState(plugin.settings.showQuickActions);
     }
 
-    const drawingPreviewsGroup = createGroup(strings.settings.groups.list.drawingPreviews);
+    const drawingPreviewsGroup = createGroup(strings.settings.pages.listPane.groups.drawingPreviews);
 
     addToggleSetting(
         drawingPreviewsGroup.addSetting,
-        strings.settings.items.hideDrawingPreviewImages.name,
-        strings.settings.items.hideDrawingPreviewImages.desc,
+        strings.settings.items.hideExportedPreviewImages.name,
+        strings.settings.items.hideExportedPreviewImages.desc,
         () => plugin.settings.hideDrawingPreviewImages,
         value => {
             plugin.settings.hideDrawingPreviewImages = value;
@@ -596,7 +550,7 @@ export function renderListPaneTab(context: SettingsTabContext): void {
         const listEl = descEl.createEl('ol');
         info.items.forEach(item => {
             const itemEl = listEl.createEl('li');
-            appendStrongText(itemEl, item);
+            appendSettingText(itemEl, item);
         });
     });
 }

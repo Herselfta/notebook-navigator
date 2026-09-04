@@ -148,7 +148,6 @@ describe('useNavigationPaneTreeInteractions', () => {
             captured = useNavigationPaneTreeInteractions({
                 app: new App(),
                 commandQueue: null,
-                isMobile: false,
                 settings: DEFAULT_SETTINGS,
                 uiState: { singlePane: false },
                 expansionState: {
@@ -197,8 +196,13 @@ describe('useNavigationPaneTreeInteractions', () => {
         const app = new App();
         const folder = createTestFolder(app, 'Projects');
         addFolderNote(app, folder, 'Projects/index.md');
+        const folderNote = app.vault.getFileByPath('Projects/index.md');
+        if (!folderNote) {
+            throw new Error('Expected folder note');
+        }
         addChildFolder(app, folder, 'Projects/Child');
         const expansionDispatch = vi.fn();
+        const selectionDispatch = vi.fn();
         const openFolderNoteInRightSidebar = vi.fn();
         let captured: NavigationPaneTreeInteractionsResult | null = null;
 
@@ -206,12 +210,11 @@ describe('useNavigationPaneTreeInteractions', () => {
             captured = useNavigationPaneTreeInteractions({
                 app,
                 commandQueue: null,
-                isMobile: false,
                 settings: {
                     ...DEFAULT_SETTINGS,
                     autoExpandNavItems: true,
                     enableFolderNotes: true,
-                    folderNoteName: 'index',
+                    folderNoteNamePattern: 'index',
                     folderNoteOpenLocation: 'right-sidebar',
                     showNearestFolderNoteInSidebar: false
                 },
@@ -224,7 +227,7 @@ describe('useNavigationPaneTreeInteractions', () => {
                 },
                 expansionDispatch,
                 selectionState: createSelectionState(),
-                selectionDispatch: vi.fn(),
+                selectionDispatch,
                 uiDispatch: vi.fn(),
                 propertyTreeService: null,
                 tagTree: new Map(),
@@ -255,12 +258,22 @@ describe('useNavigationPaneTreeInteractions', () => {
             folderPath: folder.path
         });
         expect(openFolderNoteInRightSidebar).toHaveBeenCalledTimes(1);
+        expect(selectionDispatch).toHaveBeenCalledWith({
+            type: 'REVEAL_FILE',
+            file: folderNote,
+            isManualReveal: true
+        });
     });
 
     it('switches to the list pane when a right-sidebar folder note is clicked in single-pane mode', () => {
         const app = new App();
         const folder = createTestFolder(app, 'Projects');
         addFolderNote(app, folder, 'Projects/index.md');
+        const folderNote = app.vault.getFileByPath('Projects/index.md');
+        if (!folderNote) {
+            throw new Error('Expected folder note');
+        }
+        const selectionDispatch = vi.fn();
         const uiDispatch = vi.fn();
         let captured: NavigationPaneTreeInteractionsResult | null = null;
 
@@ -268,11 +281,10 @@ describe('useNavigationPaneTreeInteractions', () => {
             captured = useNavigationPaneTreeInteractions({
                 app,
                 commandQueue: null,
-                isMobile: false,
                 settings: {
                     ...DEFAULT_SETTINGS,
                     enableFolderNotes: true,
-                    folderNoteName: 'index',
+                    folderNoteNamePattern: 'index',
                     folderNoteOpenLocation: 'right-sidebar',
                     showNearestFolderNoteInSidebar: true
                 },
@@ -285,7 +297,7 @@ describe('useNavigationPaneTreeInteractions', () => {
                 },
                 expansionDispatch: vi.fn(),
                 selectionState: createSelectionState(),
-                selectionDispatch: vi.fn(),
+                selectionDispatch,
                 uiDispatch,
                 propertyTreeService: null,
                 tagTree: new Map(),
@@ -312,15 +324,25 @@ describe('useNavigationPaneTreeInteractions', () => {
         result.handleFolderNameClick(folder);
 
         expect(uiDispatch).toHaveBeenCalledWith({ type: 'ACTIVATE_PANE', target: 'files' });
+        expect(selectionDispatch).toHaveBeenCalledWith({
+            type: 'REVEAL_FILE',
+            file: folderNote,
+            isManualReveal: true
+        });
     });
 
-    it('keeps the current pane when a non-sidebar folder note is clicked in single-pane mode', () => {
+    it('keeps the current pane and reveals a non-sidebar folder note in single-pane mode', () => {
         const app = new App();
         app.workspace = {
             getLeaf: vi.fn(() => null)
         } as unknown as App['workspace'];
         const folder = createTestFolder(app, 'Projects');
         addFolderNote(app, folder, 'Projects/index.md');
+        const folderNote = app.vault.getFileByPath('Projects/index.md');
+        if (!folderNote) {
+            throw new Error('Expected folder note');
+        }
+        const selectionDispatch = vi.fn();
         const uiDispatch = vi.fn();
         let captured: NavigationPaneTreeInteractionsResult | null = null;
 
@@ -328,11 +350,10 @@ describe('useNavigationPaneTreeInteractions', () => {
             captured = useNavigationPaneTreeInteractions({
                 app,
                 commandQueue: null,
-                isMobile: false,
                 settings: {
                     ...DEFAULT_SETTINGS,
                     enableFolderNotes: true,
-                    folderNoteName: 'index',
+                    folderNoteNamePattern: 'index',
                     folderNoteOpenLocation: 'current-tab',
                     showNearestFolderNoteInSidebar: true
                 },
@@ -345,7 +366,7 @@ describe('useNavigationPaneTreeInteractions', () => {
                 },
                 expansionDispatch: vi.fn(),
                 selectionState: createSelectionState(),
-                selectionDispatch: vi.fn(),
+                selectionDispatch,
                 uiDispatch,
                 propertyTreeService: null,
                 tagTree: new Map(),
@@ -372,5 +393,63 @@ describe('useNavigationPaneTreeInteractions', () => {
         result.handleFolderNameClick(folder);
 
         expect(uiDispatch).not.toHaveBeenCalledWith({ type: 'ACTIVATE_PANE', target: 'files' });
+        expect(selectionDispatch).toHaveBeenCalledWith({
+            type: 'REVEAL_FILE',
+            file: folderNote,
+            isManualReveal: true
+        });
+    });
+
+    it('ignores recursive expansion toggles for a root locked open by hidden-item visibility', () => {
+        const app = new App();
+        const rootFolder = createTestFolder(app, '/');
+        addChildFolder(app, rootFolder, 'Projects');
+        const expansionDispatch = vi.fn();
+        let captured: NavigationPaneTreeInteractionsResult | null = null;
+
+        function Harness() {
+            captured = useNavigationPaneTreeInteractions({
+                app,
+                commandQueue: null,
+                settings: {
+                    ...DEFAULT_SETTINGS,
+                    showRootFolder: false
+                },
+                uiState: { singlePane: false },
+                expansionState: {
+                    expandedFolders: new Set(['/']),
+                    expandedTags: new Set(),
+                    expandedProperties: new Set(),
+                    expandedVirtualFolders: new Set()
+                },
+                expansionDispatch,
+                selectionState: createSelectionState(),
+                selectionDispatch: vi.fn(),
+                uiDispatch: vi.fn(),
+                propertyTreeService: null,
+                tagTree: new Map(),
+                propertyTree: new Map(),
+                tagsVirtualFolderHasChildren: false,
+                setShortcutsExpanded: vi.fn(),
+                setRecentNotesExpanded: vi.fn(),
+                clearActiveShortcut: vi.fn(),
+                openFolderNoteInRightSidebar: vi.fn(),
+                onModifySearchWithTag: vi.fn(),
+                onModifySearchWithProperty: vi.fn()
+            });
+            return null;
+        }
+
+        renderToStaticMarkup(React.createElement(Harness));
+
+        expect(captured).not.toBeNull();
+        if (!captured) {
+            throw new Error('Expected hook result');
+        }
+        const result = captured as NavigationPaneTreeInteractionsResult;
+
+        result.handleFolderToggleAllSiblings(rootFolder);
+
+        expect(expansionDispatch).not.toHaveBeenCalled();
     });
 });

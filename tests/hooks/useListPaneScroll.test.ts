@@ -25,6 +25,7 @@ import { createHiddenTagVisibility } from '../../src/utils/tagPrefixMatcher';
 import type { FileContentChange, IndexedDBStorage } from '../../src/storage/IndexedDBStorage';
 import {
     createRemeasureScheduler,
+    isPendingFileScrollStale,
     isListRowHeightAffectingContentChange,
     type ListRowHeightAffectingContentChangeConfig,
     resolveListFileRowHeightInputs,
@@ -74,6 +75,8 @@ function createRowSizingConfig(overrides: Partial<ListFileRowSizingConfig> = {})
         showFilePropertiesInCompactMode: false,
         characterCountSpaces: 'include',
         showParentFolder: false,
+        showTaskProgress: false,
+        hideTaskProgressWhenComplete: false,
         selectionType: ItemType.FOLDER,
         includeDescendantNotes: false,
         selectedTagToHide: null,
@@ -126,6 +129,17 @@ function installAnimationFrameStub() {
     };
 }
 
+describe('isPendingFileScrollStale', () => {
+    const revealRequest = { type: 'file' as const, filePath: 'Notes/Folder.md', reason: 'reveal' as const };
+
+    it('retains the current selection request and discards it after selection changes', () => {
+        expect(isPendingFileScrollStale(revealRequest, 'Notes/Folder.md')).toBe(false);
+        expect(isPendingFileScrollStale(revealRequest, 'Notes/Other.md')).toBe(true);
+        expect(isPendingFileScrollStale(revealRequest, null)).toBe(true);
+        expect(isPendingFileScrollStale({ type: 'top', reason: 'visibility-change' }, null)).toBe(false);
+    });
+});
+
 afterEach(() => {
     vi.unstubAllGlobals();
 });
@@ -142,6 +156,8 @@ describe('isListRowHeightAffectingContentChange', () => {
             showWordCountProperty: true,
             showCharacterCountProperty: true,
             characterCountSpaces: 'include',
+            showTaskProgress: false,
+            hideTaskProgressWhenComplete: false,
             ...overrides
         };
     }
@@ -239,6 +255,41 @@ describe('isListRowHeightAffectingContentChange', () => {
                 config
             )
         ).toBe(false);
+    });
+
+    it('remeasures only when task progress crosses its visibility boundary', () => {
+        const showCompletedConfig = createHeightChangeConfig({ showTaskProgress: true });
+        const hideCompletedConfig = createHeightChangeConfig({
+            showTaskProgress: true,
+            hideTaskProgressWhenComplete: true
+        });
+
+        const progressOnlyChange = createContentChange({
+            changes: { taskUnfinished: 2 },
+            previousTaskCounters: { taskTotal: 4, taskUnfinished: 3 }
+        });
+        expect(isListRowHeightAffectingContentChange(progressOnlyChange, showCompletedConfig)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(progressOnlyChange, hideCompletedConfig)).toBe(false);
+
+        const completedTaskAdded = createContentChange({
+            changes: { taskTotal: 1 },
+            previousTaskCounters: { taskTotal: 0, taskUnfinished: 0 }
+        });
+        expect(isListRowHeightAffectingContentChange(completedTaskAdded, showCompletedConfig)).toBe(true);
+        expect(isListRowHeightAffectingContentChange(completedTaskAdded, hideCompletedConfig)).toBe(false);
+
+        const completedNoteBecameIncomplete = createContentChange({
+            changes: { taskUnfinished: 1 },
+            previousTaskCounters: { taskTotal: 4, taskUnfinished: 0 }
+        });
+        expect(isListRowHeightAffectingContentChange(completedNoteBecameIncomplete, showCompletedConfig)).toBe(false);
+        expect(isListRowHeightAffectingContentChange(completedNoteBecameIncomplete, hideCompletedConfig)).toBe(true);
+
+        const countersCleared = createContentChange({
+            changes: { taskTotal: null, taskUnfinished: null },
+            previousTaskCounters: { taskTotal: 4, taskUnfinished: 1 }
+        });
+        expect(isListRowHeightAffectingContentChange(countersCleared, showCompletedConfig)).toBe(true);
     });
 });
 
@@ -388,6 +439,24 @@ describe('resolveListFileRowHeightInputs', () => {
         });
 
         expect(inputs.visiblePillRowCount).toBe(1);
+        expect(db.getFile).toHaveBeenCalledWith(file.path);
+    });
+
+    it('includes task progress in pinned markdown row measurements', () => {
+        const app = new App();
+        const file = createTestTFile('Notes/Pinned.md');
+        const db = createDb({ taskTotal: 4, taskUnfinished: 2 });
+
+        const inputs = resolveListFileRowHeightInputs({
+            app,
+            db: db as unknown as IndexedDBStorage,
+            hasPreview: () => true,
+            item: createFileItem(file, { isPinned: true }),
+            file,
+            config: createRowSizingConfig({ showTaskProgress: true })
+        });
+
+        expect(inputs.showTaskProgressLine).toBe(true);
         expect(db.getFile).toHaveBeenCalledWith(file.path);
     });
 });

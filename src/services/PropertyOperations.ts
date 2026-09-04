@@ -29,12 +29,23 @@ import { runAsyncAction } from '../utils/async';
 import { removePropertyField, renamePropertyField } from '../utils/propertyUtils';
 import { isRecord } from '../utils/typeGuards';
 import { buildPropertyKeyNodeId } from '../utils/propertyTree';
-import { replacePropertySortKey, SORT_OVERRIDE_RECORD_KEYS } from '../utils/sortUtils';
+import {
+    reconcileDefaultFolderSort,
+    replacePropertySortKey,
+    SORT_OVERRIDE_RECORD_KEYS,
+    updateDefaultFolderSortPropertyKey
+} from '../utils/sortUtils';
+import {
+    reconcileDefaultNoteGrouping,
+    updateDefaultNoteGroupingKey,
+    updatePropertyGroupKeySetting,
+    updatePropertyGroupingOverrideKeys
+} from '../utils/listGrouping';
 import { buildUsageSummaryFromPaths, renderAffectedFilesPreview, yieldToEventLoop } from './operations/OperationBatchUtils';
 import { PropertyFileMutations } from './propertyOperations/PropertyFileMutations';
 import type { PropertyKeyDeleteEventPayload, PropertyKeyRenameEventPayload } from './propertyOperations/types';
 import { getActivePropertyFields, setActivePropertyFields } from '../utils/vaultProfiles';
-import { ItemType } from '../types';
+import { ItemType, type CollapsedPinnedContexts } from '../types';
 
 export type { PropertyKeyRenameEventPayload, PropertyKeyDeleteEventPayload } from './propertyOperations/types';
 
@@ -193,7 +204,8 @@ export class PropertyOperations {
         private readonly app: App,
         private readonly getSettings: () => NotebookNavigatorSettings,
         private readonly saveSettingsAndUpdate: () => Promise<void>,
-        private readonly getPropertyTreeService: () => IPropertyTreeProvider | null
+        private readonly getPropertyTreeService: () => IPropertyTreeProvider | null,
+        private readonly updateCollapsedPinnedContexts: (mutator: (record: CollapsedPinnedContexts) => boolean) => boolean
     ) {
         this.fileMutations = new PropertyFileMutations(this.app);
     }
@@ -673,27 +685,22 @@ export class PropertyOperations {
         const newKeyNodeId = buildPropertyKeyNodeId(newKeyNormalized);
         const nodeChanged = this.renamePropertyNodeMetadataFields(settings, oldKeyNodeId, newKeyNodeId);
         const keyChanged = this.renamePropertyKeyMetadataFields(settings, oldKeyNodeId, newKeyNodeId);
-        const collapsedPinnedContextChanged = updateCollapsedPinnedContextKeys(
-            settings.collapsedPinnedContexts,
-            ItemType.PROPERTY,
-            oldKeyNodeId,
-            newKeyNodeId,
-            { descendantDelimiter: '=' }
+        // Pinned-section collapse state persists to vault-local storage on its own, so it must not drive the settings save.
+        this.updateCollapsedPinnedContexts(record =>
+            updateCollapsedPinnedContextKeys(record, ItemType.PROPERTY, oldKeyNodeId, newKeyNodeId, { descendantDelimiter: '=' })
         );
-        return nodeChanged || keyChanged || collapsedPinnedContextChanged;
+        return nodeChanged || keyChanged;
     }
 
     private removePropertyMetadataForDeletedKey(settings: NotebookNavigatorSettings, normalizedKey: string): boolean {
         const keyNodeId = buildPropertyKeyNodeId(normalizedKey);
         const nodeChanged = this.removePropertyNodeMetadataFields(settings, keyNodeId);
         const keyChanged = this.removePropertyKeyMetadataFields(settings, keyNodeId);
-        const collapsedPinnedContextChanged = deleteCollapsedPinnedContextKeys(
-            settings.collapsedPinnedContexts,
-            ItemType.PROPERTY,
-            keyNodeId,
-            { descendantDelimiter: '=' }
+        // Pinned-section collapse state persists to vault-local storage on its own, so it must not drive the settings save.
+        this.updateCollapsedPinnedContexts(record =>
+            deleteCollapsedPinnedContextKeys(record, ItemType.PROPERTY, keyNodeId, { descendantDelimiter: '=' })
         );
-        return nodeChanged || keyChanged || collapsedPinnedContextChanged;
+        return nodeChanged || keyChanged;
     }
 
     protected async updateSettingsAfterRename(oldKeyNormalized: string, newKeyDisplay: string): Promise<void> {
@@ -706,9 +713,18 @@ export class PropertyOperations {
         changed = setActivePropertyFields(settings, nextPropertyFields) || changed;
 
         changed = updatePropertySortKeySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        changed = updatePropertyGroupKeySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
         changed = updateManualSortPropertyKeySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
         changed = updateManualSortGroupHeaderPropertySetting(settings, oldKeyNormalized, newKeyDisplay) || changed;
         changed = updateSortOverridePropertyKeySettings(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        changed = updatePropertyGroupingOverrideKeys(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        changed = updateDefaultFolderSortPropertyKey(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        changed = updateDefaultNoteGroupingKey(settings, oldKeyNormalized, newKeyDisplay) || changed;
+        // The rename can move a default onto the manual-sort key (or vice versa), which the
+        // rewrites above cannot detect; reconcile silently so the defaults never persist a key
+        // the settings dropdowns exclude.
+        changed = reconcileDefaultFolderSort(settings).changed || changed;
+        changed = reconcileDefaultNoteGrouping(settings).changed || changed;
 
         if (newKeyNormalized) {
             changed = this.migratePropertyMetadataAfterRename(settings, oldKeyNormalized, newKeyNormalized) || changed;
@@ -728,9 +744,18 @@ export class PropertyOperations {
         changed = setActivePropertyFields(settings, nextPropertyFields) || changed;
 
         changed = updatePropertySortKeySetting(settings, normalizedKey, null) || changed;
+        changed = updatePropertyGroupKeySetting(settings, normalizedKey, null) || changed;
         changed = updateManualSortPropertyKeySetting(settings, normalizedKey, null) || changed;
         changed = updateManualSortGroupHeaderPropertySetting(settings, normalizedKey, null) || changed;
         changed = updateSortOverridePropertyKeySettings(settings, normalizedKey, null) || changed;
+        changed = updatePropertyGroupingOverrideKeys(settings, normalizedKey, null) || changed;
+        changed = updateDefaultFolderSortPropertyKey(settings, normalizedKey, null) || changed;
+        changed = updateDefaultNoteGroupingKey(settings, normalizedKey, null) || changed;
+        // Deleting the manual-sort key can make previously excluded configured keys available and
+        // the delete rewrites above only match the deleted key; reconcile to keep the defaults
+        // consistent with the updated key lists.
+        changed = reconcileDefaultFolderSort(settings).changed || changed;
+        changed = reconcileDefaultNoteGrouping(settings).changed || changed;
 
         changed = this.removePropertyMetadataForDeletedKey(settings, normalizedKey) || changed;
 

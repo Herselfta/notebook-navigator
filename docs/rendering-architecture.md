@@ -112,8 +112,9 @@ class names and counts use `useMemo`, and DOM measurements (navigation item heig
 applied via effects in `NotebookNavigatorComponent`, `useMeasuredElementHeight`, and `useNavigatorScale` so render output
 stays pure.
 
-Both panes use `useSurfaceColorVariables` to map semi-transparent theme variables to solid equivalents and expose surface
-colors used for background compositing.
+Both panes use `useSurfaceColorVariables` to map semi-transparent theme variables to solid equivalents. The hook owns a
+generation-scoped background resolver, so cached composites are replaced before pane rows render after a surface or color
+revision.
 
 ## Component Hierarchy
 
@@ -310,6 +311,8 @@ graph TD
   destination folders block creation unless hidden items are shown. The `calendarShowHiddenItems` setting
   disables profile visibility for the calendar, treating every note as shown.
 - Calls `onWeekCountChange` so parent panes can update scroll padding and CSS variables for the calendar layout.
+- Resolves no note for days outside the displayed month when `calendarShowOutsideMonthDays` is disabled in the full month
+  grid, so `CalendarGrid` renders those cells empty and no indicators or content are loaded for them.
 - Delegates presentation to `src/components/calendar/CalendarHeader.tsx`, `src/components/calendar/CalendarGrid.tsx`,
   and `src/components/calendar/CalendarYearPanel.tsx`.
 

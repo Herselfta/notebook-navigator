@@ -29,7 +29,7 @@ import {
     shouldExcludeFolderFromDescendants
 } from '../../utils/fileFilters';
 import { ItemType } from '../../types';
-import { addCopyPathSubmenu, setAsyncOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
+import { addCopySubmenu, setAsyncOnClick, setSubmenuOnClick, tryCreateSubmenu } from './menuAsyncHelpers';
 import { addShortcutRenameMenuItem } from './shortcutRenameMenuItem';
 import { resolveNavigationFolderIcon, resolveUXIconForMenu } from '../uxIcons';
 import {
@@ -44,7 +44,7 @@ import { addFolderStyleChangeActions, addFolderStyleMenu } from './styleMenuBuil
 import { getTemplaterCreateNewNoteFromTemplate } from '../templaterIntegration';
 import { resolveFolderDisplayName } from '../folderDisplayName';
 import { INTERNAL_NOTEBOOK_NAVIGATOR_API } from '../../api/NotebookNavigatorAPI';
-import { expandNavigationTreeItems, getFolderAncestorPaths } from '../navigationExpansion';
+import { expandNavigationTreeItems, getFolderAncestorPaths, isFolderEffectivelyExpanded } from '../navigationExpansion';
 
 /**
  * Adds folder creation commands (new note/folder/canvas/base/drawing) to a menu.
@@ -114,9 +114,9 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
         setAsyncOnClick(item.setTitle(strings.contextMenu.folder.newFolder).setIcon('lucide-folder-plus'), async () => {
             ensureFolderSelected();
             await fileSystemOps.createNewFolder(folder, () => {
-                if (!expandedFolders.has(folder.path)) {
+                if (!isFolderEffectivelyExpanded(folder.path, expandedFolders, settings.showRootFolder)) {
                     const folderPaths = settings.collapseOtherBranchesOnExpand
-                        ? [...getFolderAncestorPaths(folder), folder.path]
+                        ? [...getFolderAncestorPaths(folder, { includeRootFolder: settings.showRootFolder }), folder.path]
                         : [folder.path];
                     expandNavigationTreeItems({
                         type: 'folder',
@@ -129,13 +129,16 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
         });
     });
 
-    menu.addItem((item: MenuItem) => {
-        setAsyncOnClick(item.setTitle(strings.contextMenu.folder.newCanvas).setIcon('lucide-layout-grid'), async () => {
-            ensureFolderSelected();
-            const createdCanvas = await fileSystemOps.createCanvas(folder);
-            handleFileCreation(createdCanvas);
+    const canvasPlugin = getInternalPlugin(app, 'canvas');
+    if (canvasPlugin?.enabled) {
+        menu.addItem((item: MenuItem) => {
+            setAsyncOnClick(item.setTitle(strings.contextMenu.folder.newCanvas).setIcon('lucide-layout-grid'), async () => {
+                ensureFolderSelected();
+                const createdCanvas = await fileSystemOps.createCanvas(folder);
+                handleFileCreation(createdCanvas);
+            });
         });
-    });
+    }
 
     const basesPlugin = getInternalPlugin(app, 'bases');
     if (basesPlugin?.enabled) {
@@ -212,7 +215,6 @@ export function buildFolderCreationMenu(params: FolderMenuBuilderParams, folderD
                         folder,
                         {
                             folderNoteType: settings.folderNoteType,
-                            folderNoteName: settings.folderNoteName,
                             folderNoteNamePattern: settings.folderNoteNamePattern,
                             folderNoteTemplate: settings.folderNoteTemplate
                         },
@@ -280,7 +282,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
             interfaceIcons: settings.interfaceIcons,
             isRoot: folder.path === '/',
             hasChildren: hasSubfolders(folder, getActiveHiddenFolders(settings), services.visibility.showHiddenItems),
-            isExpanded: expandedFolders.has(folder.path)
+            isExpanded: isFolderEffectivelyExpanded(folder.path, expandedFolders, settings.showRootFolder)
         })
     });
 
@@ -320,7 +322,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
             sortOrderSubmenu.addItem(subItem => {
                 subItem.setTitle(`${strings.folderAppearance.defaultLabel} (${globalDefaultLabel})`).setChecked(!currentOverride);
-                setAsyncOnClick(subItem, async () => {
+                setSubmenuOnClick(menu, subItem, async () => {
                     await metadataService.removeFolderChildSortOrderOverride(folder.path);
                     app.workspace.requestSaveLayout();
                 });
@@ -330,7 +332,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
             sortOrderSubmenu.addItem(subItem => {
                 subItem.setTitle(strings.settings.items.folderSortOrder.options.alphaAsc).setChecked(currentOverride === 'alpha-asc');
-                setAsyncOnClick(subItem, async () => {
+                setSubmenuOnClick(menu, subItem, async () => {
                     await metadataService.setFolderChildSortOrderOverride(folder.path, 'alpha-asc');
                     app.workspace.requestSaveLayout();
                 });
@@ -338,7 +340,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
             sortOrderSubmenu.addItem(subItem => {
                 subItem.setTitle(strings.settings.items.folderSortOrder.options.alphaDesc).setChecked(currentOverride === 'alpha-desc');
-                setAsyncOnClick(subItem, async () => {
+                setSubmenuOnClick(menu, subItem, async () => {
                     await metadataService.setFolderChildSortOrderOverride(folder.path, 'alpha-desc');
                     app.workspace.requestSaveLayout();
                 });
@@ -444,7 +446,7 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
     // Copy actions
     const adapter = app.vault.adapter;
     const fileSystemAdapter = adapter instanceof FileSystemAdapter ? adapter : null;
-    const addedCopyMenu = addCopyPathSubmenu({
+    const addedCopyMenu = addCopySubmenu({
         menu,
         getVaultPath: () => folder.path,
         getSystemPath: fileSystemAdapter ? () => fileSystemAdapter.getFullPath(folder.path) : undefined
@@ -476,6 +478,29 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
         menu.addSeparator();
     }
 
+    // Hide/Show root folder toggles the show root folder setting; the row for a hidden root
+    // only renders while show hidden items reveals it, so the show action is reachable there
+    if (folder.path === '/') {
+        if (settings.showRootFolder) {
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.folder.hideRootFolder).setIcon('lucide-eye-off'), async () => {
+                    services.plugin.settings.showRootFolder = false;
+                    await services.plugin.saveSettingsAndUpdate();
+                });
+            });
+        } else {
+            menu.addItem((item: MenuItem) => {
+                setAsyncOnClick(item.setTitle(strings.contextMenu.folder.showRootFolder).setIcon('lucide-eye'), async () => {
+                    // The hidden root is open only through derived render state. Persist its expansion before
+                    // publishing the setting change, otherwise the normal root row can replace it collapsed.
+                    expansionDispatch({ type: 'EXPAND_FOLDERS', folderPaths: [folder.path] });
+                    services.plugin.settings.showRootFolder = true;
+                    await services.plugin.saveSettingsAndUpdate();
+                });
+            });
+        }
+    }
+
     // Hide/Unhide folder (not available for root folder)
     if (folder.path !== '/') {
         // Get the active vault profile to access its hidden folder patterns
@@ -494,8 +519,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
                     const currentExcluded = activeProfile.hiddenFolders;
                     activeProfile.hiddenFolders = currentExcluded.filter(pattern => pattern !== matchingHiddenPattern);
                     await services.plugin.saveSettingsAndUpdate();
-
-                    showNotice(strings.fileSystem.notices.showFolder.replace('{name}', folderDisplayName), { variant: 'success' });
                 });
             });
         } else if (!isExcluded) {
@@ -511,8 +534,6 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
                     activeProfile.hiddenFolders = cleanedPatterns;
                     await services.plugin.saveSettingsAndUpdate();
-
-                    showNotice(strings.fileSystem.notices.hideFolder.replace('{name}', folderDisplayName), { variant: 'success' });
                 });
             });
         }
@@ -656,7 +677,10 @@ export function buildFolderMenu(params: FolderMenuBuilderParams): void {
 
                         if (isSelectedFolderDeleted || isAncestorDeleted) {
                             // If parent exists and is not root (or root is visible), select it
-                            if (parentFolder && (parentFolder.path !== '/' || settings.showRootFolder)) {
+                            if (
+                                parentFolder &&
+                                (parentFolder.path !== '/' || settings.showRootFolder || services.visibility.showHiddenItems)
+                            ) {
                                 selectionDispatch({ type: 'SET_SELECTED_FOLDER', folder: parentFolder });
                             } else {
                                 // Clear selection if no valid parent

@@ -39,6 +39,7 @@ import { useNavigationPaneShortcuts } from '../../hooks/navigationPane/useNaviga
 import { useNavigationPaneTreeInteractions } from '../../hooks/navigationPane/useNavigationPaneTreeInteractions';
 import { useNavigationSearchHighlights } from '../../hooks/navigationPane/useNavigationSearchHighlights';
 import { useStableHandlerFacade } from '../../hooks/useStableHandlerFacade';
+import { useMarkdownWordCountConsumerChanges } from '../../hooks/useMarkdownWordCountConsumerChanges';
 import { buildNavigationInlineRenameTarget, matchNavigationInlineRenameTarget, replacePathLeaf } from './navigationRenameTarget';
 import type { SearchNavFilterState } from '../../types/search';
 import type { NoteCountInfo } from '../../types/noteCounts';
@@ -68,10 +69,14 @@ import {
     normalizeNavigationPath
 } from '../../utils/navigationIndex';
 import { collectAllTagPaths } from '../../utils/tagTree';
-import { getNavigationExpansionTargetForItem, toggleNavigationExpansionTarget } from '../../utils/navigationExpansion';
+import {
+    getNavigationExpansionTargetForItem,
+    isFolderEffectivelyExpanded,
+    toggleNavigationExpansionTarget
+} from '../../utils/navigationExpansion';
 import type { TagTreeNode } from '../../types/storage';
 import { normalizeNavigationSectionOrderInput } from '../../utils/navigationSections';
-import { compositeWithBase } from '../../utils/colorUtils';
+import { usesMobileChrome } from '../../utils/paneLayout';
 import { getActiveVaultProfile } from '../../utils/vaultProfiles';
 import { PropertyKeyVisibilityModal } from '../../modals/PropertyKeyVisibilityModal';
 import type { NavigateToFolderOptions, RevealPropertyOptions, RevealTagOptions } from '../../hooks/useNavigatorReveal';
@@ -91,6 +96,9 @@ import type { NavigationRainbowState } from '../../hooks/useNavigationRainbowSta
 import type { NavigationPaneSourceState } from '../../hooks/navigationPane/data/useNavigationPaneSourceState';
 import type { NavigationPaneTreeSectionsResult } from '../../hooks/navigationPane/data/useNavigationPaneTreeSections';
 import type { FolderDecorationModel } from '../../utils/folderDecoration';
+import type { FileItemPillDecorationModel } from '../../utils/fileItemPillDecoration';
+import type { FileItemPillOrderModel } from '../../utils/fileItemPillOrder';
+import { hasCachedMarkdownWordCountConsumer } from '../../utils/markdownPipelineContentTypes';
 import { focusElementPreventScroll } from '../../utils/domUtils';
 
 const EMPTY_INDENT_GUIDE_MAP = new Map<string, number[]>();
@@ -111,6 +119,8 @@ interface NavigationPaneProps {
     navigationSourceState: NavigationPaneSourceState;
     navigationTreeSections: NavigationPaneTreeSectionsResult;
     folderDecorationModel: FolderDecorationModel;
+    fileItemPillDecorationModel: FileItemPillDecorationModel;
+    fileItemPillOrderModel: FileItemPillOrderModel;
     navRainbowState: NavigationRainbowState;
     searchNavFilters?: SearchNavFilterState;
     onExecuteSearchShortcut?: (shortcutKey: string, searchShortcut: import('../../types/shortcuts').SearchShortcut) => Promise<void> | void;
@@ -134,23 +144,32 @@ export const NavigationPane = React.memo(
         const selectionState = useNavigationSelection();
         const selectionDispatch = useSelectionDispatch();
         const settings = useSettingsState();
+        useMarkdownWordCountConsumerChanges(app);
         const activeProfile = useActiveProfile();
         const updateSettings = useSettingsUpdate();
         const uxPreferences = useUXPreferences();
         const uiState = useUIState();
         const uiDispatch = useUIDispatch();
         const { fileData, getFile, getFileDisplayName, getFileTimestamps, isStorageReady } = useFileCache();
+        // Cached word counts are only current while a display setting keeps the markdown
+        // pipeline extracting them; without a consumer a stale count would show after edits.
+        const hasWordCountConsumer = hasCachedMarkdownWordCountConsumer(settings, app);
         const getFileWordCount = useCallback(
             (file: TFile): number | null => {
+                if (!hasWordCountConsumer) {
+                    return null;
+                }
                 return getFile(file.path)?.wordCount ?? null;
             },
-            [getFile]
+            [getFile, hasWordCountConsumer]
         );
         const { startPointerDrag } = usePointerDrag();
         const {
             searchNavFilters,
             onExecuteSearchShortcut,
             rootContainerRef,
+            fileItemPillDecorationModel,
+            fileItemPillOrderModel,
             onNavigateToFolder,
             onRevealTag,
             onRevealProperty,
@@ -461,7 +480,6 @@ export const NavigationPane = React.memo(
         const tree = useNavigationPaneTreeInteractions({
             app,
             commandQueue,
-            isMobile,
             settings,
             uiState,
             expansionState,
@@ -566,52 +584,13 @@ export const NavigationPane = React.memo(
         const navigationScrollMargin = navigationBannerHeight;
         const hasNavigationBannerConfigured = Boolean(navigationBannerPath);
 
-        const { color: navSurfaceColor, version: navSurfaceVersion } = useSurfaceColorVariables(navigationPaneRef, {
+        const activeNavRainbow = props.navRainbowState.navRainbow;
+        const { getSolidBackground } = useSurfaceColorVariables(navigationPaneRef, {
             app,
             rootContainerRef,
-            variables: NAVIGATION_PANE_SURFACE_COLOR_MAPPINGS
+            variables: NAVIGATION_PANE_SURFACE_COLOR_MAPPINGS,
+            solidBackgroundRevision: activeNavRainbow
         });
-        const activeNavRainbow = props.navRainbowState.navRainbow;
-        const solidBackgroundCacheRef = useRef<Map<string, string | undefined>>(new Map());
-        // Cache inputs are compared during render so the commit that changes the surface recomposites row backgrounds
-        const solidBackgroundCacheInputsRef = useRef<{
-            rainbow: typeof activeNavRainbow;
-            color: typeof navSurfaceColor;
-            version: number;
-        } | null>(null);
-        const solidBackgroundCacheInputs = solidBackgroundCacheInputsRef.current;
-        if (
-            !solidBackgroundCacheInputs ||
-            solidBackgroundCacheInputs.rainbow !== activeNavRainbow ||
-            solidBackgroundCacheInputs.color !== navSurfaceColor ||
-            solidBackgroundCacheInputs.version !== navSurfaceVersion
-        ) {
-            solidBackgroundCacheRef.current.clear();
-            solidBackgroundCacheInputsRef.current = { rainbow: activeNavRainbow, color: navSurfaceColor, version: navSurfaceVersion };
-        }
-
-        const getSolidBackground = useCallback(
-            (color?: string | null) => {
-                // Identity tracks navSurfaceVersion so memoized rows re-render when surface variables change
-                void navSurfaceVersion;
-                if (!color) {
-                    return undefined;
-                }
-                const trimmed = color.trim();
-                if (!trimmed) {
-                    return undefined;
-                }
-                const cache = solidBackgroundCacheRef.current;
-                if (cache.has(trimmed)) {
-                    return cache.get(trimmed);
-                }
-                const pane = navigationPaneRef.current;
-                const solidColor = compositeWithBase(navSurfaceColor, trimmed, { container: pane ?? null });
-                cache.set(trimmed, solidColor);
-                return solidColor;
-            },
-            [navSurfaceColor, navSurfaceVersion]
-        );
 
         const {
             reorderableRootFolders,
@@ -679,7 +658,11 @@ export const NavigationPane = React.memo(
         }, [canReorderRootItems]);
 
         const isAndroid = Platform.isAndroidApp;
-        const shouldUseFloatingToolbars = isMobile && Platform.isIosApp && settings.useFloatingToolbars;
+        // Mobile chrome (profile-only header, mobile toolbars) applies to phones only.
+        // Tablets render the desktop header in both pane layouts so the toolbars stay at
+        // the top when switching between single and dual pane.
+        const useMobileChrome = usesMobileChrome();
+        const shouldUseFloatingToolbars = useMobileChrome && Platform.isIosApp && settings.useFloatingToolbars;
         const scrollPaddingEnd = useMemo(() => {
             if (!shouldUseFloatingToolbars) {
                 return 0;
@@ -939,13 +922,20 @@ export const NavigationPane = React.memo(
                 return false;
             }
 
-            const target = getNavigationExpansionTargetForItem(item, { showHiddenItems });
+            const target = getNavigationExpansionTargetForItem(item, { showHiddenItems, showRootFolder: settings.showRootFolder });
             return target
                 ? toggleNavigationExpansionTarget(target, expansionState, expansionDispatch, 'toggle', {
                       collapseOtherBranches: settings.collapseOtherBranchesOnExpand
                   })
                 : false;
-        }, [expansionDispatch, expansionState, getSelectedRenderedItem, settings.collapseOtherBranchesOnExpand, showHiddenItems]);
+        }, [
+            expansionDispatch,
+            expansionState,
+            getSelectedRenderedItem,
+            settings.collapseOtherBranchesOnExpand,
+            settings.showRootFolder,
+            showHiddenItems
+        ]);
 
         useImperativeHandle(
             ref,
@@ -993,9 +983,9 @@ export const NavigationPane = React.memo(
         }, [canReorderRootItems, handleToggleRootReorder, handleTreeUpdateComplete, isRootReorderMode, shouldUseFloatingToolbars]);
 
         const showVaultTitleInHeader =
-            !isMobile && (settings.vaultProfiles ?? []).length > 1 && (settings.vaultTitle ?? 'navigation') === 'header';
+            !useMobileChrome && (settings.vaultProfiles ?? []).length > 1 && (settings.vaultTitle ?? 'navigation') === 'header';
         const shouldShowVaultTitleInNavigationPane =
-            !isMobile && (settings.vaultProfiles ?? []).length > 1 && (settings.vaultTitle ?? 'navigation') === 'navigation';
+            !useMobileChrome && (settings.vaultProfiles ?? []).length > 1 && (settings.vaultTitle ?? 'navigation') === 'navigation';
 
         const handleSectionContextMenu = useCallback(
             (event: React.MouseEvent<HTMLDivElement>, sectionId: NavigationSectionId, options?: { allowSeparator?: boolean }) => {
@@ -1047,6 +1037,8 @@ export const NavigationPane = React.memo(
                 getFileDisplayName,
                 getFileTimestamps,
                 getFileWordCount,
+                fileItemPillDecorationModel,
+                fileItemPillOrderModel,
                 getSolidBackground,
                 shortcuts: shortcutRowHandlers,
                 shortcutUiState,
@@ -1071,6 +1063,8 @@ export const NavigationPane = React.memo(
                 getFileDisplayName,
                 getFileTimestamps,
                 getFileWordCount,
+                fileItemPillDecorationModel,
+                fileItemPillOrderModel,
                 getSolidBackground,
                 handleSectionContextMenu,
                 handleCancelInlineRename,
@@ -1098,7 +1092,7 @@ export const NavigationPane = React.memo(
                 let isDragSource = false;
                 switch (item.type) {
                     case NavigationPaneItemType.FOLDER:
-                        isExpanded = expansionState.expandedFolders.has(item.data.path);
+                        isExpanded = isFolderEffectivelyExpanded(item.data.path, expansionState.expandedFolders, settings.showRootFolder);
                         break;
                     case NavigationPaneItemType.VIRTUAL_FOLDER: {
                         const virtualFolderId = item.data.id;
@@ -1142,6 +1136,7 @@ export const NavigationPane = React.memo(
                 expansionState,
                 inlineRenameTarget,
                 selectionState,
+                settings.showRootFolder,
                 shortcuts.shortcutsExpanded,
                 shortcuts.recentNotesExpanded,
                 shortcuts.shouldUseShortcutDnd,
@@ -1231,7 +1226,7 @@ export const NavigationPane = React.memo(
                         rootReorderDisabled={!canReorderRootItems}
                         showVaultTitleInHeader={showVaultTitleInHeader}
                         shouldShowVaultTitleInNavigationPane={shouldShowVaultTitleInNavigationPane}
-                        showAndroidToolbar={isMobile && isAndroid}
+                        showAndroidToolbar={useMobileChrome && isAndroid}
                         navigationToolbar={navigationToolbar}
                         pinNavigationBanner={settings.pinNavigationBanner}
                         navigationBannerContent={navigationBannerContent}
@@ -1256,8 +1251,8 @@ export const NavigationPane = React.memo(
                         items={items}
                         rowVirtualizer={rowVirtualizer}
                         navigationScrollMargin={navigationScrollMargin}
-                        shouldRenderBottomToolbarInsidePanel={isMobile && !isAndroid && shouldUseFloatingToolbars}
-                        shouldRenderBottomToolbarOutsidePanel={isMobile && !isAndroid && !shouldUseFloatingToolbars}
+                        shouldRenderBottomToolbarInsidePanel={useMobileChrome && !isAndroid && shouldUseFloatingToolbars}
+                        shouldRenderBottomToolbarOutsidePanel={useMobileChrome && !isAndroid && !shouldUseFloatingToolbars}
                         calendarOverlay={
                             shouldRenderCalendarOverlay ? (
                                 <div className="nn-navigation-calendar-overlay">

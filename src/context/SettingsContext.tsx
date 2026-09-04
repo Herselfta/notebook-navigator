@@ -37,15 +37,9 @@ import {
     cloneShortcuts,
     getActiveVaultProfile
 } from '../utils/vaultProfiles';
-import {
-    cloneCollapsedPinnedContextsRecord,
-    clonePinnedNotesRecord,
-    isStringRecordValue,
-    sanitizeRecord,
-    type PinnedNoteContextValue
-} from '../utils/recordUtils';
+import { clonePinnedNotesRecord, isStringRecordValue, sanitizeRecord, type PinnedNoteContextValue } from '../utils/recordUtils';
 import { areStringArraysEqual } from '../utils/arrayUtils';
-import type { FolderAppearance } from '../hooks/useListPaneAppearance';
+import { snapshotListPaneAppearanceMap, type ListPaneAppearance } from '../settings/listPaneAppearance';
 import { buildFileNameIconNeedles, type FileNameIconNeedle } from '../utils/fileIconUtils';
 
 // Separate contexts for state and update function
@@ -185,17 +179,6 @@ const areShortcutsEqual = (prev?: ShortcutEntry[] | null, next?: ShortcutEntry[]
     return true;
 };
 
-const cloneAppearanceMap = <T extends FolderAppearance>(map?: Record<string, T>): Record<string, T> => {
-    if (!map) {
-        return Object.create(null) as Record<string, T>;
-    }
-    const cloned = Object.create(null) as Record<string, T>;
-    Object.entries(map).forEach(([key, value]) => {
-        cloned[key] = { ...value };
-    });
-    return cloned;
-};
-
 const arePinnedNotesEqual = (
     previous: Record<string, PinnedNoteContextValue> | null,
     next: Record<string, PinnedNoteContextValue>
@@ -226,31 +209,6 @@ const arePinnedNotesEqual = (
     return true;
 };
 
-const areCollapsedPinnedContextsEqual = (
-    previous: NotebookNavigatorSettings['collapsedPinnedContexts'] | null,
-    next: NotebookNavigatorSettings['collapsedPinnedContexts']
-): boolean => {
-    if (!previous) {
-        return false;
-    }
-
-    const previousKeys = Object.keys(previous);
-    const nextKeys = Object.keys(next);
-    if (previousKeys.length !== nextKeys.length) {
-        return false;
-    }
-
-    const previousRecord = previous as Readonly<Record<string, boolean | undefined>>;
-    const nextRecord = next as Readonly<Record<string, boolean | undefined>>;
-    for (const key of nextKeys) {
-        if (previousRecord[key] !== nextRecord[key]) {
-            return false;
-        }
-    }
-
-    return true;
-};
-
 interface SettingsProviderProps {
     children: ReactNode;
     plugin: NotebookNavigatorPlugin;
@@ -265,7 +223,11 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         sanitized: Record<string, string>;
     } | null>(null);
     const previousPinnedNotesRef = useRef<Record<string, PinnedNoteContextValue> | null>(null);
-    const previousCollapsedPinnedContextsRef = useRef<NotebookNavigatorSettings['collapsedPinnedContexts'] | null>(null);
+    const previousAppearanceMapsRef = useRef<{
+        folders: Record<string, ListPaneAppearance>;
+        tags: Record<string, ListPaneAppearance>;
+        properties: Record<string, ListPaneAppearance>;
+    } | null>(null);
 
     const updateSettings = useCallback(
         async (updater: (settings: NotebookNavigatorSettings) => void) => {
@@ -309,14 +271,15 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
         const pinnedNotes =
             previousPinnedNotes && arePinnedNotesEqual(previousPinnedNotes, clonedPinnedNotes) ? previousPinnedNotes : clonedPinnedNotes;
         previousPinnedNotesRef.current = pinnedNotes;
-        const clonedCollapsedPinnedContexts = cloneCollapsedPinnedContextsRecord(plugin.settings.collapsedPinnedContexts);
-        const previousCollapsedPinnedContexts = previousCollapsedPinnedContextsRef.current;
-        const collapsedPinnedContexts =
-            previousCollapsedPinnedContexts &&
-            areCollapsedPinnedContextsEqual(previousCollapsedPinnedContexts, clonedCollapsedPinnedContexts)
-                ? previousCollapsedPinnedContexts
-                : clonedCollapsedPinnedContexts;
-        previousCollapsedPinnedContextsRef.current = collapsedPinnedContexts;
+        const previousAppearanceMaps = previousAppearanceMapsRef.current;
+        const folderAppearances = snapshotListPaneAppearanceMap(plugin.settings.folderAppearances, previousAppearanceMaps?.folders);
+        const tagAppearances = snapshotListPaneAppearanceMap(plugin.settings.tagAppearances, previousAppearanceMaps?.tags);
+        const propertyAppearances = snapshotListPaneAppearanceMap(plugin.settings.propertyAppearances, previousAppearanceMaps?.properties);
+        previousAppearanceMapsRef.current = {
+            folders: folderAppearances,
+            tags: tagAppearances,
+            properties: propertyAppearances
+        };
         const nextSettings: SettingsStateValue = {
             ...plugin.settings,
             dualPaneOrientation: plugin.getDualPaneOrientation(),
@@ -330,11 +293,10 @@ export function SettingsProvider({ children, plugin }: SettingsProviderProps) {
             propertyIcons,
             calendarMonthHighlights,
             interfaceIcons,
-            folderAppearances: cloneAppearanceMap(plugin.settings.folderAppearances),
-            tagAppearances: cloneAppearanceMap(plugin.settings.tagAppearances),
-            propertyAppearances: cloneAppearanceMap(plugin.settings.propertyAppearances),
-            pinnedNotes,
-            collapsedPinnedContexts
+            folderAppearances,
+            tagAppearances,
+            propertyAppearances,
+            pinnedNotes
         };
         // Deep copy vault profiles to prevent mutations from affecting the original settings
         if (Array.isArray(plugin.settings.vaultProfiles)) {

@@ -17,8 +17,7 @@
  */
 
 import type { FileVisibility } from '../utils/fileTypeUtils';
-import type { FolderAppearance, TagAppearance } from '../hooks/useListPaneAppearance';
-import type { BackgroundMode, CollapsedPinnedContexts, DualPaneOrientation, PinnedNotes } from '../types';
+import type { BackgroundMode, DualPaneOrientation, PinnedNotes } from '../types';
 import type { FolderNoteCreationPreference } from '../types/folderNote';
 import type { KeyboardShortcutConfig } from '../utils/keyboardShortcuts';
 import type { ShortcutEntry } from '../types/shortcuts';
@@ -132,8 +131,8 @@ export type SortOption =
     | 'property-asc'
     | 'property-desc';
 
-/** Ordered list of sort options for validation and UI choices */
-export const SORT_OPTIONS: SortOption[] = [
+/** Ordered list of sort options for validation */
+const SORT_OPTIONS: SortOption[] = [
     'modified-desc',
     'modified-asc',
     'created-desc',
@@ -415,19 +414,110 @@ export function isListDisplayMode(value: unknown): value is ListDisplayMode {
     return value === 'standard' || value === 'compact';
 }
 
-/** Grouping options for list pane notes */
-export type ListNoteGroupingOption = 'custom' | 'date' | 'folder';
+/** List modes where unfinished tasks replace the file icon. */
+export type UnfinishedTaskIconMode = 'none' | 'compact' | 'all';
 
-export function isListNoteGroupingOption(value: unknown): value is ListNoteGroupingOption {
-    return value === 'custom' || value === 'date' || value === 'folder';
+export function isUnfinishedTaskIconMode(value: unknown): value is UnfinishedTaskIconMode {
+    return value === 'none' || value === 'compact' || value === 'all';
+}
+
+/** Built-in grouping modes for list pane notes */
+export type ListNoteGroupingBaseOption = 'none' | 'custom' | 'date' | 'folder';
+
+/** Resolved direction applied when arranging property groups */
+export type PropertyGroupingDirection = 'asc' | 'desc';
+
+/**
+ * Stored group order of a property grouping. `follow` borrows the direction from the effective
+ * sort order at render time; `asc` and `desc` are fixed value orders.
+ */
+export type PropertyGroupingOrder = PropertyGroupingDirection | 'follow';
+
+/**
+ * Grouping options for list pane notes.
+ * Property grouping is stored as `property:<frontmatter key>` (ascending group order),
+ * `property-desc:<frontmatter key>` (descending group order), or `property-follow:<frontmatter key>`
+ * (group order follows the sort direction) so appearance records keep a single scalar `groupBy`
+ * value across settings sync. The order lives in the prefix because keys may themselves contain
+ * separator characters such as `:`.
+ */
+export type ListNoteGroupingOption =
+    ListNoteGroupingBaseOption | `property:${string}` | `property-desc:${string}` | `property-follow:${string}`;
+
+export interface ListPaneAppearance {
+    mode?: ListDisplayMode;
+    titleRows?: number;
+    /** Zero hides preview text for this selection; undefined inherits the global row count. */
+    previewRows?: number;
+    groupBy?: ListNoteGroupingOption;
+    showTags?: boolean;
+    showProperties?: boolean;
+    showTaskProgress?: boolean;
+    showDate?: boolean;
+    showParentFolder?: boolean;
+    /** Undefined inherits the global count type; `none` explicitly hides counts for this selection. */
+    textCount?: TextCountDisplay;
+}
+
+const PROPERTY_GROUPING_PREFIX = 'property:';
+const PROPERTY_GROUPING_DESC_PREFIX = 'property-desc:';
+const PROPERTY_GROUPING_FOLLOW_PREFIX = 'property-follow:';
+
+function isListNoteGroupingBaseOption(value: unknown): value is ListNoteGroupingBaseOption {
+    return value === 'none' || value === 'custom' || value === 'date' || value === 'folder';
+}
+
+function parsePropertyGroupingOption(value: unknown): { propertyKey: string; order: PropertyGroupingOrder } | null {
+    if (typeof value !== 'string') {
+        return null;
+    }
+
+    // The order-specific prefixes must be tested before the generic one because all prefixes
+    // start with `property`.
+    const order: PropertyGroupingOrder = value.startsWith(PROPERTY_GROUPING_FOLLOW_PREFIX)
+        ? 'follow'
+        : value.startsWith(PROPERTY_GROUPING_DESC_PREFIX)
+          ? 'desc'
+          : 'asc';
+    const prefix =
+        order === 'follow' ? PROPERTY_GROUPING_FOLLOW_PREFIX : order === 'desc' ? PROPERTY_GROUPING_DESC_PREFIX : PROPERTY_GROUPING_PREFIX;
+    if (!value.startsWith(prefix)) {
+        return null;
+    }
+
+    const propertyKey = value.slice(prefix.length).trim();
+    return propertyKey.length > 0 ? { propertyKey, order } : null;
+}
+
+/** Returns the frontmatter key encoded in a property grouping option, or null for base grouping modes. */
+export function getPropertyGroupingKey(value: unknown): string | null {
+    return parsePropertyGroupingOption(value)?.propertyKey ?? null;
+}
+
+/** Returns the stored group order of a property grouping option, or null for base grouping modes. */
+export function getPropertyGroupingOrder(value: unknown): PropertyGroupingOrder | null {
+    return parsePropertyGroupingOption(value)?.order ?? null;
+}
+
+export function createPropertyGroupingOption(propertyKey: string, order: PropertyGroupingOrder): ListNoteGroupingOption {
+    const prefix =
+        order === 'follow' ? PROPERTY_GROUPING_FOLLOW_PREFIX : order === 'desc' ? PROPERTY_GROUPING_DESC_PREFIX : PROPERTY_GROUPING_PREFIX;
+    return `${prefix}${propertyKey.trim()}`;
+}
+
+function normalizeListNoteGroupingBaseOption(value: unknown): ListNoteGroupingBaseOption | null {
+    return isListNoteGroupingBaseOption(value) ? value : null;
 }
 
 export function normalizeListNoteGroupingOption(value: unknown): ListNoteGroupingOption | null {
-    if (value === 'none') {
-        return 'custom';
+    const baseOption = normalizeListNoteGroupingBaseOption(value);
+    if (baseOption) {
+        return baseOption;
     }
 
-    return isListNoteGroupingOption(value) ? value : null;
+    // Re-encode property groupings so stored values always carry a trimmed key.
+    const parsed = parsePropertyGroupingOption(value);
+    return parsed ? createPropertyGroupingOption(parsed.propertyKey, parsed.order) : null;
 }
 
 export interface AppearanceGroupingValue {
@@ -484,7 +574,7 @@ export function showsCharacterCount(display: TextCountDisplay): boolean {
 export type NavigationToolbarButtonId = 'toggleDualPane' | 'expandCollapse' | 'calendar' | 'hiddenItems' | 'rootReorder' | 'newFolder';
 
 /** Buttons available in the list toolbar */
-export type ListToolbarButtonId = 'back' | 'search' | 'reveal' | 'descendants' | 'sort' | 'appearance' | 'newNote';
+export type ListToolbarButtonId = 'back' | 'search' | 'reveal' | 'descendants' | 'groupExpansion' | 'sort' | 'appearance' | 'newNote';
 
 /** Visibility toggles for toolbar buttons */
 export interface ToolbarVisibilitySettings {
@@ -560,6 +650,7 @@ export interface NotebookNavigatorSettings {
     narrowSidebarCustomWidth: number;
     showTooltips: boolean;
     showTooltipPath: boolean;
+    showTooltipTags: boolean;
     showTooltipWordCount: boolean;
     desktopBackground: BackgroundMode;
     desktopScale: number;
@@ -587,6 +678,9 @@ export interface NotebookNavigatorSettings {
 
     // Icon packs tab
     externalIconProviders: Record<string, boolean>;
+
+    // About
+    showReleaseNotes: boolean;
 
     // Advanced tab
     checkForUpdatesOnStart: boolean;
@@ -630,7 +724,6 @@ export interface NotebookNavigatorSettings {
     folderSortOrder: AlphaSortOrder;
     enableFolderNotes: boolean;
     folderNoteType: FolderNoteCreationPreference;
-    folderNoteName: string;
     folderNoteNamePattern: string;
     folderNoteTemplate: string | null;
     enableFolderNoteLinks: boolean;
@@ -661,7 +754,20 @@ export interface NotebookNavigatorSettings {
     defaultListMode: ListDisplayMode;
     includeDescendantNotes: boolean;
     defaultFolderSort: SortOption;
+    /**
+     * Frontmatter key used when defaultFolderSort is a property sort. Stored separately because
+     * defaultFolderSort stays a scalar string for native settings controls and settings transfer.
+     * Empty for built-in sorts. Must match an entry in propertySortKey; reconciliation resets both
+     * fields to defaults when the key is removed from the configured list.
+     */
+    defaultFolderSortPropertyKey: string;
+    /** Comma-separated frontmatter keys offered as sort choices (settings dropdown and sort menu). */
     propertySortKey: string;
+    /**
+     * Comma-separated frontmatter keys offered as grouping choices. Seeded from propertySortKey
+     * when absent from stored data so pre-split configurations keep both behaviors.
+     */
+    propertyGroupKey: string;
     propertySortSecondary: PropertySortSecondaryOption;
     manualSortPropertyKey: string;
     manualSortGroupHeaderProperty: string;
@@ -669,6 +775,9 @@ export interface NotebookNavigatorSettings {
     confirmBeforeManualSort: boolean;
     revealFileOnListChanges: boolean;
     listPaneTitle: ListPaneTitleOption;
+    // Supports base modes and property grouping encoded as `property:<key>`, `property-desc:<key>`,
+    // or `property-follow:<key>`. Property keys must match an entry in propertyGroupKey;
+    // reconciliation resets to the default grouping when the key is removed from the configured list.
     noteGrouping: ListNoteGroupingOption;
     showSelectedNavigationPills: boolean;
     stickyGroupHeaders: boolean;
@@ -697,10 +806,15 @@ export interface NotebookNavigatorSettings {
     frontmatterDateFormat: string;
 
     // Notes tab
-    showFileIconUnfinishedTask: boolean;
+    showFileTaskProgress: boolean;
+    showFileTaskProgressBar: boolean;
+    showFileTaskProgressCount: boolean;
+    hideFileTaskProgressWhenComplete: boolean;
     showFileBackgroundUnfinishedTask: boolean;
     unfinishedTaskBackgroundColor: string;
+    unfinishedTaskBackgroundColorDark: string;
     showFileIcons: boolean;
+    unfinishedTaskIcon: UnfinishedTaskIconMode;
     useFolderIconForFiles: boolean;
     showFilenameMatchIcons: boolean;
     fileNameIconMap: Record<string, string>;
@@ -712,6 +826,7 @@ export interface NotebookNavigatorSettings {
     showFilePreview: boolean;
     skipHeadingsInPreview: boolean;
     skipCodeBlocksInPreview: boolean;
+    skipCalloutsInPreview: boolean;
     stripHtmlInPreview: boolean;
     stripLatexInPreview: boolean;
     previewRows: number;
@@ -763,6 +878,7 @@ export interface NotebookNavigatorSettings {
     calendarMonthHighlights: Record<string, string>;
     calendarShowWeekNumber: boolean;
     calendarShowQuarter: boolean;
+    calendarShowOutsideMonthDays: boolean;
     calendarShowYearCalendar: boolean;
     calendarLeftPlacement: CalendarLeftPlacement;
     calendarWeeksToShow: CalendarWeeksToShow;
@@ -788,7 +904,6 @@ export interface NotebookNavigatorSettings {
     // Runtime state and cached data
     customVaultName: string;
     pinnedNotes: PinnedNotes;
-    collapsedPinnedContexts: CollapsedPinnedContexts;
     fileIcons: Record<string, string>;
     fileColors: Record<string, string>;
     fileBackgroundColors: Record<string, string>;
@@ -797,19 +912,19 @@ export interface NotebookNavigatorSettings {
     folderBackgroundColors: Record<string, string>;
     folderSortOverrides: Record<string, ListSortOverrideValue>;
     folderTreeSortOverrides: Record<string, AlphaSortOrder>;
-    folderAppearances: Record<string, FolderAppearance>;
+    folderAppearances: Record<string, ListPaneAppearance>;
     tagIcons: Record<string, string>;
     tagColors: Record<string, string>;
     tagBackgroundColors: Record<string, string>;
     tagSortOverrides: Record<string, ListSortOverrideValue>;
     tagTreeSortOverrides: Record<string, AlphaSortOrder>;
-    tagAppearances: Record<string, TagAppearance>;
+    tagAppearances: Record<string, ListPaneAppearance>;
     propertyIcons: Record<string, string>;
     propertyColors: Record<string, string>;
     propertyBackgroundColors: Record<string, string>;
     propertySortOverrides: Record<string, ListSortOverrideValue>;
     propertyTreeSortOverrides: Record<string, AlphaSortOrder>;
-    propertyAppearances: Record<string, FolderAppearance>;
+    propertyAppearances: Record<string, ListPaneAppearance>;
     virtualFolderColors: Record<string, string>;
     virtualFolderBackgroundColors: Record<string, string>;
     navigationSeparators: Record<string, boolean>;

@@ -23,6 +23,7 @@ import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { NotebookNavigatorSettings } from '../../src/settings';
 import type { ISettingsProvider } from '../../src/interfaces/ISettingsProvider';
 import { ShortcutType } from '../../src/types/shortcuts';
+import type { CollapsedPinnedContexts } from '../../src/types';
 
 type MetadataChangeEvent = {
     path: string;
@@ -54,11 +55,12 @@ const {
     getDBInstanceOrNullMock: vi.fn(),
     getFolderNoteDetectionSettingsMock: vi.fn((settings: NotebookNavigatorSettings) => ({
         enableFolderNotes: settings.enableFolderNotes,
-        folderNoteName: settings.folderNoteName,
         folderNoteNamePattern: settings.folderNoteNamePattern
     })),
-    resolveFolderNoteNameForFolderMock: vi.fn(
-        (folder: TFolder, settings: NotebookNavigatorSettings) => settings.folderNoteName || folder.name
+    resolveFolderNoteNameForFolderMock: vi.fn((folder: TFolder, settings: NotebookNavigatorSettings) =>
+        settings.folderNoteNamePattern.length === 0
+            ? folder.name
+            : settings.folderNoteNamePattern.replace(/\{\{\s*folder\s*\}\}/giu, folder.name)
     ),
     resolveRootFolderNoteSourceNameMock: vi.fn((folder: TFolder, vault?: { getName?: () => string }) => {
         const vaultName = typeof vault?.getName === 'function' ? vault.getName() : '';
@@ -116,6 +118,16 @@ class TestSettingsProvider implements ISettingsProvider {
     }
 
     setRecentColors(): void {}
+
+    collapsedPinnedContexts: CollapsedPinnedContexts = {};
+
+    getCollapsedPinnedContexts(): CollapsedPinnedContexts {
+        return { ...this.collapsedPinnedContexts };
+    }
+
+    updateCollapsedPinnedContexts(mutator: (record: CollapsedPinnedContexts) => boolean): boolean {
+        return mutator(this.collapsedPinnedContexts);
+    }
 
     registerSettingsUpdateListener(id: string, callback: () => void): void {
         this.settingsUpdateListeners.set(id, callback);
@@ -1238,7 +1250,6 @@ describe('FolderMetadataService folder note frontmatter integration', () => {
             configurable: true,
             value: () => 'Shared Scratch'
         });
-        settingsProvider.settings.folderNoteName = '';
         settingsProvider.settings.folderNoteNamePattern = '';
 
         const rootFolderNoteChanges: MetadataChangeEvent[] = [
@@ -1257,7 +1268,6 @@ describe('FolderMetadataService folder note frontmatter integration', () => {
             configurable: true,
             value: () => ({ name: 'VaultRoot' })
         });
-        settingsProvider.settings.folderNoteName = '';
         settingsProvider.settings.folderNoteNamePattern = '';
 
         const rootFolderNoteChanges: MetadataChangeEvent[] = [
@@ -1364,7 +1374,7 @@ describe('FolderMetadataService folder note frontmatter integration', () => {
         const listener = vi.fn();
         const unsubscribe = service.subscribeToFolderDisplayNameChanges(listener);
 
-        settingsProvider.settings.folderNoteName = 'index';
+        settingsProvider.settings.folderNoteNamePattern = 'index';
         settingsProvider.notifySettingsUpdate();
 
         expect(service.getFolderDisplayNameVersion()).toBe(initialVersion + 1);

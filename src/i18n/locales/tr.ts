@@ -58,6 +58,7 @@ export const STRINGS_TR = {
         manualSortHint: 'Yeniden sıralamak için sürükleyin. Sıra, "{property}" özelliğinde sayısal indeks değerleri olarak kaydedilir.',
         manualSortNonMarkdownHint: 'Markdown olmayan dosyalar altta gösterilir ve yeniden sıralanamaz.',
         unsortedSection: 'Sıralanmamış',
+        propertyGroupNoValue: 'Yok',
         manualSortDone: 'Tamam',
         manualSortMultipleWriteFailure: '{count} dosya başarısız oldu; ilki: {path}: {message}'
     },
@@ -73,6 +74,9 @@ export const STRINGS_TR = {
         shortcutsHeader: 'Kısayollar', // Header label for shortcuts section in navigation pane (English: Shortcuts)
         recentFilesHeader: 'Son dosyalar', // Header label for recent files section in navigation pane (English: Recent files)
         properties: 'Özellikler',
+        folders: 'Klasörler',
+        tags: 'Etiketler',
+        calendar: 'Takvim',
         reorderRootFoldersTitle: 'Gezinmeyi yeniden sırala',
         reorderRootFoldersHint: 'Yeniden sıralamak için okları veya sürüklemeyi kullanın',
         vaultRootLabel: 'Kasa',
@@ -126,7 +130,7 @@ export const STRINGS_TR = {
         rename: 'Kısayolu yeniden adlandır',
         remove: 'Kısayollardan kaldır',
         removeAll: 'Tüm kısayolları kaldır',
-        removeAllConfirm: 'Tüm kısayolları kaldır?',
+        removeAllConfirm: 'Tüm kısayollar kaldırılsın mı?',
         folderNotesPinned: '{count} klasör notu sabitlendi'
     },
 
@@ -134,6 +138,8 @@ export const STRINGS_TR = {
     paneHeader: {
         collapseAllFolders: 'Öğeleri daralt', // Tooltip for button that collapses expanded items (English: Collapse items)
         expandAllFolders: 'Tüm öğeleri genişlet', // Tooltip for button that expands all items (English: Expand all items)
+        collapseAllListGroups: 'Tüm liste gruplarını daralt',
+        expandAllListGroups: 'Tüm liste gruplarını genişlet',
         showCalendar: 'Takvimi göster',
         hideCalendar: 'Takvimi gizle',
         newFolder: 'Yeni klasör', // Tooltip for create new folder button (English: New folder)
@@ -151,6 +157,7 @@ export const STRINGS_TR = {
         childValues: 'alt değerler',
         applySortAndGroupToDescendants: (target: string) => `Sıralama ve gruplandırmayı ${target} için uygula`,
         applyAppearanceToDescendants: (target: string) => `Görünümü ${target} için uygula`,
+        resetAppearanceInDescendants: (target: string) => `${target} için görünümü sıfırla`,
         showFolders: 'Gezinmeyi göster', // Tooltip for button to show the navigation pane (English: Show navigation)
         reorderRootFolders: 'Gezinmeyi yeniden sırala',
         finishRootFolderReorder: 'Tamamlandı',
@@ -161,6 +168,7 @@ export const STRINGS_TR = {
         dualPaneAutoFallbackNotice:
             'Kenar çubuğu çok dar olduğunda çift bölmeler kullanılamaz. Bunu değiştirmek için Ayarlar > Görünüm ve davranış altında "Kenar çubuğu çok dar olduğunda" ayarını "Hiçbir şey yapma" olarak ayarlayın.',
         changeAppearance: 'Görünümü değiştir', // Tooltip for button to change folder appearance settings (English: Change appearance)
+        changeAppearanceCustomized: 'Görünümü değiştir, özelleştirilmiş',
         showNotesFromSubfolders: 'Alt klasörlerden notları göster',
         showFilesFromSubfolders: 'Alt klasörlerden dosyaları göster',
         showNotesFromDescendants: 'Alt öğelerden notları göster',
@@ -183,16 +191,23 @@ export const STRINGS_TR = {
         searchHelp: 'Arama sözdizimi',
         searchHelpTitle: 'Arama sözdizimi',
         searchHelpModal: {
-            intro: 'Görünen adları, takma adları, özellikleri, etiketleri, tarihleri ve filtreleri tek bir sorguda birleştirin (örn. `meeting .status=active #work @thisweek`). Tam metin araması kullanmak için Omnisearch eklentisini yükleyin.',
+            intro: 'Filtre araması, tek bir sorguda birleştirilen görünen adlar, takma adlar, özellikler, etiketler, tarihler ve filtrelerle notları bulur (örn. `meeting .status=active #work @thisweek`). Bir aramayı kısayol olarak kaydetmek için yıldız simgesine tıklayın.',
+            introInstallOmnisearch: 'Not içeriğinde tam metin araması Omnisearch eklentisini gerektirir.',
             introSwitching:
                 'Yukarı/aşağı ok tuşlarını kullanarak veya arama simgesine tıklayarak filtre araması ve Omnisearch arasında geçiş yapın.',
+            activeFilterSearch: 'Filtre araması etkin.',
+            activeOmnisearch: 'Omnisearch etkin.',
+            omnisearchIntro:
+                'Omnisearch, kasanın tamamındaki not içeriğinde tam metin araması yapar. Notebook Navigator geçerli klasöre, etikete veya seçime ait eşleşmeleri gösterir.',
             sections: {
                 fileNames: {
                     title: 'Dosya adları ve takma adlar',
                     items: [
                         '`word` Görünen adında veya takma adlarından birinde "word" olan notları bul.',
                         '`word1 word2` Her kelime görünen ad veya takma adlardan biriyle eşleşmeli.',
-                        '`-word` Görünen adında veya takma adlarından birinde "word" olan notları hariç tut.'
+                        '`-word` Görünen adında veya takma adlarından birinde "word" olan notları hariç tut.',
+                        '`"text"` Metni birebir eşleştir; çift tırnakla başlayan bir terim hiçbir zaman etiket, özellik, tarih veya filtre olarak yorumlanmaz (örneğin: `".F"`).',
+                        '`-"text"` Görünen adında veya takma adlarından birinde birebir metin geçen notları hariç tut.'
                     ]
                 },
                 tags: {
@@ -265,10 +280,11 @@ export const STRINGS_TR = {
                 omnisearch: {
                     title: 'Omnisearch',
                     items: [
-                        'Kasadaki tam metin araması, geçerli klasör veya seçili etiketlere göre filtrelenir.',
-                        'Büyük kasalarda 3 karakterden az ile yavaş olabilir.',
-                        'ASCII olmayan karakterler içeren yolları veya alt yolları doğru şekilde arayamaz.',
-                        'Klasör filtrelemesinden önce sınırlı sonuç döndürür, bu nedenle başka yerlerde çok sayıda eşleşme varsa ilgili dosyalar görünmeyebilir.',
+                        'Sorgu Omnisearch eklentisine gönderilir ve Omnisearch sorgu sözdizimini takip eder. `#tag`, `.property` ve `@date` gibi filtre araması belirteçlerinin özel bir anlamı yoktur.',
+                        'Bir klasör seçildiğinde, sorguya `path:"<folder>/"` eklenir; böylece Omnisearch o klasör ve alt klasörleri içinde eşleşme arar. Zaten `path:` içeren sorgular değiştirilmeden gönderilir.',
+                        'Omnisearch alaka düzeyine göre sıralanmış en fazla 50 sonuç döndürür. Bundan daha fazla eşleşmesi olan aramalarda düşük sıralı notlar gösterilmez.',
+                        'ASCII olmayan karakterler içeren klasör yollarıyla kapsam belirlemek Omnisearch 1.30.0 veya sonrasını gerektirir. Daha eski sürümler kasanın tamamında arama yapar ve sonuçlar daha sonra klasöre göre filtrelenir.',
+                        '3 karakterden kısa sorgular büyük kasalarda yavaş olabilir.',
                         'Not önizlemeleri varsayılan önizleme metni yerine Omnisearch alıntılarını gösterir.'
                     ]
                 }
@@ -339,7 +355,7 @@ export const STRINGS_TR = {
             newNoteFromTemplate: 'Şablondan yeni not',
             newFolder: 'Yeni klasör',
             newCanvas: 'Yeni tuval',
-            newBase: 'Yeni veritabanı',
+            newBase: 'Yeni Base',
             newDrawing: 'Yeni çizim',
             newExcalidrawDrawing: 'Yeni Excalidraw çizimi',
             newTldrawDrawing: 'Yeni Tldraw çizimi',
@@ -353,6 +369,8 @@ export const STRINGS_TR = {
             changeBackground: 'Arka planı değiştir',
             excludeFolder: 'Klasörü gizle',
             unhideFolder: 'Klasörü göster',
+            hideRootFolder: 'Kök klasörü gizle',
+            showRootFolder: 'Kök klasörü göster',
             excludeFromDescendants: 'Üst klasörlerde gizle',
             includeInDescendants: 'Üst klasörlerde göster',
             hiddenFromParentsIndicator: 'Üst klasör listelerinde gizli',
@@ -376,11 +394,17 @@ export const STRINGS_TR = {
             addSeparator: 'Ayırıcı ekle',
             removeSeparator: 'Ayırıcıyı kaldır'
         },
-        copyPath: {
-            title: 'Yolu kopyala',
-            asObsidianUrl: 'Obsidian URL olarak',
-            fromVaultFolder: 'kasa klasöründen',
-            fromSystemRoot: 'sistem kökünden'
+        copy: {
+            title: 'Kopyala',
+            noteLink: 'not bağlantısı',
+            fileLink: 'dosya bağlantısı',
+            noteLinkAsFootnote: 'dipnot olarak not bağlantısı',
+            fileLinkAsFootnote: 'dipnot olarak dosya bağlantısı',
+            noteEmbed: 'not gömme',
+            fileEmbed: 'dosya gömme',
+            obsidianUrl: 'Obsidian URL',
+            pathFromVaultFolder: 'kasa klasöründen yol',
+            pathFromSystemRoot: 'sistem kökünden yol'
         },
         style: {
             title: 'Stil',
@@ -401,11 +425,32 @@ export const STRINGS_TR = {
         compactPreset: 'Kompakt',
         defaultSuffix: '(varsayılan)',
         defaultLabel: 'Varsayılan',
-        titleRows: 'Başlık satırları',
-        previewRows: 'Önizleme satırları',
-        groupBy: 'Grupla',
-        titleRowOption: (rows: number) => `${rows} başlık satırı`,
-        previewRowOption: (rows: number) => `${rows} önizleme satırı`
+        titleRows: {
+            label: 'Başlık satırları',
+            option: (rows: number) => `${rows} başlık satırı`
+        },
+        previewRows: {
+            label: 'Önizleme satırları',
+            none: 'Yok',
+            option: (rows: number) => `${rows} önizleme satırı`
+        },
+        groupBy: 'Gruplama ölçütü',
+        tags: 'Etiketler',
+        properties: 'Özellikler',
+        tasks: 'Görevler',
+        date: 'Tarih',
+        parentFolder: 'Üst klasör',
+        textCount: {
+            label: 'Metin sayımı',
+            options: {
+                none: 'Yok',
+                words: 'Kelime',
+                characters: 'Karakter',
+                both: 'Kelime ve karakter'
+            }
+        },
+        resetAppearance: 'Görünümü sıfırla',
+        openPluginSettings: 'Eklenti ayarlarını aç…'
     },
 
     // Modal dialogs
@@ -414,6 +459,11 @@ export const STRINGS_TR = {
             applyButton: 'Uygula',
             applySortAndGroupTitle: (target: string) => `Sıralama ve gruplandırma ${target} için uygulansın mı?`,
             applyAppearanceTitle: (target: string) => `Görünüm ${target} için uygulansın mı?`,
+            resetAppearanceTitle: (target: string) => `${target} için görünüm sıfırlansın mı?`,
+            applyAppearanceMessage: (count: number, replacedCount: number) =>
+                `Görünüm ${count} ${count === 1 ? 'öğe' : 'öğe'} için değişecek. Değiştirilecek mevcut özel görünümler: ${replacedCount}. Kayıtlı görünüm tercihleri bir kez kopyalanır; sıralama ve gruplama korunur. Gelecekteki değişiklikler ve yeni alt öğeler bağlanmaz.`,
+            resetAppearanceMessage: (count: number) =>
+                `Görünüm ${count} ${count === 1 ? 'öğe' : 'öğe'} için sıfırlanacak. Sıralama ve gruplama korunur. Bu tek seferlik bir değişikliktir; gelecekteki değişiklikler ve yeni alt öğeler bağlanmaz.`,
             affectedCountMessage: (count: number) => `Değişecek mevcut geçersiz kılmalar: ${count}.`
         },
         manualSortConfirm: {
@@ -440,7 +490,7 @@ export const STRINGS_TR = {
             wordCountTarget: 'Hedef kelime sayısı',
             wordCountTargetPlaceholder: '10,000',
             wordCountTargetDescription:
-                'Bu alan boş olduğunda grup hedefi, Ayarlar > Notlar > Kelime ve karakter sayısı içinde ayarlanan hedef özelliğini kullanır. Bu grup için bir hedef değeri ayarlayarak geçersiz kılın.',
+                'Bu alan boş olduğunda grup hedefi, Ayarlar > Dosya görünümü > Kelime ve karakter sayısı içinde ayarlanan hedef özelliğini kullanır. Bu grup için bir hedef değeri ayarlayarak geçersiz kılın.',
             description: 'Bu not için grup başlığını özelleştirin. Başlığı kaldırmak için başlığı boş bırakın.'
         },
         mergeNotes: {
@@ -499,6 +549,8 @@ export const STRINGS_TR = {
                 'list-search': 'Ara',
                 'list-reveal-file': 'Dosyayı göster',
                 'list-descendants': 'Alt klasörlerden notlar',
+                'list-expand-all': 'Tüm grupları genişlet',
+                'list-collapse-all': 'Tüm grupları daralt',
                 'list-sort-ascending': 'Sıralama: artan',
                 'list-sort-descending': 'Sıralama: azalan',
                 'list-sort-modified': 'Düzenlenme tarihine göre sırala',
@@ -516,7 +568,7 @@ export const STRINGS_TR = {
                 'nav-properties': 'Özellikler',
                 'nav-property': 'Özellik',
                 'nav-property-value': 'Değer',
-                'file-unfinished-task': 'Tamamlanmamış görevler',
+                'file-unfinished-task': 'Görevler',
                 'file-word-count': 'Kelime sayısı',
                 'file-character-count': 'Karakter sayısı'
             }
@@ -644,7 +696,7 @@ export const STRINGS_TR = {
             folderLabel: 'Klasör: {name}'
         },
         folderSuggest: {
-            placeholder: (name: string) => `${name} klasörüne taşı...`,
+            placeholder: (name: string) => `${name} öğesini klasöre taşı...`,
             multipleFilesLabel: (count: number) => `${count} dosya`,
             navigatePlaceholder: 'Klasöre git...',
             instructions: {
@@ -704,7 +756,7 @@ export const STRINGS_TR = {
         propertyKeyVisibility: {
             title: 'Özellik anahtarı görünürlüğü',
             description:
-                'Özellik değerlerinin nerede gösterileceğini kontrol edin. Sütunlar gezinme paneli, liste paneli ve dosya bağlam menüsüne karşılık gelir. Alt satırı kullanarak bir sütundaki tüm satırları değiştirin.',
+                'Özellik değerlerinin nerede gösterileceğini kontrol edin. Sütunlar gezinme bölmesi, liste bölmesi ve dosya bağlam menüsüne karşılık gelir. Alt satırı kullanarak bir sütundaki tüm satırları değiştirin.',
             searchPlaceholder: 'Özellik anahtarlarını ara...',
             propertyColumnLabel: 'Özellik',
             showInNavigation: 'Gezinmede göster',
@@ -719,7 +771,7 @@ export const STRINGS_TR = {
         welcome: {
             title: '{pluginName} uygulamasına hoş geldiniz',
             introText:
-                "Merhaba ve Obsidian için daha iyi bir dosya tarayıcısı ve takvim olan Notebook Navigator'a hoş geldiniz. Başlamadan önce aşağıdaki Mastering Notebook Navigator videosunun en az ilk üç bölümünü izlemenizi gerçekten öneririm. Bu bölümler iki panelin nasıl çalıştığını tanıtır ve hızlıca kullanmaya başlamanıza yardımcı olur.",
+                "Merhaba ve Obsidian için daha iyi bir dosya tarayıcısı ve takvim olan Notebook Navigator'a hoş geldiniz. Başlamadan önce aşağıdaki Mastering Notebook Navigator videosunun en az ilk üç bölümünü izlemenizi gerçekten öneririm. Bu bölümler iki bölmenin nasıl çalıştığını tanıtır ve hızlıca kullanmaya başlamanıza yardımcı olur.",
             continueText:
                 'Ardından on dakikanız daha varsa ilk kurulum ve günlük kullanım döngüsü bölümlerini izlemeye devam edin. Bunlar başlamak için ihtiyacınız olan her şeyi sunar; daha fazla ayrıntı için daha sonra geri dönebilirsiniz. Videonun bağlantısını Notebook Navigator ayarlarının üst kısmında bulabilirsiniz.',
             thanksText: "Notebook Navigator'ı keyifle kullanın!",
@@ -775,8 +827,6 @@ export const STRINGS_TR = {
             forbiddenNameCharactersWindows: 'Windows için ayrılmış karakterlere izin verilmez: <, >, ", \\, |, ?, *.'
         },
         notices: {
-            hideFolder: 'Klasör gizlendi: {name}',
-            showFolder: 'Klasör gösterildi: {name}',
             folderExcludedFromDescendants: 'Üst klasör listelerinde gizli: {name}',
             folderIncludedInDescendants: 'Üst klasör listelerinde gösteriliyor: {name}',
             mergeNotes: '{count} not {name} içine birleştirildi'
@@ -789,6 +839,9 @@ export const STRINGS_TR = {
             deepLinkCopied: 'Obsidian URL panoya kopyalandı',
             pathCopied: 'Yol panoya kopyalandı',
             relativePathCopied: 'Göreli yol panoya kopyalandı',
+            linkCopied: 'Bağlantı panoya kopyalandı',
+            footnoteLinkCopied: 'Dipnot bağlantısı panoya kopyalandı',
+            embedLinkCopied: 'Gömme bağlantısı panoya kopyalandı',
             tagAddedToNote: '1 nota etiket eklendi',
             tagAddedToNotes: '{count} nota etiket eklendi',
             tagRemovedFromNote: '1 nottan etiket kaldırıldı',
@@ -845,6 +898,7 @@ export const STRINGS_TR = {
 
     // Date grouping
     dateGroups: {
+        future: 'Gelecek',
         today: 'Bugün',
         yesterday: 'Dün',
         previous7Days: 'Son 7 gün',
@@ -873,7 +927,7 @@ export const STRINGS_TR = {
         selectVaultProfile3: 'Kasa profili 3 seç', // Command palette: Activates the third vault profile without opening the modal (English: Select vault profile 3)
         deleteFile: 'Dosyaları sil', // Command palette: Deletes the currently active file (English: Delete file)
         createNewNote: 'Yeni not oluştur', // Command palette: Creates a new note in the currently selected folder (English: Create new note)
-        createNewNoteFromTemplate: 'Şablondan yeni not', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
+        createNewNoteFromTemplate: 'Şablondan yeni not oluştur', // Command palette: Creates a new note from a template in the currently selected folder (English: Create new note from template)
         moveFiles: 'Dosyaları taşı', // Command palette: Move selected files to another folder (English: Move files)
         mergeNotes: 'Notları birleştir', // Command palette: Creates one note from selected Markdown notes (English: Merge notes)
         selectNextFile: 'Sonraki dosyayı seç', // Command palette: Selects the next file in the current view (English: Select next file)
@@ -896,7 +950,8 @@ export const STRINGS_TR = {
         togglePropertiesBySelection: 'Özellikleri seçime göre aç/kapat',
         toggleCompactMode: 'Kompakt modu aç/kapat', // Command palette: Toggles list mode between standard and compact (English: Toggle compact mode)
         togglePinnedSection: 'Sabitlenmiş bölümü aç/kapat',
-        collapseExpand: 'Tüm öğeleri daralt / genişlet', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all items)
+        collapseExpand: 'Tüm gezinme öğelerini daralt / genişlet', // Command palette: Collapse or expand all folders and tags (English: Collapse / expand all navigation items)
+        collapseExpandListGroups: 'Tüm liste gruplarını daralt / genişlet',
         collapseExpandSelectedItem: 'Seçili öğeyi daralt / genişlet',
         addTag: 'Seçili dosyalara etiket ekle', // Command palette: Opens a dialog to add a tag to selected files (English: Add tag to selected files)
         setProperty: 'Seçili dosyalarda özellik ayarla', // Command palette: Opens a fuzzy dialog to set a property on selected files (English: Set property on selected files)
@@ -916,6 +971,14 @@ export const STRINGS_TR = {
         revealInNavigator: "Notebook Navigator'da göster", // Context menu item to reveal a file in the navigator (English: Reveal in Notebook Navigator)
         settingsUnavailableNotice:
             'Notebook Navigator ayarlarını okuyamadı ve başlatılmadı. Kasanız eşitleniyorsa, eşitleme tamamlandıktan sonra Obsidian uygulamasını yeniden başlatın. Varsayılan ayarlarla yeniden başlamak için "Varsayılan ayarları geri yükle" komutunu çalıştırın.', // Notice shown when startup is aborted because the settings file is missing or cannot be read (English: Notebook Navigator could not read its settings and did not start. If your vault is syncing, restart Obsidian after the sync completes. To start over with default settings, run the command "Restore default settings".)
+        settingsMissingConfirm: {
+            title: 'Varsayılan ayarlarla başlansın mı?', // Title of the dialog shown when the plugin is enabled while its settings file is missing (English: Start with default settings?)
+            messageRecentInstall:
+                'Notebook Navigator az önce yüklendi ve ayar dosyası yok. Bu yeni bir yükleme veya yeniden yükleme ise varsayılan ayarlarla devam edin. Ayarlarınız bir eşitleme hizmetinden geliyorsa iptal edin, eşitlemenin tamamlanmasını bekleyin ve Obsidian uygulamasını yeniden başlatın.', // Dialog message when the plugin folder was written recently (English: Notebook Navigator was just installed and has no settings file. If this is a new install or a reinstall, continue with default settings. If your settings come from a sync service, cancel, wait for the sync to complete, and restart Obsidian.)
+            messageExistingInstall:
+                'Notebook Navigator bu cihazda bir süredir yüklü, ancak ayar dosyası eksik. Kasanız hâlâ eşitleniyorsa iptal edin, eşitlemenin tamamlanmasını bekleyin ve mevcut ayarlarınızı korumak için Obsidian uygulamasını yeniden başlatın. Yalnızca varsayılan ayarlarla yeniden başlamak için devam edin.', // Dialog message when the plugin folder has existed for a while (English: Notebook Navigator has been installed on this device for a while, but its settings file is missing. If your vault is still syncing, cancel, wait for the sync to complete, and restart Obsidian to keep your existing settings. Continue only to start over with default settings.)
+            confirmButton: 'Varsayılan ayarları kullan' // Confirm button label in the missing-settings dialog (English: Use default settings)
+        },
         settingsRecovery: {
             confirmTitle: 'Varsayılan ayarları geri yükle', // Title of the confirmation dialog for the settings recovery command (English: Restore default settings)
             confirmMessage:
@@ -934,7 +997,8 @@ export const STRINGS_TR = {
         files: 'dosya',
         folder: 'klasör',
         folders: 'klasör',
-        wordCount: 'Kelime sayısı'
+        wordCount: 'Kelime sayısı',
+        unfinishedTasks: 'Tamamlanmamış görevler'
     },
 
     fileCounts: {
@@ -950,101 +1014,143 @@ export const STRINGS_TR = {
             exportSuccess: 'Başarısız meta veri raporu dışa aktarıldı: {filename}',
             exportFailed: 'Meta veri raporu dışa aktarılamadı'
         },
-        sections: {
-            general: 'Genel',
-            vaultFilters: 'Görüntüleme filtreleri',
-            appearanceBehavior: 'Görünüm ve davranış',
-            navigationPane: 'Gezinme paneli',
-            calendar: 'Takvim',
-            fileOperations: 'Dosya işlemleri',
-            icons: 'Simge paketleri',
-            folders: 'Klasörler',
-            folderNotes: 'Klasör notları',
-            folderNoteFiles: 'Klasör notu dosyaları',
-            foldersAndFolderNotes: 'Klasörler ve klasör notları',
-            tagsAndProperties: 'Etiketler ve özellikler',
-            tags: 'Etiketler',
-            listPane: 'Liste paneli',
-            notes: 'Dosya görünümü',
-            shortcutsAndRecentFiles: 'Kısayollar ve son dosyalar',
-            advanced: 'Gelişmiş'
+        index: {
+            label: 'Genel',
+            description: 'Sürüm notları, destek, kasa profili, dosya türleri ve özellik anahtarları.',
+            groups: {
+                about: 'Hakkında'
+            }
         },
         pageGroups: {
             configuration: 'Yapılandırma',
-            navigationAndContent: 'Gezinme paneli',
-            notesAndLists: 'Liste paneli',
+            navigationPane: 'Gezinme bölmesi',
+            listPane: 'Liste bölmesi',
             calendarAndTools: 'Takvim ve araçlar'
         },
-        pageDescriptions: {
-            general: 'Sürüm notları, destek, kasa profili, dosya türleri ve özellik anahtarları.',
-            vaultFilters: 'Gizli klasörler, etiketler, dosyalar, dosya etiketleri ve özellik kuralları.',
-            appearanceBehavior: 'Davranış, klavye ile gezinme, fare düğmeleri, görünüm ve biçimlendirme.',
-            navigationPane: 'Yerleşim, görünüm, not sayıları, daraltma davranışı ve gökkuşağı renkleri.',
-            shortcuts: 'Kısayol görünürlüğü, rozetler, son dosyalar ve sabitlenmiş öğeler.',
-            calendar: 'Takvim görünümü, tarih notları, şablonlar, yerel ayar ve kenar çubuğu konumu.',
-            fileOperations: 'Şablonlar, silme onayları, ekler ve dosya taşıma çakışma davranışı.',
-            foldersAndFolderNotes: 'Klasör görünümü, klasör notları, klasör notu şablonları ve klasör notu davranışı.',
-            tagsProperties: 'Etiket ve özellik bölümleri, simgeler, sıralama, kapsam ve kalıtım.',
-            listPane: 'Sıralama, gruplama, liste modları, sabitlenmiş notlar ve çizim önizlemeleri.',
-            frontmatter: 'Görüntülenen adlar, zaman damgaları, simgeler ve renkler için frontmatter alanları.',
-            notes: 'Başlıklar, önizleme metni, öne çıkan görseller, etiketler, özellikler, tarihler, kelime sayıları ve karakter sayıları.',
-            iconPacks: 'Arayüz simgeleri, dosya simgeleri ve simge paketi yönetimi.',
-            advanced: 'Tanılama, meta veri temizliği, içe/dışa aktarma ve sıfırlama.'
-        },
-        groups: {
-            general: {
-                vaultConfiguration: 'Kasa kurulumu',
-                templates: 'Şablonlar',
-                behavior: 'Davranış',
-                startup: 'Başlangıç',
-                keyboardNavigation: 'Klavye ile gezinme',
-                mouseButtons: 'Fare düğmeleri',
-                view: 'Görünüm',
-                icons: 'Simgeler',
-                desktopAppearance: 'Masaüstü görünümü',
-                mobileAppearance: 'Mobil görünüm',
-                formatting: 'Biçimlendirme'
+        pages: {
+            displayFilters: {
+                label: 'Görüntüleme filtreleri',
+                description: 'Gizli klasörler, etiketler, dosyalar, dosya etiketleri ve özellik kuralları.'
+            },
+            appearanceAndBehavior: {
+                label: 'Görünüm ve davranış',
+                description: 'Davranış, klavye ile gezinme, fare düğmeleri, görünüm ve biçimlendirme.',
+                groups: {
+                    startup: 'Başlangıç',
+                    keyboardNavigation: 'Klavye ile gezinme',
+                    mouseButtons: 'Fare düğmeleri',
+                    desktopAppearance: 'Masaüstü görünümü',
+                    mobileAppearance: 'Mobil görünüm',
+                    appearance: 'Görünüm',
+                    icons: 'Simgeler',
+                    formatting: 'Biçimlendirme'
+                }
+            },
+            navigationPane: {
+                label: 'Gezinme bölmesi',
+                description: 'Yerleşim, görünüm, dosya sayıları, daraltma davranışı ve gökkuşağı renkleri.',
+                groups: {
+                    appearance: 'Görünüm',
+                    banner: 'Afiş',
+                    collapseItems: 'Öğeleri daralt',
+                    dragAndDrop: 'Sürükle ve bırak',
+                    fileCounts: 'Dosya sayıları',
+                    rainbowColors: 'Gökkuşağı renkleri'
+                }
+            },
+            shortcutsAndRecentFiles: {
+                label: 'Kısayollar ve son dosyalar',
+                description: 'Kısayol görünürlüğü, rozetler, son dosyalar ve sabitlenmiş öğeler.',
+                groups: {
+                    shortcuts: 'Kısayollar',
+                    recentFiles: 'Son dosyalar'
+                }
+            },
+            foldersAndFolderNotes: {
+                label: 'Klasörler ve klasör notları',
+                description: 'Klasör görünümü, klasör notları, klasör notu şablonları ve klasör notu davranışı.',
+                groups: {
+                    folders: 'Klasörler',
+                    folderNotes: 'Klasör notları',
+                    folderNoteFiles: 'Klasör notu dosyaları'
+                }
+            },
+            tagsAndProperties: {
+                label: 'Etiketler ve özellikler',
+                description: 'Etiket ve özellik bölümleri, simgeler, sıralama, kapsam ve kalıtım.',
+                groups: {
+                    tags: 'Etiketler',
+                    properties: 'Özellikler'
+                }
+            },
+            listPane: {
+                label: 'Liste bölmesi',
+                description: 'Sıralama, gruplama, liste modları, sabitlenmiş notlar ve çizim önizlemeleri.',
+                groups: {
+                    appearance: 'Görünüm',
+                    sortAndGroup: 'Sıralama ve gruplama',
+                    groupHeaders: 'Grup başlıkları',
+                    manualSort: 'Manuel sıralama',
+                    pinnedNotes: 'Sabitlenmiş notlar',
+                    behavior: 'Davranış',
+                    drawingPreviews: 'Çizim önizlemeleri'
+                }
+            },
+            fileOperations: {
+                label: 'Dosya işlemleri',
+                description: 'Şablonlar, silme onayları, ekler ve dosya taşıma çakışma davranışı.',
+                groups: {
+                    templates: 'Şablonlar'
+                }
+            },
+            frontmatterFields: {
+                label: 'Frontmatter alanları',
+                description: 'Görüntülenen adlar, zaman damgaları, simgeler ve renkler için frontmatter alanları.'
+            },
+            fileDisplay: {
+                label: 'Dosya görünümü',
+                description:
+                    'Başlıklar, önizleme metni, öne çıkan görseller, etiketler, özellikler, tarihler, kelime sayıları ve karakter sayıları.',
+                groups: {
+                    icon: 'Simge',
+                    title: 'Başlık',
+                    previewText: 'Önizleme metni',
+                    featureImage: 'Öne çıkan görsel',
+                    tags: 'Etiketler',
+                    properties: 'Özellikler',
+                    tasks: 'Görevler',
+                    date: 'Tarih',
+                    parentFolder: 'Üst klasör',
+                    wordAndCharacterCount: 'Kelime ve karakter sayısı'
+                }
+            },
+            calendar: {
+                label: 'Takvim',
+                description: 'Takvim görünümü, tarih notları, şablonlar, yerel ayar ve kenar çubuğu konumu.',
+                groups: {
+                    appearance: 'Görünüm',
+                    leftSidebar: 'Sol kenar çubuğu',
+                    calendarIntegration: 'Takvim entegrasyonu',
+                    rightSidebar: 'Sağ kenar çubuğu'
+                }
+            },
+            iconPacks: {
+                label: 'Simge paketleri',
+                description: 'Arayüz simgeleri, dosya simgeleri ve simge paketi yönetimi.'
             },
             advanced: {
-                maintenance: 'Bakım',
-                resetSettings: 'Ayarları sıfırla'
-            },
-            navigation: {
-                appearance: 'Görünüm',
-                banner: 'Afiş',
-                collapseItems: 'Öğeleri daralt',
-                dragAndDrop: 'Sürükle ve bırak',
-                noteCounts: 'Not sayıları',
-                rainbowColors: 'Gökkuşağı renkleri',
-                leftSidebar: 'Sol kenar çubuğu',
-                calendarIntegration: 'Takvim entegrasyonu'
-            },
-            list: {
-                display: 'Görünüm',
-                groupHeaders: 'Grup başlıkları',
-                propertySort: 'Özelliğe göre sıralama',
-                manualSort: 'Manuel sıralama',
-                pinnedNotes: 'Sabitlenmiş notlar',
-                drawingPreviews: 'Çizim önizlemeleri'
-            },
-            notes: {
-                frontmatter: 'Frontmatter alanları',
-                tasks: 'Görevler',
-                icon: 'Simge',
-                title: 'Başlık',
-                previewText: 'Önizleme metni',
-                featureImage: 'Öne çıkan görsel',
-                tags: 'Etiketler',
-                properties: 'Özellikler',
-                date: 'Tarih',
-                parentFolder: 'Üst klasör',
-                wordCount: 'Kelime ve karakter sayısı'
+                label: 'Gelişmiş',
+                description: 'Tanılama, meta veri temizliği, içe/dışa aktarma ve sıfırlama.',
+                groups: {
+                    maintenance: 'Bakım',
+                    resetSettings: 'Ayarları sıfırla'
+                }
             }
         },
         syncMode: {
             notSynced: '(senkronize edilmedi)',
-            switchToSynced: 'Senkronizasyonu etkinleştir',
-            switchToLocal: 'Senkronizasyonu devre dışı bırak'
+            enableSync: 'Senkronizasyonu etkinleştir',
+            disableSync: 'Senkronizasyonu devre dışı bırak'
         },
         items: {
             listPaneTitle: {
@@ -1052,58 +1158,82 @@ export const STRINGS_TR = {
                 desc: 'Liste bölmesi başlığının nerede gösterileceğini seçin.',
                 options: {
                     header: 'Başlıkta göster',
-                    list: 'Liste bölmesinde göster',
+                    listPane: 'Liste bölmesinde göster',
                     hidden: 'Gösterme'
                 }
             },
-            sortNotesBy: {
+            defaultSortOrder: {
                 name: 'Varsayılan sıralama düzeni',
-                desc: 'Notlar için varsayılan sıralama düzenini seçin.',
-                options: {
-                    'modified-desc': 'Düzenleme tarihi (en yeni üstte)',
-                    'modified-asc': 'Düzenleme tarihi (en eski üstte)',
-                    'created-desc': 'Oluşturma tarihi (en yeni üstte)',
-                    'created-asc': 'Oluşturma tarihi (en eski üstte)',
-                    'title-asc': 'Başlık (A üstte)',
-                    'title-desc': 'Başlık (Z üstte)',
-                    'filename-asc': 'Dosya adı (A üstte)',
-                    'filename-desc': 'Dosya adı (Z üstte)'
-                },
+                desc: 'Notlar için varsayılan sıralama düzenini seçin. Sıralama özellikleri altındaki özellikler ek sıralama seçenekleri olarak görünür.',
                 directions: {
                     asc: 'Artan',
                     desc: 'Azalan'
                 },
+                dateDirections: {
+                    newestOnTop: 'En yeni üstte',
+                    oldestOnTop: 'En eski üstte'
+                },
+                textDirections: {
+                    aOnTop: 'A üstte',
+                    zOnTop: 'Z üstte'
+                },
                 fields: {
-                    modified: 'Düzenleme tarihi',
-                    created: 'Oluşturma tarihi',
+                    dateEdited: 'Düzenleme tarihi',
+                    dateCreated: 'Oluşturma tarihi',
                     title: 'Başlık',
-                    filename: 'Dosya adı',
+                    fileName: 'Dosya adı',
                     property: 'Özellik'
                 }
             },
-            propertySortKey: {
-                name: 'Sıralama özellikleri',
-                desc: 'Özelliğe göre sıralama seçenekleri olarak gösterilen virgülle ayrılmış frontmatter özellikleri. Dizi değerleri tek bir dizede birleştirilir. Bu özellikler değiştirilmez.',
-                placeholder: 'published, author'
+            defaultSortDirection: {
+                name: 'Sıralama yönü'
             },
-            propertySortSecondary: {
+            defaultGroupingDirection: {
+                name: 'Gruplama yönü',
+                options: {
+                    follow: 'Sıralamayı izle'
+                }
+            },
+            sortingProperties: {
+                name: 'Sıralama özellikleri',
+                desc: 'Virgülle ayrılmış frontmatter özellikleri. Her özellik, Varsayılan sıralama düzeni ayarında ve liste bölmesindeki sıralama menüsünde bir sıralama seçeneği olarak görünür. Bu özellikler değiştirilmez.',
+                placeholder: 'published, author',
+                defaultsResetNotices: {
+                    sort: 'Özelliği artık kullanılamadığı için varsayılan sıralama düzeni sıfırlandı.',
+                    grouping: 'Özelliği artık kullanılamadığı için varsayılan gruplama sıfırlandı.',
+                    both: 'Özellikleri artık kullanılamadığı için varsayılan sıralama düzeni ve varsayılan gruplama sıfırlandı.'
+                }
+            },
+            propertySecondarySort: {
                 name: 'İkincil sıralama',
                 desc: 'Özellik sıralamasında notlar aynı özellik değerine sahip olduğunda veya özellik değeri olmadığında kullanılır.',
                 options: {
                     title: 'Başlık',
-                    filename: 'Dosya adı',
-                    created: 'Oluşturma tarihi',
-                    modified: 'Düzenleme tarihi'
+                    fileName: 'Dosya adı',
+                    dateCreated: 'Oluşturma tarihi',
+                    dateEdited: 'Düzenleme tarihi'
                 }
             },
             propertySortInstructions: {
-                intro: 'Yukarıda listelenen her özellik, liste bölmesindeki sıralama menüsünde bir sıralama seçeneği olarak görünür. Birini seçmek, notları frontmatter değerine göre sıralar.'
+                intro: 'Bir özelliğe göre sıralama ve gruplama şöyle çalışır:',
+                items: [
+                    '**Sıralama:** Öncelik gibi bir özellik seçildiğinde notlar, Öncelik değerlerine göre sıralanır.',
+                    '**Gruplama:** Durum gibi bir özellik seçildiğinde her Durum değeri için bir başlık oluşturulur. Aynı Duruma sahip notlar aynı başlığın altında görünür.',
+                    '**Birden fazla değer:** Bir özellik liste içeriyorsa Notebook Navigator listenin tamamını kullanır. Örneğin Konular, Kitaplar ve Tarih değerlerini içeriyorsa not “Kitaplar, Tarih” kullanılarak sıralanır veya gruplanır; her konu ayrı ayrı kullanılmaz.',
+                    '**Eksik değerler:** Gruplama sırasında özelliği olmayan notlar sonda **Yok** altında görünür.',
+                    '**Etiket ve özellik görünümleri:** **Klasör** gruplaması seçildiğinde bunun yerine tarih başlıkları gösterilir.'
+                ]
             },
-            manualSortPropertyKey: {
+            groupingProperties: {
+                name: 'Gruplama özellikleri',
+                desc: 'Virgülle ayrılmış frontmatter özellikleri. Her özellik, Varsayılan gruplama ayarında ve liste bölmesindeki sıralama menüsünde bir gruplama seçeneği olarak görünür. Bu özellikler değiştirilmez.',
+                placeholder: 'status, genre'
+            },
+            manualSortProperty: {
                 name: 'Manuel sıralama özelliği',
                 desc: 'Manuel sıralama için sayısal indeks değerlerini saklamak üzere kullanılan frontmatter özelliği.'
             },
-            manualSortGroupHeaderProperty: {
+            groupHeaderProperty: {
                 name: 'Grup başlığı özelliği',
                 desc: 'Özel grup başlıklarını saklamak üzere kullanılan frontmatter özelliği.'
             },
@@ -1120,7 +1250,7 @@ export const STRINGS_TR = {
                 options: {
                     top: 'Üst',
                     bottom: 'Alt',
-                    'below-selected-note': 'Seçili notun altında',
+                    belowSelectedNote: 'Seçili notun altında',
                     unsorted: 'Sıralanmamış'
                 }
             },
@@ -1136,7 +1266,7 @@ export const STRINGS_TR = {
                     'Liste bölmesinde, bir notu seçin veya birden fazlasını çoklu seçin, ardından seçimi yukarı veya aşağı taşımak için **Cmd/Ctrl + Arrow Up/Down** tuşlarına basın.'
                 ]
             },
-            revealFileOnListChanges: {
+            scrollToSelectedFileOnListChanges: {
                 name: 'Liste değişikliklerinde seçili dosyaya kaydır',
                 desc: 'Notları sabitleme, alt notları gösterme, klasör görünümünü değiştirme veya dosya işlemleri çalıştırma sırasında seçili dosyaya kaydır.'
             },
@@ -1144,32 +1274,37 @@ export const STRINGS_TR = {
                 name: 'Alt klasörlerden / alt öğelerden notları göster',
                 desc: 'Klasör, etiket veya özellik görüntülerken iç içe alt klasörlerden ve etiket ile özellik alt öğelerinden notları dahil et.'
             },
-            limitPinnedToCurrentFolder: {
+            filterPinnedNotesByFolder: {
                 name: 'Notları yalnızca kendi klasörlerinde sabitle',
                 desc: 'Sabitlenen notlar yalnızca kendi klasörlerinde sabitlenmiş olarak görünür. Klasör notları veya çok sayıda sabitlenmiş notunuz varsa kullanışlıdır. Etiket veya özellik görünümlerini etkilemez.'
             },
-            separateNoteCounts: {
-                name: 'Mevcut ve alt not sayılarını ayrı göster',
-                desc: 'Klasörler, etiketler ve özellikler için not sayılarını "mevcut ▾ alt öğeler" biçiminde göster.'
+            separateFileCounts: {
+                name: 'Mevcut ve alt dosya sayılarını ayrı göster',
+                desc: 'Klasörler, etiketler ve özellikler için dosya sayılarını "mevcut ▾ alt öğeler" biçiminde göster.'
             },
-            groupNotes: {
+            defaultGrouping: {
                 name: 'Varsayılan gruplama',
-                desc: "Özel, frontmatter'da tanımlanan başlıkları gösterir. Tarih, notları tarihe göre gruplar. Klasör, notları klasöre göre gruplar. Etiket ve özellik görünümleri, klasör seçildiğinde tarih gruplarını kullanır.",
+                desc: "Gruplama yok seçeneği sıralanmış listeyi gruplara ayırmadan düz tutar. **Başlıklar**, sıralanmış listeyi sırasını değiştirmeden işaretler: Özel, frontmatter'da tanımlanan başlıkları gösterir; Tarih, tarih başlıkları ekler. **Gruplar** listeyi yeniden sıralar: klasör ve özellik grupları kendi başlarına sıralanır ve her gruptaki notlar sıralama düzenini izler.",
+                families: {
+                    headers: 'Başlıklar',
+                    groups: 'Gruplar'
+                },
                 options: {
+                    none: 'Gruplama yok',
                     custom: 'Özel',
                     date: 'Tarih',
                     folder: 'Klasör'
                 }
             },
-            showSelectedNavigationPills: {
+            alwaysShowAllTagAndPropertyPills: {
                 name: 'Tüm etiket ve özellik rozetlerini her zaman göster',
                 desc: 'Devre dışı bırakıldığında, geçerli gezinme seçimiyle eşleşen rozetler gizlenir (ör. "tarifler" etiketine göz atarken "tarifler" etiketi rozeti gizlenir). Tüm rozetlerin görünür kalması için etkinleştirin.'
             },
             stickyGroupHeaders: {
                 name: 'Yapışkan grup başlıkları',
-                desc: 'Geçerli tarih, klasör veya sabitlenmiş bölüm başlığını kaydırırken görünür tut.'
+                desc: 'Geçerli tarih, klasör, özellik veya sabitlenmiş bölüm başlığını kaydırırken görünür tut.'
             },
-            showFolderGroupPaths: {
+            showSubfolderPaths: {
                 name: 'Alt klasör yollarını göster',
                 desc: 'Liste bölmesinde klasöre göre gruplarken, yalnızca klasör adları yerine alt klasör yollarını göster.'
             },
@@ -1193,15 +1328,36 @@ export const STRINGS_TR = {
                 name: 'Dosya simgelerini göster',
                 desc: 'Dosya simgelerini sol hizalı boşlukla göster. Devre dışı bırakma hem simgeleri hem de girintiyi kaldırır. Öncelik: tamamlanmamış görev simgesi > özel simge > klasör simgesi > dosya adı simgesi > dosya türü simgesi > varsayılan simge.'
             },
+            unfinishedTaskIcon: {
+                name: 'Tamamlanmamış görev simgesi',
+                desc: 'Bir notta tamamlanmamış görevler olduğunda dosya simgesini değiştir.',
+                options: {
+                    disabled: 'Devre dışı',
+                    compact: 'Kompakt mod',
+                    standardAndCompact: 'Standart ve kompakt'
+                }
+            },
             useFolderIcon: {
                 name: 'Klasör simgesini kullan',
                 desc: 'Özel dosya simgesi ayarlanmadığında üst klasörün simgesini görüntüler. Özel dosya rengi ayarlanmadığında klasör rengi kullanılır.'
             },
-            showFileIconUnfinishedTask: {
-                name: 'Tamamlanmamış görev simgesi',
-                desc: 'Bir notta tamamlanmamış görevler olduğunda görev simgesi gösterir.'
+            showFileTaskProgress: {
+                name: 'Görev ilerlemesi',
+                desc: 'Görev durumunu isteğe bağlı ilerleme çubuğu ve görev sayısıyla gösterir. Tamamlanmamış ve tamamlanmış görevlerin renkleri Style Settings eklentisiyle ayrı ayrı ayarlanabilir.'
             },
-            showFileBackgroundUnfinishedTask: {
+            showFileTaskProgressBar: {
+                name: 'Görev ilerlemesi: ilerleme çubuğu',
+                desc: 'Görev simgesinin yanında ilerleme çubuğu gösterir.'
+            },
+            showFileTaskProgressCount: {
+                name: 'Görev ilerlemesi: görev sayısı',
+                desc: 'Tamamlanan ve toplam görev sayısını gösterir, örneğin 3/7.'
+            },
+            hideFileTaskProgressWhenComplete: {
+                name: 'Görev ilerlemesi: tamamlanınca gizle',
+                desc: 'Bir nottaki tüm görevler tamamlandığında görev ilerlemesini gizler.'
+            },
+            unfinishedTaskBackground: {
                 name: 'Tamamlanmamış görev arka planı',
                 desc: 'Bir notta tamamlanmamış görevler olduğunda arka plan rengi uygular.'
             },
@@ -1209,7 +1365,7 @@ export const STRINGS_TR = {
                 name: 'Tamamlanmamış görev arka plan rengi',
                 desc: 'Bir notta tamamlanmamış görevler olduğunda kullanılacak arka plan rengini ayarlar.'
             },
-            showFilenameMatchIcons: {
+            showFileNameIcons: {
                 name: 'Dosya adına göre simgeler',
                 desc: 'Dosyalara adlarındaki metne göre simge ata.'
             },
@@ -1219,7 +1375,7 @@ export const STRINGS_TR = {
                 placeholder: '# metin=simge\ntoplantı=ph-calendar\nfatura=ph-receipt',
                 editTooltip: 'Eşlemeleri düzenle'
             },
-            showCategoryIcons: {
+            showFileTypeIcons: {
                 name: 'Dosya türüne göre simgeler',
                 desc: 'Dosyalara uzantılarına göre simge ata.'
             },
@@ -1227,7 +1383,7 @@ export const STRINGS_TR = {
                 name: 'Dosya simgesi ön ayarı',
                 desc: 'Yerleşik simgeleri veya bir simge paketi ön ayarını seçin. Özel uzantı kuralları bu ön ayarı geçersiz kılar.',
                 options: {
-                    none: 'Yerleşik simgeler'
+                    builtIn: 'Yerleşik simgeler'
                 },
                 notInstalledWarning: 'Bu simge paketi yüklü değil. Bunun yerine yerleşik simgeler gösterilir.'
             },
@@ -1250,13 +1406,13 @@ export const STRINGS_TR = {
                 name: 'Üst klasörü göster',
                 desc: 'Alt klasörlerdeki, etiketlerdeki veya özelliklerdeki notlar için üst klasör adını görüntüle.'
             },
-            showParentFolderFullPath: {
+            showFolderPath: {
                 name: 'Klasör yolunu göster',
                 desc: 'Yalnızca klasör adı yerine seçili klasöre göre yolu görüntüle. Etiketler ve özellikler tam yolu gösterir.'
             },
-            parentFolderClickRevealsFile: {
+            parentFolderClickOpensFolder: {
                 name: 'Üst klasöre tıklayarak klasörü aç',
-                desc: 'Üst klasör etiketine tıklamak liste panelinde klasörü açar.'
+                desc: 'Üst klasör etiketine tıklamak liste bölmesinde klasörü açar.'
             },
             showParentFolderColor: {
                 name: 'Üst klasör rengini göster',
@@ -1272,7 +1428,7 @@ export const STRINGS_TR = {
             },
             dualPane: {
                 name: 'Çift bölme düzeni',
-                desc: 'Masaüstünde gezinme bölmesini ve liste bölmesini yan yana göster.'
+                desc: 'Gezinme bölmesini ve liste bölmesini yan yana göster.'
             },
             dualPaneOrientation: {
                 name: 'Çift bölme yönü',
@@ -1282,7 +1438,7 @@ export const STRINGS_TR = {
                     vertical: 'Dikey bölme'
                 }
             },
-            narrowSidebarLayout: {
+            narrowSidebarBehavior: {
                 name: 'Kenar çubuğu çok dar olduğunda',
                 desc: 'Gezinme bölmesi ve liste bölmesi yan yana sığmadığında ne olacağını seçin.',
                 options: {
@@ -1291,7 +1447,7 @@ export const STRINGS_TR = {
                     vertical: 'Dikey bölmeye geç'
                 }
             },
-            narrowSidebarTrigger: {
+            narrowSidebarThresholdMode: {
                 name: 'Dar kenar çubuğu eşiği',
                 desc: 'Kenar çubuğu genişlik eşiğinin nasıl hesaplanacağını seçin.',
                 options: {
@@ -1299,43 +1455,41 @@ export const STRINGS_TR = {
                     customWidth: 'Özel genişlik'
                 }
             },
-            narrowSidebarCustomWidth: {
+            narrowSidebarThresholdWidth: {
                 name: 'Dar kenar çubuğu eşik genişliği',
                 desc: 'Kenar çubuğu bu genişlikten daha darsa geçiş yap.',
                 resetTooltip: 'Varsayılan genişliğe sıfırla'
             },
-            appearanceBackground: {
+            paneBackgroundColor: {
                 name: 'Arka plan rengi',
                 desc: 'Gezinme ve liste bölmeleri için arka plan renklerini seçin.',
                 options: {
                     separate: 'Ayrı arka planlar',
-                    primary: 'Liste arka planını kullan',
-                    secondary: 'Gezinme arka planını kullan'
+                    listBackground: 'Liste arka planını kullan',
+                    navigationBackground: 'Gezinme arka planını kullan'
                 }
             },
-            appearanceScale: {
+            zoomLevel: {
                 name: 'Yakınlaştırma seviyesi',
                 desc: "Notebook Navigator'ın genel yakınlaştırma seviyesini kontrol eder (yüzde)."
             },
-            useFloatingToolbars: {
-                name: "iOS/iPadOS'ta kayan araç çubuklarını kullan",
-                desc: 'Yalnızca iOS ve iPadOS için geçerlidir.'
+            useFloatingToolbarsOnIOS: {
+                name: "iOS'ta kayan araç çubuklarını kullan",
+                desc: 'Yalnızca iOS için geçerlidir.'
             },
-            startView: {
-                name: 'Varsayılan başlangıç görünümü',
-                desc: 'Notebook Navigator açıldığında hangi bölmenin etkin olacağını seçin. Tek bölmeli düzen önce bu bölmeyi gösterir; çift bölmeli düzen klavye odağını bu bölmeye verir.',
+            defaultStartupView: {
+                name: 'Tek bölmeli başlangıç görünümü',
+                desc: 'Notebook Navigator tek bölmeli düzende açıldığında gösterilecek bölmeyi seçin.',
                 options: {
                     navigation: 'Gezinme bölmesi',
-                    files: 'Liste bölmesi'
+                    listPane: 'Liste bölmesi'
                 }
             },
             toolbarButtons: {
                 name: 'Araç çubuğu düğmeleri',
-                desc: 'Araç çubuğunda hangi düğmelerin görüneceğini seçin. Gizli düğmelere komutlar ve menüler aracılığıyla erişilebilir.',
-                navigationLabel: 'Gezinme araç çubuğu',
-                listLabel: 'Liste araç çubuğu'
+                desc: 'Araç çubuğunda hangi düğmelerin görüneceğini seçin. Gizli düğmelere komutlar ve menüler aracılığıyla erişilebilir.'
             },
-            createNewNotesInNewTab: {
+            openNewNotesInNewTab: {
                 name: 'Yeni notları yeni sekmede aç',
                 desc: 'Etkinleştirildiğinde, Yeni not oluştur komutu notları yeni bir sekmede açar. Devre dışı bırakıldığında, notlar mevcut sekmenin yerini alır.'
             },
@@ -1355,22 +1509,22 @@ export const STRINGS_TR = {
                 name: 'Otomatik gösterim: Diğer pencerelerden gelen olayları yoksay',
                 desc: 'Başka bir pencerede notlarla çalışırken aktif notu değiştirme.'
             },
-            paneTransitionDuration: {
-                name: 'Tek panel animasyonu',
-                desc: 'Tek panel modunda paneller arasında geçiş süresi (milisaniye).',
+            singlePaneAnimation: {
+                name: 'Tek bölme animasyonu',
+                desc: 'Tek bölme modunda bölmeler arasında geçiş süresi (milisaniye).',
                 resetTooltip: 'Varsayılana sıfırla'
             },
-            autoSelectFirstFileOnFocusChange: {
+            autoSelectFirstNote: {
                 name: 'İlk notu otomatik seç',
                 desc: 'Klasör, etiket veya özellik değiştirirken ilk notu otomatik olarak aç.'
             },
-            skipAutoScroll: {
+            disableShortcutAutoScroll: {
                 name: 'Kısayollar için otomatik kaydırmayı devre dışı bırak',
                 desc: 'Kısayollardaki öğelere tıklarken gezinme bölmesini kaydırma.'
             },
-            autoExpandNavItems: {
+            expandOnSelection: {
                 name: 'Seçimde genişlet',
-                desc: 'Seçildiğinde klasörleri ve etiketleri genişlet. Tek bölme modunda ilk seçim genişletir, ikinci seçim dosyaları gösterir.'
+                desc: 'Seçildiğinde klasörleri, etiketleri ve özellikleri genişlet. Tek bölme modunda ilk seçim genişletir, ikinci seçim dosyaları gösterir.'
             },
             collapseOtherBranchesOnExpand: {
                 name: 'Tek genişletilmiş dal',
@@ -1406,32 +1560,32 @@ export const STRINGS_TR = {
                 name: 'Kısayol rozeti',
                 desc: "Kısayolların yanında ne görüntüleneceği. Kısayolları doğrudan açmak için 'Kısayol 1-9 aç' komutlarını kullanın.",
                 options: {
-                    index: 'Konum (1-9)',
+                    position: 'Konum (1-9)',
                     count: 'Öğe sayısı',
                     none: 'Yok'
                 }
             },
-            showRecentNotes: {
+            showRecentFiles: {
                 name: 'Son dosyaları göster',
                 desc: 'Gezinme bölmesinde son dosyalar bölümünü görüntüle.'
             },
-            hideRecentNotes: {
+            hideFileTypesFromRecentFiles: {
                 name: 'Son dosyalardan dosya türlerini gizle',
-                desc: 'Son dosyalar bölümünde gizlenecek dosya türlerini seç.',
+                desc: 'Son dosyalar bölümünde gizlenecek dosya türlerini seçin.',
                 options: {
                     none: 'Hiçbiri',
                     folderNotes: 'Klasör notları'
                 }
             },
-            recentNotesCount: {
+            recentFilesCount: {
                 name: 'Son dosya sayısı',
                 desc: 'Görüntülenecek son dosya sayısı.'
             },
-            pinRecentNotesWithShortcuts: {
+            pinRecentFilesWithShortcuts: {
                 name: 'Son dosyaları kısayollarla birlikte sabitle',
                 desc: 'Kısayollar sabitlendiğinde son dosyaları dahil et.'
             },
-            calendarEnabled: {
+            enableCalendar: {
                 name: 'Takvimi etkinleştir',
                 desc: 'Notebook Navigator takvim özelliklerini etkinleştir.'
             },
@@ -1443,16 +1597,16 @@ export const STRINGS_TR = {
                     rightSidebar: 'Sağ kenar çubuğu'
                 }
             },
-            calendarLeftPlacement: {
-                name: 'Tek panel yerleşimi',
-                desc: 'Takvimin tek panel modunda gösterildiği yer.',
+            calendarSinglePanePlacement: {
+                name: 'Tek bölme yerleşimi',
+                desc: 'Takvimin tek bölme modunda gösterildiği yer.',
                 options: {
-                    navigationPane: 'Gezinme paneli',
-                    below: 'Panellerin altında'
+                    navigationPane: 'Gezinme bölmesi',
+                    belowPanes: 'Bölmelerin altında'
                 }
             },
             calendarLocale: {
-                name: 'Dil',
+                name: 'Yerel ayar',
                 desc: 'Takvim tarih biçimlendirmesini, hafta numaralandırmasını ve haftanın ilk gününü kontrol eder.',
                 weekPathMismatchWarning:
                     'Görünen takvim ve haftalık not yolları farklı hafta başlangıçları veya hafta numaralandırması kullanıyor.',
@@ -1470,7 +1624,7 @@ export const STRINGS_TR = {
                     thuFri: 'Perşembe ve cuma'
                 }
             },
-            calendarMonthHeadingFormat: {
+            calendarMonthNameFormat: {
                 name: 'Ay adı biçimi',
                 desc: 'Uzun (Ocak) veya kısa (Oca) ay adı.',
                 options: {
@@ -1482,7 +1636,7 @@ export const STRINGS_TR = {
                 name: 'Bilgi düğmelerini göster',
                 desc: 'Arama çubuğunda ve takvim başlığında bilgi düğmelerini göster.'
             },
-            calendarWeeksToShow: {
+            calendarLeftSidebarWeeksToShow: {
                 name: 'Sol kenar çubuğunda gösterilecek haftalar',
                 desc: 'Sağ kenar çubuğundaki takvim her zaman tam ayı gösterir.',
                 options: {
@@ -1511,6 +1665,10 @@ export const STRINGS_TR = {
                 name: 'Çeyreği göster',
                 desc: 'Takvim başlığına çeyrek etiketi ekle.'
             },
+            calendarShowOutsideMonthDays: {
+                name: 'Diğer ayların günlerini göster',
+                desc: 'Takvim tam bir ayı gösterirken önceki ve sonraki ayın günlerini göster.'
+            },
             calendarShowYearCalendar: {
                 name: 'Yıllık takvimi göster',
                 desc: 'Sağ kenar çubuğunda yıl gezintisi ve ay ızgarası göster.'
@@ -1523,7 +1681,7 @@ export const STRINGS_TR = {
                 name: 'Gizli öğeleri göster',
                 desc: 'Etkinleştirildiğinde, takvim her zaman tüm takvim notlarını gösterir; kasa profili filtreleri tarafından gizlenen notlar da buna dahildir.'
             },
-            calendarIntegrationMode: {
+            dailyNoteSource: {
                 name: 'Günlük not kaynağı',
                 desc: 'Takvim notları için kaynak.',
                 options: {
@@ -1535,7 +1693,7 @@ export const STRINGS_TR = {
                 }
             },
             calendarPeriodicNotesLocale: {
-                name: 'Periyodik not dili',
+                name: 'Periyodik not yerel ayarı',
                 desc: 'Notebook Navigator periyodik not yollarındaki yerelleştirilmiş ay adlarını, gün adlarını, hafta numaralarını ve hafta başlangıçlarını kontrol eder.',
                 options: {
                     calendar: 'Takvim',
@@ -1543,51 +1701,58 @@ export const STRINGS_TR = {
                 }
             },
 
-            calendarCustomRootFolder: {
-                name: 'Kök klasör',
+            periodicNotesRootFolder: {
+                name: 'Kök klasör (kasa profili)',
                 desc: 'Periyodik notlar için temel klasör. Tarih desenleri alt klasörleri içerebilir. Seçili kasa profiliyle değişir.',
-                placeholder: 'Personal/Diary'
+                placeholder: 'Kişisel/Günlük'
             },
-            calendarTemplateFolder: {
+            templateFolderLocation: {
                 name: 'Şablon klasörü konumu',
                 desc: 'Şablon dosya seçici bu klasördeki notları gösterir.',
-                placeholder: 'Templates',
+                placeholder: 'Şablonlar',
                 usage: 'Takvim notları ve klasör notları tarafından kullanılır. Şablonları Takvim > Takvim entegrasyonu ve Klasörler ve klasör notları > Klasör notu dosyaları bölümünde yapılandırın.'
             },
-            calendarCustomFilePattern: {
+            calendarDailyNotePattern: {
                 name: 'Günlük notlar',
                 desc: 'Moment tarih biçimini kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.',
+                placeholder: 'YYYY/YYYYMMDD',
+                parsingError: 'Desen, tam bir tarih (yıl, ay, gün) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
+            },
+            calendarPeriodicNotePatterns: {
                 momentDescPrefix: '',
                 momentLinkText: 'Moment tarih biçimi',
                 momentDescSuffix:
                     ' kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.',
-                templaterSupportInstalled: '✅ Templater eklentisi tam şablon desteğiyle yüklü.',
-                templaterSupportMissing: '⚠️ Tam şablon desteği için Templater eklentisini yükleyin.',
-                placeholder: 'YYYY/YYYYMMDD',
-                example: 'Geçerli sözdizimi: {path}',
-                parsingError: 'Desen, tam bir tarih (yıl, ay, gün) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
+                templateTokenNoticeLabel: 'Önemli!',
+                templateTokenNotice:
+                    'Şablon desteği Templater eklentisini gerektirir. {{date}} ve {{title}} gibi yerleşik biçimler yalnızca {source} ayarı {option} olarak seçildiğinde kullanılabilir.',
+                example: 'Geçerli sözdizimi: {path}'
             },
-            calendarCustomWeekPattern: {
+            templaterSupport: {
+                installed: '✅ Templater eklentisi tam şablon desteğiyle yüklü.',
+                missing: '⚠️ Şablon desteği için Templater eklentisini yükleyin.'
+            },
+            calendarWeeklyNotePattern: {
                 name: 'Haftalık notlar',
                 parsingError: 'Desen, tam bir hafta (hafta yılı, hafta numarası) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.',
                 weekPathMismatchWarning:
-                    'Haftalık not yolları periyodik not dilini kullanır. Eşleşen diller kullanın veya Pazartesi tabanlı haftalar için "GGGG" ile "WW" kullanın.',
+                    'Haftalık not yolları periyodik not yerel ayarını kullanır. Eşleşen yerel ayarlar kullanın veya Pazartesi tabanlı haftalar için "GGGG" ile "WW" kullanın.',
                 mixedWeekTokensWarning:
-                    'Bu desen Pazartesi tabanlı hafta belirteçleri ("W" veya "G") ile dil tabanlı hafta belirteçlerini ("w" veya "g") karıştırıyor. Tutarlı olarak tek bir set kullanın: Pazartesi tabanlı haftalar için "GGGG" ile "WW" veya haftalık notların seçilen dili izlemesi gerekiyorsa "gggg" ile "ww" kullanın.'
+                    'Bu desen Pazartesi tabanlı hafta belirteçleri ("W" veya "G") ile yerel ayar tabanlı hafta belirteçlerini ("w" veya "g") karıştırıyor. Tutarlı olarak tek bir set kullanın: Pazartesi tabanlı haftalar için "GGGG" ile "WW" veya haftalık notların seçilen yerel ayarı izlemesi gerekiyorsa "gggg" ile "ww" kullanın.'
             },
-            calendarCustomMonthPattern: {
+            calendarMonthlyNotePattern: {
                 name: 'Aylık notlar',
                 parsingError: 'Desen, tam bir ay (yıl, ay) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
             },
-            calendarCustomQuarterPattern: {
+            calendarQuarterlyNotePattern: {
                 name: 'Çeyreklik notlar',
                 parsingError: 'Desen, tam bir çeyrek (yıl, çeyrek) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
             },
-            calendarCustomYearPattern: {
+            calendarYearlyNotePattern: {
                 name: 'Yıllık notlar',
                 parsingError: 'Desen, tam bir yıl (yıl) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.'
             },
-            calendarTemplateFile: {
+            periodicNoteTemplateFile: {
                 current: 'Şablon dosyası: {name}'
             },
             showTooltips: {
@@ -1598,9 +1763,13 @@ export const STRINGS_TR = {
                 name: 'İpuçlarında yolu göster',
                 desc: 'İpuçlarında not adlarının altında klasör yolunu görüntüle.'
             },
+            showTooltipTags: {
+                name: 'İpuçlarında etiketleri göster',
+                desc: 'Etiketler bölümü etkinken ipuçlarında not etiketlerini görüntüle.'
+            },
             showTooltipWordCount: {
                 name: 'İpuçlarında kelime sayısını göster',
-                desc: 'İpuçlarında not kelime sayılarını görüntüle.'
+                desc: 'Kelime sayısı etkinken ipuçlarında kelime sayısını görüntüle.'
             },
             resetPaneSeparator: {
                 name: 'Bölme ayırıcı konumunu sıfırla',
@@ -1608,7 +1777,7 @@ export const STRINGS_TR = {
                 buttonText: 'Ayırıcıyı sıfırla',
                 notice: "Ayırıcı konumu sıfırlandı. Uygulamak için Obsidian'ı yeniden başlatın veya Notebook Navigator'ı yeniden açın."
             },
-            settingsTransfer: {
+            importAndExportSettings: {
                 name: 'Ayarları içe ve dışa aktar',
                 desc: 'Notebook Navigator ayarlarını JSON olarak dışa veya içe aktar. İçe aktarma tüm ayarları değiştirir.',
                 importButtonText: 'İçe aktar',
@@ -1666,15 +1835,15 @@ export const STRINGS_TR = {
                 name: "Dosyaları açmak için Enter'a basın",
                 desc: "Dosyaları yalnızca listede klavye ile gezinirken Enter'a basarak açın. macOS'ta bu, Enter'ın dosyaları yeniden adlandırmasını engeller."
             },
-            shiftEnterOpenContext: {
+            shiftEnterAction: {
                 name: 'Shift+Enter',
                 desc: 'Shift+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
-            cmdEnterOpenContext: {
+            cmdEnterAction: {
                 name: 'Cmd+Enter',
                 desc: 'Cmd+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
-            ctrlEnterOpenContext: {
+            ctrlEnterAction: {
                 name: 'Ctrl+Enter',
                 desc: 'Ctrl+Enter ile seçili dosyanın açılmasını veya yeniden adlandırılmasını seçin.'
             },
@@ -1682,12 +1851,12 @@ export const STRINGS_TR = {
                 name: 'Fare geri/ileri düğmeleri',
                 desc: 'Masaüstünde fare geri ve ileri düğmelerinin işlevi.',
                 options: {
-                    none: 'Sistem varsayılanını kullan',
-                    singlePaneSwitch: 'Panel değiştir (tek panel)',
+                    systemDefault: 'Sistem varsayılanını kullan',
+                    singlePaneSwitch: 'Bölme değiştir (tek bölme)',
                     history: 'Geçmişte gezin'
                 }
             },
-            fileVisibility: {
+            showFileTypes: {
                 name: 'Dosya türlerini göster (kasa profili)',
                 desc: 'Gezginde hangi dosya türlerinin gösterileceğini filtrele. Obsidian tarafından desteklenmeyen dosya türleri harici uygulamalarda açılabilir.',
                 options: {
@@ -1719,15 +1888,15 @@ export const STRINGS_TR = {
                     desc: 'Başlangıçta veya komutla, periyodik not yoksa oluşturur.'
                 }
             },
-            excludedNotes: {
+            hideNotesWithPropertyRules: {
                 name: 'Özellik kurallarıyla notları gizle (kasa profili)',
                 desc: 'Virgülle ayrılmış frontmatter kuralları listesi. `key` veya `key=value` girdileri kullanın (örn. status=done, published=true, archived).',
                 placeholder: 'status=done, published=true, archived'
             },
-            excludedFileNamePatterns: {
+            hideFiles: {
                 name: 'Dosyaları gizle (kasa profili)',
                 desc: 'Gizlenecek dosya adı kalıplarının virgülle ayrılmış listesi. * joker karakterlerini ve / yollarını destekler (örn. temp-*, *.png, /assets/*).',
-                placeholder: 'temp-*, *.png, /assets/*'
+                placeholder: 'geçici-*, *.png, /assets/*'
             },
             vaultProfiles: {
                 name: 'Kasa profili',
@@ -1741,7 +1910,7 @@ export const STRINGS_TR = {
                 addModalTitle: 'Profil ekle',
                 editProfilesModalTitle: 'Profilleri düzenle',
                 addModalPlaceholder: 'Profil adı',
-                deleteModalTitle: '{name} silinsin mi',
+                deleteModalTitle: '{name} silinsin mi?',
                 deleteModalMessage:
                     '{name} kaldırılsın mı? Bu profilde kayıtlı gizli dosya, klasör, etiket ve özellik tabanlı not filtreleri silinecek.',
                 moveUp: 'Yukarı taşı',
@@ -1751,17 +1920,17 @@ export const STRINGS_TR = {
                     duplicateName: 'Profil adı zaten var'
                 }
             },
-            vaultTitle: {
+            vaultTitlePlacement: {
                 name: 'Kasa başlığı konumu',
                 desc: 'Kasa başlığının gösterileceği yeri seçin.',
                 options: {
                     header: 'Başlıkta göster',
-                    navigation: 'Gezinme panelinde göster'
+                    navigation: 'Gezinme bölmesinde göster'
                 }
             },
-            excludedFolders: {
+            hideFolders: {
                 name: 'Klasörleri gizle (kasa profili)',
-                desc: 'Virgülle ayrılmış gizlenecek klasörler listesi. Ad desenleri: assets* (assets ile başlayan klasörler), *_temp (_temp ile biten). Yol desenleri: /archive (yalnızca kök arşiv), /res* (res ile başlayan kök klasörler), /*/temp (bir seviye derinlikte temp klasörleri), /projects/* (projects içindeki tüm klasörler).',
+                desc: 'Virgülle ayrılmış gizlenecek klasörler listesi. Ad desenleri: assets* (assets ile başlayan klasörler), *_temp (_temp ile biten). Yol desenleri: /arşiv (yalnızca kök arşiv), /res* (res ile başlayan kök klasörler), /*/temp (bir seviye derinlikte temp klasörleri), /projeler/* (projeler içindeki tüm klasörler).',
                 placeholder: 'şablonlar, assets*, /arşiv, /res*'
             },
             descendantExcludedFolders: {
@@ -1773,7 +1942,7 @@ export const STRINGS_TR = {
                 name: 'Tarihi göster',
                 desc: 'Not adlarının altında tarihi görüntüle.'
             },
-            alphabeticalDateMode: {
+            dateWhenSortingByName: {
                 name: 'Ada göre sıralarken',
                 desc: 'Notlar alfabetik olarak sıralandığında gösterilecek tarih.',
                 options: {
@@ -1785,7 +1954,7 @@ export const STRINGS_TR = {
                 name: 'Dosya etiketlerini göster',
                 desc: 'Dosya öğelerinde tıklanabilir etiketleri görüntüle.'
             },
-            showFileTagAncestors: {
+            showFullTagPaths: {
                 name: 'Tam etiket yollarını göster',
                 desc: "Tam etiket hiyerarşi yollarını görüntüle. Etkinken: 'ai/openai', 'iş/projeler/2024'. Devre dışıyken: 'openai', '2024'."
             },
@@ -1793,7 +1962,7 @@ export const STRINGS_TR = {
                 name: 'Dosya etiketlerini renklendir',
                 desc: 'Dosya öğelerindeki etiket rozetlerine etiket renklerini uygula.'
             },
-            prioritizeColoredFileTags: {
+            showColoredTagsFirst: {
                 name: 'Renkli etiketleri önce göster',
                 desc: 'Dosya öğelerinde renkli etiketleri diğer etiketlerden önce sırala.'
             },
@@ -1809,7 +1978,7 @@ export const STRINGS_TR = {
                 name: 'Dosya özelliklerini renklendir',
                 desc: 'Dosya öğelerindeki özellik rozetlerine özellik renklerini uygula.'
             },
-            prioritizeColoredFileProperties: {
+            showColoredPropertiesFirst: {
                 name: 'Renkli özellikleri önce göster',
                 desc: 'Dosya öğelerinde renkli özellikleri diğer özelliklerden önce sırala.'
             },
@@ -1817,9 +1986,9 @@ export const STRINGS_TR = {
                 name: 'Kompakt modda özellikleri göster',
                 desc: 'Kompakt mod etkinken özellikleri görüntüle.'
             },
-            textCountDisplay: {
+            textCountType: {
                 name: 'Sayım türü',
-                desc: 'Dosya öğelerinde hangi not sayımlarının görüneceğini seçin.',
+                desc: 'Dosya öğelerinde hangi metin sayımlarının görüneceğini seçin.',
                 options: {
                     none: 'Yok',
                     words: 'Kelime sayısı',
@@ -1829,7 +1998,7 @@ export const STRINGS_TR = {
             },
             textCountPlacement: {
                 name: 'Yerleşim',
-                desc: 'Not sayımlarının nerede görüneceğini seçin.',
+                desc: 'Metin sayımlarının nerede görüneceğini seçin.',
                 options: {
                     title: 'Başlıkta',
                     property: 'Özellik olarak'
@@ -1847,13 +2016,27 @@ export const STRINGS_TR = {
                 name: 'Hedef özelliği',
                 desc: 'Hedef kelime sayısını içeren frontmatter özellik anahtarı. Hedefleri gizlemek için boş bırakın.'
             },
-            showWordCountPercentage: {
+            showTargetPercentage: {
                 name: 'Hedef yüzdesini göster',
                 desc: 'Hedef kelime sayısı varsa yalnızca ilerleme yüzdesini göster.'
             },
-            propertyFields: {
+            textCountActiveNotice: {
+                title: 'Sayım hâlâ açık',
+                summary: 'Aşağıdaki öğeler kullandığı için kelime veya karakter sayıları tüm notlar için hesaplanmaya devam ediyor:',
+                more: 've {count} tane daha',
+                reasons: {
+                    appearance: 'Dosya görünümü',
+                    'group-header': 'Grup başlığı'
+                },
+                scopes: {
+                    folder: 'Klasör: {name}',
+                    tag: 'Etiket: #{name}',
+                    property: 'Özellik: {name}'
+                }
+            },
+            propertyKeys: {
                 name: 'Özellik anahtarları (kasa profili)',
-                desc: 'Gezinme ve dosya listesi için anahtar bazında görünürlük ayarlı ön bilgi özellik anahtarları.',
+                desc: 'Gezinme ve dosya listesi için anahtar bazında görünürlük ayarlı frontmatter özellik anahtarları.',
                 addButtonTooltip: 'Özellik anahtarlarını yapılandır',
                 noneConfigured: 'Yapılandırılmış özellik yok',
                 singleConfigured: '1 özellik yapılandırıldı: {properties}',
@@ -1863,19 +2046,19 @@ export const STRINGS_TR = {
                 name: 'Özellikleri ayrı satırlarda göster',
                 desc: 'Her özelliği kendi satırında göster.'
             },
-            enablePropertyInternalLinks: {
-                name: 'Özellik etiketlerini notlara bağla',
-                desc: 'Bağlantılı notu açmak için bir özellik etiketine tıklayın.'
+            linkPropertyPillsToNotes: {
+                name: 'Özellik rozetlerini notlara bağla',
+                desc: 'Bağlantılı notu açmak için bir özellik rozetine tıklayın.'
             },
-            enablePropertyExternalLinks: {
-                name: "Özellik etiketlerini URL'lere bağla",
-                desc: "Bağlantılı URL'yi açmak için bir özellik etiketine tıklayın."
+            linkPropertyPillsToUrls: {
+                name: "Özellik rozetlerini URL'lere bağla",
+                desc: "Bağlantılı URL'yi açmak için bir özellik rozetine tıklayın."
             },
             dateFormat: {
                 name: 'Tarih formatı',
                 desc: 'Tarihleri görüntüleme formatı (Moment formatı kullanır).',
                 placeholder: 'D MMM YYYY',
-                help: 'Yaygın formatlar:\nD MMM YYYY = 25 May 2022\nDD/MM/YYYY = 25/05/2022\nYYYY-MM-DD = 2022-05-25\n\nSimgeler:\nYYYY/YY = yıl\nMMMM/MMM/MM = ay\nDD/D = gün\ndddd/ddd = haftanın günü',
+                help: 'Yaygın formatlar:\nD MMM YYYY = 25 May 2022\nDD/MM/YYYY = 25/05/2022\nYYYY-MM-DD = 2022-05-25\n\nBelirteçler:\nYYYY/YY = yıl\nMMMM/MMM/MM = ay\nDD/D = gün\ndddd/ddd = haftanın günü',
                 helpTooltip: 'Moment formatı',
                 momentLinkText: 'Moment formatı'
             },
@@ -1883,11 +2066,11 @@ export const STRINGS_TR = {
                 name: 'Saat formatı',
                 desc: 'Saatleri görüntüleme formatı (Moment formatı kullanır).',
                 placeholder: 'HH:mm',
-                help: 'Yaygın formatlar:\nh:mm a = 2:30 PM (12 saat)\nHH:mm = 14:30 (24 saat)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\nSimgeler:\nHH/H = 24 saat\nhh/h = 12 saat\nmm = dakika\nss = saniye\na = ÖÖ/ÖS',
+                help: 'Yaygın formatlar:\nh:mm a = 2:30 PM (12 saat)\nHH:mm = 14:30 (24 saat)\nh:mm:ss a = 2:30:45 PM\nHH:mm:ss = 14:30:45\n\nBelirteçler:\nHH/H = 24 saat\nhh/h = 12 saat\nmm = dakika\nss = saniye\na = ÖÖ/ÖS',
                 helpTooltip: 'Moment formatı',
                 momentLinkText: 'Moment formatı'
             },
-            showFilePreview: {
+            showNotePreview: {
                 name: 'Not önizlemesini göster',
                 desc: 'Not adlarının altında önizleme metni görüntüle.'
             },
@@ -1898,6 +2081,10 @@ export const STRINGS_TR = {
             skipCodeBlocksInPreview: {
                 name: 'Önizlemede kod bloklarını atla',
                 desc: 'Önizleme metni oluştururken kod bloklarını atla.'
+            },
+            skipCalloutsInPreview: {
+                name: 'Önizlemede callout bloklarını atla',
+                desc: 'Önizleme metni oluştururken callout bloklarını atla.'
             },
             stripHtmlInPreview: {
                 name: 'Önizlemelerde HTML kaldır',
@@ -1912,7 +2099,7 @@ export const STRINGS_TR = {
                 desc: 'Önizleme metni için kontrol edilecek virgülle ayrılmış frontmatter özellikleri listesi. Metni olan ilk özellik kullanılacak.',
                 placeholder: 'summary, description, abstract'
             },
-            previewPropertiesFallback: {
+            fallbackToNoteContent: {
                 name: 'Not içeriğine geri dön',
                 desc: 'Belirtilen özelliklerin hiçbiri metin içermediğinde not içeriğini önizleme olarak göster.'
             },
@@ -1927,7 +2114,7 @@ export const STRINGS_TR = {
                     '5': '5 satır'
                 }
             },
-            fileNameRows: {
+            titleRows: {
                 name: 'Başlık satırları',
                 desc: 'Not başlıkları için görüntülenecek satır sayısı.',
                 options: {
@@ -1951,29 +2138,29 @@ export const STRINGS_TR = {
             featureImageProperties: {
                 name: 'Görsel özellikleri',
                 desc: 'Önce kontrol edilecek virgülle ayrılmış frontmatter özellikleri listesi. Bulunamazsa markdown içeriğindeki ilk görsel kullanılır.',
-                placeholder: 'küçükresim, öneÇıkanYeniden, öneÇıkan'
+                placeholder: 'thumbnail, featureResized, feature'
             },
             featureImageExcludeProperties: {
                 name: 'Özellikli notları hariç tut',
                 desc: 'Virgülle ayrılmış frontmatter özellikleri listesi. Bu özelliklerden herhangi birini içeren notlar öne çıkan görsel saklamaz.',
                 placeholder: 'private, confidential'
             },
-            featureImageSize: {
+            featureImageDisplaySize: {
                 name: 'Öne çıkan görsel görüntüleme boyutu',
                 desc: 'Not listelerinde öne çıkan görsellerin maksimum işleme boyutu.',
                 options: {
-                    standard: '64 px',
-                    large: '96 px',
-                    extraLarge: '128 px'
+                    '64': '64 px',
+                    '96': '96 px',
+                    '128': '128 px'
                 }
             },
             featureImagePixelSize: {
                 name: 'Öne çıkan görsel piksel boyutu',
                 desc: 'Depolanan öne çıkan görsel küçük resimleri oluşturulurken kullanılan çözünürlük. Büyük önizlemeler bulanık görünüyorsa bu değeri artırın.',
                 options: {
-                    standard: '256 x 144 px',
-                    large: '384 x 216 px',
-                    extraLarge: '512 x 288 px'
+                    '256x144': '256 x 144 px',
+                    '384x216': '384 x 216 px',
+                    '512x288': '512 x 288 px'
                 }
             },
 
@@ -1981,9 +2168,9 @@ export const STRINGS_TR = {
                 name: 'Harici görselleri indir',
                 desc: 'Öne çıkan görseller için uzak görselleri ve YouTube küçük resimlerini indir.'
             },
-            hideDrawingPreviewImages: {
+            hideExportedPreviewImages: {
                 name: 'Dışa aktarılmış önizleme görsellerini gizle',
-                desc: 'Dışa aktarılan çizim önizleme PNG dosyalarını gizler. Görüntülemek için "Gizli ögeleri göster" seçeneğini açın.'
+                desc: 'Dışa aktarılan çizim önizleme PNG dosyalarını gizler. Görüntülemek için "Gizli öğeleri göster" seçeneğini açın.'
             },
             drawingIntegrationInfo: {
                 intro: 'Notebook Navigator, Excalidraw tarafından dışa aktarılan PNG dosyalarını çizim önizlemeleri olarak gösterir.',
@@ -1991,7 +2178,7 @@ export const STRINGS_TR = {
                     '**Excalidraw ayarları** içinde **Embedding Excalidraw into your Notes and Exporting** öğesini açın, ardından **Export Settings**, ardından **Auto-export Settings** öğesini açın.',
                     '**Auto-export PNG** seçeneğini etkinleştirin. İsteğe bağlı olarak **Export both dark- and light-themed image** seçeneğini de etkinleştirebilirsiniz.',
                     'Notebook Navigator **Drawing.excalidraw.png**, **Drawing.excalidraw.dark.png** veya **Drawing.excalidraw.light.png** dosyalarını arar.',
-                    '**Dışa aktarılmış önizleme görsellerini gizle** açıkken PNG dosyaları yalnızca **Gizli ögeleri göster** de açıksa görünür.'
+                    '**Dışa aktarılmış önizleme görsellerini gizle** açıkken PNG dosyaları yalnızca **Gizli öğeleri göster** de açıksa görünür.'
                 ]
             },
             showRootFolder: {
@@ -2014,11 +2201,11 @@ export const STRINGS_TR = {
                     alphaDesc: "Z'den A'ya"
                 }
             },
-            showNoteCount: {
-                name: 'Not sayısını göster',
-                desc: 'Klasörler, etiketler ve özelliklerin yanında not sayısını görüntüle.'
+            showFileCount: {
+                name: 'Dosya sayısını göster',
+                desc: 'Klasörler, etiketler ve özelliklerin yanında dosya sayısını görüntüle.'
             },
-            showSectionIcons: {
+            showShortcutAndRecentItemIcons: {
                 name: 'Kısayollar ve son öğeler için simgeleri göster',
                 desc: 'Kısayollar ve Son kullanılanlar bölümlerindeki öğelerin yanında simgeleri görüntüle.'
             },
@@ -2027,17 +2214,17 @@ export const STRINGS_TR = {
                 desc: 'Araç çubuğu, klasör, etiket, özellik, sabitlenmiş, arama ve sıralama simgelerini düzenleyin.',
                 buttonText: 'Simgeleri düzenle'
             },
-            showIconsColorOnly: {
+            applyColorToIconsOnly: {
                 name: 'Rengi yalnızca simgelere uygula',
                 desc: 'Etkinleştirildiğinde, özel renkler yalnızca simgelere uygulanır. Devre dışı bırakıldığında, renkler hem simgelere hem de metin etiketlerine uygulanır.'
             },
             navRainbowMode: {
                 name: 'Gökkuşağı renk modu (kasa profili)',
-                desc: 'Gezinme panelinde gökkuşağı renkleri uygula.',
+                desc: 'Gezinme bölmesinde gökkuşağı renkleri uygula.',
                 options: {
-                    none: 'Kapalı',
-                    foreground: 'Metin rengi',
-                    background: 'Arka plan rengi'
+                    off: 'Kapalı',
+                    textColor: 'Metin rengi',
+                    backgroundColor: 'Arka plan rengi'
                 }
             },
             navRainbowFirstColor: {
@@ -2060,7 +2247,7 @@ export const STRINGS_TR = {
                 name: 'Kısayollara uygula',
                 desc: 'Gökkuşağı renklerini kısayollara uygula.'
             },
-            navRainbowApplyToRecent: {
+            navRainbowApplyToRecentItems: {
                 name: 'Son öğelere uygula',
                 desc: 'Gökkuşağı renklerini son öğelere uygula.'
             },
@@ -2094,9 +2281,9 @@ export const STRINGS_TR = {
                 name: 'Özelliklere uygula',
                 desc: 'Gökkuşağı renklerini özelliklere uygula.'
             },
-            navRainbowBalanceHueLuminance: {
+            navRainbowConsistentBrightness: {
                 name: 'Tonlar arasında tutarlı parlaklık', // (English: Consistent brightness across hues)
-                desc: 'Ton geçişleri sırasında başlangıç ve bitiş renkleri arasındaki parlaklığı enterpolasyon yapar.' // (English: Interpolates brightness between the start and end colors during hue transitions.)
+                desc: 'Ton geçişleri sırasında başlangıç ve bitiş renkleri arasındaki parlaklığa enterpolasyon uygular.' // (English: Interpolates brightness between the start and end colors during hue transitions.)
             },
             navRainbowSeparateThemeColors: {
                 name: 'Açık ve koyu mod için ayrı renkler', // (English: Separate light and dark mode colors)
@@ -2112,7 +2299,7 @@ export const STRINGS_TR = {
                     all: 'Her düzey'
                 }
             },
-            collapseBehavior: {
+            collapseItems: {
                 name: 'Öğeleri daralt',
                 desc: 'Tümünü genişlet/daralt düğmesinin neyi etkilediğini seçin.',
                 options: {
@@ -2122,7 +2309,7 @@ export const STRINGS_TR = {
                     propertiesOnly: 'Yalnızca özellikler'
                 }
             },
-            smartCollapse: {
+            keepSelectedItemExpanded: {
                 name: 'Seçili öğeyi genişletilmiş tut',
                 desc: 'Daraltırken seçili öğeyi ve üst öğelerini genişletilmiş tut.'
             },
@@ -2130,7 +2317,7 @@ export const STRINGS_TR = {
                 name: 'Daraltırken kasa kökünü atla',
                 desc: 'Tüm öğeleri daraltırken kasa kök klasörünü geçerli durumunda bırak.'
             },
-            navIndent: {
+            treeIndentation: {
                 name: 'Ağaç girintisi',
                 desc: 'İç içe klasörler, etiketler ve özellikler için girinti genişliğini ayarlayın (piksel).'
             },
@@ -2148,7 +2335,7 @@ export const STRINGS_TR = {
             },
             navCountLeaderStyle: {
                 name: 'Doldurma işaretlerini göster',
-                desc: 'Öğe adları ile not sayıları arasında nokta, tire veya çizgi göster.',
+                desc: 'Öğe adları ile dosya sayıları arasında nokta, tire veya çizgi göster.',
                 options: {
                     none: 'Yok',
                     dots: 'Noktalar (...)',
@@ -2156,7 +2343,7 @@ export const STRINGS_TR = {
                     line: 'Çizgi'
                 }
             },
-            navRootSpacing: {
+            rootItemSpacing: {
                 name: 'Kök öğe aralığı',
                 desc: 'Kök seviyesi klasörler, etiketler ve özellikler arasındaki boşluk (piksel).'
             },
@@ -2183,15 +2370,15 @@ export const STRINGS_TR = {
                     highToLow: 'yüksekten düşüğe'
                 }
             },
-            showAllTagsFolder: {
+            showTagsFolder: {
                 name: 'Etiketler klasörünü göster',
                 desc: '"Etiketler"i daraltılabilir klasör olarak görüntüle.'
             },
-            showUntagged: {
+            showUntaggedNotes: {
                 name: 'Etiketsiz notları göster',
                 desc: 'Etiketi olmayan notlar için "Etiketsiz" öğesini görüntüle.'
             },
-            scopeTagsToCurrentContext: {
+            filterTagsBySelection: {
                 name: 'Etiketleri seçime göre filtrele',
                 desc: 'Yalnızca seçili klasör veya özellikteki notlarda bulunan etiketleri göster.'
             },
@@ -2203,12 +2390,12 @@ export const STRINGS_TR = {
                 name: 'Özellikleri göster',
                 desc: 'Gezginde özellikler bölümünü görüntüle.',
                 propertyKeysInfoPrefix: 'Özellikleri şurada yapılandır: ',
-                propertyKeysInfoLinkText: 'Başlangıç > Özellik anahtarları',
+                propertyKeysInfoLinkText: 'Genel > Özellik anahtarları',
                 propertyKeysInfoSuffix: ''
             },
             showPropertyIcons: {
                 name: 'Özellik simgelerini göster',
-                desc: 'Gezinme panelinde özelliklerin yanında simgeleri görüntüle.'
+                desc: 'Gezinme bölmesinde özelliklerin yanında simgeleri görüntüle.'
             },
             inheritPropertyColors: {
                 name: 'Özellik renklerini devral',
@@ -2225,23 +2412,23 @@ export const STRINGS_TR = {
                     highToLow: 'yüksekten düşüğe'
                 }
             },
-            showAllPropertiesFolder: {
+            showPropertiesFolder: {
                 name: 'Özellikler klasörünü göster',
                 desc: '"Özellikler"i daraltılabilir klasör olarak görüntüle.'
             },
-            scopePropertiesToCurrentContext: {
+            filterPropertiesBySelection: {
                 name: 'Özellikleri seçime göre filtrele',
                 desc: 'Yalnızca seçili klasör veya etiketteki notlarda bulunan özellikleri göster.'
             },
-            hiddenTags: {
+            hideTags: {
                 name: 'Etiketleri gizle (kasa profili)',
                 desc: 'Virgülle ayrılmış etiket kalıpları listesi. Ad kalıpları: etiket* (ile başlayan), *etiket (ile biten). Yol kalıpları: arşiv (etiket ve alt öğeler), arşiv/* (yalnızca alt öğeler), projeler/*/taslaklar (ortada joker).',
                 placeholder: 'arşiv*, *taslak, projeler/*/eski'
             },
-            hiddenFileTags: {
+            hideNotesWithTags: {
                 name: 'Etiketli notları gizle (kasa profili)',
-                desc: 'Comma-separated list of tag patterns. Notes containing matching tags are hidden. Name patterns: tag* (starting with), *tag (ending with). Path patterns: archive (tag and descendants), archive/* (descendants only), projects/*/drafts (mid-segment wildcard).',
-                placeholder: 'archive*, *draft, projects/*/old'
+                desc: 'Virgülle ayrılmış etiket kalıpları listesi. Eşleşen etiketleri içeren notlar gizlenir. Ad kalıpları: etiket* (ile başlayan), *etiket (ile biten). Yol kalıpları: arşiv (etiket ve alt öğeler), arşiv/* (yalnızca alt öğeler), projeler/*/taslaklar (ortada joker).',
+                placeholder: 'arşiv*, *taslak, projeler/*/eski'
             },
             enableFolderNotes: {
                 name: 'Klasör notlarını etkinleştir',
@@ -2259,19 +2446,14 @@ export const STRINGS_TR = {
             },
             folderNoteName: {
                 name: 'Klasör notu adı',
-                desc: 'Uzantısız klasör notu adı. Klasörle aynı adı kullanmak için boş bırakın.',
-                placeholder: 'index'
-            },
-            folderNoteNamePattern: {
-                name: 'Klasör notu ad deseni',
-                desc: 'Uzantısız klasör notu ad deseni. Klasör adını eklemek için {{folder}} kullanın. Ayarlandığında, klasör notu adı geçerli olmaz.'
+                desc: 'Uzantısız klasör notu adı. Klasör adını eklemek için {{folder}} kullanın veya index gibi sabit bir ad girin.'
             },
             folderNoteTemplate: {
                 name: 'Klasör notu şablonu',
                 desc: 'Klasör notları oluşturulurken kullanılan şablon dosyası. Markdown şablonları Templater kullanabilir. Canvas ve Base şablonları dosya içeriği olarak kopyalanır. Şablon klasörü konumunu Dosya işlemleri > Şablonlar bölümünden ayarlayın.',
                 formatWarning: 'Şablon biçimi seçilen klasör notu türüyle eşleşmelidir: .md, .canvas veya .base.'
             },
-            enableFolderNoteLinks: {
+            folderNamesOpenFolderNotes: {
                 name: 'Klasör adları klasör notlarını açar',
                 desc: 'Bir klasör adına tıklamak klasör notunu açar. Kapalı olduğunda, klasör notları yalnızca ad, simge ve renk gibi klasör meta verilerini sağlar.'
             },
@@ -2292,7 +2474,7 @@ export const STRINGS_TR = {
                     rightSidebar: 'Sağ kenar çubuğu'
                 }
             },
-            showNearestFolderNoteInSidebar: {
+            showClosestFolderNoteInRightSidebar: {
                 name: 'Sağ kenar çubuğu: En yakın klasör notunu göster',
                 desc: 'Bir klasör seçildiğinde, sağ kenar çubuğu en yakın üst klasör notunu otomatik olarak gösterir.'
             },
@@ -2335,7 +2517,7 @@ export const STRINGS_TR = {
                 indexingTitle: 'Kasa dizinleniyor...',
                 progress: 'Notebook Navigator önbelleği güncelleniyor.'
             },
-            externalIcons: {
+            iconPackManagement: {
                 downloadButton: 'İndir',
                 downloadingLabel: 'İndiriliyor...',
                 removeButton: 'Kaldır',
@@ -2347,7 +2529,7 @@ export const STRINGS_TR = {
                 infoNote:
                     'İndirilen simge paketleri kurulum durumunu cihazlar arasında senkronize eder. Simge paketleri her cihazda yerel veritabanında kalır; senkronizasyon yalnızca indirme veya kaldırma durumunu izler. Simge paketleri Notebook Navigator deposundan indirilir (https://github.com/johansan/notebook-navigator/tree/main/icon-assets).'
             },
-            useFrontmatterDates: {
+            useFrontmatterMetadata: {
                 name: 'Frontmatter meta verilerini kullan',
                 desc: 'Not adı, zaman damgaları, simgeler ve renkler için frontmatter kullan'
             },
@@ -2366,7 +2548,7 @@ export const STRINGS_TR = {
                 desc: 'Arka plan renkleri için frontmatter alanı. Ayarlarda saklanan arka plan renklerini kullanmak için boş bırakın.',
                 placeholder: 'background'
             },
-            frontmatterMigration: {
+            migrateIconsAndColorsFromSettings: {
                 name: 'Simgeleri ve renkleri ayarlardan taşı',
                 desc: 'Ayarlarda saklanan: {icons} simge, {colors} renk.',
                 button: 'Taşı',
@@ -2376,7 +2558,7 @@ export const STRINGS_TR = {
                 noticeFailures: 'Başarısız girişler: {failures}.',
                 noticeError: 'Taşıma başarısız. Ayrıntılar için konsolu kontrol edin.'
             },
-            frontmatterNameField: {
+            frontmatterNameFields: {
                 name: 'Ad alanları',
                 desc: 'Virgülle ayrılmış frontmatter alanları listesi. İlk boş olmayan değer kullanılır. Dosya adına geri döner.',
                 placeholder: 'title, name'
@@ -2391,7 +2573,7 @@ export const STRINGS_TR = {
                 desc: 'Değiştirme zaman damgası için frontmatter alan adı. Yalnızca dosya sistemi tarihini kullanmak için boş bırakın.',
                 placeholder: 'modified'
             },
-            frontmatterDateFormat: {
+            frontmatterTimestampFormat: {
                 name: 'Zaman damgası formatı',
                 desc: "Frontmatter'daki zaman damgalarını ayrıştırmak için kullanılan format. ISO 8601 ayrıştırmasını kullanmak için boş bırakın.",
                 helpTooltip: 'Moment formatı',
@@ -2404,12 +2586,17 @@ export const STRINGS_TR = {
                 buttonText: '❤️ Sponsor ol',
                 coffeeButton: '☕️ Bana bir kahve ısmarla'
             },
-            updateCheckOnStart: {
+            otherPlugins: {
+                name: 'Diğer eklentilerime göz at',
+                betterPaste: 'Yapıştırılan metni, bağlantıları ve görselleri temizler',
+                pixelPerfectImage: 'Tam isabetli görsel boyutlandırma ve daha fazlası'
+            },
+            checkForNewVersionOnStart: {
                 name: 'Başlangıçta yeni sürüm kontrolü',
                 desc: 'Başlangıçta yeni eklenti sürümlerini kontrol eder ve güncelleme mevcut olduğunda bildirim gösterir. Kontroller günde en fazla bir kez yapılır.',
                 status: 'Yeni sürüm mevcut: {version}'
             },
-            debugLogging: {
+            startupDebugLogging: {
                 name: 'Başlangıç hata ayıklama günlüğü',
                 desc: 'Başlangıç tanılarını kasanın kökünde zaman damgalı bir Markdown dosyasına yazar ve başlangıç kararlı hale geldikten sonra durur. Dosya eşitlenebilir ve dosya yolları içerebilir.'
             },
@@ -2418,8 +2605,12 @@ export const STRINGS_TR = {
                 desc: 'Son güncellemeleri ve iyileştirmeleri görün',
                 buttonText: 'Son güncellemeleri görüntüle'
             },
+            showReleaseNotes: {
+                name: 'Güncellemeden sonra yenilikleri göster',
+                desc: 'Güncellemelerden sonra yenilikler penceresinin otomatik olarak açılmasını önlemek için devre dışı bırakın.'
+            },
             masteringVideo: {
-                name: "Notebook Navigator'da Uzmanlaşma (video)",
+                name: "Notebook Navigator'da uzmanlaşma (video)",
                 desc: "Bu video, Notebook Navigator'da verimli olmak için ihtiyacınız olan her şeyi kapsar; kısayol tuşları, arama, etiketler ve gelişmiş özelleştirme dahil."
             },
             cacheStatistics: {
@@ -2446,8 +2637,8 @@ export const STRINGS_TR = {
         }
     },
     whatsNew: {
-        title: 'Notebook Navigator Yenilikleri',
-        openBannerImage: 'Sürüm banner görselini aç',
+        title: 'Notebook Navigator yenilikleri',
+        openBannerImage: 'Sürüm afiş görselini aç',
         supportMessage: "Notebook Navigator'ı yararlı buluyorsanız, lütfen gelişimini desteklemeyi düşünün.",
         supportButton: 'Bana bir kahve ısmarla',
         thanksButton: 'Teşekkürler!'

@@ -19,7 +19,19 @@
 import { App } from 'obsidian';
 
 // Current localStorage schema version
-export const LOCALSTORAGE_VERSION = 1;
+// Version 2: removes the legacy pre-IndexedDB file cache blob
+// Version 3: adds the device-local What's new version marker
+export const LOCALSTORAGE_VERSION = 3;
+
+/**
+ * Keys the plugin no longer reads or writes. Removed from existing devices by the
+ * localStorage version migration and on reinstall, because they are absent from
+ * STORAGE_KEYS and no other cleanup path would ever delete their stored values.
+ */
+export const LEGACY_STORAGE_KEYS: readonly string[] = [
+    // Pre-IndexedDB file cache
+    'notebook-navigator-file-cache'
+];
 
 /**
  * Type-safe wrapper around Obsidian's vault-specific localStorage API

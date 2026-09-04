@@ -47,6 +47,7 @@ import {
     type InclusionOperator
 } from '../utils/filterSearch';
 import { showNotice } from '../utils/noticeUtils';
+import { supportsKeyboardInteractions } from '../utils/paneLayout';
 import { normalizeOptionalVaultFolderPath } from '../utils/pathUtils';
 import { parsePropertyNodeId } from '../utils/propertyTree';
 import { resolveFolderShortcutTarget } from '../utils/shortcutPathResolver';
@@ -78,7 +79,7 @@ export interface UseListPaneSearchResult {
     searchQuery: string;
     debouncedSearchQuery: string;
     debouncedSearchTokens: FilterSearchTokens;
-    searchHighlightQuery: string | undefined;
+    searchHighlightTerms: readonly string[] | undefined;
     shouldFocusSearch: boolean;
     activeSearchShortcut: SearchShortcut | null;
     isSavingSearchShortcut: boolean;
@@ -170,7 +171,7 @@ export function useListPaneSearch({
     onRevealProperty,
     ensureSelectionForCurrentFilterRef
 }: UseListPaneSearchParams): UseListPaneSearchResult {
-    const { app, isMobile, plugin } = useServices();
+    const { app, plugin } = useServices();
     const settings = useSettingsState();
     const selectionState = useSelectionState();
     const shortcuts = useShortcuts();
@@ -192,14 +193,22 @@ export function useListPaneSearch({
         () => parseFilterSearchTokens(isSearchActive ? debouncedSearchQuery : ''),
         [debouncedSearchQuery, isSearchActive]
     );
-    const debouncedSearchMode = debouncedSearchTokens.mode;
-    const searchHighlightQuery = useMemo(() => {
-        if (!isSearchActive || debouncedSearchMode === 'tag') {
+    // Name highlighting uses parsed folded name tokens instead of the raw query so quoted literal
+    // terms (for example `".F"`) highlight without their quotes and filter tokens such as
+    // `folder:...` never leak into name highlights. Tokens are parsed from the immediate query,
+    // not the debounced one, so highlights keep tracking while the user types.
+    const searchHighlightTerms = useMemo(() => {
+        if (!isSearchActive) {
             return undefined;
         }
 
-        return searchQuery;
-    }, [debouncedSearchMode, isSearchActive, searchQuery]);
+        const tokens = parseFilterSearchTokens(searchQuery);
+        if (tokens.mode === 'tag' || tokens.nameTokens.length === 0) {
+            return undefined;
+        }
+
+        return tokens.nameTokens;
+    }, [isSearchActive, searchQuery]);
 
     const activeSearchShortcut = useMemo(() => {
         const normalizedQuery = searchQuery.trim();
@@ -466,13 +475,15 @@ export function useListPaneSearch({
         });
     }, []);
 
-    const waitForMobilePaneTransition = useCallback(async () => {
-        if (!isMobile) {
+    const waitForSinglePaneTransition = useCallback(async () => {
+        const container = rootContainerRef.current;
+        if (!container) {
             return;
         }
 
-        const container = rootContainerRef.current;
-        if (!container) {
+        // Dual pane switches views without a sliding transition and never gets the
+        // show-files class, so waiting would always run until the full deadline.
+        if (!container.classList.contains('nn-single-pane')) {
             return;
         }
 
@@ -481,7 +492,7 @@ export function useListPaneSearch({
         while (performance.now() < deadline && container.isConnected && !container.classList.contains('show-files')) {
             await new Promise(requestAnimationFrame);
         }
-    }, [isMobile, rootContainerRef, settings.paneTransitionDuration]);
+    }, [rootContainerRef, settings.paneTransitionDuration]);
 
     const focusListScroller = useCallback(() => {
         const scope = rootContainerRef.current ?? activeDocument;
@@ -539,9 +550,12 @@ export function useListPaneSearch({
 
             uiDispatch({ type: 'ACTIVATE_PANE', target: 'files' });
 
-            if (isMobile) {
+            // The sliding view transition only exists in single pane. Dual pane switches
+            // instantly, so suppressing the post-search scroll there would swallow the
+            // first legitimate scroll to top after filtering.
+            if (rootContainerRef.current?.classList.contains('nn-single-pane')) {
                 suppressSearchTopScrollRef.current = true;
-                await waitForMobilePaneTransition();
+                await waitForSinglePaneTransition();
             }
 
             if (!isSearchActive) {
@@ -555,7 +569,7 @@ export function useListPaneSearch({
             await waitForNextFrame();
             await waitForNextFrame();
 
-            if (!isMobile) {
+            if (supportsKeyboardInteractions()) {
                 ensureSelectionForCurrentFilterRef.current?.({ openInEditor: false, clearIfEmpty: true, selectFallback: true });
             }
 
@@ -565,16 +579,16 @@ export function useListPaneSearch({
             app,
             ensureSelectionForCurrentFilterRef,
             focusListScroller,
-            isMobile,
             isSearchActive,
             onNavigateToFolder,
             onRevealProperty,
             onRevealTag,
             plugin,
+            rootContainerRef,
             setSearchActive,
             settings.skipAutoScroll,
             uiDispatch,
-            waitForMobilePaneTransition,
+            waitForSinglePaneTransition,
             waitForNextFrame
         ]
     );
@@ -585,7 +599,7 @@ export function useListPaneSearch({
         searchQuery,
         debouncedSearchQuery,
         debouncedSearchTokens,
-        searchHighlightQuery,
+        searchHighlightTerms,
         shouldFocusSearch,
         activeSearchShortcut,
         isSavingSearchShortcut,

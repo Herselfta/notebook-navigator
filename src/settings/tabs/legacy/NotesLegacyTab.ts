@@ -23,12 +23,14 @@ import type { SettingsTabContext } from '../SettingsTabContext';
 import { runAsyncAction } from '../../../utils/async';
 import { createSettingGroupFactory } from '../../settingGroups';
 import { addSettingSyncModeToggle } from '../../syncModeToggle';
+import { attachColorSwatchSetting } from '../../colorSwatchSetting';
 import { createDependentSettingsSection, setElementVisible, wireToggleSettingWithDependentSection } from '../../dependentSettings';
 import { DEFAULT_SETTINGS } from '../../defaultSettings';
 import {
     isCharacterCountSpaces,
     isFeatureImagePixelSizeSetting,
     isFeatureImageSizeSetting,
+    isUnfinishedTaskIconMode,
     isTextCountDisplay,
     isTextCountPlacement,
     showsCharacterCount,
@@ -44,6 +46,8 @@ import {
 import { formatCommaSeparatedList, parseCommaSeparatedList } from '../../../utils/commaSeparatedListUtils';
 import { EXTERNAL_ICON_PROVIDERS } from '../../../services/icons/external/providerRegistry';
 import { FILE_TYPE_ICON_PROVIDER_PRESET_IDS, isFileTypeIconPreset, isFileTypeIconProviderPreset } from '../../../utils/fileTypeIconPresets';
+import { getMarkdownTextCountDependencies, subscribeMarkdownWordCountConsumerChanges } from '../../../utils/markdownPipelineContentTypes';
+import { renderTextCountActiveNotice } from '../NotesTab';
 
 function parseFileTypeIconMapText(value: string): IconMapParseResult {
     return parseIconMapText(value, normalizeFileTypeIconMapKey);
@@ -67,7 +71,7 @@ interface FileTypeIconPresetOption {
 function getFileTypeIconPresetOptions(context: SettingsTabContext): Record<string, FileTypeIconPresetOption> {
     const options: Record<string, FileTypeIconPresetOption> = {
         none: {
-            label: strings.settings.items.fileTypeIconPreset.options.none,
+            label: strings.settings.items.fileTypeIconPreset.options.builtIn,
             isInstalled: true
         }
     };
@@ -95,16 +99,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
     const { app, containerEl, plugin } = context;
 
     const createGroup = createSettingGroupFactory(containerEl);
-    const tasksGroup = createGroup(strings.settings.groups.notes.tasks);
-    const iconGroup = createGroup(strings.settings.groups.notes.icon);
-    const titleGroup = createGroup(strings.settings.groups.notes.title);
-    const previewTextGroup = createGroup(strings.settings.groups.notes.previewText);
-    const featureImageGroup = createGroup(strings.settings.groups.notes.featureImage);
-    const tagsGroup = createGroup(strings.settings.groups.notes.tags);
-    const notePropertyGroup = createGroup(strings.settings.groups.notes.properties);
-    const dateGroup = createGroup(strings.settings.groups.notes.date);
-    const parentFolderGroup = createGroup(strings.settings.groups.notes.parentFolder);
-    const wordCountGroup = createGroup(strings.settings.groups.notes.wordCount);
+    const iconGroup = createGroup(strings.settings.pages.fileDisplay.groups.icon);
+    const titleGroup = createGroup(strings.settings.pages.fileDisplay.groups.title);
+    const previewTextGroup = createGroup(strings.settings.pages.fileDisplay.groups.previewText);
+    const featureImageGroup = createGroup(strings.settings.pages.fileDisplay.groups.featureImage);
+    const tagsGroup = createGroup(strings.settings.pages.fileDisplay.groups.tags);
+    const notePropertyGroup = createGroup(strings.settings.pages.fileDisplay.groups.properties);
+    const tasksGroup = createGroup(strings.settings.pages.fileDisplay.groups.tasks);
+    const dateGroup = createGroup(strings.settings.pages.fileDisplay.groups.date);
+    const parentFolderGroup = createGroup(strings.settings.pages.fileDisplay.groups.parentFolder);
+    const wordCountGroup = createGroup(strings.settings.pages.fileDisplay.groups.wordAndCharacterCount);
 
     const setGroupVisible = (groupRootEl: HTMLElement, visible: boolean) => {
         setElementVisible(groupRootEl, visible);
@@ -115,88 +119,70 @@ export function renderNotesTab(context: SettingsTabContext): void {
         }
     };
 
-    const createColorSetting = (params: { containerEl: HTMLElement; name: string; desc: string; access: ColorSettingAccess }): void => {
-        const setting = new Setting(params.containerEl).setName(params.name).setDesc(params.desc);
-
-        const previewEl = setting.controlEl.createDiv({ cls: 'nn-setting-color-preview' });
-        const swatchButtonEl = previewEl.createEl('button', {
-            cls: 'nn-setting-color-swatch-button',
-            attr: {
-                type: 'button',
-                'aria-label': params.name
-            }
-        });
-        const swatchEl = swatchButtonEl.createDiv({ cls: 'nn-setting-color-swatch' });
-
-        const renderValue = () => {
-            const current = params.access.getValue();
-            swatchEl.style.backgroundColor = current;
-            swatchButtonEl.setAttribute('title', current);
-        };
-
-        const openColorPicker = () => {
-            runAsyncAction(async () => {
-                if (!plugin.metadataService) {
-                    showNotice(strings.common.unknownError, { variant: 'warning' });
-                    return;
-                }
-
-                const { ColorPickerModal } = await import('../../../modals/ColorPickerModal');
-                const modal = new ColorPickerModal(app, {
-                    title: params.name,
-                    initialColor: params.access.getValue(),
-                    settingsProvider: plugin.metadataService.getSettingsProvider(),
-                    onChooseColor: async color => {
-                        const nextValue = typeof color === 'string' && color.trim().length > 0 ? color.trim() : params.access.defaultValue;
-                        params.access.setValue(nextValue);
-                        await plugin.saveSettingsAndUpdate();
-                        renderValue();
-                    }
-                });
-
-                modal.open();
-            });
-        };
-
-        swatchButtonEl.addEventListener('click', openColorPicker);
-
-        renderValue();
-
-        setting.addExtraButton(button => {
-            button
-                .setIcon('lucide-rotate-ccw')
-                .setTooltip(`${strings.common.restoreDefault} (${params.access.defaultValue})`)
-                .onClick(() => {
-                    runAsyncAction(async () => {
-                        const current = params.access.getValue();
-                        if (current === params.access.defaultValue) {
-                            return;
-                        }
-
-                        params.access.setValue(params.access.defaultValue);
-                        await plugin.saveSettingsAndUpdate();
-                        renderValue();
-                    });
-                });
+    const createColorSetting = (params: {
+        containerEl: HTMLElement;
+        name: string;
+        desc: string;
+        access: ColorSettingAccess;
+        darkAccess?: ColorSettingAccess;
+    }): void => {
+        attachColorSwatchSetting({
+            app,
+            plugin,
+            setting: new Setting(params.containerEl),
+            name: params.name,
+            desc: params.desc,
+            access: params.access,
+            darkAccess: params.darkAccess,
+            showRestoreDefault: true
         });
     };
 
-    tasksGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.showFileIconUnfinishedTask.name)
-            .setDesc(strings.settings.items.showFileIconUnfinishedTask.desc)
-            .addToggle(toggle =>
-                toggle.setValue(plugin.settings.showFileIconUnfinishedTask).onChange(async value => {
-                    plugin.settings.showFileIconUnfinishedTask = value;
-                    await plugin.saveSettingsAndUpdate();
-                })
-            );
+    const showFileTaskProgressSetting = tasksGroup.addSetting(setting => {
+        setting.setName(strings.settings.items.showFileTaskProgress.name).setDesc(strings.settings.items.showFileTaskProgress.desc);
     });
 
+    const taskProgressSettingsEl = wireToggleSettingWithDependentSection(
+        showFileTaskProgressSetting,
+        () => plugin.settings.showFileTaskProgress,
+        async value => {
+            plugin.settings.showFileTaskProgress = value;
+            await plugin.saveSettingsAndUpdate();
+        }
+    );
+
+    new Setting(taskProgressSettingsEl)
+        .setName(strings.settings.items.showFileTaskProgressCount.name)
+        .setDesc(strings.settings.items.showFileTaskProgressCount.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showFileTaskProgressCount).onChange(async value => {
+                plugin.settings.showFileTaskProgressCount = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(taskProgressSettingsEl)
+        .setName(strings.settings.items.showFileTaskProgressBar.name)
+        .setDesc(strings.settings.items.showFileTaskProgressBar.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.showFileTaskProgressBar).onChange(async value => {
+                plugin.settings.showFileTaskProgressBar = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(taskProgressSettingsEl)
+        .setName(strings.settings.items.hideFileTaskProgressWhenComplete.name)
+        .setDesc(strings.settings.items.hideFileTaskProgressWhenComplete.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.hideFileTaskProgressWhenComplete).onChange(async value => {
+                plugin.settings.hideFileTaskProgressWhenComplete = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
     const showFileBackgroundUnfinishedTaskSetting = tasksGroup.addSetting(setting => {
-        setting
-            .setName(strings.settings.items.showFileBackgroundUnfinishedTask.name)
-            .setDesc(strings.settings.items.showFileBackgroundUnfinishedTask.desc);
+        setting.setName(strings.settings.items.unfinishedTaskBackground.name).setDesc(strings.settings.items.unfinishedTaskBackground.desc);
     });
 
     const unfinishedTaskBackgroundSettingsEl = wireToggleSettingWithDependentSection(
@@ -218,6 +204,13 @@ export function renderNotesTab(context: SettingsTabContext): void {
                 plugin.settings.unfinishedTaskBackgroundColor = value;
             },
             defaultValue: DEFAULT_SETTINGS.unfinishedTaskBackgroundColor
+        },
+        darkAccess: {
+            getValue: () => plugin.settings.unfinishedTaskBackgroundColorDark,
+            setValue: value => {
+                plugin.settings.unfinishedTaskBackgroundColorDark = value;
+            },
+            defaultValue: DEFAULT_SETTINGS.unfinishedTaskBackgroundColorDark
         }
     });
 
@@ -233,6 +226,24 @@ export function renderNotesTab(context: SettingsTabContext): void {
             await plugin.saveSettingsAndUpdate();
         }
     );
+
+    new Setting(fileIconDependentSettingsEl)
+        .setName(strings.settings.items.unfinishedTaskIcon.name)
+        .setDesc(strings.settings.items.unfinishedTaskIcon.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('none', strings.settings.items.unfinishedTaskIcon.options.disabled)
+                .addOption('compact', strings.settings.items.unfinishedTaskIcon.options.compact)
+                .addOption('all', strings.settings.items.unfinishedTaskIcon.options.standardAndCompact)
+                .setValue(plugin.settings.unfinishedTaskIcon)
+                .onChange(async value => {
+                    if (!isUnfinishedTaskIconMode(value)) {
+                        return;
+                    }
+                    plugin.settings.unfinishedTaskIcon = value;
+                    await plugin.saveSettingsAndUpdate();
+                })
+        );
 
     let updateFileNameIconMapVisibility: (() => void) | null = null;
     let updateFileTypeIconMapVisibility: (() => void) | null = null;
@@ -297,8 +308,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     const showFilenameMatchIconsSetting = new Setting(fileIconDependentSettingsEl)
-        .setName(strings.settings.items.showFilenameMatchIcons.name)
-        .setDesc(strings.settings.items.showFilenameMatchIcons.desc)
+        .setName(strings.settings.items.showFileNameIcons.name)
+        .setDesc(strings.settings.items.showFileNameIcons.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.showFilenameMatchIcons).onChange(async value => {
                 plugin.settings.showFilenameMatchIcons = value;
@@ -342,8 +353,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
     updateFileNameIconMapVisibility();
 
     const showCategoryIconsSetting = new Setting(fileIconDependentSettingsEl)
-        .setName(strings.settings.items.showCategoryIcons.name)
-        .setDesc(strings.settings.items.showCategoryIcons.desc)
+        .setName(strings.settings.items.showFileTypeIcons.name)
+        .setDesc(strings.settings.items.showFileTypeIcons.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.showCategoryIcons).onChange(async value => {
                 plugin.settings.showCategoryIcons = value;
@@ -430,13 +441,13 @@ export function renderNotesTab(context: SettingsTabContext): void {
 
     titleGroup.addSetting(setting => {
         setting
-            .setName(strings.settings.items.fileNameRows.name)
-            .setDesc(strings.settings.items.fileNameRows.desc)
+            .setName(strings.settings.items.titleRows.name)
+            .setDesc(strings.settings.items.titleRows.desc)
             .addDropdown(dropdown =>
                 dropdown
-                    .addOption('1', strings.settings.items.fileNameRows.options['1'])
-                    .addOption('2', strings.settings.items.fileNameRows.options['2'])
-                    .addOption('3', strings.settings.items.fileNameRows.options['3'])
+                    .addOption('1', strings.settings.items.titleRows.options['1'])
+                    .addOption('2', strings.settings.items.titleRows.options['2'])
+                    .addOption('3', strings.settings.items.titleRows.options['3'])
                     .setValue(plugin.settings.fileNameRows.toString())
                     .onChange(async value => {
                         plugin.settings.fileNameRows = parseInt(value, 10);
@@ -458,7 +469,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
     });
 
     const showPreviewSetting = previewTextGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.showFilePreview.name).setDesc(strings.settings.items.showFilePreview.desc);
+        setting.setName(strings.settings.items.showNotePreview.name).setDesc(strings.settings.items.showNotePreview.desc);
     });
 
     const previewSettingsEl = wireToggleSettingWithDependentSection(
@@ -508,6 +519,16 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     new Setting(previewSettingsEl)
+        .setName(strings.settings.items.skipCalloutsInPreview.name)
+        .setDesc(strings.settings.items.skipCalloutsInPreview.desc)
+        .addToggle(toggle =>
+            toggle.setValue(plugin.settings.skipCalloutsInPreview).onChange(async value => {
+                plugin.settings.skipCalloutsInPreview = value;
+                await plugin.saveSettingsAndUpdate();
+            })
+        );
+
+    new Setting(previewSettingsEl)
         .setName(strings.settings.items.stripHtmlInPreview.name)
         .setDesc(strings.settings.items.stripHtmlInPreview.desc)
         .addToggle(toggle =>
@@ -544,8 +565,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
     previewPropertiesSetting.controlEl.addClass('nn-setting-wide-input');
 
     const previewFallbackSetting = new Setting(previewSettingsEl)
-        .setName(strings.settings.items.previewPropertiesFallback.name)
-        .setDesc(strings.settings.items.previewPropertiesFallback.desc)
+        .setName(strings.settings.items.fallbackToNoteContent.name)
+        .setDesc(strings.settings.items.fallbackToNoteContent.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.previewPropertiesFallback).onChange(async value => {
                 plugin.settings.previewPropertiesFallback = value;
@@ -596,13 +617,13 @@ export function renderNotesTab(context: SettingsTabContext): void {
     featureExcludePropertiesSetting.controlEl.addClass('nn-setting-wide-input');
 
     const featureImageSizeSetting = new Setting(featureImageSettingsEl)
-        .setName(strings.settings.items.featureImageSize.name)
-        .setDesc(strings.settings.items.featureImageSize.desc)
+        .setName(strings.settings.items.featureImageDisplaySize.name)
+        .setDesc(strings.settings.items.featureImageDisplaySize.desc)
         .addDropdown(dropdown =>
             dropdown
-                .addOption('64', strings.settings.items.featureImageSize.options.standard)
-                .addOption('96', strings.settings.items.featureImageSize.options.large)
-                .addOption('128', strings.settings.items.featureImageSize.options.extraLarge)
+                .addOption('64', strings.settings.items.featureImageDisplaySize.options['64'])
+                .addOption('96', strings.settings.items.featureImageDisplaySize.options['96'])
+                .addOption('128', strings.settings.items.featureImageDisplaySize.options['128'])
                 .setValue(plugin.settings.featureImageSize)
                 .onChange(value => {
                     if (!isFeatureImageSizeSetting(value)) {
@@ -618,9 +639,9 @@ export function renderNotesTab(context: SettingsTabContext): void {
         .setDesc(strings.settings.items.featureImagePixelSize.desc)
         .addDropdown(dropdown =>
             dropdown
-                .addOption('256', strings.settings.items.featureImagePixelSize.options.standard)
-                .addOption('384', strings.settings.items.featureImagePixelSize.options.large)
-                .addOption('512', strings.settings.items.featureImagePixelSize.options.extraLarge)
+                .addOption('256', strings.settings.items.featureImagePixelSize.options['256x144'])
+                .addOption('384', strings.settings.items.featureImagePixelSize.options['384x216'])
+                .addOption('512', strings.settings.items.featureImagePixelSize.options['512x288'])
                 .setValue(plugin.settings.featureImagePixelSize)
                 .onChange(value => {
                     if (!isFeatureImagePixelSizeSetting(value)) {
@@ -677,8 +698,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
     );
 
     new Setting(colorFileTagsDependentSettingsEl)
-        .setName(strings.settings.items.prioritizeColoredFileTags.name)
-        .setDesc(strings.settings.items.prioritizeColoredFileTags.desc)
+        .setName(strings.settings.items.showColoredTagsFirst.name)
+        .setDesc(strings.settings.items.showColoredTagsFirst.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.prioritizeColoredFileTags).onChange(async value => {
                 plugin.settings.prioritizeColoredFileTags = value;
@@ -687,8 +708,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     new Setting(fileTagsDependentSettingsEl)
-        .setName(strings.settings.items.showFileTagAncestors.name)
-        .setDesc(strings.settings.items.showFileTagAncestors.desc)
+        .setName(strings.settings.items.showFullTagPaths.name)
+        .setDesc(strings.settings.items.showFullTagPaths.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.showFileTagAncestors).onChange(async value => {
                 plugin.settings.showFileTagAncestors = value;
@@ -733,8 +754,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
     );
 
     new Setting(colorFilePropertiesDependentSettingsEl)
-        .setName(strings.settings.items.prioritizeColoredFileProperties.name)
-        .setDesc(strings.settings.items.prioritizeColoredFileProperties.desc)
+        .setName(strings.settings.items.showColoredPropertiesFirst.name)
+        .setDesc(strings.settings.items.showColoredPropertiesFirst.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.prioritizeColoredFileProperties).onChange(async value => {
                 plugin.settings.prioritizeColoredFileProperties = value;
@@ -763,8 +784,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     new Setting(filePropertiesDependentSettingsEl)
-        .setName(strings.settings.items.enablePropertyInternalLinks.name)
-        .setDesc(strings.settings.items.enablePropertyInternalLinks.desc)
+        .setName(strings.settings.items.linkPropertyPillsToNotes.name)
+        .setDesc(strings.settings.items.linkPropertyPillsToNotes.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.enablePropertyInternalLinks).onChange(async value => {
                 plugin.settings.enablePropertyInternalLinks = value;
@@ -773,8 +794,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     new Setting(filePropertiesDependentSettingsEl)
-        .setName(strings.settings.items.enablePropertyExternalLinks.name)
-        .setDesc(strings.settings.items.enablePropertyExternalLinks.desc)
+        .setName(strings.settings.items.linkPropertyPillsToUrls.name)
+        .setDesc(strings.settings.items.linkPropertyPillsToUrls.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.enablePropertyExternalLinks).onChange(async value => {
                 plugin.settings.enablePropertyExternalLinks = value;
@@ -797,12 +818,12 @@ export function renderNotesTab(context: SettingsTabContext): void {
 
     // Dropdown to choose which date to display when sorting alphabetically
     new Setting(fileDateDependentSettingsEl)
-        .setName(strings.settings.items.alphabeticalDateMode.name)
-        .setDesc(strings.settings.items.alphabeticalDateMode.desc)
+        .setName(strings.settings.items.dateWhenSortingByName.name)
+        .setDesc(strings.settings.items.dateWhenSortingByName.desc)
         .addDropdown(dropdown =>
             dropdown
-                .addOption('created', strings.settings.items.alphabeticalDateMode.options.created)
-                .addOption('modified', strings.settings.items.alphabeticalDateMode.options.modified)
+                .addOption('created', strings.settings.items.dateWhenSortingByName.options.created)
+                .addOption('modified', strings.settings.items.dateWhenSortingByName.options.modified)
                 .setValue(plugin.settings.alphabeticalDateMode)
                 .onChange(async value => {
                     plugin.settings.alphabeticalDateMode = value === 'modified' ? 'modified' : 'created';
@@ -824,8 +845,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
     );
 
     new Setting(parentFolderSettingsEl)
-        .setName(strings.settings.items.showParentFolderFullPath.name)
-        .setDesc(strings.settings.items.showParentFolderFullPath.desc)
+        .setName(strings.settings.items.showFolderPath.name)
+        .setDesc(strings.settings.items.showFolderPath.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.showParentFolderFullPath).onChange(async value => {
                 plugin.settings.showParentFolderFullPath = value;
@@ -834,8 +855,8 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     new Setting(parentFolderSettingsEl)
-        .setName(strings.settings.items.parentFolderClickRevealsFile.name)
-        .setDesc(strings.settings.items.parentFolderClickRevealsFile.desc)
+        .setName(strings.settings.items.parentFolderClickOpensFolder.name)
+        .setDesc(strings.settings.items.parentFolderClickOpensFolder.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.parentFolderClickRevealsFile).onChange(async value => {
                 plugin.settings.parentFolderClickRevealsFile = value;
@@ -864,7 +885,7 @@ export function renderNotesTab(context: SettingsTabContext): void {
         );
 
     const textCountDisplaySetting = wordCountGroup.addSetting(setting => {
-        setting.setName(strings.settings.items.textCountDisplay.name).setDesc(strings.settings.items.textCountDisplay.desc);
+        setting.setName(strings.settings.items.textCountType.name).setDesc(strings.settings.items.textCountType.desc);
     });
     const textCountSettingsEl = createDependentSettingsSection(textCountDisplaySetting);
     const wordCountSettingsEl = textCountSettingsEl.createDiv();
@@ -878,10 +899,10 @@ export function renderNotesTab(context: SettingsTabContext): void {
 
     textCountDisplaySetting.addDropdown(dropdown =>
         dropdown
-            .addOption('none', strings.settings.items.textCountDisplay.options.none)
-            .addOption('words', strings.settings.items.textCountDisplay.options.words)
-            .addOption('characters', strings.settings.items.textCountDisplay.options.characters)
-            .addOption('both', strings.settings.items.textCountDisplay.options.both)
+            .addOption('none', strings.settings.items.textCountType.options.none)
+            .addOption('words', strings.settings.items.textCountType.options.words)
+            .addOption('characters', strings.settings.items.textCountType.options.characters)
+            .addOption('both', strings.settings.items.textCountType.options.both)
             .setValue(plugin.settings.textCountDisplay)
             .onChange(async value => {
                 if (!isTextCountDisplay(value)) {
@@ -943,14 +964,32 @@ export function renderNotesTab(context: SettingsTabContext): void {
     wordCountTargetPropertySetting.controlEl.addClass('nn-setting-wide-input');
 
     new Setting(wordCountSettingsEl)
-        .setName(strings.settings.items.showWordCountPercentage.name)
-        .setDesc(strings.settings.items.showWordCountPercentage.desc)
+        .setName(strings.settings.items.showTargetPercentage.name)
+        .setDesc(strings.settings.items.showTargetPercentage.desc)
         .addToggle(toggle =>
             toggle.setValue(plugin.settings.showWordCountPercentage).onChange(async value => {
                 plugin.settings.showWordCountPercentage = value;
                 await plugin.saveSettingsAndUpdate();
             })
         );
+
+    const textCountActiveNoticeSetting = wordCountGroup.addSetting(setting => {
+        renderTextCountActiveNotice(setting, context);
+    });
+    const refreshTextCountActiveNotice = (): void => {
+        renderTextCountActiveNotice(textCountActiveNoticeSetting, context);
+        setElementVisible(
+            textCountActiveNoticeSetting.settingEl,
+            getMarkdownTextCountDependencies(context.app, plugin.settings).length > 0
+        );
+    };
+    context.registerSettingsUpdateListener('notes-text-count-active-notice', refreshTextCountActiveNotice);
+    const unsubscribeWordCountConsumerChanges = subscribeMarkdownWordCountConsumerChanges(context.app, () => {
+        refreshTextCountActiveNotice();
+        context.refreshSettingsDomState();
+    });
+    context.registerSettingsRenderCleanup(unsubscribeWordCountConsumerChanges);
+    refreshTextCountActiveNotice();
 
     context.registerShowTagsListener(visible => {
         setGroupVisible(tagsGroup.rootEl, visible);
