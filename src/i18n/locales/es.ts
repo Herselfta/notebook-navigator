@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_ES = {
+    language: {
+        downloading: 'Descargando idiomas…',
+        continueInEnglish: 'Continuar en inglés',
+        downloadFailed: 'No se pudieron descargar los idiomas. Notebook Navigator usa inglés.'
+    },
     // Common UI elements
     common: {
         cancel: 'Cancelar', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_ES = {
         manualSortHint: 'Arrastra para reordenar. El orden se guarda como valores numéricos de índice en la propiedad "{property}".',
         manualSortNonMarkdownHint: 'Los archivos no Markdown se muestran al final y no se pueden reordenar.',
         unsortedSection: 'Sin ordenar',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} diapositivas',
+            slideCountOne: '1 diapositiva',
+            theme: 'Tema',
+            slides: 'Diapositivas',
+            size: 'Tamaño'
+        },
         propertyGroupNoValue: 'Ninguno',
         manualSortDone: 'Hecho',
         manualSortMultipleWriteFailure: '{count} archivos fallaron; primero: {path}: {message}'
@@ -79,12 +92,14 @@ export const STRINGS_ES = {
         reorderRootFoldersTitle: 'Reordenar navegación',
         reorderRootFoldersHint: 'Usa flechas o arrastra para reordenar',
         vaultRootLabel: 'Bóveda',
-        resetRootToAlpha: 'Restablecer orden alfabético',
-        resetRootToFrequency: 'Restablecer al orden por frecuencia',
+        resetAllFolders: 'Restablecer todas las carpetas',
+        resetAllTags: 'Restablecer todas las etiquetas',
+        resetAllProperties: 'Restablecer todas las propiedades',
         pinShortcuts: 'Fijar accesos directos',
         pinShortcutsAndRecentFiles: 'Fijar accesos directos y archivos recientes',
         unpinShortcuts: 'Desfijar accesos directos',
         unpinShortcutsAndRecentFiles: 'Desfijar accesos directos y archivos recientes',
+        resizePinnedShortcuts: 'Cambiar el tamaño de los accesos directos fijados',
         profileMenuAria: 'Cambiar perfil de bóveda'
     },
 
@@ -115,6 +130,7 @@ export const STRINGS_ES = {
 
     templates: {
         invalidTokens: 'La plantilla "{name}" contiene marcadores no válidos: {tokens}',
+        invalidFileNameTokens: 'El formato de nombre de archivo de "{name}" contiene marcadores no válidos: {tokens}',
         readFailed: 'No se pudo leer la plantilla "{name}". La nota se creó sin ella.',
         folderNotSet:
             'Configura la carpeta de plantillas en Operaciones de archivos y plantillas > Plantillas antes de crear notas desde plantillas.',
@@ -238,10 +254,12 @@ export const STRINGS_ES = {
                     items: [
                         '`.key` Incluir notas con una clave de propiedad que empiece por `key`.',
                         '`.key=value` Incluir notas cuyo valor de propiedad contenga `value`.',
+                        '`.key=null` Incluir notas en las que la propiedad `key` existe y no tiene valor. `.key="null"` busca el texto `null`.',
                         '`."Reading Status"` Incluir notas con una clave de propiedad que contiene espacios.',
                         '`."Reading Status"="In Progress"` Las claves y valores con espacios deben estar entre comillas dobles.',
                         '`-.key` Excluir notas con una clave de propiedad que empiece por `key`.',
                         '`-.key=value` Excluir notas cuyo valor de propiedad contenga `value`.',
+                        '`-.key=null` Excluir notas en las que la propiedad `key` existe y no tiene valor.',
                         'Cmd/Ctrl+Clic en una propiedad para añadir con AND. Cmd/Ctrl+Shift+Clic para añadir con OR.'
                     ]
                 },
@@ -738,7 +756,7 @@ export const STRINGS_ES = {
             templatePlaceholder: 'Plantillas/Reunión.md',
             fileNameFormat: 'Formato del nombre de archivo',
             fileNameFormatDesc:
-                'Los marcadores como {{date:YYYYMMDD}} y {{prompt:Título}} se sustituyen al ejecutar el comando. Cada marcador de pregunta pide un valor, y la misma etiqueta en la plantilla recibe el mismo valor.',
+                'Los marcadores como {{date:YYYYMMDD}} y {{prompt:Título}} se sustituyen al ejecutar el comando. Cada marcador de pregunta pide un valor, y la misma etiqueta en la plantilla recibe el mismo valor. {{number}} es uno más que el número más alto usado por las notas de la carpeta con el mismo patrón de nombre, y {{number:00}} lo rellena con ceros. La plantilla también puede usar {{number}}, y {{title}} inserta el nombre de archivo generado.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Título}}',
             location: 'Ubicación',
             folder: 'Carpeta',
@@ -917,6 +935,7 @@ export const STRINGS_ES = {
             cannotMoveIntoSelf: 'No se puede mover una carpeta dentro de sí misma o una subcarpeta.',
             itemAlreadyExists: 'Ya existe un elemento llamado "{name}" en esta ubicación.',
             failedToMove: 'Error al mover: {error}',
+            failedToCopy: 'Error al copiar "{name}": {error}',
             failedToAddTag: 'Error al agregar la etiqueta "{tag}"',
             failedToSetProperty: 'Error al actualizar la propiedad: {error}',
             failedToClearTags: 'Error al eliminar las etiquetas',
@@ -929,7 +948,9 @@ export const STRINGS_ES = {
             filesAlreadyHaveProperty: '{count} archivos ya tienen esta propiedad',
             noTagsToClear: 'No hay etiquetas para eliminar',
             fileImported: '1 archivo importado',
-            filesImported: '{count} archivos importados'
+            filesImported: '{count} archivos importados',
+            fileCopied: '1 archivo copiado',
+            filesCopied: '{count} archivos copiados'
         }
     },
 
@@ -952,6 +973,9 @@ export const STRINGS_ES = {
         openMonthlyNote: 'Abrir nota mensual',
         openQuarterlyNote: 'Abrir nota trimestral',
         openYearlyNote: 'Abrir nota anual',
+        openNextPeriodicNote: 'Abrir nota periódica siguiente',
+        openPreviousPeriodicNote: 'Abrir nota periódica anterior',
+        openParentPeriodicNote: 'Abrir nota periódica superior',
         revealFile: 'Revelar archivo', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Buscar', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Buscar en toda la bóveda', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1052,8 +1076,6 @@ export const STRINGS_ES = {
             exportFailed: 'Error al exportar el informe de metadatos'
         },
         index: {
-            label: 'General',
-            description: 'Notas de versión, soporte, perfil de bóveda, tipos de archivo y claves de propiedades.',
             groups: {
                 about: 'Acerca de'
             }
@@ -1183,7 +1205,8 @@ export const STRINGS_ES = {
                 description: 'Diagnósticos, limpieza de metadatos, importación/exportación y restablecimiento.',
                 groups: {
                     maintenance: 'Mantenimiento',
-                    resetSettings: 'Restablecer ajustes'
+                    resetSettings: 'Restablecer ajustes',
+                    thirdPartyLicenses: 'Licencias de terceros'
                 }
             }
         },
@@ -1652,8 +1675,6 @@ export const STRINGS_ES = {
             calendarLocale: {
                 name: 'Configuración regional',
                 desc: 'Controla el formato de fechas del calendario, la numeración de semanas y el primer día de la semana.',
-                weekPathMismatchWarning:
-                    'El calendario visible y las rutas de notas semanales utilizan diferentes inicios de semana o numeración de semanas.',
                 options: {
                     systemDefault: 'Predeterminado'
                 }
@@ -1767,7 +1788,9 @@ export const STRINGS_ES = {
                 momentLinkText: 'formato de fecha Moment',
                 momentDescSuffix:
                     '. Envuelve los nombres de subcarpetas entre corchetes, ej. [Work]/YYYY. Haz clic en el icono de plantilla para establecer una plantilla. Establecer ubicación de carpeta de plantillas en Operaciones de archivos y plantillas > Plantillas.',
-                example: 'Sintaxis actual: {path}'
+                example: 'Sintaxis actual: {path}',
+                weekYearWarning:
+                    '"gggg" y "GGGG" son años de semana, por lo que las fechas cercanas al Año Nuevo pueden recibir un año incorrecto. Usa "YYYY".'
             },
             templateEngine: {
                 name: 'Motor de plantillas',
@@ -1812,10 +1835,14 @@ export const STRINGS_ES = {
             calendarWeeklyNotePattern: {
                 name: 'Notas semanales',
                 parsingError: 'El patrón debe formatear y volver a analizarse como una semana completa (año de semana, número de semana).',
-                weekPathMismatchWarning:
-                    'Las rutas de notas semanales utilizan la configuración regional de notas periódicas. Usa configuraciones regionales coincidentes, o usa "GGGG" con "WW" para semanas basadas en lunes.',
+                isoWeeksWarning:
+                    'Las notas semanales usan semanas ISO ("W" o "G"), por lo que el calendario empieza las semanas en lunes y muestra números de semana ISO. Usa "gggg" con "ww" para semanas que sigan la configuración regional.',
+                calendarYearWarning:
+                    'Las notas semanales toman el año de "YYYY", por lo que una semana 1 que empieza en diciembre recibe el año anterior. Usa "GGGG" con "WW", o "gggg" con "ww".',
                 mixedWeekTokensWarning:
-                    'Este patrón mezcla tokens de semana basados en lunes ("W" o "G") con tokens de semana basados en la configuración regional ("w" o "g"). Usa un conjunto de forma coherente: "GGGG" con "WW" para semanas basadas en lunes, o "gggg" con "ww" si las notas semanales deben seguir la configuración regional seleccionada.'
+                    'Las notas semanales mezclan tokens de semana ISO ("W" o "G") con tokens de semana de la configuración regional ("w" o "g"). Usa "GGGG" con "WW" para semanas ISO, o "gggg" con "ww" para semanas que sigan la configuración regional.',
+                weekPathMismatchWarning:
+                    'La configuración regional del calendario y la de las notas periódicas empiezan o numeran las semanas de forma distinta, por lo que las rutas de las notas semanales no coinciden con las semanas del calendario. Usa la misma configuración regional en ambas, o usa "GGGG" con "WW" para semanas ISO.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Notas mensuales',
@@ -1888,7 +1915,10 @@ export const STRINGS_ES = {
                     downloadButtonText: 'Descargar',
                     copyNotice: 'Ajustes copiados al portapapeles.',
                     downloadNotice: 'Ajustes exportados.',
-                    downloadError: 'Error al descargar los ajustes: {message}'
+                    downloadError: 'Error al descargar los ajustes: {message}',
+                    saveButtonText: 'Guardar en la bóveda',
+                    saveNotice: 'Ajustes guardados en {path}.',
+                    saveError: 'Error al guardar los ajustes: {message}'
                 }
             },
             resetAllSettings: {
@@ -2516,7 +2546,7 @@ export const STRINGS_ES = {
             },
             folderNoteType: {
                 name: 'Tipo predeterminado de nota de carpeta',
-                desc: 'Tipo de nota de carpeta creado desde el menú contextual.',
+                desc: 'Tipo de nota de carpeta creado desde el menú contextual y preferido cuando una carpeta tiene notas de carpeta de varios tipos.',
                 options: {
                     ask: 'Preguntar al crear',
                     markdown: 'Markdown',
@@ -2667,10 +2697,38 @@ export const STRINGS_ES = {
                 buttonText: '❤️ Patrocinar',
                 coffeeButton: '☕️ Invítame a un café'
             },
-            otherPlugins: {
-                name: 'Descubre mis otros plugins',
-                betterPaste: 'Limpia el texto, los enlaces y las imágenes que pegas',
-                pixelPerfectImage: 'Cambio de tamaño exacto de imágenes y más'
+            markdownPointBanner: {
+                heading: '¿Usas Canva, Keynote o PowerPoint?',
+                atTop: {
+                    name: 'Mostrar el banner de MarkdownPoint arriba',
+                    desc: 'Si está desactivado, el banner aparece más abajo en la página de ajustes.'
+                },
+                credit: 'por Johan Sanneblad',
+                messages: [
+                    { headline: 'Escribe tus diapositivas en Markdown.', subtext: 'Arrastra textos e imágenes adonde quieras.' },
+                    { headline: 'Una alternativa gratis a PowerPoint.', subtext: 'Compartir y colaborar también es gratis.' },
+                    { headline: 'Tus diapos están en tu ordenador.', subtext: 'No necesitas una cuenta para crear diapos.' },
+                    { headline: 'Anima como en Apple Motion.', subtext: 'Usa fotogramas clave, trayectorias y morphs.' },
+                    { headline: 'Pon modelos 3D en tus diapositivas.', subtext: 'Abre un GLB o glTF, o genera uno con Meshy.' },
+                    { headline: 'Colabora como en Google Slides.', subtext: 'Ve los punteros y comentarios de todos.' },
+                    { headline: 'Ve todo el texto en un solo lugar.', subtext: 'Abre View > Outline y edítalo en Markdown.' },
+                    { headline: 'Encaja objetos como en Figma.', subtext: 'Alinéalos por espaciado, tamaño y ángulo.' },
+                    { headline: 'Exporta tu presentación en vídeo 4K.', subtext: 'No necesitas After Effects para animarla.' },
+                    { headline: 'Personajes 3D que caminan y corren.', subtext: 'Usa Meshy para el rigging y la animación.' },
+                    { headline: 'Resalta con ==signos de igual==.', subtext: '**Negrita** y *cursiva* van como en Obsidian.' },
+                    { headline: 'Usa auto layout como en Figma.', subtext: 'Alinea un grupo en una fila o columna.' },
+                    { headline: 'Comparte tus diapos con un enlace.', subtext: 'Publícalas en línea con una cuenta gratis.' },
+                    { headline: 'Iluminación 3D como en Blender.', subtext: 'Luces de punto, sol, foco y área con sombras.' },
+                    { headline: 'Versiona tus presentaciones con Git.', subtext: 'Son archivos de texto Markdown y JSON.' },
+                    { headline: 'Crea componentes como en Figma.', subtext: 'Edítalo una vez y cambian todas las instancias.' },
+                    { headline: 'Explora temas como en Obsidian.', subtext: 'Instala un tema gratis con un clic.' },
+                    { headline: 'Usa una carpeta sincronizada.', subtext: 'Funcionan Dropbox, iCloud Drive y OneDrive.' },
+                    { headline: '3D con física de cuerpos rígidos.', subtext: 'Deja caer, vuelca o apila objetos.' },
+                    { headline: 'Las notas del orador son Markdown.', subtext: 'Se guardan en el mismo archivo que las diapos.' },
+                    { headline: 'Combina formas como en Figma.', subtext: 'Une, resta, interseca o excluye.' },
+                    { headline: 'Pon código en tus diapositivas.', subtext: 'El código se resalta en 21 lenguajes.' },
+                    { headline: 'Gratis para uso personal y comercial.', subtext: 'Descárgalo para Mac o Windows.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'Buscar nueva versión al iniciar',

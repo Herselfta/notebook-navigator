@@ -11,7 +11,7 @@ Coming from another app? Read the switching guides for [Evernote](https://notebo
 
 <br/>
 
-![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22notebook-navigator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![Obsidian Compatibility](https://img.shields.io/badge/Obsidian-v1.11.0+-483699?logo=obsidian&style=flat-square) [![Discord](https://img.shields.io/discord/1405458145974943846?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/6eeSUvzEJr)
+![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=Downloads&query=%24%5B%22notebook-navigator%22%5D.downloads&url=https%3A%2F%2Fraw.githubusercontent.com%2Fobsidianmd%2Fobsidian-releases%2Fmaster%2Fcommunity-plugin-stats.json) ![Obsidian Compatibility](https://img.shields.io/badge/Obsidian-v1.13.0+-483699?logo=obsidian&style=flat-square) [![Discord](https://img.shields.io/discord/1405458145974943846?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/6eeSUvzEJr)
 
 [![Quality checks](https://github.com/johansan/notebook-navigator/actions/workflows/ci.yml/badge.svg)](https://github.com/johansan/notebook-navigator/actions/workflows/ci.yml) [![Security scan](https://github.com/johansan/notebook-navigator/actions/workflows/codeql.yml/badge.svg)](https://github.com/johansan/notebook-navigator/actions/workflows/codeql.yml)
 
@@ -168,10 +168,12 @@ Filters files by display name, alias, tags, properties, dates, folders, extensio
 
 - `.key` - Include notes with a property key that starts with `key`
 - `.key=value` - Include notes where the property value contains `value`
+- `.key=null` - Include notes where the property `key` exists with no value (`.key="null"` searches for the text `null`)
 - `."Reading Status"` - Property key with whitespace (double-quoted)
 - `."Reading Status"="In Progress"` - Keys and values with whitespace must be double-quoted
 - `-.key` - Exclude notes with a property key that starts with `key`
 - `-.key=value` - Exclude notes where the property value contains `value`
+- `-.key=null` - Exclude notes where the property `key` exists with no value
 - Cmd/Ctrl+Click a property to add with AND. Cmd/Ctrl+Shift+Click to add with OR
 
 **Filters**
@@ -292,7 +294,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Navigate to property` Search dialog to jump to any property key or value
 - `Notebook Navigator: Navigate back` Moves to the previous folder, tag, or property selection in navigator history
 - `Notebook Navigator: Navigate forward` Moves to the next folder, tag, or property selection in navigator history
-- `Notebook Navigator: Add to shortcuts` Adds or removes the current file, folder, tag, or property from shortcuts
+- `Notebook Navigator: Add to shortcuts` Adds or removes the active note from shortcuts, or the selected note, folder, tag, or property when the navigator is focused
 - `Notebook Navigator: Open shortcut 1-9` Opens shortcut by its position in the shortcuts list
 - `Notebook Navigator: Search` Opens quick search field or focuses it if already open. Search persists between sessions. **Suggestion:** Bind to a shortcut key like `Cmd/Ctrl+Shift+S` for quick file filtering
 - `Notebook Navigator: Search whole vault` Selects the vault root folder and opens search with subfolders included (available when either `Show root folder` or `Show hidden items` is enabled)
@@ -324,6 +326,9 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - `Notebook Navigator: Open monthly note` Opens the current monthly note. Creates the note if it doesn't exist
 - `Notebook Navigator: Open quarterly note` Opens the current quarterly note. Creates the note if it doesn't exist
 - `Notebook Navigator: Open yearly note` Opens the current yearly note. Creates the note if it doesn't exist
+- `Notebook Navigator: Open next periodic note` From a daily, weekly, monthly, quarterly or yearly note, opens the note for the next period. Creates the note if it doesn't exist
+- `Notebook Navigator: Open previous periodic note` Same as `Open next periodic note`, for the period before the active note
+- `Notebook Navigator: Open parent periodic note` Opens the weekly note of the active daily note, the monthly note of a weekly note, the quarterly note of a monthly note and the yearly note of a quarterly note. Skips periods that have no note pattern. A week that spans two months opens the monthly note of its first day. Creates the note if it doesn't exist
 
 **File operations**
 
@@ -389,6 +394,9 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 | `notebook-navigator:open-monthly-note`              | Notebook Navigator: Open monthly note                      |
 | `notebook-navigator:open-quarterly-note`            | Notebook Navigator: Open quarterly note                    |
 | `notebook-navigator:open-yearly-note`               | Notebook Navigator: Open yearly note                       |
+| `notebook-navigator:open-next-periodic-note`        | Notebook Navigator: Open next periodic note                |
+| `notebook-navigator:open-previous-periodic-note`    | Notebook Navigator: Open previous periodic note            |
+| `notebook-navigator:open-parent-periodic-note`      | Notebook Navigator: Open parent periodic note              |
 | `notebook-navigator:toggle-descendants`             | Notebook Navigator: Toggle descendants                     |
 | `notebook-navigator:toggle-hidden`                  | Notebook Navigator: Toggle hidden folders, tags, and notes |
 | `notebook-navigator:toggle-tag-sort`                | Notebook Navigator: Toggle tag sort order                  |
@@ -460,6 +468,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 - **Note previews** - 1–5 preview lines with optional HTML stripping
 - **Thumbnails** - Featured images plus auto-generated thumbnails for PDF, SVG, and drawing files stored in the metadata cache
 - **External images** - Optional downloads for external images and YouTube thumbnails
+- **Folder grouping** - Group notes by parent folder when viewing a folder, tag, or property
 - **Date grouping** - Group notes by Today, Yesterday, Previous 7 days, Previous 30 days, months, and years when sorted by date
 - **Property grouping** - Group notes by a frontmatter property value, matching group by in Obsidian Bases: notes sharing the same value collect under one header, notes without the property go into a trailing None group, and groups sort by value with natural ordering
 - **Frontmatter support** - Read note names and timestamps from frontmatter fields
@@ -474,7 +483,7 @@ Set custom hotkeys for these commands in Obsidian's Hotkeys settings:
 
 - **Search** - Filter by file name, aliases, tags, properties, dates, folders, extensions, and tasks with AND/OR/exclusions
 - **Omnisearch integration** - Full-text search via [Omnisearch](https://github.com/scambier/obsidian-omnisearch)
-- **Drag and drop** - File moves, tagging, shortcut assignment, tag tree reparenting, spring-loaded folders
+- **Drag and drop** - File moves, file copies (hold Option on macOS or Ctrl on Windows and Linux), tagging, shortcut assignment, tag tree reparenting, spring-loaded folders
 - **Context menus** - Create notes/folders/canvases/bases/drawings and run file/tag actions
 - **Drawings** - Create Excalidraw and Tldraw drawings from navigation and list pane menus
 - **Templates** - Built-in template engine with `{{title}}`, `{{date}}`, `{{cursor}}` and other tokens for calendar notes, folder notes and new notes from template, plus optional Templater support (see [10.6 Templates](#106-templates))
@@ -493,7 +502,7 @@ Templates are markdown notes stored in the folder set under **File operations & 
 | Notebook Navigator | Always uses the built-in engine.                                                                                                    |
 | Templater          | Always uses the Templater plugin.                                                                                                   |
 
-One engine processes each template. In Automatic mode a template that contains `<%` is handed to Templater as a whole, and any `{{...}}` tokens in it stay as written.
+One engine processes each template. In Automatic mode a template that contains `<%` is handed to Templater as a whole, and any `{{...}}` tokens in it stay as written. When Notebook Navigator opens a note that Templater created, it runs Templater's `Jump to next cursor location` command after the note finishes opening in the active editor, so `<% tp.file.cursor() %>` markers place the cursor independent of Templater's `Automatic jump to cursor` setting. Notes opened in the background can apply the cursor when activated within 10 seconds of creation.
 
 **Using Templater alongside Notebook Navigator.** With the engine set to `Notebook Navigator`, Templater's commands, hotkeys and `Insert template` keep working, and `<%...%>` text in templates is left unchanged. Templater's `Trigger Templater on new file creation` option is independent of this setting: when it is on, Templater also processes every note Notebook Navigator creates, runs any `<%...%>` commands in it and can apply its own folder templates to notes whose body is empty apart from frontmatter. Turn that option off when Notebook Navigator handles creation templates, or exclude the folders Notebook Navigator manages in Templater's settings.
 
@@ -514,6 +523,7 @@ The built-in engine replaces the tokens below when the note is created. Unknown 
 | `{{now}}`, `{{now:FORMAT}}`         | Current date and time as an ISO 8601 timestamp, default `YYYY-MM-DD[T]HH:mm:ssZ`, the format Notebook Navigator reads from frontmatter                                                                                         |
 | `{{cursor}}`                        | Removed from the note. The editor cursor is placed here when the note opens.                                                                                                                                                   |
 | `{{prompt:Label}}`                  | Asks for a value when the note is created and inserts it. The same label used more than once, including in a command's file name format, is asked once. `{{value:Label}}` works the same way, and a label defaults to `Value`. |
+| `{{number}}`, `{{number:00}}`       | Next number in the file name format of a create note command: one higher than the highest number used by notes in the target folder with the same name pattern, or 1 when there are none. `{{number:00}}` pads it with zeros to the length of the format. In the template of a note created that way, `{{number}}` inserts the same number and `{{title}}` the generated file name, such as `Note 01`. |
 
 **Folder templates**
 
@@ -567,6 +577,8 @@ created: "{{now}}"
 
 Running it asks for the title once, names the note `20260916 Weekly sync` and writes the same title into the `title` property.
 
+A file name format with `{{number}}` continues a sequence: `Note {{number:00}}` names the notes `Note 01`, `Note 02` and so on, and `{{prompt:Project}} {{number:000}}` keeps a separate sequence per project. The number is one higher than the highest number used by notes in the target folder whose names match the rest of the format, so deleting a lower note leaves a gap while deleting the highest note frees its number. The template of that note can use `{{number}}` for the number on its own, while `{{title}}` gives the generated file name such as `Note 01`.
+
 Weekly note template:
 
 ```markdown
@@ -617,11 +629,26 @@ Notebook Navigator runs locally, but some features make HTTP requests from Obsid
 - **Paths and identifiers:** Startup initialization, PDF diagnostics, and error cases can include the Obsidian app/vault identifier, vault-relative PDF paths, or error stack details. Review and redact the file before sharing it publicly.
 - **Upload:** Notebook Navigator does not upload debug files. They are shared only if you upload, attach, or sync them outside the plugin.
 
-### 11.5 Privacy and data handling
+### 11.5 Language downloads
+
+- **Request:** `https://github.com/johansan/notebook-navigator/releases/download/<installed-version>/languages.json`
+- **Frequency:** On startup when the language pack matching the installed plugin is not cached. All languages are downloaded together.
+- **Storage:** Each language is stored separately in vault-local IndexedDB on the device. Later launches read only the selected language without a network request.
+- **Offline use:** English is bundled. Settings remain available during downloads. The navigator shows a loading screen with **Continue in English**; failed downloads also use English. A download completed after continuing in English is used on the next launch.
+- **Data:** Sends standard HTTP metadata; does not include vault content. Downloaded files contain text data, while language formatting functions remain bundled with the plugin.
+
+### 11.6 Settings banner
+
+- **Where:** The top of the Notebook Navigator settings page shows a static banner for [MarkdownPoint](https://markdownpoint.com), a free presentation app made by the author of Notebook Navigator.
+- **Setting:** "Show MarkdownPoint banner at the top" under Advanced moves the banner further down the settings page when turned off.
+- **Content:** The banner's images and text are bundled with the plugin. It loads nothing from the network and sends no data. Each time settings open it shows the next of its designs and messages; which one was shown last is stored in Obsidian local storage on the device.
+- **Link:** Clicking the banner opens `https://markdownpoint.com` in your browser.
+
+### 11.7 Privacy and data handling
 
 - Notebook Navigator does not send note content, file names, tags, or debug files to a Notebook Navigator server.
 - Requests to GitHub, YouTube, and any external image host are made directly from your device and include standard HTTP metadata (IP address, user-agent, and similar).
-- Downloaded icon packs and images are stored locally (IndexedDB). Recent notes/files and UI state are stored locally (Obsidian local storage).
+- Downloaded languages, icon packs, and images are stored locally (IndexedDB). Recent notes/files and UI state are stored locally (Obsidian local storage).
 
 <br/>
 

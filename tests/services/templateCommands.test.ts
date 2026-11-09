@@ -32,7 +32,8 @@ import { DEFAULT_SETTINGS } from '../../src/settings/defaultSettings';
 import type { TemplateCommand } from '../../src/settings/types';
 import { sanitizeTemplateCommands } from '../../src/settings/types';
 import { createTestTFile } from '../utils/createTestTFile';
-import { TEMPLATER_PLUGIN_ID } from '../../src/constants/pluginIds';
+import { TEMPLATER_JUMP_TO_CURSOR_COMMAND_ID, TEMPLATER_PLUGIN_ID } from '../../src/constants/pluginIds';
+import { applyPendingTemplaterCursorOnFileOpen, hasPendingTemplateCursor } from '../../src/utils/templateCursor';
 
 vi.mock('../../src/modals/TemplatePromptModal', () => ({
     promptForTemplateValues: vi.fn()
@@ -199,19 +200,98 @@ describe('template commands', () => {
         const meetings = createFolder(app, 'Meetings', root);
         const settings = { dateFormat: 'YYYY-MM-DD', timeFormat: 'HH:mm' };
 
-        expect(
-            buildTemplateCommandFileName(settings, createCommand({ fileNameFormat: '{{prompt:Title}}' }), meetings, {
-                Title: 'Weekly sync'
-            })
-        ).toBe('Weekly sync');
-        expect(
-            buildTemplateCommandFileName(settings, createCommand({ fileNameFormat: 'Call: {{prompt:Title}}?' }), meetings, {
-                Title: 'A/B  test...'
-            })
-        ).toBe('Call AB test');
-        expect(buildTemplateCommandFileName(settings, createCommand({ fileNameFormat: '{{prompt:Title}}' }), meetings, { Title: '' })).toBe(
-            'Untitled'
+        const build = (fileNameFormat: string, promptValues: Record<string, string> = {}) =>
+            buildTemplateCommandFileName(settings, createCommand({ fileNameFormat }), meetings, promptValues);
+
+        expect(build('{{prompt:Title}}', { Title: 'Weekly sync' })).toEqual({ baseName: ['Weekly sync'], invalidTokens: [] });
+        expect(build('Call: {{prompt:Title}}?', { Title: 'A/B  test...' })).toEqual({ baseName: ['Call AB test'], invalidTokens: [] });
+        expect(build('{{prompt:Title}}', { Title: '' })).toEqual({ baseName: ['Untitled'], invalidTokens: [] });
+        // Number tokens stay as slots. The text around them is sanitized as one name, so the space before the slot survives
+        // while the colon and the trailing periods are removed.
+        expect(build('Note: {{number:00}}...')).toEqual({ baseName: ['Note ', { padding: 2 }], invalidTokens: [] });
+        expect(build(' {{number}} ')).toEqual({ baseName: [{ padding: 1 }], invalidTokens: [] });
+        expect(build('Note {{number}} draft. ')).toEqual({ baseName: ['Note ', { padding: 1 }, ' draft'], invalidTokens: [] });
+        expect(build('{{number+1}} {{prompt:Title}}', { Title: 'x' })).toEqual({
+            baseName: ['{{number+1}} x'],
+            invalidTokens: ['{{number+1}}']
+        });
+    });
+
+    it('continues the numbering of matching notes in the folder and shares the number with the template', async () => {
+        const app = new App();
+        const root = createFolder(app, '/', null);
+        const folder = createFolder(app, 'Notes', root);
+        folder.children = ['Notes/Note 03.md', 'Notes/note 7.md', 'Notes/Note 12 draft.md', 'Notes/Note 99.txt', 'Notes/Other 50.md'].map(
+            createTestTFile
         );
+        getTestVault(app).registerFile(createTestTFile('Templates/Note.md'));
+        app.vault.cachedRead = vi.fn(async () => '# {{number}} {{title}}');
+        const create = vi.fn(async (path: string) => createTestTFile(path));
+        app.vault.create = create;
+        app.workspace = { getLeaf: () => ({ openFile: vi.fn(async () => undefined) }) } as unknown as App['workspace'];
+        const { plugin } = createPlugin(app, [
+            createCommand({
+                id: 'numbered',
+                location: 'folder',
+                folder: 'Notes',
+                fileNameFormat: 'Note {{number:00}}',
+                template: 'Templates/Note.md'
+            }),
+            createCommand({ id: 'plain', location: 'folder', folder: 'Notes', fileNameFormat: 'Plain', template: 'Templates/Note.md' })
+        ]);
+
+        await runTemplateCommand(plugin, 'numbered');
+        await runTemplateCommand(plugin, 'plain');
+
+        expect(create.mock.calls).toEqual([
+            ['Notes/Note 08.md', '# 8 Note 08'],
+            // Without a numbered file name the body token has no value and stays in the note.
+            ['Notes/Plain.md', '# {{number}} Plain']
+        ]);
+    });
+
+    it('gives overlapping numbered commands consecutive numbers before their files appear in the vault', async () => {
+        const app = new App();
+        const root = createFolder(app, '/', null);
+        const folder = createFolder(app, 'Notes', root);
+        folder.children = [createTestTFile('Notes/Note 04.md')];
+        getTestVault(app).registerFile(createTestTFile('Templates/Note.md'));
+        app.vault.cachedRead = vi.fn(async () => '{{number}}|{{title}}');
+        const pendingWrites: Array<{ path: string; finish: (file: TFile) => void }> = [];
+        const create = vi.fn((path: string, _content: string) => new Promise<TFile>(finish => pendingWrites.push({ path, finish })));
+        app.vault.create = create;
+        app.workspace = { getLeaf: () => ({ openFile: vi.fn(async () => undefined) }) } as unknown as App['workspace'];
+        const { plugin } = createPlugin(app, [
+            createCommand({ location: 'folder', folder: 'Notes', fileNameFormat: 'Note {{number:00}}', template: 'Templates/Note.md' })
+        ]);
+
+        const first = runTemplateCommand(plugin, 'meeting');
+        const second = runTemplateCommand(plugin, 'meeting');
+        await vi.waitFor(() => expect(pendingWrites).toHaveLength(2));
+        pendingWrites.forEach(({ path, finish }) => finish(createTestTFile(path)));
+        await Promise.all([first, second]);
+
+        expect(create.mock.calls).toEqual([
+            ['Notes/Note 05.md', '5|Note 05'],
+            ['Notes/Note 06.md', '6|Note 06']
+        ]);
+    });
+
+    it('creates nothing when the file name format has malformed tokens', async () => {
+        const app = new App();
+        const root = createFolder(app, '/', null);
+        createFolder(app, 'Notes', root);
+        getTestVault(app).registerFile(createTestTFile('Templates/Note.md'));
+        app.vault.cachedRead = vi.fn(async () => 'body');
+        const create = vi.fn();
+        app.vault.create = create;
+        const { plugin } = createPlugin(app, [
+            createCommand({ location: 'folder', folder: 'Notes', fileNameFormat: 'Note {{number+1}}', template: 'Templates/Note.md' })
+        ]);
+
+        await runTemplateCommand(plugin, 'meeting');
+
+        expect(create).not.toHaveBeenCalled();
     });
 
     it('reserves sequential names for overlapping commands even before their files appear in the vault', async () => {
@@ -268,7 +348,7 @@ describe('template commands', () => {
     });
 
     it.each(['automatic', 'templater'] as const)(
-        'keeps filename prompts but skips body prompts with the %s Templater path',
+        'keeps filename prompts, skips body prompts and runs the Templater cursor jump with the %s Templater path',
         async templateEngine => {
             const app = new App();
             const root = createFolder(app, '/', null);
@@ -276,7 +356,28 @@ describe('template commands', () => {
             const templateFile = createTestTFile('Templates/Meeting.md');
             const createdFile = createTestTFile('Meetings/Weekly sync.md');
             const createFromTemplater = vi.fn(async () => createdFile);
-            const openFile = vi.fn(async () => undefined);
+            const templateContent = '<% tp.file.title %> {{prompt:Ignored}} {{prompt:Title}}\nBefore <% tp.file.cursor() %>';
+            const createdContent = 'Weekly sync {{prompt:Ignored}} {{prompt:Title}}\nBefore <% tp.file.cursor() %>';
+            let content = templateContent;
+            let finishOpen = () => {
+                throw new Error('File open has not started');
+            };
+            const view = new MarkdownView();
+            view.file = templateFile;
+            const focusEditor = vi.fn();
+            view.editor = { focus: focusEditor, getValue: () => content } as unknown as MarkdownView['editor'];
+            const openFile = vi.fn(
+                () =>
+                    new Promise<void>(resolve => {
+                        // The early event sees the new path with the old template's marker still in the editor.
+                        view.file = createdFile;
+                        applyPendingTemplaterCursorOnFileOpen(app, createdFile);
+                        finishOpen = () => {
+                            content = createdContent;
+                            resolve();
+                        };
+                    })
+            );
             const templater = new TestTemplaterPlugin(app, {
                 id: TEMPLATER_PLUGIN_ID,
                 name: 'Templater',
@@ -288,18 +389,39 @@ describe('template commands', () => {
             Reflect.set(templater, 'templater', { create_new_note_from_template: createFromTemplater });
             Reflect.set(app, 'plugins', { plugins: { [TEMPLATER_PLUGIN_ID]: templater } });
             getTestVault(app).registerFile(templateFile);
-            const cachedRead = vi.fn(async () => '<% tp.file.title %> {{prompt:Ignored}} {{prompt:Title}}');
+            const cachedRead = vi.fn(async () => templateContent);
             app.vault.cachedRead = cachedRead;
-            app.workspace = { getLeaf: vi.fn(() => ({ openFile })) } as unknown as App['workspace'];
+            const executeCommandById = vi.fn(() => {
+                expect(content).toBe(createdContent);
+                content = content.replace('<% tp.file.cursor() %>', '');
+                return true;
+            });
+            Reflect.set(app, 'commands', { executeCommandById });
+            app.workspace = {
+                activeEditor: view,
+                getLeaf: vi.fn(() => ({ openFile }))
+            } as unknown as App['workspace'];
             vi.mocked(promptForTemplateValues).mockResolvedValue({ Title: 'Weekly sync' });
             const { plugin } = createPlugin(app, [createCommand({ location: 'folder', folder: 'Meetings' })]);
             plugin.settings.templateEngine = templateEngine;
 
-            await runTemplateCommand(plugin, 'meeting');
+            const creation = runTemplateCommand(plugin, 'meeting');
+            await vi.waitFor(() => expect(openFile).toHaveBeenCalledOnce());
+            expect(executeCommandById).not.toHaveBeenCalled();
+            expect(content).toBe(templateContent);
+            expect(hasPendingTemplateCursor(createdFile.path)).toBe(true);
+            finishOpen();
+            await creation;
 
             expect(promptForTemplateValues).toHaveBeenCalledExactlyOnceWith(app, ['Title']);
             expect(createFromTemplater).toHaveBeenCalledWith(templateFile, folder, 'Weekly sync', false);
             expect(openFile).toHaveBeenCalledWith(createdFile, { state: { mode: 'source' }, active: true });
+            // Templater leaves its cursor markers in the note, so its jump command runs after the note has opened.
+            expect(executeCommandById).toHaveBeenCalledExactlyOnceWith(TEMPLATER_JUMP_TO_CURSOR_COMMAND_ID);
+            expect(openFile.mock.invocationCallOrder[0]).toBeLessThan(executeCommandById.mock.invocationCallOrder[0]);
+            expect(content).toBe(createdContent.replace('<% tp.file.cursor() %>', ''));
+            expect(focusEditor).toHaveBeenCalledOnce();
+            expect(hasPendingTemplateCursor(createdFile.path)).toBe(false);
             expect(cachedRead).toHaveBeenCalledTimes(1);
         }
     );

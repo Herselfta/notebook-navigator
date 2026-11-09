@@ -37,8 +37,6 @@ export const ListPaneTitleArea = React.memo(function ListPaneTitleArea({ desktop
     const settings = useSettingsState();
     const selectionState = useSelectionState();
     const selectionDispatch = useSelectionDispatch();
-    // The title keeps the theme color when custom colors are limited to icons, matching navigation items.
-    const titleTextColor = titleColor && !settings.colorIconOnly ? titleColor : undefined;
 
     // Folder note interactions only apply when a folder is selected.
     const selectedFolder = selectionState.selectionType === ItemType.FOLDER ? selectionState.selectedFolder : null;
@@ -58,13 +56,15 @@ export const ListPaneTitleArea = React.memo(function ListPaneTitleArea({ desktop
 
         return getFolderNote(selectedFolder, {
             enableFolderNotes: settings.enableFolderNotes,
-            folderNoteNamePattern: settings.folderNoteNamePattern
+            folderNoteNamePattern: settings.folderNoteNamePattern,
+            folderNoteType: settings.folderNoteType
         });
     }, [
         selectedFolder,
         settings.enableFolderNotes,
         settings.enableFolderNoteLinks,
         settings.folderNoteNamePattern,
+        settings.folderNoteType,
         selectedFolderFileVersion
     ]);
 
@@ -109,9 +109,10 @@ export const ListPaneTitleArea = React.memo(function ListPaneTitleArea({ desktop
                 return;
             }
 
-            // Middle-click always opens folder notes in a new tab.
+            // Prevents the default without stopping propagation: Obsidian's Linux window listener only blocks the
+            // primary-selection paste on mouseup after it sees a default-prevented mousedown, so stopping propagation
+            // here would paste the selection into the opened note.
             event.preventDefault();
-            event.stopPropagation();
             revealFolderNoteInNavigator(selectionDispatch, selectedFolderNote);
 
             runAsyncAction(() =>
@@ -135,7 +136,7 @@ export const ListPaneTitleArea = React.memo(function ListPaneTitleArea({ desktop
                         className={`nn-list-title-label${selectedFolderNote ? ' nn-list-title-label--folder-note' : ''}`}
                         onClick={selectedFolderNote ? handleFolderNoteClick : undefined}
                         onMouseDown={selectedFolderNote ? handleFolderNoteMouseDown : undefined}
-                        style={titleTextColor ? { color: titleTextColor } : undefined}
+                        style={titleColor ? { color: titleColor } : undefined}
                     >
                         {desktopTitle}
                     </span>

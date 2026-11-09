@@ -43,7 +43,9 @@ import {
     flattenFolderTree,
     flattenTagTree,
     comparePropertyOrderWithFallback,
-    compareTagOrderWithFallback
+    compareTagOrderWithFallback,
+    getChildOrder,
+    orderByManualList
 } from '../../../utils/treeFlattener';
 import { resolveUXIcon } from '../../../utils/uxIcons';
 import { getVirtualTagCollection, VIRTUAL_TAG_COLLECTION_IDS } from '../../../utils/virtualTagCollections';
@@ -79,7 +81,8 @@ export interface NavigationPaneTreeSectionsResult {
     folderItems: CombinedNavigationItem[];
     tagItems: CombinedNavigationItem[];
     renderTagTree: Map<string, TagTreeNode>;
-    renderedRootTagKeys: string[];
+    /** Root tag keys of the unfiltered tree in navigation order; source for rainbow color slots shared by both panes */
+    unscopedRootTagKeys: string[];
     rootOrderingTagTree: Map<string, TagTreeNode>;
     resolvedRootTagKeys: string[];
     tagsVirtualFolderHasChildren: boolean;
@@ -232,7 +235,7 @@ export function useNavigationPaneTreeSections({
             ? (folder: TFolder) => (folder.path === '/' ? true : (baseFolderExclusion?.(folder) ?? false))
             : baseFolderExclusion;
         return flattenFolderTree(sourceState.rootFolders, expandedFolders, sourceState.hiddenFolders, 0, new Set(), {
-            rootOrderMap: sourceState.rootFolderOrderMap,
+            childOrder: settings.folderChildOrder,
             defaultSortOrder: settings.folderSortOrder,
             childSortOrderOverrides: settings.folderTreeSortOverrides,
             getFolderSortName: sourceState.getFolderSortName,
@@ -240,13 +243,13 @@ export function useNavigationPaneTreeSections({
         });
     }, [
         expansionState.expandedFolders,
+        settings.folderChildOrder,
         settings.folderSortOrder,
         settings.folderTreeSortOverrides,
         settings.showRootFolder,
         sourceState.folderExclusionByFolderNote,
         sourceState.getFolderSortName,
         sourceState.hiddenFolders,
-        sourceState.rootFolderOrderMap,
         sourceState.rootFolders
     ]);
 
@@ -400,22 +403,18 @@ export function useNavigationPaneTreeSections({
     const rootOrderingTagTree = useMemo(() => globalRootTagOrdering.rootNodeMap, [globalRootTagOrdering.rootNodeMap]);
     const resolvedRootTagKeys = useMemo(() => globalRootTagOrdering.resolvedRootTagKeys, [globalRootTagOrdering.resolvedRootTagKeys]);
 
-    const isScopedTagSectionSource = scopedTagSectionSource !== null;
-    const scopedUntaggedCount = scopedTagSectionSource?.untaggedCount;
-    const renderedRootUntaggedCount = scopedUntaggedCount ?? sourceState.untaggedCount;
-    const renderedRootHiddenTagNodes = isScopedTagSectionSource ? undefined : sourceState.hiddenRootTagNodes;
-    const renderedRootNodeMap = renderRootTagOrdering.rootNodeMap;
-    const renderedResolvedRootTagKeys = renderRootTagOrdering.resolvedRootTagKeys;
-
-    const renderedRootTagKeys = useMemo((): string[] => {
+    // Root tag keys of the unfiltered tree in navigation order, without hidden root tags or Untagged when they are not shown.
+    // Rainbow colors are assigned from this list rather than the scoped tree, so tags keep their color slots when filter by
+    // selection narrows the rendered tags; otherwise every remaining tag would shift color on each selection change.
+    const unscopedRootTagKeys = useMemo((): string[] => {
         if (!settings.showTags) {
             return [];
         }
 
-        const shouldIncludeUntagged = settings.showUntagged && renderedRootUntaggedCount > 0;
+        const shouldIncludeUntagged = settings.showUntagged && sourceState.untaggedCount > 0;
 
-        return renderedResolvedRootTagKeys.filter(key => {
-            if (renderedRootHiddenTagNodes?.has(key) && !showHiddenItems) {
+        return globalRootTagOrdering.resolvedRootTagKeys.filter(key => {
+            if (sourceState.hiddenRootTagNodes.has(key) && !showHiddenItems) {
                 return false;
             }
 
@@ -423,16 +422,15 @@ export function useNavigationPaneTreeSections({
                 return shouldIncludeUntagged;
             }
 
-            return renderedRootNodeMap.has(key);
+            return globalRootTagOrdering.rootNodeMap.has(key);
         });
     }, [
-        renderedRootHiddenTagNodes,
-        renderedRootNodeMap,
-        renderedRootUntaggedCount,
-        renderedResolvedRootTagKeys,
+        globalRootTagOrdering,
         settings.showTags,
         settings.showUntagged,
-        showHiddenItems
+        showHiddenItems,
+        sourceState.hiddenRootTagNodes,
+        sourceState.untaggedCount
     ]);
 
     const { tagItems, tagsVirtualFolderHasChildren } = useMemo((): {
@@ -558,7 +556,8 @@ export function useNavigationPaneTreeSections({
             const tagEntries = flattenTagTree([node], expansionState.expandedTags, level, {
                 hiddenMatcher: matcherForMarking,
                 comparator: effectiveRootTagComparator,
-                childSortOrderOverrides: settings.tagTreeSortOverrides
+                childSortOrderOverrides: settings.tagTreeSortOverrides,
+                childOrder: settings.tagChildOrder
             });
             items.push(...tagEntries);
         };
@@ -621,6 +620,7 @@ export function useNavigationPaneTreeSections({
         settings.showNoteCount,
         settings.showTags,
         settings.showUntagged,
+        settings.tagChildOrder,
         settings.tagTreeSortOverrides,
         showHiddenItems,
         sourceState.hiddenMatcherHasRules,
@@ -883,7 +883,12 @@ export function useNavigationPaneTreeSections({
                     includeDescendantNotes && node.valuePath ? getTotalPropertyNoteCount(keyNode, node.valuePath) : node.notesWithValue.size
             });
 
-            return nodes.sort(comparator);
+            return orderByManualList(
+                nodes,
+                getChildOrder(settings.propertyChildOrder, keyNode.id),
+                node => node.valuePath ?? '',
+                comparator
+            );
         };
 
         keyNodes.forEach(keyNode => {
@@ -915,6 +920,7 @@ export function useNavigationPaneTreeSections({
         propertySectionBase.keyNodes,
         propertySectionBase.propertiesSectionActive,
         settings.interfaceIcons,
+        settings.propertyChildOrder,
         settings.propertySortOrder,
         settings.propertyTreeSortOverrides,
         settings.showAllPropertiesFolder,
@@ -925,7 +931,7 @@ export function useNavigationPaneTreeSections({
         folderItems,
         tagItems,
         renderTagTree,
-        renderedRootTagKeys,
+        unscopedRootTagKeys,
         rootOrderingTagTree,
         resolvedRootTagKeys,
         tagsVirtualFolderHasChildren,

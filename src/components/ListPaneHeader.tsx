@@ -82,8 +82,6 @@ export const ListPaneHeader = React.memo(function ListPaneHeader({
     const uiState = useUIState();
     const uiDispatch = useUIDispatch();
     const listPaneTitlePreference = settings.listPaneTitle ?? 'header';
-    // The title text keeps the theme color when custom colors are limited to icons, matching navigation items.
-    const titleTextColor = titleColor && !settings.colorIconOnly ? titleColor : undefined;
     const iconVersion = useIconServiceVersion();
     const listToolbarVisibility = settings.toolbarVisibility.list;
     const showRevealButton = listToolbarVisibility.reveal;
@@ -162,13 +160,15 @@ export const ListPaneHeader = React.memo(function ListPaneHeader({
 
         return getFolderNote(selectedFolder, {
             enableFolderNotes: settings.enableFolderNotes,
-            folderNoteNamePattern: settings.folderNoteNamePattern
+            folderNoteNamePattern: settings.folderNoteNamePattern,
+            folderNoteType: settings.folderNoteType
         });
     }, [
         selectedFolder,
         settings.enableFolderNotes,
         settings.enableFolderNoteLinks,
         settings.folderNoteNamePattern,
+        settings.folderNoteType,
         shouldResolveSelectedFolderNote,
         selectedFolderFileVersion
     ]);
@@ -214,9 +214,10 @@ export const ListPaneHeader = React.memo(function ListPaneHeader({
                 return;
             }
 
-            // Middle-click opens in a new tab and suppresses default browser behavior.
+            // Prevents the default without stopping propagation: Obsidian's Linux window listener only blocks the
+            // primary-selection paste on mouseup after it sees a default-prevented mousedown, so stopping propagation
+            // here would paste the selection into the opened note.
             event.preventDefault();
-            event.stopPropagation();
             revealFolderNoteInNavigator(selectionDispatch, selectedFolderNote);
 
             runAsyncAction(() =>
@@ -263,7 +264,7 @@ export const ListPaneHeader = React.memo(function ListPaneHeader({
                         className={`nn-path-current${isCurrentFolderNoteSegment ? ' nn-pane-header-folder-note' : ''}`}
                         onClick={isCurrentFolderNoteSegment ? handleSelectedFolderNoteClick : undefined}
                         onMouseDown={isCurrentFolderNoteSegment ? handleSelectedFolderNoteMouseDown : undefined}
-                        style={segment.isLast && titleTextColor ? { color: titleTextColor } : undefined}
+                        style={segment.isLast && titleColor ? { color: titleColor } : undefined}
                     >
                         {segment.label}
                     </span>
@@ -310,7 +311,7 @@ export const ListPaneHeader = React.memo(function ListPaneHeader({
         selectedFolderNote,
         handleSelectedFolderNoteClick,
         handleSelectedFolderNoteMouseDown,
-        titleTextColor
+        titleColor
     ]);
 
     const scrollContainerRef = React.useRef<HTMLDivElement | null>(null);
@@ -411,7 +412,7 @@ export const ListPaneHeader = React.memo(function ListPaneHeader({
                         <span ref={iconRef} className="nn-pane-header-icon" style={titleColor ? { color: titleColor } : undefined} />
                     )}
                     {shouldShowHeaderTitle && (
-                        <span className="nn-pane-header-text" style={titleTextColor ? { color: titleTextColor } : undefined}>
+                        <span className="nn-pane-header-text" style={titleColor ? { color: titleColor } : undefined}>
                             {breadcrumbContent}
                         </span>
                     )}

@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_KO = {
+    language: {
+        downloading: '언어 다운로드 중…',
+        continueInEnglish: '영어로 계속',
+        downloadFailed: '언어를 다운로드하지 못했습니다. Notebook Navigator가 영어를 사용합니다.'
+    },
     // Common UI elements
     common: {
         cancel: '취소', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_KO = {
         manualSortHint: '드래그하여 순서를 변경하세요. 순서는 숫자 인덱스 값으로 속성 "{property}"에 저장됩니다.',
         manualSortNonMarkdownHint: '마크다운이 아닌 파일은 하단에 표시되며 순서를 변경할 수 없습니다.',
         unsortedSection: '정렬되지 않음',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '슬라이드 {count}개',
+            slideCountOne: '슬라이드 1개',
+            theme: '테마',
+            slides: '슬라이드',
+            size: '크기'
+        },
         propertyGroupNoValue: '없음',
         manualSortDone: '완료',
         manualSortMultipleWriteFailure: '{count}개 파일 실패; 첫 번째: {path}: {message}'
@@ -79,12 +92,14 @@ export const STRINGS_KO = {
         reorderRootFoldersTitle: '탐색 재정렬',
         reorderRootFoldersHint: '화살표 또는 드래그로 재정렬',
         vaultRootLabel: '보관함',
-        resetRootToAlpha: '알파벳 순서로 재설정',
-        resetRootToFrequency: '빈도 순으로 재설정',
+        resetAllFolders: '모든 폴더 재설정',
+        resetAllTags: '모든 태그 재설정',
+        resetAllProperties: '모든 속성 재설정',
         pinShortcuts: '바로가기를 고정',
         pinShortcutsAndRecentFiles: '바로가기와 최근 파일을 고정',
         unpinShortcuts: '바로가기 고정을 해제',
         unpinShortcutsAndRecentFiles: '바로가기와 최근 파일 고정을 해제',
+        resizePinnedShortcuts: '고정된 바로가기 크기 조정',
         profileMenuAria: '보관함 프로필 변경'
     },
 
@@ -115,6 +130,7 @@ export const STRINGS_KO = {
 
     templates: {
         invalidTokens: '템플릿 "{name}"에 잘못된 토큰이 있습니다: {tokens}',
+        invalidFileNameTokens: '"{name}"의 파일 이름 형식에 잘못된 토큰이 있습니다: {tokens}',
         readFailed: '템플릿 "{name}"을(를) 읽을 수 없습니다. 노트는 템플릿 없이 만들어졌습니다.',
         folderNotSet: '템플릿으로 노트를 만들기 전에 파일 작업 및 템플릿 > 템플릿에서 템플릿 폴더를 설정하세요.',
         templateNotFound: '템플릿 "{name}"을(를) 찾을 수 없습니다.',
@@ -235,10 +251,12 @@ export const STRINGS_KO = {
                     items: [
                         '`.key` `key`로 시작하는 속성 키가 있는 노트를 포함합니다.',
                         '`.key=value` 속성 값에 `value`가 포함된 노트를 포함합니다.',
+                        '`.key=null` `key` 속성이 있지만 값이 없는 노트를 포함합니다. `.key="null"`은 텍스트 `null`을 검색합니다.',
                         '`."Reading Status"` 공백이 포함된 속성 키가 있는 노트를 포함합니다.',
                         '`."Reading Status"="In Progress"` 공백이 포함된 키와 값은 큰따옴표로 묶어야 합니다.',
                         '`-.key` `key`로 시작하는 속성 키가 있는 노트를 제외합니다.',
                         '`-.key=value` 속성 값에 `value`가 포함된 노트를 제외합니다.',
+                        '`-.key=null` `key` 속성이 있지만 값이 없는 노트를 제외합니다.',
                         'Cmd/Ctrl+클릭으로 속성을 AND로 추가. Cmd/Ctrl+Shift+클릭으로 OR로 추가.'
                     ]
                 },
@@ -733,7 +751,7 @@ export const STRINGS_KO = {
             templatePlaceholder: 'Templates/Meeting.md',
             fileNameFormat: '파일 이름 형식',
             fileNameFormatDesc:
-                '{{date:YYYYMMDD}}, {{prompt:Title}} 같은 토큰은 명령을 실행할 때 치환됩니다. 각 프롬프트는 값을 묻고, 템플릿의 같은 레이블은 같은 값을 받습니다.',
+                '{{date:YYYYMMDD}}, {{prompt:Title}} 같은 토큰은 명령을 실행할 때 치환됩니다. 각 프롬프트는 값을 묻고, 템플릿의 같은 레이블은 같은 값을 받습니다. {{number}}는 폴더에서 같은 이름 패턴을 사용하는 노트의 가장 큰 번호보다 1 큰 값이고, {{number:00}}은 0으로 자릿수를 채웁니다. 템플릿에서도 {{number}}를 사용할 수 있고, {{title}}은 생성된 파일 이름을 삽입합니다.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Title}}',
             location: '위치',
             folder: '폴더',
@@ -911,6 +929,7 @@ export const STRINGS_KO = {
             cannotMoveIntoSelf: '폴더를 자기 자신이나 하위 폴더로 이동할 수 없습니다.',
             itemAlreadyExists: '이 위치에 "{name}"이(가) 이미 존재합니다.',
             failedToMove: '이동 실패: {error}',
+            failedToCopy: '"{name}" 복사 실패: {error}',
             failedToAddTag: '태그 "{tag}" 추가 실패',
             failedToSetProperty: '속성 업데이트 실패: {error}',
             failedToClearTags: '태그 지우기 실패',
@@ -923,7 +942,9 @@ export const STRINGS_KO = {
             filesAlreadyHaveProperty: '{count}개 파일에 이미 이 속성이 있습니다',
             noTagsToClear: '지울 태그 없음',
             fileImported: '1개의 파일 가져옴',
-            filesImported: '{count}개의 파일 가져옴'
+            filesImported: '{count}개의 파일 가져옴',
+            fileCopied: '1개의 파일 복사됨',
+            filesCopied: '{count}개의 파일 복사됨'
         }
     },
 
@@ -946,6 +967,9 @@ export const STRINGS_KO = {
         openMonthlyNote: '월간 노트 열기',
         openQuarterlyNote: '분기 노트 열기',
         openYearlyNote: '연간 노트 열기',
+        openNextPeriodicNote: '다음 정기 노트 열기',
+        openPreviousPeriodicNote: '이전 정기 노트 열기',
+        openParentPeriodicNote: '상위 정기 노트 열기',
         revealFile: '파일 표시', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '검색', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: '보관함 전체 검색', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1046,8 +1070,6 @@ export const STRINGS_KO = {
             exportFailed: '메타데이터 보고서 내보내기 실패'
         },
         index: {
-            label: '일반',
-            description: '릴리스 노트, 지원, 보관함 프로필, 파일 유형, 속성 키.',
             groups: {
                 about: '정보'
             }
@@ -1174,7 +1196,8 @@ export const STRINGS_KO = {
                 description: '진단, 메타데이터 정리, 가져오기/내보내기 및 초기화.',
                 groups: {
                     maintenance: '유지 관리',
-                    resetSettings: '설정 초기화'
+                    resetSettings: '설정 초기화',
+                    thirdPartyLicenses: '타사 라이선스'
                 }
             }
         },
@@ -1643,7 +1666,6 @@ export const STRINGS_KO = {
             calendarLocale: {
                 name: '지역',
                 desc: '달력 날짜 형식, 주 번호, 그리고 한 주의 첫 번째 요일을 제어합니다.',
-                weekPathMismatchWarning: '표시되는 캘린더와 주간 노트 경로가 주의 시작 요일 또는 주 번호 매김이 서로 다릅니다.',
                 options: {
                     systemDefault: '기본값'
                 }
@@ -1757,7 +1779,9 @@ export const STRINGS_KO = {
                 momentLinkText: 'Moment 날짜 형식',
                 momentDescSuffix:
                     '을 사용하여 경로 지정. 하위 폴더 이름은 대괄호로 감싸세요, 예: [Work]/YYYY. 템플릿 아이콘을 클릭하여 템플릿을 설정하세요. 템플릿 폴더 위치는 파일 작업 및 템플릿 > 템플릿에서 설정하세요.',
-                example: '현재 구문: {path}'
+                example: '현재 구문: {path}',
+                weekYearWarning:
+                    '"gggg"와 "GGGG"는 주 기준 연도이므로 새해 전후의 날짜는 잘못된 연도가 될 수 있습니다. "YYYY"를 사용하세요.'
             },
             templateEngine: {
                 name: '템플릿 엔진',
@@ -1800,10 +1824,14 @@ export const STRINGS_KO = {
             calendarWeeklyNotePattern: {
                 name: '주간 노트',
                 parsingError: '패턴은 전체 주(주 연도, 주 번호)로 포맷되고 다시 파싱될 수 있어야 합니다.',
-                weekPathMismatchWarning:
-                    '주간 노트 경로는 정기 노트 지역을 사용합니다. 일치하는 지역을 사용하거나 월요일 기준 주에는 "GGGG"와 "WW"를 사용하세요.',
+                isoWeeksWarning:
+                    '주간 노트가 ISO 주("W" 또는 "G")를 사용하므로 캘린더는 월요일에 주를 시작하고 ISO 주 번호를 표시합니다. 지역 설정을 따르는 주에는 "gggg"와 "ww"를 사용하세요.',
+                calendarYearWarning:
+                    '주간 노트가 "YYYY"에서 연도를 가져오므로 12월에 시작하는 1주차는 이전 연도가 됩니다. "GGGG"와 "WW" 또는 "gggg"와 "ww"를 사용하세요.',
                 mixedWeekTokensWarning:
-                    '이 패턴은 월요일 기준 주 토큰("W" 또는 "G")과 지역 기준 주 토큰("w" 또는 "g")을 혼합하여 사용합니다. 일관되게 한 가지 세트를 사용하세요. 월요일 기준 주에는 "GGGG"와 "WW", 주간 노트가 선택한 지역 설정을 따라야 하는 경우 "gggg"와 "ww"를 사용하세요.'
+                    '주간 노트가 ISO 주 토큰("W" 또는 "G")과 지역 주 토큰("w" 또는 "g")을 혼합합니다. ISO 주에는 "GGGG"와 "WW", 지역 설정을 따르는 주에는 "gggg"와 "ww"를 사용하세요.',
+                weekPathMismatchWarning:
+                    '캘린더 지역과 정기 노트 지역이 주의 시작일 또는 주 번호를 다르게 정하므로 주간 노트 경로가 캘린더의 주와 일치하지 않습니다. 두 설정을 같은 지역으로 지정하거나 ISO 주에는 "GGGG"와 "WW"를 사용하세요.'
             },
             calendarMonthlyNotePattern: {
                 name: '월간 노트',
@@ -1875,7 +1903,10 @@ export const STRINGS_KO = {
                     downloadButtonText: '다운로드',
                     copyNotice: '설정이 클립보드에 복사되었습니다.',
                     downloadNotice: '설정이 내보내졌습니다.',
-                    downloadError: '설정 다운로드에 실패했습니다: {message}'
+                    downloadError: '설정 다운로드에 실패했습니다: {message}',
+                    saveButtonText: '보관함에 저장',
+                    saveNotice: '설정을 {path}에 저장했습니다.',
+                    saveError: '설정 저장에 실패했습니다: {message}'
                 }
             },
             resetAllSettings: {
@@ -2501,7 +2532,7 @@ export const STRINGS_KO = {
             },
             folderNoteType: {
                 name: '기본 폴더 노트 형식',
-                desc: '컨텍스트 메뉴에서 생성되는 폴더 노트 형식입니다.',
+                desc: '컨텍스트 메뉴에서 생성되는 폴더 노트 형식입니다. 폴더에 여러 형식의 폴더 노트가 있으면 이 형식이 우선됩니다.',
                 options: {
                     ask: '생성 시 선택',
                     markdown: 'Markdown',
@@ -2650,10 +2681,38 @@ export const STRINGS_KO = {
                 buttonText: '❤️ 후원하기',
                 coffeeButton: '☕️ 커피 한 잔 사주기'
             },
-            otherPlugins: {
-                name: '제가 만든 다른 플러그인 보기',
-                betterPaste: '붙여넣은 텍스트, 링크, 이미지를 정리',
-                pixelPerfectImage: '정확한 이미지 크기 조정 등'
+            markdownPointBanner: {
+                heading: 'Canva, Keynote, PowerPoint를 쓰시나요?',
+                atTop: {
+                    name: 'MarkdownPoint 배너를 맨 위에 표시',
+                    desc: '끄면 배너가 설정 페이지 아래쪽에 표시됩니다.'
+                },
+                credit: '제작: Johan Sanneblad',
+                messages: [
+                    { headline: '슬라이드를 Markdown으로 쓰세요.', subtext: '텍스트와 이미지는 원하는 곳으로 드래그하세요.' },
+                    { headline: 'PowerPoint의 무료 대안입니다.', subtext: '공유와 공동 작업도 무료입니다.' },
+                    { headline: '발표 자료는 컴퓨터 속 폴더 하나입니다.', subtext: '슬라이드를 만드는 데 계정이 필요 없습니다.' },
+                    { headline: 'Apple Motion처럼 애니메이션을 만드세요.', subtext: '키프레임, 경로, 모핑을 사용할 수 있습니다.' },
+                    { headline: '슬라이드에 3D 모델을 넣으세요.', subtext: 'GLB나 glTF 파일을 열거나 Meshy로 생성하세요.' },
+                    { headline: 'Google Slides처럼 공동 작업하세요.', subtext: '모두의 포인터와 댓글이 보입니다.' },
+                    { headline: '모든 슬라이드의 글을 한곳에서 보세요.', subtext: 'View > Outline을 열고 Markdown으로 편집하세요.' },
+                    { headline: 'Figma처럼 개체를 스냅하세요.', subtext: '간격, 크기, 각도에 맞춰 정렬됩니다.' },
+                    { headline: '발표 자료를 4K 영상으로 내보내세요.', subtext: '애니메이션에 After Effects가 필요 없습니다.' },
+                    { headline: '3D 캐릭터를 걷거나 뛰게 하세요.', subtext: '리깅과 애니메이션에는 Meshy를 사용하세요.' },
+                    { headline: '==등호==로 감싸면 하이라이트됩니다.', subtext: '**굵게**와 *기울임*은 Obsidian과 똑같이 작동합니다.' },
+                    { headline: 'Figma처럼 자동 레이아웃을 쓰세요.', subtext: '그룹을 한 행이나 한 열로 정렬합니다.' },
+                    { headline: '링크로 발표 자료를 공유하세요.', subtext: '무료 계정으로 웹에 게시할 수 있습니다.' },
+                    { headline: 'Blender 같은 3D 조명.', subtext: '포인트, 태양, 스폿, 영역 조명과 그림자.' },
+                    { headline: '발표 자료를 Git으로 관리하세요.', subtext: '발표 자료는 Markdown과 JSON 텍스트 파일입니다.' },
+                    { headline: 'Figma처럼 컴포넌트를 만드세요.', subtext: '한 번 편집하면 모든 인스턴스가 바뀝니다.' },
+                    { headline: 'Obsidian처럼 테마를 둘러보세요.', subtext: '무료 테마를 클릭 한 번으로 설치하세요.' },
+                    { headline: '발표 자료를 동기화 폴더에 두세요.', subtext: 'Dropbox, iCloud Drive, OneDrive 모두 됩니다.' },
+                    { headline: '강체 물리가 있는 3D.', subtext: '개체를 떨어뜨리고, 넘어뜨리고, 쌓으세요.' },
+                    { headline: '발표자 노트도 Markdown입니다.', subtext: '슬라이드와 같은 파일에 저장됩니다.' },
+                    { headline: 'Figma처럼 도형을 결합하세요.', subtext: '합집합, 빼기, 교집합, 제외를 쓸 수 있습니다.' },
+                    { headline: '슬라이드에 코드를 넣으세요.', subtext: '코드 블록은 21개 언어의 구문 강조를 지원합니다.' },
+                    { headline: '개인용과 상업용 모두 무료입니다.', subtext: 'Mac 또는 Windows용으로 내려받으세요.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: '시작 시 새 버전 확인',

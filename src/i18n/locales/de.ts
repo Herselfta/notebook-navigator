@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_DE = {
+    language: {
+        downloading: 'Sprachen werden heruntergeladen…',
+        continueInEnglish: 'Auf Englisch fortfahren',
+        downloadFailed: 'Sprachdownload fehlgeschlagen. Notebook Navigator verwendet Englisch.'
+    },
     // Common UI elements
     common: {
         cancel: 'Abbrechen', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_DE = {
         manualSortHint: 'Zum Neuordnen ziehen. Die Reihenfolge wird als numerische Indexwerte in der Eigenschaft „{property}“ gespeichert.',
         manualSortNonMarkdownHint: 'Nicht-Markdown-Dateien werden unten angezeigt und können nicht neu geordnet werden.',
         unsortedSection: 'Unsortiert',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} Folien',
+            slideCountOne: '1 Folie',
+            theme: 'Thema',
+            slides: 'Folien',
+            size: 'Größe'
+        },
         propertyGroupNoValue: 'Keine',
         manualSortDone: 'Fertig',
         manualSortMultipleWriteFailure: '{count} Dateien fehlgeschlagen; erste: {path}: {message}'
@@ -79,12 +92,14 @@ export const STRINGS_DE = {
         reorderRootFoldersTitle: 'Navigation neu anordnen',
         reorderRootFoldersHint: 'Pfeile oder Ziehen zum Neuanordnen',
         vaultRootLabel: 'Vault',
-        resetRootToAlpha: 'Auf alphabetische Reihenfolge zurücksetzen',
-        resetRootToFrequency: 'Auf Häufigkeitsreihenfolge zurücksetzen',
+        resetAllFolders: 'Alle Ordner zurücksetzen',
+        resetAllTags: 'Alle Tags zurücksetzen',
+        resetAllProperties: 'Alle Eigenschaften zurücksetzen',
         pinShortcuts: 'Verknüpfungen anheften',
         pinShortcutsAndRecentFiles: 'Verknüpfungen und zuletzt verwendete Dateien anheften',
         unpinShortcuts: 'Anheftung von Verknüpfungen aufheben',
         unpinShortcutsAndRecentFiles: 'Anheftung von Verknüpfungen und zuletzt verwendeten Dateien aufheben',
+        resizePinnedShortcuts: 'Größe der angehefteten Verknüpfungen ändern',
         profileMenuAria: 'Vault-Profil ändern'
     },
 
@@ -115,6 +130,7 @@ export const STRINGS_DE = {
 
     templates: {
         invalidTokens: 'Vorlage "{name}" enthält ungültige Platzhalter: {tokens}',
+        invalidFileNameTokens: 'Das Dateinamenformat von "{name}" enthält ungültige Platzhalter: {tokens}',
         readFailed: 'Die Vorlage "{name}" konnte nicht gelesen werden. Die Notiz wurde ohne Vorlage erstellt.',
         folderNotSet: 'Lege den Vorlagenordner unter Dateioperationen & Vorlagen > Vorlagen fest, bevor du Notizen aus Vorlagen erstellst.',
         templateNotFound: 'Vorlage "{name}" wurde nicht gefunden.',
@@ -237,10 +253,12 @@ export const STRINGS_DE = {
                     items: [
                         '`.key` Notizen mit einem Eigenschaftsschlüssel einschließen, der mit `key` beginnt.',
                         '`.key=value` Notizen einschließen, deren Eigenschaftswert `value` enthält.',
+                        '`.key=null` Notizen einschließen, bei denen die Eigenschaft `key` vorhanden ist und keinen Wert hat. `.key="null"` sucht nach dem Text `null`.',
                         '`."Reading Status"` Notizen mit einem Eigenschaftsschlüssel einschließen, der Leerzeichen enthält.',
                         '`."Reading Status"="In Progress"` Schlüssel und Werte mit Leerzeichen müssen in Anführungszeichen stehen.',
                         '`-.key` Notizen mit einem Eigenschaftsschlüssel ausschließen, der mit `key` beginnt.',
                         '`-.key=value` Notizen ausschließen, deren Eigenschaftswert `value` enthält.',
+                        '`-.key=null` Notizen ausschließen, bei denen die Eigenschaft `key` vorhanden ist und keinen Wert hat.',
                         'Cmd/Ctrl+Klick auf eine Eigenschaft zum Hinzufügen mit AND. Cmd/Ctrl+Shift+Klick zum Hinzufügen mit OR.'
                     ]
                 },
@@ -737,7 +755,7 @@ export const STRINGS_DE = {
             templatePlaceholder: 'Vorlagen/Besprechung.md',
             fileNameFormat: 'Dateinamenformat',
             fileNameFormatDesc:
-                'Platzhalter wie {{date:YYYYMMDD}} und {{prompt:Titel}} werden beim Ausführen des Befehls ersetzt. Jede Abfrage fragt nach einem Wert, und dieselbe Bezeichnung in der Vorlage erhält denselben Wert.',
+                'Platzhalter wie {{date:YYYYMMDD}} und {{prompt:Titel}} werden beim Ausführen des Befehls ersetzt. Jede Abfrage fragt nach einem Wert, und dieselbe Bezeichnung in der Vorlage erhält denselben Wert. {{number}} ist um eins höher als die höchste Nummer, die Notizen im Ordner mit demselben Namensmuster verwenden, und {{number:00}} füllt sie mit Nullen auf. Die Vorlage kann {{number}} ebenfalls verwenden, und {{title}} fügt den erzeugten Dateinamen ein.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Titel}}',
             location: 'Speicherort',
             folder: 'Ordner',
@@ -917,6 +935,7 @@ export const STRINGS_DE = {
             cannotMoveIntoSelf: 'Ein Ordner kann nicht in sich selbst oder einen Unterordner verschoben werden.',
             itemAlreadyExists: 'Ein Element mit dem Namen "{name}" existiert bereits an diesem Ort.',
             failedToMove: 'Verschieben fehlgeschlagen: {error}',
+            failedToCopy: 'Kopieren von "{name}" fehlgeschlagen: {error}',
             failedToAddTag: 'Hinzufügen des Tags "{tag}" fehlgeschlagen',
             failedToSetProperty: 'Eigenschaft konnte nicht aktualisiert werden: {error}',
             failedToClearTags: 'Entfernen der Tags fehlgeschlagen',
@@ -929,7 +948,9 @@ export const STRINGS_DE = {
             filesAlreadyHaveProperty: '{count} Dateien haben diese Eigenschaft bereits',
             noTagsToClear: 'Keine Tags zum Entfernen',
             fileImported: '1 Datei importiert',
-            filesImported: '{count} Dateien importiert'
+            filesImported: '{count} Dateien importiert',
+            fileCopied: '1 Datei kopiert',
+            filesCopied: '{count} Dateien kopiert'
         }
     },
 
@@ -952,6 +973,9 @@ export const STRINGS_DE = {
         openMonthlyNote: 'Monatliche Notiz öffnen',
         openQuarterlyNote: 'Vierteljährliche Notiz öffnen',
         openYearlyNote: 'Jährliche Notiz öffnen',
+        openNextPeriodicNote: 'Nächste periodische Notiz öffnen',
+        openPreviousPeriodicNote: 'Vorherige periodische Notiz öffnen',
+        openParentPeriodicNote: 'Übergeordnete periodische Notiz öffnen',
         revealFile: 'Datei anzeigen', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Suchen', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Gesamten Vault durchsuchen', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1053,8 +1077,6 @@ export const STRINGS_DE = {
             exportFailed: 'Export des Metadaten-Berichts fehlgeschlagen'
         },
         index: {
-            label: 'Allgemein',
-            description: 'Versionshinweise, Support, Vault-Profil, Dateitypen und Eigenschaftsschlüssel.',
             groups: {
                 about: 'Über'
             }
@@ -1182,7 +1204,8 @@ export const STRINGS_DE = {
                 description: 'Diagnose, Metadatenbereinigung, Import/Export und Zurücksetzen.',
                 groups: {
                     maintenance: 'Wartung',
-                    resetSettings: 'Einstellungen zurücksetzen'
+                    resetSettings: 'Einstellungen zurücksetzen',
+                    thirdPartyLicenses: 'Lizenzen von Drittanbietern'
                 }
             }
         },
@@ -1651,8 +1674,6 @@ export const STRINGS_DE = {
             calendarLocale: {
                 name: 'Gebietsschema',
                 desc: 'Steuert Kalenderdatumsformat, Wochennummerierung und ersten Wochentag.',
-                weekPathMismatchWarning:
-                    'Der sichtbare Kalender und die Pfade f\u00fcr w\u00f6chentliche Notizen verwenden unterschiedliche Wochenanf\u00e4nge oder Wochennummerierungen.',
                 options: {
                     systemDefault: 'Standard'
                 }
@@ -1766,7 +1787,9 @@ export const STRINGS_DE = {
                 momentLinkText: 'Moment-Datumsformat',
                 momentDescSuffix:
                     '. Unterordnernamen in Klammern setzen, z.B. [Work]/YYYY. Klicke auf das Vorlagensymbol, um eine Vorlage festzulegen. Vorlagenordner unter Dateioperationen & Vorlagen > Vorlagen festlegen.',
-                example: 'Aktuelle Syntax: {path}'
+                example: 'Aktuelle Syntax: {path}',
+                weekYearWarning:
+                    '"gggg" und "GGGG" sind Wochenjahre, daher können Daten um den Jahreswechsel das falsche Jahr erhalten. Verwende "YYYY".'
             },
             templateEngine: {
                 name: 'Vorlagen-Engine',
@@ -1812,10 +1835,14 @@ export const STRINGS_DE = {
                 name: 'Wöchentliche Notizen',
                 parsingError:
                     'Das Muster muss als vollständige Woche (Wochenjahr, Wochennummer) formatiert und wieder geparst werden können.',
-                weekPathMismatchWarning:
-                    'Pfade für wöchentliche Notizen verwenden das Gebietsschema für periodische Notizen. Verwende übereinstimmende Gebietsschemata oder "GGGG" mit "WW" für montagsbasierte Wochen.',
+                isoWeeksWarning:
+                    'Wöchentliche Notizen verwenden ISO-Wochen ("W" oder "G"), daher beginnt der Kalender die Wochen am Montag und zeigt ISO-Wochennummern. Verwende "gggg" mit "ww" für Wochen, die dem Gebietsschema folgen.',
+                calendarYearWarning:
+                    'Wöchentliche Notizen übernehmen das Jahr aus "YYYY", daher erhält eine Woche 1, die im Dezember beginnt, das Vorjahr. Verwende "GGGG" mit "WW" oder "gggg" mit "ww".',
                 mixedWeekTokensWarning:
-                    'Dieses Muster mischt montagsbasierte Wochen-Token ("W" oder "G") mit gebietsschemabasierten Wochen-Token ("w" oder "g"). Verwende konsequent einen Satz: "GGGG" mit "WW" für montagsbasierte Wochen oder "gggg" mit "ww", wenn wöchentliche Notizen dem gewählten Gebietsschema folgen sollen.'
+                    'Wöchentliche Notizen mischen ISO-Wochen-Token ("W" oder "G") mit Gebietsschema-Wochen-Token ("w" oder "g"). Verwende "GGGG" mit "WW" für ISO-Wochen oder "gggg" mit "ww" für Wochen, die dem Gebietsschema folgen.',
+                weekPathMismatchWarning:
+                    'Das Gebietsschema des Kalenders und das Gebietsschema für periodische Notizen beginnen oder nummerieren Wochen unterschiedlich, daher passen die Pfade wöchentlicher Notizen nicht zu den Wochen im Kalender. Stelle beide auf dasselbe Gebietsschema ein oder verwende "GGGG" mit "WW" für ISO-Wochen.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Monatliche Notizen',
@@ -1888,7 +1915,10 @@ export const STRINGS_DE = {
                     downloadButtonText: 'Herunterladen',
                     copyNotice: 'Einstellungen in die Zwischenablage kopiert.',
                     downloadNotice: 'Einstellungen exportiert.',
-                    downloadError: 'Einstellungen konnten nicht heruntergeladen werden: {message}'
+                    downloadError: 'Einstellungen konnten nicht heruntergeladen werden: {message}',
+                    saveButtonText: 'Im Vault speichern',
+                    saveNotice: 'Einstellungen unter {path} gespeichert.',
+                    saveError: 'Einstellungen konnten nicht gespeichert werden: {message}'
                 }
             },
             resetAllSettings: {
@@ -2515,7 +2545,7 @@ export const STRINGS_DE = {
             },
             folderNoteType: {
                 name: 'Standardtyp für Ordnernotizen',
-                desc: 'Ordnernotiztyp, der über das Kontextmenü erstellt wird.',
+                desc: 'Ordnernotiztyp, der über das Kontextmenü erstellt und bevorzugt wird, wenn ein Ordner Ordnernotizen mehrerer Typen enthält.',
                 options: {
                     ask: 'Beim Erstellen fragen',
                     markdown: 'Markdown',
@@ -2665,10 +2695,38 @@ export const STRINGS_DE = {
                 buttonText: '❤️ Sponsor',
                 coffeeButton: '☕️ Spendiere mir einen Kaffee'
             },
-            otherPlugins: {
-                name: 'Schau dir meine anderen Plugins an',
-                betterPaste: 'Räumt eingefügten Text, Links und Bilder auf',
-                pixelPerfectImage: 'Exakte Bildgrößen und mehr'
+            markdownPointBanner: {
+                heading: 'Nutzt du Canva, Keynote oder PowerPoint?',
+                atTop: {
+                    name: 'MarkdownPoint-Banner oben anzeigen',
+                    desc: 'Wenn deaktiviert, erscheint das Banner weiter unten auf der Einstellungsseite.'
+                },
+                credit: 'von Johan Sanneblad',
+                messages: [
+                    { headline: 'Schreib deine Folien in Markdown.', subtext: 'Zieh Text und Bilder an die richtige Stelle.' },
+                    { headline: 'Eine Gratis-Alternative zu PowerPoint.', subtext: 'Auch Teilen und Zusammenarbeit sind gratis.' },
+                    { headline: 'Deine Folien liegen auf deinem Rechner.', subtext: 'Du brauchst kein Konto, um Folien zu erstellen.' },
+                    { headline: 'Animiere wie mit Apple Motion.', subtext: 'Nutze Keyframes, Pfade und Morphs.' },
+                    { headline: 'Bring 3D-Modelle auf deine Folien.', subtext: 'Öffne GLB- oder glTF-Dateien oder nutze Meshy.' },
+                    { headline: 'Arbeite zusammen wie in Google Slides.', subtext: 'Du siehst alle Zeiger und Kommentare.' },
+                    { headline: 'Sieh alle Folientexte an einem Ort.', subtext: 'Öffne View > Outline und bearbeite in Markdown.' },
+                    { headline: 'Objekte rasten wie in Figma ein.', subtext: 'Ausrichten nach Abstand, Größe und Winkel.' },
+                    { headline: 'Exportiere deine Folien als 4K-Video.', subtext: 'Zum Animieren brauchst du kein After Effects.' },
+                    { headline: 'Lass 3D-Figuren gehen oder rennen.', subtext: 'Nutze Meshy für Rigging und Animation.' },
+                    { headline: 'Markieren mit ==Gleichheitszeichen==.', subtext: '**Fett** und *kursiv* gehen genau wie in Obsidian.' },
+                    { headline: 'Nutze Auto-Layout wie in Figma.', subtext: 'Richte eine Gruppe in Zeile oder Spalte aus.' },
+                    { headline: 'Teile Präsentationen per Link.', subtext: 'Stell sie mit einem Gratis-Konto online.' },
+                    { headline: '3D-Beleuchtung wie in Blender.', subtext: 'Punkt, Sonne, Spot und Fläche mit Schatten.' },
+                    { headline: 'Verwalte deine Präsentationen in Git.', subtext: 'Es sind Markdown- und JSON-Textdateien.' },
+                    { headline: 'Baue Komponenten wie in Figma.', subtext: 'Bearbeite sie einmal und jede Instanz ändert sich.' },
+                    { headline: 'Stöbere in Themes wie bei Obsidian.', subtext: 'Installiere ein Gratis-Theme mit einem Klick.' },
+                    { headline: 'Nutze einen synchronisierten Ordner.', subtext: 'Dropbox, iCloud Drive und OneDrive funktionieren.' },
+                    { headline: '3D mit Starrkörperphysik.', subtext: 'Lass Objekte fallen, kippen oder sich stapeln.' },
+                    { headline: 'Sprechernotizen sind auch Markdown.', subtext: 'Sie stehen in derselben Datei wie die Folien.' },
+                    { headline: 'Kombiniere Formen wie in Figma.', subtext: 'Vereinen, abziehen, schneiden oder ausschließen.' },
+                    { headline: 'Zeig Code auf deinen Folien.', subtext: 'Code wird in 21 Sprachen hervorgehoben.' },
+                    { headline: 'Privat und beruflich gratis.', subtext: 'Lade es für Mac oder Windows herunter.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'Beim Start nach neuer Version suchen',

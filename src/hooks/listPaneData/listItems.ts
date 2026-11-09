@@ -18,7 +18,7 @@
 
 import { TFile, TFolder, normalizePath } from 'obsidian';
 import type { App } from 'obsidian';
-import type { AlphaSortOrder, ListNoteGroupingOption, NotebookNavigatorSettings, SortOption } from '../../settings/types';
+import type { ListNoteGroupingOption, NotebookNavigatorSettings, SortOption } from '../../settings/types';
 import { ListPaneItemType, ItemType, PINNED_SECTION_HEADER_KEY } from '../../types';
 import type { ListPaneItem } from '../../types/virtualization';
 import { strings } from '../../i18n';
@@ -47,6 +47,7 @@ import { createHiddenTagVisibility } from '../../utils/tagPrefixMatcher';
 import { getCachedFileTags } from '../../utils/tagUtils';
 import { DateUtils } from '../../utils/dateUtils';
 import { buildListGroupCollapseKey } from '../../utils/listGroupCollapse';
+import { sortFolderSiblings, type FolderSiblingOrderOptions } from '../../utils/treeFlattener';
 import type { AliasSearchMatch, PropertySearchMatch, SearchResultMeta } from '../../types/search';
 import type { IndexedDBStorage } from '../../storage/IndexedDBStorage';
 import type { PropertySelectionNodeId } from '../../utils/propertyTree';
@@ -54,7 +55,8 @@ import type { ListPaneFolderPathSegment } from '../../types/virtualization';
 
 export interface ListPaneConfig {
     filterPinnedByFolder: boolean;
-    folderGroupSortOrder: AlphaSortOrder;
+    /** Subfolder order of the navigation pane, which folder groups follow. */
+    folderSiblingOrder: FolderSiblingOrderOptions;
     groupBy: ListNoteGroupingOption;
     pinnedGroupExpanded: boolean;
     pinnedNotes: NotebookNavigatorSettings['pinnedNotes'];
@@ -124,6 +126,9 @@ function splitFolderPath(path: string): string[] {
     return path.split('/').filter(Boolean);
 }
 
+/** Folder group key of notes stored directly in the vault root when the vault root is not the selected folder. */
+const VAULT_ROOT_FOLDER_GROUP_KEY = 'folder:/';
+
 function getLastFolderPathSegment(path: string, fallback: string): string {
     const segments = splitFolderPath(path);
     return segments.length > 0 ? segments[segments.length - 1] : fallback;
@@ -141,6 +146,46 @@ function buildFolderGroupHeaderSegments(folderPath: string, visiblePath: string)
         label,
         path: folderSegments.slice(0, firstVisibleFolderSegmentIndex + index + 1).join('/')
     }));
+}
+
+/**
+ * Returns a folder's position in the navigation tree: its index among the sorted subfolders of each parent,
+ * from the vault root down. Sorted sibling indices are cached per parent path in `siblingIndexCache`.
+ */
+function getFolderTreePosition(
+    folder: TFolder,
+    siblingOrder: FolderSiblingOrderOptions,
+    siblingIndexCache: Map<string, Map<string, number>>
+): number[] {
+    const position: number[] = [];
+    let current = folder;
+    while (current.parent) {
+        const parent = current.parent;
+        let indexByPath = siblingIndexCache.get(parent.path);
+        if (!indexByPath) {
+            const siblings = sortFolderSiblings(
+                parent.children.filter((child): child is TFolder => child instanceof TFolder),
+                parent.path,
+                siblingOrder
+            );
+            indexByPath = new Map(siblings.map((sibling, index) => [sibling.path, index]));
+            siblingIndexCache.set(parent.path, indexByPath);
+        }
+        position.push(indexByPath.get(current.path) ?? 0);
+        current = parent;
+    }
+    return position.reverse();
+}
+
+/** Compares navigation tree positions. A folder's position is a prefix of its subfolders' positions, so it sorts first. */
+function compareFolderTreePositions(left: readonly number[], right: readonly number[]): number {
+    const sharedLength = Math.min(left.length, right.length);
+    for (let index = 0; index < sharedLength; index += 1) {
+        if (left[index] !== right[index]) {
+            return left[index] - right[index];
+        }
+    }
+    return left.length - right.length;
 }
 
 export function buildListItems(args: BuildListItemsArgs): ListPaneItem[] {
@@ -451,7 +496,7 @@ function buildListItemsInternal(
     }
 
     const shouldGroupByDate = groupingMode === 'date' && isDateSortOption(sortOption);
-    const shouldGroupByFolder = groupingMode === 'folder' && selectionType === ItemType.FOLDER;
+    const shouldGroupByFolder = groupingMode === 'folder';
     const propertyGroupingKey = getPropertyGroupingKey(groupingMode);
     const shouldShowUnsortedSection = isPropertySortOption(sortOption) && isManualSortActive && propertySortKey.trim().length > 0;
 
@@ -619,31 +664,30 @@ function buildListItemsInternal(
         const baseFolderName = selectedFolder?.name ?? null;
         const basePrefix = baseFolderPath && baseFolderPath !== '/' ? `${baseFolderPath}/` : null;
         const vaultRootLabel = strings.navigationPane.vaultRootLabel;
-        const folderGroupSortOrder = listConfig.folderGroupSortOrder;
         const showFolderGroupPaths = listConfig.showFolderGroupPaths;
 
         const folderGroups = new Map<
             string,
             {
                 label: string;
-                sortLabel: string;
+                treePosition: number[];
                 files: TFile[];
                 isCurrentFolder: boolean;
                 folderPath: string | null;
                 folderSegments?: ListPaneFolderPathSegment[];
             }
         >();
+        const siblingIndexCache = new Map<string, Map<string, number>>();
 
         const createFolderGroupHeader = (
             folderPath: string,
             visiblePath: string,
             fallbackName: string
-        ): { label: string; sortLabel: string; folderPath: string; folderSegments?: ListPaneFolderPathSegment[] } => {
+        ): { label: string; folderPath: string; folderSegments?: ListPaneFolderPathSegment[] } => {
             const normalizedFolderPath = normalizePath(folderPath);
             const label = showFolderGroupPaths ? visiblePath : getLastFolderPathSegment(visiblePath, fallbackName);
             return {
                 label,
-                sortLabel: visiblePath,
                 folderPath: normalizedFolderPath,
                 folderSegments: showFolderGroupPaths ? buildFolderGroupHeaderSegments(normalizedFolderPath, visiblePath) : undefined
             };
@@ -654,14 +698,20 @@ function buildListItemsInternal(
         ): {
             key: string;
             label: string;
-            sortLabel: string;
+            folder: TFolder | null;
             isCurrentFolder: boolean;
             folderPath: string | null;
             folderSegments?: ListPaneFolderPathSegment[];
         } => {
             const parent = file.parent;
             if (!(parent instanceof TFolder)) {
-                return { key: 'folder:/', label: vaultRootLabel, sortLabel: vaultRootLabel, isCurrentFolder: false, folderPath: null };
+                return {
+                    key: VAULT_ROOT_FOLDER_GROUP_KEY,
+                    label: vaultRootLabel,
+                    folder: null,
+                    isCurrentFolder: false,
+                    folderPath: null
+                };
             }
 
             if (selectionType === ItemType.FOLDER && baseFolderPath) {
@@ -670,21 +720,9 @@ function buildListItemsInternal(
                     return {
                         key: `folder:${baseFolderPath}`,
                         label,
-                        sortLabel: label,
+                        folder: parent,
                         isCurrentFolder: true,
                         folderPath: baseFolderPath === '/' ? null : baseFolderPath
-                    };
-                }
-
-                if (baseFolderPath === '/' && parent.path !== '/') {
-                    const header = createFolderGroupHeader(parent.path, parent.path, parent.name);
-                    return {
-                        key: `folder:/${parent.path}`,
-                        label: header.label,
-                        sortLabel: header.sortLabel,
-                        isCurrentFolder: false,
-                        folderPath: header.folderPath,
-                        folderSegments: header.folderSegments
                     };
                 }
 
@@ -695,7 +733,7 @@ function buildListItemsInternal(
                         return {
                             key: `folder:${parent.path}`,
                             label: header.label,
-                            sortLabel: header.sortLabel,
+                            folder: parent,
                             isCurrentFolder: false,
                             folderPath: header.folderPath,
                             folderSegments: header.folderSegments
@@ -704,20 +742,29 @@ function buildListItemsInternal(
                 }
             }
 
-            const parentPath = parent.path === '/' ? '' : parent.path;
-            const [topLevel] = parentPath.split('/');
-            if (topLevel && topLevel.length > 0) {
+            // The vault root selection and tag and property views list notes from the whole vault, so
+            // each note groups under its parent folder labeled with the path from the vault root.
+            // Grouping by top-level folder instead would merge sibling folders such as Projects/A and
+            // Projects/B into one group.
+            if (parent.path === '/') {
                 return {
-                    key: `folder:/${topLevel}`,
-                    label: showFolderGroupPaths ? topLevel : getLastFolderPathSegment(topLevel, topLevel),
-                    sortLabel: topLevel,
+                    key: VAULT_ROOT_FOLDER_GROUP_KEY,
+                    label: vaultRootLabel,
+                    folder: parent,
                     isCurrentFolder: false,
-                    folderPath: topLevel,
-                    folderSegments: showFolderGroupPaths ? buildFolderGroupHeaderSegments(topLevel, topLevel) : undefined
+                    folderPath: null
                 };
             }
 
-            return { key: 'folder:/', label: vaultRootLabel, sortLabel: vaultRootLabel, isCurrentFolder: false, folderPath: null };
+            const header = createFolderGroupHeader(parent.path, parent.path, parent.name);
+            return {
+                key: `folder:/${parent.path}`,
+                label: header.label,
+                folder: parent,
+                isCurrentFolder: false,
+                folderPath: header.folderPath,
+                folderSegments: header.folderSegments
+            };
         };
 
         unpinnedFiles.forEach(file => {
@@ -730,7 +777,11 @@ function buildListItemsInternal(
 
             folderGroups.set(groupInfo.key, {
                 label: groupInfo.label,
-                sortLabel: groupInfo.sortLabel,
+                // The vault root has an empty position, so its group sorts first, matching the vault root at the
+                // top of the navigation tree.
+                treePosition: groupInfo.folder
+                    ? getFolderTreePosition(groupInfo.folder, listConfig.folderSiblingOrder, siblingIndexCache)
+                    : [],
                 files: [file],
                 isCurrentFolder: groupInfo.isCurrentFolder,
                 folderPath: groupInfo.folderPath,
@@ -738,20 +789,11 @@ function buildListItemsInternal(
             });
         });
 
+        // Folder groups follow the navigation pane order: the manual subfolder order, alphabetical order
+        // overrides and folder display names of every parent, with each folder's group before its subfolders.
         const orderedGroups = Array.from(folderGroups.entries())
             .map(([key, group]) => ({ key, ...group }))
-            .sort((left, right) => {
-                const labelCompare = compareByAlphaSortOrder(left.sortLabel, right.sortLabel, folderGroupSortOrder);
-                if (labelCompare !== 0) {
-                    return labelCompare;
-                }
-
-                if (left.key === right.key) {
-                    return 0;
-                }
-
-                return left.key < right.key ? -1 : 1;
-            });
+            .sort((left, right) => compareFolderTreePositions(left.treePosition, right.treePosition));
 
         const currentFolderGroup = orderedGroups.find(group => group.isCurrentFolder) ?? null;
         const childFolderGroups = orderedGroups.filter(group => !group.isCurrentFolder);

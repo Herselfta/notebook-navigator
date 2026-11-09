@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_UK = {
+    language: {
+        downloading: 'Завантаження мов…',
+        continueInEnglish: 'Продовжити англійською',
+        downloadFailed: 'Не вдалося завантажити мови. Notebook Navigator використовує англійську.'
+    },
     // Common UI elements
     common: {
         cancel: 'Скасувати', // Button text for canceling dialogs and operations (English: Cancel)
@@ -59,6 +64,14 @@ export const STRINGS_UK = {
             'Перетягуйте для зміни порядку. Порядок зберігається у вигляді числових значень індексу у властивості «{property}».',
         manualSortNonMarkdownHint: 'Файли, відмінні від Markdown, показуються внизу, і їхній порядок не можна змінити.',
         unsortedSection: 'Без сортування',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: 'Слайдів: {count}',
+            slideCountOne: '1 слайд',
+            theme: 'Тема',
+            slides: 'Слайди',
+            size: 'Розмір'
+        },
         propertyGroupNoValue: 'Немає',
         manualSortDone: 'Готово',
         manualSortMultipleWriteFailure: 'Не вдалося обробити файлів ({count}); перший: {path}: {message}'
@@ -81,12 +94,14 @@ export const STRINGS_UK = {
         reorderRootFoldersTitle: 'Змінити порядок навігації',
         reorderRootFoldersHint: 'Використовуйте стрілки або перетягування',
         vaultRootLabel: 'Сховище',
-        resetRootToAlpha: 'Скинути до алфавітного порядку',
-        resetRootToFrequency: 'Скинути до порядку за частотою',
+        resetAllFolders: 'Скинути всі теки',
+        resetAllTags: 'Скинути всі мітки',
+        resetAllProperties: 'Скинути всі властивості',
         pinShortcuts: 'Закріпити ярлики',
         pinShortcutsAndRecentFiles: 'Закріпити ярлики та останні файли',
         unpinShortcuts: 'Відкріпити ярлики',
         unpinShortcutsAndRecentFiles: 'Відкріпити ярлики та останні файли',
+        resizePinnedShortcuts: 'Змінити розмір закріплених ярликів',
         profileMenuAria: 'Змінити профіль сховища'
     },
 
@@ -117,6 +132,7 @@ export const STRINGS_UK = {
 
     templates: {
         invalidTokens: 'Шаблон «{name}» містить неприпустимі токени: {tokens}',
+        invalidFileNameTokens: 'Формат назви файлу команди «{name}» містить неприпустимі токени: {tokens}',
         readFailed: 'Не вдалося прочитати шаблон «{name}». Нотатку створено без нього.',
         folderNotSet: 'Укажіть теку шаблонів у розділі Операції з файлами та шаблони > Шаблони, перш ніж створювати нотатки з шаблонів.',
         templateNotFound: 'Шаблон «{name}» не знайдено.',
@@ -238,10 +254,12 @@ export const STRINGS_UK = {
                     items: [
                         '`.key` Включити нотатки з ключем властивості, що починається з `key`.',
                         '`.key=value` Включити нотатки, у яких значення властивості містить `value`.',
+                        '`.key=null` Включити нотатки, у яких властивість `key` є, але не має значення. `.key="null"` шукає текст `null`.',
                         '`."Reading Status"` Включити нотатки з ключем властивості, що містить пробіли.',
                         '`."Reading Status"="In Progress"` Ключі та значення з пробілами повинні бути в подвійних лапках.',
                         '`-.key` Виключити нотатки з ключем властивості, що починається з `key`.',
                         '`-.key=value` Виключити нотатки, у яких значення властивості містить `value`.',
+                        '`-.key=null` Виключити нотатки, у яких властивість `key` є, але не має значення.',
                         'Cmd/Ctrl+Клік на властивість для додавання з AND. Cmd/Ctrl+Shift+Клік для додавання з OR.'
                     ]
                 },
@@ -735,7 +753,7 @@ export const STRINGS_UK = {
             templatePlaceholder: 'Шаблони/Зустріч.md',
             fileNameFormat: 'Формат назви файлу',
             fileNameFormatDesc:
-                'Токени на кшталт {{date:YYYYMMDD}} і {{prompt:Назва}} замінюються під час запуску команди. Кожен запит просить значення, і та сама мітка в шаблоні отримує те саме значення.',
+                'Токени на кшталт {{date:YYYYMMDD}} і {{prompt:Назва}} замінюються під час запуску команди. Кожен запит просить значення, і та сама мітка в шаблоні отримує те саме значення. {{number}} на одиницю більший за найбільший номер, який використовують нотатки в теці з тим самим шаблоном назви, а {{number:00}} доповнює його нулями. Шаблон також може використовувати {{number}}, а {{title}} вставляє сформовану назву файлу.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Назва}}',
             location: 'Розташування',
             folder: 'Тека',
@@ -912,6 +930,7 @@ export const STRINGS_UK = {
             cannotMoveIntoSelf: 'Неможливо перемістити теку в себе або підтеку.',
             itemAlreadyExists: 'Елемент з назвою «{name}» вже існує в цьому місці.',
             failedToMove: 'Не вдалося перемістити: {error}',
+            failedToCopy: 'Не вдалося скопіювати «{name}»: {error}',
             failedToAddTag: 'Не вдалося додати мітку «{tag}»',
             failedToSetProperty: 'Не вдалося оновити властивість: {error}',
             failedToClearTags: 'Не вдалося очистити мітки',
@@ -924,7 +943,9 @@ export const STRINGS_UK = {
             filesAlreadyHaveProperty: 'Файли вже мають цю властивість: {count}',
             noTagsToClear: 'Немає міток для очищення',
             fileImported: 'Імпортовано 1 файл',
-            filesImported: 'Імпортовано файлів: {count}'
+            filesImported: 'Імпортовано файлів: {count}',
+            fileCopied: 'Скопійовано 1 файл',
+            filesCopied: 'Скопійовано файлів: {count}'
         }
     },
 
@@ -947,6 +968,9 @@ export const STRINGS_UK = {
         openMonthlyNote: 'Відкрити щомісячну нотатку',
         openQuarterlyNote: 'Відкрити квартальну нотатку',
         openYearlyNote: 'Відкрити щорічну нотатку',
+        openNextPeriodicNote: 'Відкрити наступну періодичну нотатку',
+        openPreviousPeriodicNote: 'Відкрити попередню періодичну нотатку',
+        openParentPeriodicNote: 'Відкрити батьківську періодичну нотатку',
         revealFile: 'Показати файл', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Пошук', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Пошук у всьому сховищі', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1047,8 +1071,6 @@ export const STRINGS_UK = {
             exportFailed: 'Не вдалося експортувати звіт метаданих'
         },
         index: {
-            label: 'Загальне',
-            description: 'Примітки до випуску, підтримка, профіль сховища, типи файлів і ключі властивостей.',
             groups: {
                 about: 'Про плагін'
             }
@@ -1177,7 +1199,8 @@ export const STRINGS_UK = {
                 description: 'Діагностика, очищення метаданих, імпорт/експорт і скидання.',
                 groups: {
                     maintenance: 'Обслуговування',
-                    resetSettings: 'Скидання налаштувань'
+                    resetSettings: 'Скидання налаштувань',
+                    thirdPartyLicenses: 'Ліцензії сторонніх компонентів'
                 }
             }
         },
@@ -1646,8 +1669,6 @@ export const STRINGS_UK = {
             calendarLocale: {
                 name: 'Мова',
                 desc: 'Керує форматуванням дат у календарі, нумерацією тижнів та першим днем тижня.',
-                weekPathMismatchWarning:
-                    'Видимий календар і шляхи щотижневих нотаток використовують різні початки тижня або різну нумерацію тижнів.',
                 options: {
                     systemDefault: 'За замовчуванням'
                 }
@@ -1761,7 +1782,9 @@ export const STRINGS_UK = {
                 momentLinkText: 'формату дати Moment',
                 momentDescSuffix:
                     '. Беріть назви підтек у квадратні дужки, напр. [Work]/YYYY. Натисніть на іконку шаблону, щоб задати шаблон. Вкажіть розташування теки шаблонів у Операції з файлами та шаблони > Шаблони.',
-                example: 'Поточний синтаксис: {path}'
+                example: 'Поточний синтаксис: {path}',
+                weekYearWarning:
+                    '"gggg" і "GGGG" — це роки тижнів, тому дати біля Нового року можуть отримати неправильний рік. Використовуйте "YYYY".'
             },
             templateEngine: {
                 name: 'Рушій шаблонів',
@@ -1805,10 +1828,14 @@ export const STRINGS_UK = {
             calendarWeeklyNotePattern: {
                 name: 'Щотижневі нотатки',
                 parsingError: 'Шаблон має форматуватися і знову розбиратися як повний тиждень (рік тижня, номер тижня).',
-                weekPathMismatchWarning:
-                    'Шляхи щотижневих нотаток використовують мову періодичних нотаток. Використовуйте відповідні мови або використовуйте "GGGG" з "WW" для тижнів, що починаються з понеділка.',
+                isoWeeksWarning:
+                    'Щотижневі нотатки використовують тижні ISO ("W" або "G"), тому календар починає тижні з понеділка і показує номери тижнів ISO. Використовуйте "gggg" з "ww" для тижнів за мовою.',
+                calendarYearWarning:
+                    'Щотижневі нотатки беруть рік із "YYYY", тому тиждень 1, що починається в грудні, отримує попередній рік. Використовуйте "GGGG" з "WW" або "gggg" з "ww".',
                 mixedWeekTokensWarning:
-                    'Цей шаблон змішує токени тижня, що починається з понеділка ("W" або "G"), з токенами тижня на основі мови ("w" або "g"). Використовуйте один набір послідовно: "GGGG" з "WW" для тижнів, що починаються з понеділка, або "gggg" з "ww", якщо щотижневі нотатки мають відповідати обраній мові.'
+                    'Щотижневі нотатки змішують токени тижнів ISO ("W" або "G") з токенами тижнів за мовою ("w" або "g"). Використовуйте "GGGG" з "WW" для тижнів ISO або "gggg" з "ww" для тижнів за мовою.',
+                weekPathMismatchWarning:
+                    'Мова календаря і мова періодичних нотаток по-різному починають або нумерують тижні, тому шляхи щотижневих нотаток не збігаються з тижнями в календарі. Встановіть однакову мову для обох або використовуйте "GGGG" з "WW" для тижнів ISO.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Щомісячні нотатки',
@@ -1880,7 +1907,10 @@ export const STRINGS_UK = {
                     downloadButtonText: 'Завантажити',
                     copyNotice: 'Налаштування скопійовано до буфера обміну.',
                     downloadNotice: 'Налаштування експортовано.',
-                    downloadError: 'Не вдалося завантажити налаштування: {message}'
+                    downloadError: 'Не вдалося завантажити налаштування: {message}',
+                    saveButtonText: 'Зберегти у сховище',
+                    saveNotice: 'Налаштування збережено в {path}.',
+                    saveError: 'Не вдалося зберегти налаштування: {message}'
                 }
             },
             resetAllSettings: {
@@ -2506,7 +2536,7 @@ export const STRINGS_UK = {
             },
             folderNoteType: {
                 name: 'Тип нотатки теки за замовчуванням',
-                desc: 'Тип нотатки теки, створеної з контекстного меню.',
+                desc: 'Тип нотатки теки, створеної з контекстного меню. Цей тип обирається, якщо в теці є нотатки теки кількох типів.',
                 options: {
                     ask: 'Запитувати при створенні',
                     markdown: 'Markdown',
@@ -2656,10 +2686,38 @@ export const STRINGS_UK = {
                 buttonText: '❤️ Спонсорувати',
                 coffeeButton: '☕️ Купити мені каву'
             },
-            otherPlugins: {
-                name: 'Подивіться мої інші плагіни',
-                betterPaste: 'Очищає вставлений текст, посилання та зображення',
-                pixelPerfectImage: 'Точна зміна розміру зображень та інше'
+            markdownPointBanner: {
+                heading: 'Користуєтеся Canva, Keynote чи PowerPoint?',
+                atTop: {
+                    name: 'Показувати банер MarkdownPoint угорі',
+                    desc: 'Якщо вимкнено, банер показується нижче на сторінці налаштувань.'
+                },
+                credit: 'від Johan Sanneblad',
+                messages: [
+                    { headline: 'Пишіть слайди в Markdown.', subtext: 'Перетягуйте текст і зображення куди потрібно.' },
+                    { headline: 'Безкоштовна заміна PowerPoint.', subtext: 'Спільний доступ і співпраця теж безкоштовні.' },
+                    { headline: 'Усе зберігається на комп’ютері.', subtext: 'Для роботи зі слайдами акаунт не потрібен.' },
+                    { headline: 'Анімуйте як у Apple Motion.', subtext: 'Є ключові кадри, траєкторії й морфінг.' },
+                    { headline: 'Додавайте 3D-моделі на слайди.', subtext: 'Відкрийте GLB або glTF чи створіть у Meshy.' },
+                    { headline: 'Співпрацюйте як у Google Slides.', subtext: 'Видно курсори й коментарі всіх учасників.' },
+                    { headline: 'Увесь текст слайдів в одному місці.', subtext: 'Відкрийте View > Outline і редагуйте Markdown.' },
+                    { headline: 'Прив’язуйте об’єкти як у Figma.', subtext: 'Вирівнюйте за відступами, розміром і кутом.' },
+                    { headline: 'Експортуйте презентацію у відео 4K.', subtext: 'After Effects для анімації не потрібен.' },
+                    { headline: 'Нехай 3D-персонажі ходять і бігають.', subtext: 'Використовуйте Meshy для ригінгу й анімації.' },
+                    { headline: 'Виділяйте ==знаками рівності==.', subtext: '**Жирний** і *курсив* працюють як в Obsidian.' },
+                    { headline: 'Автолейаут як у Figma.', subtext: 'Вишиковуйте групу в рядок або стовпець.' },
+                    { headline: 'Діліться презентацією за посиланням.', subtext: 'Публікуйте її онлайн з безкоштовним акаунтом.' },
+                    { headline: '3D-освітлення як у Blender.', subtext: 'Точка, сонце, прожектор і область з тінями.' },
+                    { headline: 'Відстежуйте зміни презентацій у Git.', subtext: 'Це текстові файли Markdown і JSON.' },
+                    { headline: 'Створюйте компоненти як у Figma.', subtext: 'Змініть раз, і зміняться всі екземпляри.' },
+                    { headline: 'Обирайте теми як в Obsidian.', subtext: 'Встановіть безкоштовну тему одним кліком.' },
+                    { headline: 'Тримайте слайди в хмарній теці.', subtext: 'Працює з Dropbox, iCloud Drive і OneDrive.' },
+                    { headline: '3D з фізикою твердих тіл.', subtext: 'Кидайте, перекидайте й складайте об’єкти.' },
+                    { headline: 'Нотатки доповідача теж у Markdown.', subtext: 'Вони зберігаються в тому ж файлі, що й слайди.' },
+                    { headline: 'Комбінуйте фігури як у Figma.', subtext: 'Об’єднання, віднімання, перетин, виключення.' },
+                    { headline: 'Додавайте код на слайди.', subtext: 'Блоки коду підсвічуються для 21 мови.' },
+                    { headline: 'Безкоштовно для дому й роботи.', subtext: 'Завантажте для Mac або Windows.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'Перевіряти нову версію при запуску',

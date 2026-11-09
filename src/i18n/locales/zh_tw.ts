@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_ZH_TW = {
+    language: {
+        downloading: '正在下載語言…',
+        continueInEnglish: '繼續使用英語',
+        downloadFailed: '語言下載失敗。Notebook Navigator 正在使用英語。'
+    },
     // Common UI elements
     common: {
         cancel: '取消',
@@ -58,6 +63,14 @@ export const STRINGS_ZH_TW = {
         manualSortHint: '拖曳以重新排序。順序會以數字索引值儲存在屬性「{property}」中。',
         manualSortNonMarkdownHint: '非 Markdown 檔案顯示於底部，無法重新排序。',
         unsortedSection: '未排序',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} 張投影片',
+            slideCountOne: '1 張投影片',
+            theme: '主題',
+            slides: '投影片',
+            size: '尺寸'
+        },
         propertyGroupNoValue: '無',
         manualSortDone: '完成',
         manualSortMultipleWriteFailure: '{count} 個檔案失敗；第一個：{path}: {message}'
@@ -79,12 +92,14 @@ export const STRINGS_ZH_TW = {
         reorderRootFoldersTitle: '重新排列導覽',
         reorderRootFoldersHint: '使用方向鍵或拖曳來重新排列',
         vaultRootLabel: '儲存庫',
-        resetRootToAlpha: '重設為字母順序',
-        resetRootToFrequency: '重設為頻率排序',
+        resetAllFolders: '重設所有資料夾',
+        resetAllTags: '重設所有標籤',
+        resetAllProperties: '重設所有屬性',
         pinShortcuts: '釘選捷徑',
         pinShortcutsAndRecentFiles: '釘選捷徑和最近檔案',
         unpinShortcuts: '取消釘選捷徑',
         unpinShortcutsAndRecentFiles: '取消釘選捷徑和最近檔案',
+        resizePinnedShortcuts: '調整釘選捷徑的大小',
         profileMenuAria: '變更儲存庫設定檔'
     },
 
@@ -115,6 +130,7 @@ export const STRINGS_ZH_TW = {
 
     templates: {
         invalidTokens: '範本「{name}」包含無效的佔位符：{tokens}',
+        invalidFileNameTokens: '「{name}」的檔案名稱格式包含無效的佔位符：{tokens}',
         readFailed: '無法讀取範本「{name}」。筆記已在沒有範本的情況下建立。',
         folderNotSet: '從範本新建筆記前，請先在檔案操作與範本 > 範本中設定範本資料夾。',
         templateNotFound: '找不到範本「{name}」。',
@@ -235,10 +251,12 @@ export const STRINGS_ZH_TW = {
                     items: [
                         '`.key` 包含屬性鍵以 `key` 開頭的筆記。',
                         '`.key=value` 包含屬性值含有 `value` 的筆記。',
+                        '`.key=null` 包含具有屬性 `key` 但其值為空的筆記。`.key="null"` 搜尋文字 `null`。',
                         '`."Reading Status"` 包含屬性鍵包含空格的筆記。',
                         '`."Reading Status"="In Progress"` 包含空格的鍵和值必須用雙引號括起來。',
                         '`-.key` 排除屬性鍵以 `key` 開頭的筆記。',
                         '`-.key=value` 排除屬性值含有 `value` 的筆記。',
+                        '`-.key=null` 排除具有屬性 `key` 但其值為空的筆記。',
                         'Cmd/Ctrl+點擊屬性以 AND 方式新增。Cmd/Ctrl+Shift+點擊以 OR 方式新增。'
                     ]
                 },
@@ -729,7 +747,7 @@ export const STRINGS_ZH_TW = {
             templatePlaceholder: 'Templates/Meeting.md',
             fileNameFormat: '檔名格式',
             fileNameFormatDesc:
-                '{{date:YYYYMMDD}}、{{prompt:Title}} 等佔位符會在執行命令時被取代。每個提示都會詢問一個值，範本中相同的標籤會取得相同的值。',
+                '{{date:YYYYMMDD}}、{{prompt:Title}} 等佔位符會在執行命令時被取代。每個提示都會詢問一個值，範本中相同的標籤會取得相同的值。{{number}} 比資料夾中名稱模式相同的筆記所用的最大編號大 1，{{number:00}} 會用零補齊位數。範本中也可以使用 {{number}}，{{title}} 會插入產生的檔案名稱。',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Title}}',
             location: '位置',
             folder: '資料夾',
@@ -906,6 +924,7 @@ export const STRINGS_ZH_TW = {
             cannotMoveIntoSelf: '無法將資料夾移動到自身或其子資料夾中。',
             itemAlreadyExists: '此位置已存在名為「{name}」的項目。',
             failedToMove: '移動失敗：{error}',
+            failedToCopy: '複製「{name}」失敗：{error}',
             failedToAddTag: '新增標籤「{tag}」失敗',
             failedToSetProperty: '更新屬性失敗：{error}',
             failedToClearTags: '清除標籤失敗',
@@ -918,7 +937,9 @@ export const STRINGS_ZH_TW = {
             filesAlreadyHaveProperty: '{count} 個檔案已擁有此屬性',
             noTagsToClear: '沒有要清除的標籤',
             fileImported: '已匯入 1 個檔案',
-            filesImported: '已匯入 {count} 個檔案'
+            filesImported: '已匯入 {count} 個檔案',
+            fileCopied: '已複製 1 個檔案',
+            filesCopied: '已複製 {count} 個檔案'
         }
     },
 
@@ -941,6 +962,9 @@ export const STRINGS_ZH_TW = {
         openMonthlyNote: '開啟每月筆記',
         openQuarterlyNote: '開啟季度筆記',
         openYearlyNote: '開啟每年筆記',
+        openNextPeriodicNote: '開啟下一個週期筆記',
+        openPreviousPeriodicNote: '開啟上一個週期筆記',
+        openParentPeriodicNote: '開啟上層週期筆記',
         revealFile: '定位檔案',
         search: '搜尋',
         searchVaultRoot: '搜尋整個儲存庫',
@@ -1041,8 +1065,6 @@ export const STRINGS_ZH_TW = {
             exportFailed: '匯出中繼資料報告失敗'
         },
         index: {
-            label: '一般',
-            description: '發行說明、支援、儲存庫設定檔、檔案類型與屬性鍵。',
             groups: {
                 about: '關於'
             }
@@ -1169,7 +1191,8 @@ export const STRINGS_ZH_TW = {
                 description: '診斷、中繼資料清理、匯入/匯出與重設。',
                 groups: {
                     maintenance: '維護',
-                    resetSettings: '重設設定'
+                    resetSettings: '重設設定',
+                    thirdPartyLicenses: '第三方授權'
                 }
             }
         },
@@ -1635,7 +1658,6 @@ export const STRINGS_ZH_TW = {
             calendarLocale: {
                 name: '日曆語言',
                 desc: '控制日曆日期格式、週編號和每週的第一天。',
-                weekPathMismatchWarning: '可見日曆和週記路徑使用了不同的每週起始日或週編號方式。',
                 options: {
                     systemDefault: '系統預設'
                 }
@@ -1749,7 +1771,8 @@ export const STRINGS_ZH_TW = {
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
                     ' 設定路徑。將子資料夾名稱用方括號括起來，例如 [Work]/YYYY。點擊範本圖示設定範本。在檔案操作與範本 > 範本中設定範本資料夾位置。',
-                example: '目前語法：{path}'
+                example: '目前語法：{path}',
+                weekYearWarning: '"gggg" 和 "GGGG" 是週年份，因此新年前後的日期可能得到錯誤的年份。請使用 "YYYY"。'
             },
             templateEngine: {
                 name: '範本引擎',
@@ -1792,9 +1815,14 @@ export const STRINGS_ZH_TW = {
             calendarWeeklyNotePattern: {
                 name: '週記',
                 parsingError: '模式必須能格式化並重新解析為完整週（週年、週數）。',
-                weekPathMismatchWarning: '週記路徑使用週期筆記語言。請使用相符的語言，或使用 "GGGG" 搭配 "WW" 以星期一為基準的週。',
+                isoWeeksWarning:
+                    '週記使用 ISO 週（"W" 或 "G"），因此日曆以星期一作為每週的第一天，並顯示 ISO 週數。若要讓週遵循語言設定，請使用 "gggg" 搭配 "ww"。',
+                calendarYearWarning:
+                    '週記從 "YYYY" 取得年份，因此始於十二月的第 1 週會得到前一年。請使用 "GGGG" 搭配 "WW"，或 "gggg" 搭配 "ww"。',
                 mixedWeekTokensWarning:
-                    '此模式混用了以星期一為基準的週標記（"W" 或 "G"）和以語言為基準的週標記（"w" 或 "g"）。請始終使用同一組：以星期一為基準的週使用 "GGGG" 搭配 "WW"，若週記應遵循所選語言設定，則使用 "gggg" 搭配 "ww"。'
+                    '週記混用了 ISO 週標記（"W" 或 "G"）和語言週標記（"w" 或 "g"）。ISO 週請使用 "GGGG" 搭配 "WW"，遵循語言設定的週請使用 "gggg" 搭配 "ww"。',
+                weekPathMismatchWarning:
+                    '日曆語言與週期筆記語言的每週起始日或週編號不同，因此週記路徑與日曆中的週不一致。請將兩者設為相同的語言，或在 ISO 週中使用 "GGGG" 搭配 "WW"。'
             },
             calendarMonthlyNotePattern: {
                 name: '月記',
@@ -1866,7 +1894,10 @@ export const STRINGS_ZH_TW = {
                     downloadButtonText: '下載',
                     copyNotice: '設定已複製到剪貼簿。',
                     downloadNotice: '設定已匯出。',
-                    downloadError: '下載設定失敗：{message}'
+                    downloadError: '下載設定失敗：{message}',
+                    saveButtonText: '儲存到儲存庫',
+                    saveNotice: '設定已儲存到 {path}。',
+                    saveError: '儲存設定失敗：{message}'
                 }
             },
             resetAllSettings: {
@@ -2491,7 +2522,7 @@ export const STRINGS_ZH_TW = {
             },
             folderNoteType: {
                 name: '預設資料夾筆記類型',
-                desc: '從右鍵選單建立的資料夾筆記類型。',
+                desc: '從右鍵選單建立的資料夾筆記類型；當資料夾有多種類型的資料夾筆記時優先使用此類型。',
                 options: {
                     ask: '建立時詢問',
                     markdown: 'Markdown',
@@ -2640,10 +2671,38 @@ export const STRINGS_ZH_TW = {
                 buttonText: '❤️ 贊助',
                 coffeeButton: '☕️ 請我喝咖啡'
             },
-            otherPlugins: {
-                name: '看看我的其他外掛程式',
-                betterPaste: '整理貼上的文字、連結和圖片',
-                pixelPerfectImage: '精確的圖片縮放等'
+            markdownPointBanner: {
+                heading: '您在用 Canva、Keynote 或 PowerPoint 嗎？',
+                atTop: {
+                    name: '在頂端顯示 MarkdownPoint 橫幅',
+                    desc: '關閉後，橫幅會顯示在設定頁面中較下方的位置。'
+                },
+                credit: '作者：Johan Sanneblad',
+                messages: [
+                    { headline: '用 Markdown 寫投影片。', subtext: '把文字和圖片拖曳到你要的位置。' },
+                    { headline: 'PowerPoint 的免費替代方案。', subtext: '分享和協作也都免費。' },
+                    { headline: '每份簡報都是電腦裡的一個資料夾。', subtext: '製作投影片不需要帳號。' },
+                    { headline: '像 Apple Motion 一樣做動畫。', subtext: '可以用關鍵影格、路徑和變形。' },
+                    { headline: '在投影片上放 3D 模型。', subtext: '開啟 GLB 或 glTF 檔案，或用 Meshy 產生。' },
+                    { headline: '像 Google Slides 一樣協作。', subtext: '看見每個人的指標和留言。' },
+                    { headline: '在同一處檢視每張投影片的文字。', subtext: '開啟 View > Outline，用 Markdown 編輯。' },
+                    { headline: '像 Figma 一樣貼齊物件。', subtext: '依間距、尺寸和角度對齊。' },
+                    { headline: '把簡報匯出成 4K 影片。', subtext: '做動畫不需要 After Effects。' },
+                    { headline: '讓 3D 角色走路或跑步。', subtext: '用 Meshy 綁定骨架和製作動畫。' },
+                    { headline: '用 ==等號== 包住文字就能醒目提示。', subtext: '**粗體** 和 *斜體* 的用法和 Obsidian 一樣。' },
+                    { headline: '像 Figma 一樣使用自動佈局。', subtext: '把一組物件排成一列或一欄。' },
+                    { headline: '用連結分享簡報。', subtext: '用免費帳號發布到網路上。' },
+                    { headline: '像 Blender 一樣的 3D 燈光。', subtext: '點光、日光、聚光和面光，都有陰影。' },
+                    { headline: '用 Git 管理你的簡報。', subtext: '簡報就是 Markdown 和 JSON 純文字檔。' },
+                    { headline: '像 Figma 一樣建立元件。', subtext: '編輯一次，所有實例都會跟著改變。' },
+                    { headline: '像 Obsidian 一樣挑選主題。', subtext: '一鍵安裝免費主題。' },
+                    { headline: '把簡報放在同步資料夾裡。', subtext: 'Dropbox、iCloud Drive 和 OneDrive 都可以。' },
+                    { headline: '具備剛體物理的 3D。', subtext: '讓物件掉落、傾倒或堆疊。' },
+                    { headline: '演講者備忘稿也是 Markdown。', subtext: '它們和投影片存在同一個檔案裡。' },
+                    { headline: '像 Figma 一樣組合形狀。', subtext: '聯集、減去、交集或排除。' },
+                    { headline: '把程式碼放上投影片。', subtext: '程式碼區塊支援 21 種語言的語法突顯。' },
+                    { headline: '個人和商業用途都免費。', subtext: '下載 Mac 版或 Windows 版。' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: '啟動時檢查新版本',

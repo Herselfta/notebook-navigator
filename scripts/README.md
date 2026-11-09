@@ -28,7 +28,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1
 - Runs unit tests
 - Builds the plugin using esbuild
 - **Aborts before bundling or deployment if ANY errors or warnings are found**
-- Calls an optional local deployment script after a successful build (`build.sh` runs `build-local.sh`; `build.ps1` prefers `build-local.ps1` and falls back to `build-local.sh` when Bash is available)
+- Calls an optional local deployment script in `scripts/local/` after a successful build (`build.sh` runs `build-local.sh`; `build.ps1` prefers `build-local.ps1` and falls back to `build-local.sh` when Bash is available)
 
 **Requirements:**
 
@@ -157,9 +157,9 @@ node scripts/mdReleaseNotes.js 3.2.2      # Print release notes for a specific v
 - Outputs formatted release notes ready for GitHub release descriptions
 - Automatically used by the release process
 
-## build-local.sh / build-local.ps1 (Optional)
+## local/build-local.sh / local/build-local.ps1 (Optional)
 
-Custom local deployment script (ignored by git and not committed to the repository).
+Custom local deployment script in `scripts/local/`, a folder for local scripts that git ignores.
 
 **Purpose:**
 
@@ -167,7 +167,7 @@ Custom local deployment script (ignored by git and not committed to the reposito
 - Automatically called after a successful `build.sh` or `build.ps1` run if present
 - `build-local.sh` is used by `build.sh` on macOS/Linux and as the `build.ps1` fallback when Bash is available
 - `build-local.ps1` is preferred by `build.ps1` on Windows
-- Already ignored by `.gitignore` to keep vault paths private
+- `scripts/local/` is ignored by `.gitignore` to keep vault paths private
 
 **Example:**
 
@@ -233,3 +233,11 @@ Runs the icon pack updater from `icon-assets/scripts/update-icon-packs.ts`.
 - Uses `npx tsx` to run the TypeScript updater
 - Supports updating all packs or selected pack IDs
 - Supports check-only, forced update, and local manifest regeneration modes
+
+## build-languages.mjs
+
+Generates `languages.json` and `src/i18n/localeMetadata.ts` from the locale source files. Locale text and arrays are emitted as JSON; function-valued entries remain in the generated TypeScript alongside startup labels and date/time defaults. English remains bundled in full.
+
+Run `npm run build:languages` after editing locales. The build scripts and esbuild also run this automatically. The generated TypeScript is committed; `languages.json` is an ignored build artifact, published and attested alongside the other release assets. Downloads use the installed release tag, and the generated data ID prevents cached or downloaded text from a different build from being applied.
+
+Production builds report the byte size of `main.js`, warn at 4,500,000 bytes, and fail at 5,000,000 bytes.

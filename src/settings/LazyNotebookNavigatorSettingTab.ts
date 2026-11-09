@@ -16,10 +16,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { App, PluginSettingTab, requireApiVersion, type SettingDefinitionItem } from 'obsidian';
+import { App, PluginSettingTab, type SettingDefinitionItem } from 'obsidian';
 import type NotebookNavigatorPlugin from '../main';
 import type { NotebookNavigatorSettingTab } from '../settings';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
+import { strings } from '../i18n';
 
 /**
  * Lightweight settings tab shell. Startup search indexing stays lightweight;
@@ -28,6 +29,8 @@ import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../constants/notebookNavigatorIcon';
 export class LazyNotebookNavigatorSettingTab extends PluginSettingTab {
     private readonly plugin: NotebookNavigatorPlugin;
     private delegate: NotebookNavigatorSettingTab | null = null;
+    private definitionLanguage: typeof strings | null = null;
+    private languageRefreshPending = false;
 
     constructor(app: App, plugin: NotebookNavigatorPlugin) {
         super(app, plugin);
@@ -36,11 +39,15 @@ export class LazyNotebookNavigatorSettingTab extends PluginSettingTab {
     }
 
     getSettingDefinitions(): SettingDefinitionItem[] {
-        if (!requireApiVersion('1.13.0')) {
-            return [];
-        }
-
+        this.definitionLanguage = strings;
         return this.getDelegate().getSettingDefinitions();
+    }
+
+    /** Rebuilds Obsidian's cached labels after loading a language, preserving an open settings form until it closes. */
+    refreshLanguage(): void {
+        if (this.definitionLanguage === null || this.definitionLanguage === strings) return;
+        this.languageRefreshPending = true;
+        if (!this.containerEl.isConnected) this.refreshLanguageDefinitions();
     }
 
     getControlValue(key: string): unknown {
@@ -51,23 +58,25 @@ export class LazyNotebookNavigatorSettingTab extends PluginSettingTab {
         await this.getDelegate().setControlValue(key, value);
     }
 
-    display(): void {
-        const delegate = this.getDelegate();
-        // Obsidian versions before native settings pages call display().
-        const display = Reflect.get(delegate, 'display');
-        if (typeof display === 'function') {
-            Reflect.apply(display, delegate, []);
-        }
-    }
-
     hide(): void {
         if (this.delegate) {
             this.syncDelegateContainer();
             this.delegate.hide();
-            return;
+        } else {
+            super.hide();
         }
 
-        super.hide();
+        if (this.languageRefreshPending) {
+            // Obsidian clears its active tab after hide() returns. Updating earlier would render the closing form again.
+            window.setTimeout(() => {
+                if (!this.plugin.isShuttingDown()) this.refreshLanguageDefinitions();
+            }, 0);
+        }
+    }
+
+    private refreshLanguageDefinitions(): void {
+        this.languageRefreshPending = false;
+        this.update();
     }
 
     private getDelegate(): NotebookNavigatorSettingTab {

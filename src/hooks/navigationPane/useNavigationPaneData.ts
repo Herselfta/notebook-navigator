@@ -48,6 +48,7 @@ import { useNavigationPaneListSections } from './data/useNavigationPaneListSecti
 import type { NavigationPaneSourceState } from './data/useNavigationPaneSourceState';
 import type { NavigationPaneTreeSectionsResult } from './data/useNavigationPaneTreeSections';
 import type { FolderDecorationModel } from '../../utils/folderDecoration';
+import type { PropertyRainbowColors, TagRainbowColors } from '../../utils/navigationRainbow';
 
 /**
  * Parameters for the useNavigationPaneData hook
@@ -65,6 +66,13 @@ interface UseNavigationPaneDataParams {
     folderDecorationModel: FolderDecorationModel;
     /** Shared navigation rainbow state */
     navRainbowState: NavigationRainbowState;
+    /**
+     * Tag and property rainbow colors shared with the list pane. They are assigned from the unfiltered trees so
+     * navigation rows, list pane pills, and the list pane title show the same colors, and so the colors do not
+     * change when filter by selection narrows the rendered tree.
+     */
+    tagRainbowColors: TagRainbowColors;
+    propertyRainbowColors: PropertyRainbowColors;
     /** Whether the shortcuts virtual folder is expanded */
     shortcutsExpanded: boolean;
     /** Whether the recent files virtual folder is expanded */
@@ -103,10 +111,8 @@ interface UseNavigationPaneDataResult {
     propertyCounts: Map<string, NoteCountInfo>;
     /** Map from folder path to current/descendant note counts */
     folderCounts: Map<string, NoteCountInfo>;
-    /** Ordered list of root-level folders */
-    rootLevelFolders: TFolder[];
-    /** Paths from settings that are not currently present in the vault */
-    missingRootFolderPaths: string[];
+    /** Resolves the name the folder tree sorts folders by alphabetically */
+    getFolderSortName: (folder: TFolder) => string;
     /** Final ordered keys used for rendering root-level tags in navigation */
     resolvedRootTagKeys: string[];
     /** Combined tag tree used for ordering (includes hidden roots) */
@@ -143,6 +149,8 @@ export function useNavigationPaneData({
     treeSections,
     folderDecorationModel,
     navRainbowState,
+    tagRainbowColors,
+    propertyRainbowColors,
     shortcutsExpanded,
     recentNotesExpanded,
     pinShortcuts,
@@ -165,8 +173,7 @@ export function useNavigationPaneData({
         fileVisibility,
         navigationBannerPath,
         folderCountFileNameMatcher,
-        rootLevelFolders,
-        missingRootFolderPaths,
+        getFolderSortName,
         untaggedCount,
         visibleTaggedCount,
         rootTagOrderMap,
@@ -227,6 +234,8 @@ export function useNavigationPaneData({
         getFileDisplayName,
         folderDecorationModel,
         navRainbowState,
+        tagRainbowColors,
+        propertyRainbowColors,
         sectionOrder,
         showHiddenItems,
         pinShortcuts,
@@ -278,8 +287,7 @@ export function useNavigationPaneData({
         tagCounts,
         propertyCounts,
         folderCounts,
-        rootLevelFolders,
-        missingRootFolderPaths,
+        getFolderSortName,
         resolvedRootTagKeys,
         rootOrderingTagTree,
         rootTagOrderMap,

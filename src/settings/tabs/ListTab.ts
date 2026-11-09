@@ -25,6 +25,7 @@ import {
     createPropertyGroupingOption,
     getPropertyGroupingKey,
     getPropertyGroupingOrder,
+    isListDisplayMode,
     MANUAL_SORT_NEW_NOTE_PLACEMENT_OPTIONS,
     normalizeListNoteGroupingOption,
     PROPERTY_SORT_SECONDARY_OPTIONS,
@@ -275,14 +276,11 @@ function createListAppearanceDefinitionGroup(context: SettingsTabContext): Setti
             name: strings.settings.items.colorListPaneTitle.name,
             desc: strings.settings.items.colorListPaneTitle.desc
         }),
-        createDropdownDefinition('defaultListMode', {
+        createRenderDefinition({
             name: strings.settings.items.defaultListMode.name,
             desc: strings.settings.items.defaultListMode.desc,
             aliases: Object.values(strings.settings.items.defaultListMode.options),
-            options: {
-                standard: strings.settings.items.defaultListMode.options.standard,
-                compact: strings.settings.items.defaultListMode.options.compact
-            }
+            render: setting => renderDefaultListModeSetting(setting, context)
         }),
         createRenderDefinition({
             name: strings.settings.items.compactItemHeight.name,
@@ -324,7 +322,7 @@ function getPropertyDropdownOptionLabel(propertyKey: string): string {
  * Entries rebuild on every settings update so edits to the configured property list are
  * reflected while the tab stays open.
  */
-export function renderDefaultFolderSortSetting(setting: Setting, context: SettingsTabContext): void {
+function renderDefaultFolderSortSetting(setting: Setting, context: SettingsTabContext): void {
     const { plugin } = context;
 
     // Field changes rebuild the sibling direction dropdown immediately; waiting for the settings
@@ -471,7 +469,7 @@ export function renderDefaultFolderSortSetting(setting: Setting, context: Settin
  * encodings used by per-view grouping overrides. Entries rebuild on every settings update so
  * edits to the configured property list are reflected while the tab stays open.
  */
-export function renderNoteGroupingSetting(setting: Setting, context: SettingsTabContext): void {
+function renderNoteGroupingSetting(setting: Setting, context: SettingsTabContext): void {
     const { plugin } = context;
 
     // Mode changes refresh the sibling group order dropdown immediately; waiting for the settings
@@ -601,7 +599,7 @@ export function renderNoteGroupingSetting(setting: Setting, context: SettingsTab
  * Renders the grouping properties input. Commits prune per-view grouping overrides and reconcile
  * the global defaults so removed properties never stay active anywhere.
  */
-export function renderPropertyGroupKeySetting(setting: Setting, context: SettingsTabContext): void {
+function renderPropertyGroupKeySetting(setting: Setting, context: SettingsTabContext): void {
     const { plugin } = context;
 
     setting
@@ -640,7 +638,7 @@ export function renderPropertyGroupKeySetting(setting: Setting, context: Setting
  * properties changed through a settings-tab edit, announcing a reset with a notice. Load and
  * sync paths reconcile silently in the settings controller instead.
  */
-export function reconcileDefaultsAfterPropertyKeysEdit(settings: NotebookNavigatorSettings): void {
+function reconcileDefaultsAfterPropertyKeysEdit(settings: NotebookNavigatorSettings): void {
     const sortResult = reconcileDefaultFolderSort(settings);
     const groupingResult = reconcileDefaultNoteGrouping(settings);
     const notices = strings.settings.items.sortingProperties.defaultsResetNotices;
@@ -670,7 +668,7 @@ function createManualSortNewNotePlacementOptions(): Record<string, string> {
 }
 
 /** Maps persisted property-sort values to their semantic localization aliases. */
-export function getPropertySecondarySortOptionLabel(option: PropertySortSecondaryOption): string {
+function getPropertySecondarySortOptionLabel(option: PropertySortSecondaryOption): string {
     switch (option) {
         case 'title':
             return strings.settings.items.propertySecondarySort.options.title;
@@ -684,7 +682,7 @@ export function getPropertySecondarySortOptionLabel(option: PropertySortSecondar
 }
 
 /** Maps persisted manual-sort placement values to their semantic localization aliases. */
-export function getManualSortNewNotePlacementOptionLabel(option: ManualSortNewNotePlacement): string {
+function getManualSortNewNotePlacementOptionLabel(option: ManualSortNewNotePlacement): string {
     switch (option) {
         case 'top':
             return strings.settings.items.manualSortNewNotePlacement.options.top;
@@ -713,6 +711,28 @@ function renderIncludeDescendantNotesSetting(setting: Setting, context: Settings
     addSettingSyncModeToggle({ setting, plugin, settingId: 'includeDescendantNotes' });
 }
 
+function renderDefaultListModeSetting(setting: Setting, context: SettingsTabContext): void {
+    const { plugin } = context;
+
+    setting
+        .setName(strings.settings.items.defaultListMode.name)
+        .setDesc(strings.settings.items.defaultListMode.desc)
+        .addDropdown(dropdown =>
+            dropdown
+                .addOption('standard', strings.settings.items.defaultListMode.options.standard)
+                .addOption('compact', strings.settings.items.defaultListMode.options.compact)
+                .setValue(plugin.settings.defaultListMode)
+                .onChange(value => {
+                    if (!isListDisplayMode(value)) {
+                        return;
+                    }
+                    plugin.setDefaultListMode(value);
+                })
+        );
+
+    addSettingSyncModeToggle({ setting, plugin, settingId: 'defaultListMode' });
+}
+
 function renderCompactItemHeightSetting(setting: Setting, context: SettingsTabContext): void {
     const { plugin } = context;
 
@@ -722,7 +742,7 @@ function renderCompactItemHeightSetting(setting: Setting, context: SettingsTabCo
         value: plugin.settings.compactItemHeight,
         defaultValue: DEFAULT_SETTINGS.compactItemHeight,
         min: 20,
-        max: 28,
+        max: 40,
         step: 1,
         resetTooltip: strings.settings.items.compactItemHeight.resetTooltip,
         formatValue: formatPixelSliderValue,

@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_TH = {
+    language: {
+        downloading: 'กำลังดาวน์โหลดภาษา…',
+        continueInEnglish: 'ดำเนินการต่อเป็นภาษาอังกฤษ',
+        downloadFailed: 'ดาวน์โหลดภาษาไม่สำเร็จ Notebook Navigator กำลังใช้ภาษาอังกฤษ'
+    },
     // Common UI elements
     common: {
         cancel: 'ยกเลิก',
@@ -58,6 +63,14 @@ export const STRINGS_TH = {
         manualSortHint: 'ลากเพื่อจัดเรียงใหม่ ลำดับจะถูกบันทึกเป็นค่าดัชนีตัวเลขในคุณสมบัติ "{property}"',
         manualSortNonMarkdownHint: 'ไฟล์ที่ไม่ใช่ Markdown จะแสดงด้านล่างและไม่สามารถจัดเรียงใหม่ได้',
         unsortedSection: 'ยังไม่จัดเรียง',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} สไลด์',
+            slideCountOne: '1 สไลด์',
+            theme: 'ธีม',
+            slides: 'สไลด์',
+            size: 'ขนาด'
+        },
         propertyGroupNoValue: 'ไม่มี',
         manualSortDone: 'เสร็จ',
         manualSortMultipleWriteFailure: '{count} ไฟล์ล้มเหลว ไฟล์แรก: {path}: {message}'
@@ -80,12 +93,14 @@ export const STRINGS_TH = {
         reorderRootFoldersTitle: 'จัดเรียงการนำทางใหม่',
         reorderRootFoldersHint: 'ใช้ลูกศรหรือลากเพื่อจัดเรียงใหม่',
         vaultRootLabel: 'ห้องนิรภัย',
-        resetRootToAlpha: 'รีเซ็ตเป็นลำดับตัวอักษร',
-        resetRootToFrequency: 'รีเซ็ตเป็นลำดับความถี่',
+        resetAllFolders: 'รีเซ็ตโฟลเดอร์ทั้งหมด',
+        resetAllTags: 'รีเซ็ตแท็กทั้งหมด',
+        resetAllProperties: 'รีเซ็ตคุณสมบัติทั้งหมด',
         pinShortcuts: 'ปักหมุดทางลัด',
         pinShortcutsAndRecentFiles: 'ปักหมุดทางลัดและไฟล์ล่าสุด',
         unpinShortcuts: 'เลิกปักหมุดทางลัด',
         unpinShortcutsAndRecentFiles: 'เลิกปักหมุดทางลัดและไฟล์ล่าสุด',
+        resizePinnedShortcuts: 'ปรับขนาดทางลัดที่ปักหมุด',
         profileMenuAria: 'เปลี่ยนโปรไฟล์ห้องนิรภัย'
     },
 
@@ -116,6 +131,7 @@ export const STRINGS_TH = {
 
     templates: {
         invalidTokens: 'เทมเพลต "{name}" มีโทเค็นที่ไม่ถูกต้อง: {tokens}',
+        invalidFileNameTokens: 'รูปแบบชื่อไฟล์ของ "{name}" มีโทเค็นที่ไม่ถูกต้อง: {tokens}',
         readFailed: 'ไม่สามารถอ่านเทมเพลต "{name}" ได้ สร้างโน้ตโดยไม่ใช้เทมเพลต',
         folderNotSet: 'ตั้งค่าโฟลเดอร์เทมเพลตใน การดำเนินการกับไฟล์และเทมเพลต > เทมเพลต ก่อนสร้างโน้ตจากเทมเพลต',
         templateNotFound: 'ไม่พบเทมเพลต "{name}"',
@@ -236,10 +252,12 @@ export const STRINGS_TH = {
                     items: [
                         '`.key` รวมโน้ตที่มีคีย์คุณสมบัติขึ้นต้นด้วย `key`',
                         '`.key=value` รวมโน้ตที่ค่าคุณสมบัติมี `value` อยู่',
+                        '`.key=null` รวมโน้ตที่มีคุณสมบัติ `key` แต่ไม่มีค่า `.key="null"` ค้นหาข้อความ `null`',
                         '`."Reading Status"` รวมโน้ตที่มีคีย์คุณสมบัติที่มีช่องว่าง',
                         '`."Reading Status"="In Progress"` คีย์และค่าที่มีช่องว่างต้องอยู่ในเครื่องหมายคำพูดคู่',
                         '`-.key` ไม่รวมโน้ตที่มีคีย์คุณสมบัติขึ้นต้นด้วย `key`',
                         '`-.key=value` ไม่รวมโน้ตที่ค่าคุณสมบัติมี `value` อยู่',
+                        '`-.key=null` ไม่รวมโน้ตที่มีคุณสมบัติ `key` แต่ไม่มีค่า',
                         'Cmd/Ctrl+คลิกคุณสมบัติเพื่อเพิ่มด้วย AND Cmd/Ctrl+Shift+คลิกเพื่อเพิ่มด้วย OR'
                     ]
                 },
@@ -730,7 +748,7 @@ export const STRINGS_TH = {
             templatePlaceholder: 'Templates/Meeting.md',
             fileNameFormat: 'รูปแบบชื่อไฟล์',
             fileNameFormatDesc:
-                'โทเค็นเช่น {{date:YYYYMMDD}} และ {{prompt:Title}} จะถูกแทนที่เมื่อเรียกใช้คำสั่ง แต่ละพรอมต์จะถามค่า และป้ายชื่อเดียวกันในเทมเพลตจะได้รับค่าเดียวกัน',
+                'โทเค็นเช่น {{date:YYYYMMDD}} และ {{prompt:Title}} จะถูกแทนที่เมื่อเรียกใช้คำสั่ง แต่ละพรอมต์จะถามค่า และป้ายชื่อเดียวกันในเทมเพลตจะได้รับค่าเดียวกัน {{number}} คือค่าที่มากกว่าหมายเลขสูงสุดที่โน้ตในโฟลเดอร์ซึ่งมีรูปแบบชื่อเดียวกันใช้อยู่หนึ่ง และ {{number:00}} จะเติมศูนย์ข้างหน้า เทมเพลตก็ใช้ {{number}} ได้เช่นกัน และ {{title}} จะแทรกชื่อไฟล์ที่สร้างขึ้น',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Title}}',
             location: 'ตำแหน่ง',
             folder: 'โฟลเดอร์',
@@ -907,6 +925,7 @@ export const STRINGS_TH = {
             cannotMoveIntoSelf: 'ไม่สามารถย้ายโฟลเดอร์ไปยังตัวเองหรือโฟลเดอร์ย่อยได้',
             itemAlreadyExists: 'รายการชื่อ "{name}" มีอยู่ในตำแหน่งนี้แล้ว',
             failedToMove: 'ย้ายล้มเหลว: {error}',
+            failedToCopy: 'คัดลอก "{name}" ล้มเหลว: {error}',
             failedToAddTag: 'เพิ่มแท็ก "{tag}" ล้มเหลว',
             failedToSetProperty: 'ไม่สามารถอัปเดตคุณสมบัติได้: {error}',
             failedToClearTags: 'ล้างแท็กล้มเหลว',
@@ -919,7 +938,9 @@ export const STRINGS_TH = {
             filesAlreadyHaveProperty: '{count} ไฟล์มีคุณสมบัตินี้อยู่แล้ว',
             noTagsToClear: 'ไม่มีแท็กให้ล้าง',
             fileImported: 'นำเข้า 1 ไฟล์แล้ว',
-            filesImported: 'นำเข้า {count} ไฟล์แล้ว'
+            filesImported: 'นำเข้า {count} ไฟล์แล้ว',
+            fileCopied: 'คัดลอก 1 ไฟล์แล้ว',
+            filesCopied: 'คัดลอก {count} ไฟล์แล้ว'
         }
     },
 
@@ -942,6 +963,9 @@ export const STRINGS_TH = {
         openMonthlyNote: 'เปิดโน้ตรายเดือน',
         openQuarterlyNote: 'เปิดโน้ตรายไตรมาส',
         openYearlyNote: 'เปิดโน้ตรายปี',
+        openNextPeriodicNote: 'เปิดโน้ตตามรอบถัดไป',
+        openPreviousPeriodicNote: 'เปิดโน้ตตามรอบก่อนหน้า',
+        openParentPeriodicNote: 'เปิดโน้ตตามรอบระดับบน',
         revealFile: 'แสดงไฟล์',
         search: 'ค้นหา',
         searchVaultRoot: 'ค้นหาทั้งห้องนิรภัย',
@@ -1042,8 +1066,6 @@ export const STRINGS_TH = {
             exportFailed: 'ส่งออกรายงานเมตาดาต้าล้มเหลว'
         },
         index: {
-            label: 'ทั่วไป',
-            description: 'บันทึกประจำรุ่น การสนับสนุน โปรไฟล์ห้องนิรภัย ประเภทไฟล์ และคีย์คุณสมบัติ',
             groups: {
                 about: 'เกี่ยวกับ'
             }
@@ -1170,7 +1192,8 @@ export const STRINGS_TH = {
                 description: 'การวินิจฉัย การล้างข้อมูลเมตา การนำเข้า/ส่งออก และการรีเซ็ต',
                 groups: {
                     maintenance: 'การบำรุงรักษา',
-                    resetSettings: 'รีเซ็ตการตั้งค่า'
+                    resetSettings: 'รีเซ็ตการตั้งค่า',
+                    thirdPartyLicenses: 'สัญญาอนุญาตของบุคคลที่สาม'
                 }
             }
         },
@@ -1639,8 +1662,6 @@ export const STRINGS_TH = {
             calendarLocale: {
                 name: 'ภาษา',
                 desc: 'ควบคุมการจัดรูปแบบวันที่ในปฏิทิน การนับสัปดาห์ และวันแรกของสัปดาห์',
-                weekPathMismatchWarning:
-                    'ปฏิทินที่มองเห็นได้และเส้นทางโน้ตรายสัปดาห์ใช้วันเริ่มต้นของสัปดาห์หรือการนับสัปดาห์ที่แตกต่างกัน',
                 options: {
                     systemDefault: 'ค่าเริ่มต้น'
                 }
@@ -1754,7 +1775,8 @@ export const STRINGS_TH = {
                 momentLinkText: 'รูปแบบวันที่ Moment',
                 momentDescSuffix:
                     ' ใส่ชื่อโฟลเดอร์ย่อยในวงเล็บเหลี่ยม เช่น [Work]/YYYY คลิกไอคอนเทมเพลตเพื่อตั้งค่าเทมเพลต ตั้งค่าตำแหน่งโฟลเดอร์เทมเพลตในการดำเนินการกับไฟล์และเทมเพลต > เทมเพลต',
-                example: 'รูปแบบปัจจุบัน: {path}'
+                example: 'รูปแบบปัจจุบัน: {path}',
+                weekYearWarning: '"gggg" และ "GGGG" เป็นปีตามสัปดาห์ วันที่ใกล้ปีใหม่จึงอาจได้ปีที่ผิด ใช้ "YYYY"'
             },
             templateEngine: {
                 name: 'เอนจินเทมเพลต',
@@ -1798,10 +1820,14 @@ export const STRINGS_TH = {
             calendarWeeklyNotePattern: {
                 name: 'โน้ตรายสัปดาห์',
                 parsingError: 'รูปแบบต้องสามารถจัดรูปแบบและแยกวิเคราะห์กลับเป็นสัปดาห์แบบเต็ม (ปีของสัปดาห์ หมายเลขสัปดาห์) ได้',
-                weekPathMismatchWarning:
-                    'เส้นทางโน้ตรายสัปดาห์ใช้ภาษาของโน้ตตามรอบ ใช้ภาษาที่ตรงกัน หรือใช้ "GGGG" กับ "WW" สำหรับสัปดาห์ที่เริ่มจากวันจันทร์',
+                isoWeeksWarning:
+                    'โน้ตรายสัปดาห์ใช้สัปดาห์แบบ ISO ("W" หรือ "G") ปฏิทินจึงเริ่มสัปดาห์ในวันจันทร์และแสดงหมายเลขสัปดาห์แบบ ISO ใช้ "gggg" กับ "ww" สำหรับสัปดาห์ที่เป็นไปตามภาษา',
+                calendarYearWarning:
+                    'โน้ตรายสัปดาห์ใช้ปีจาก "YYYY" สัปดาห์ที่ 1 ที่เริ่มในเดือนธันวาคมจึงได้ปีก่อนหน้า ใช้ "GGGG" กับ "WW" หรือ "gggg" กับ "ww"',
                 mixedWeekTokensWarning:
-                    'รูปแบบนี้ผสมโทเค็นสัปดาห์ที่เริ่มจากวันจันทร์ ("W" หรือ "G") กับโทเค็นสัปดาห์ที่อิงตามภาษา ("w" หรือ "g") ใช้ชุดเดียวอย่างสม่ำเสมอ: "GGGG" กับ "WW" สำหรับสัปดาห์ที่เริ่มจากวันจันทร์ หรือ "gggg" กับ "ww" หากโน้ตรายสัปดาห์ควรเป็นไปตามภาษาที่เลือก'
+                    'โน้ตรายสัปดาห์ผสมโทเค็นสัปดาห์แบบ ISO ("W" หรือ "G") กับโทเค็นสัปดาห์ตามภาษา ("w" หรือ "g") ใช้ "GGGG" กับ "WW" สำหรับสัปดาห์แบบ ISO หรือ "gggg" กับ "ww" สำหรับสัปดาห์ที่เป็นไปตามภาษา',
+                weekPathMismatchWarning:
+                    'ภาษาของปฏิทินและภาษาของโน้ตตามรอบเริ่มหรือนับสัปดาห์ต่างกัน เส้นทางโน้ตรายสัปดาห์จึงไม่ตรงกับสัปดาห์ในปฏิทิน ตั้งค่าทั้งสองให้เป็นภาษาเดียวกัน หรือใช้ "GGGG" กับ "WW" สำหรับสัปดาห์แบบ ISO'
             },
             calendarMonthlyNotePattern: {
                 name: 'โน้ตรายเดือน',
@@ -1873,7 +1899,10 @@ export const STRINGS_TH = {
                     downloadButtonText: 'ดาวน์โหลด',
                     copyNotice: 'คัดลอกการตั้งค่าไปยังคลิปบอร์ดแล้ว',
                     downloadNotice: 'ส่งออกการตั้งค่าแล้ว',
-                    downloadError: 'ส่งออกการตั้งค่าล้มเหลว: {message}'
+                    downloadError: 'ส่งออกการตั้งค่าล้มเหลว: {message}',
+                    saveButtonText: 'บันทึกลงห้องนิรภัย',
+                    saveNotice: 'บันทึกการตั้งค่าไว้ที่ {path}',
+                    saveError: 'บันทึกการตั้งค่าล้มเหลว: {message}'
                 }
             },
             resetAllSettings: {
@@ -2498,7 +2527,7 @@ export const STRINGS_TH = {
             },
             folderNoteType: {
                 name: 'ประเภทโน้ตโฟลเดอร์เริ่มต้น',
-                desc: 'ประเภทโน้ตโฟลเดอร์ที่สร้างจากเมนูบริบท',
+                desc: 'ประเภทโน้ตโฟลเดอร์ที่สร้างจากเมนูบริบท และเป็นประเภทที่ใช้ก่อนเมื่อโฟลเดอร์มีโน้ตโฟลเดอร์หลายประเภท',
                 options: {
                     ask: 'ถามเมื่อสร้าง',
                     markdown: 'Markdown',
@@ -2648,10 +2677,38 @@ export const STRINGS_TH = {
                 buttonText: '❤️ สปอนเซอร์',
                 coffeeButton: '☕️ เลี้ยงกาแฟ'
             },
-            otherPlugins: {
-                name: 'ดูปลั๊กอินอื่นของฉัน',
-                betterPaste: 'จัดระเบียบข้อความ ลิงก์ และรูปภาพที่วาง',
-                pixelPerfectImage: 'ปรับขนาดภาพได้แม่นยำและอื่น ๆ'
+            markdownPointBanner: {
+                heading: 'ใช้ Canva, Keynote หรือ PowerPoint อยู่หรือเปล่า',
+                atTop: {
+                    name: 'แสดงแบนเนอร์ MarkdownPoint ที่ด้านบน',
+                    desc: 'เมื่อปิด แบนเนอร์จะแสดงในตำแหน่งที่ต่ำลงในหน้าการตั้งค่า'
+                },
+                credit: 'โดย Johan Sanneblad',
+                messages: [
+                    { headline: 'เขียนสไลด์ของคุณด้วย Markdown', subtext: 'ลากข้อความและรูปภาพไปวางตรงที่คุณต้องการ' },
+                    { headline: 'ทางเลือกฟรีแทน PowerPoint', subtext: 'การแชร์และการทำงานร่วมกันก็ฟรีด้วย' },
+                    { headline: 'งานนำเสนอคือโฟลเดอร์ในเครื่องของคุณ', subtext: 'คุณไม่ต้องมีบัญชีเพื่อสร้างสไลด์' },
+                    { headline: 'ทำแอนิเมชันได้แบบ Apple Motion', subtext: 'ใช้คีย์เฟรม พาธ และมอร์ฟ' },
+                    { headline: 'ใส่โมเดล 3D ลงในสไลด์ของคุณ', subtext: 'เปิดไฟล์ GLB หรือ glTF หรือสร้างด้วย Meshy' },
+                    { headline: 'ทำงานร่วมกันแบบ Google Slides', subtext: 'เห็นตัวชี้และความคิดเห็นของทุกคน' },
+                    { headline: 'ดูข้อความของทุกสไลด์ในที่เดียว', subtext: 'เปิด View > Outline แล้วแก้ไขเป็น Markdown' },
+                    { headline: 'สแนปวัตถุแบบ Figma', subtext: 'จัดแนวตามระยะห่าง ขนาด และมุม' },
+                    { headline: 'ส่งออกงานนำเสนอเป็นวิดีโอ 4K', subtext: 'คุณไม่ต้องใช้ After Effects เพื่อทำแอนิเมชัน' },
+                    { headline: 'ทำให้ตัวละคร 3D เดินหรือวิ่งได้', subtext: 'ใช้ Meshy ทำริกและแอนิเมชัน' },
+                    { headline: 'ไฮไลต์คำด้วย ==เครื่องหมายเท่ากับ==', subtext: '**ตัวหนา** และ *ตัวเอียง* ใช้ได้เหมือนใน Obsidian' },
+                    { headline: 'ใช้ Auto layout แบบ Figma', subtext: 'เรียงกลุ่มเป็นแถวหรือคอลัมน์' },
+                    { headline: 'แชร์งานนำเสนอด้วยลิงก์', subtext: 'เผยแพร่ออนไลน์ด้วยบัญชีฟรี' },
+                    { headline: 'แสงไฟ 3D แบบ Blender', subtext: 'ไฟแบบจุด ดวงอาทิตย์ สปอต และพื้นที่ พร้อมเงา' },
+                    { headline: 'ติดตามงานนำเสนอของคุณใน Git', subtext: 'งานนำเสนอเป็นไฟล์ข้อความ Markdown และ JSON' },
+                    { headline: 'สร้างคอมโพเนนต์แบบ Figma', subtext: 'แก้ครั้งเดียว ทุกอินสแตนซ์เปลี่ยนตาม' },
+                    { headline: 'เลือกธีมได้เหมือนใน Obsidian', subtext: 'ติดตั้งธีมฟรีได้ในคลิกเดียว' },
+                    { headline: 'เก็บงานนำเสนอไว้ในโฟลเดอร์ที่ซิงค์', subtext: 'ใช้ได้ทั้ง Dropbox, iCloud Drive และ OneDrive' },
+                    { headline: '3D พร้อมฟิสิกส์วัตถุแข็งเกร็ง', subtext: 'ทำให้วัตถุตก ล้ม หรือกองทับกัน' },
+                    { headline: 'โน้ตผู้บรรยายก็เป็น Markdown เหมือนกัน', subtext: 'บันทึกไว้ในไฟล์เดียวกับสไลด์' },
+                    { headline: 'รวมรูปทรงแบบ Figma', subtext: 'รวม ลบ ตัดกัน หรือยกเว้น' },
+                    { headline: 'ใส่โค้ดลงในสไลด์ของคุณ', subtext: 'บล็อกโค้ดไฮไลต์ไวยากรณ์ได้ 21 ภาษา' },
+                    { headline: 'ฟรีทั้งใช้ส่วนตัวและเชิงพาณิชย์', subtext: 'ดาวน์โหลดสำหรับ Mac หรือ Windows' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'ตรวจสอบเวอร์ชันใหม่เมื่อเริ่ม',

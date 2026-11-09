@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_ZH_CN = {
+    language: {
+        downloading: '正在下载语言…',
+        continueInEnglish: '继续使用英语',
+        downloadFailed: '语言下载失败。Notebook Navigator 正在使用英语。'
+    },
     // Common UI elements
     common: {
         cancel: '取消', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_ZH_CN = {
         manualSortHint: '拖动以重新排序。顺序以数字索引值的形式保存在属性“{property}”中。',
         manualSortNonMarkdownHint: '非 Markdown 文件显示在底部，无法重新排序。',
         unsortedSection: '未排序',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} 张幻灯片',
+            slideCountOne: '1 张幻灯片',
+            theme: '主题',
+            slides: '幻灯片',
+            size: '尺寸'
+        },
         propertyGroupNoValue: '无',
         manualSortDone: '完成',
         manualSortMultipleWriteFailure: '{count} 个文件失败；第一个：{path}: {message}'
@@ -79,12 +92,14 @@ export const STRINGS_ZH_CN = {
         reorderRootFoldersTitle: '重新排列导航',
         reorderRootFoldersHint: '使用箭头或拖动来重新排列',
         vaultRootLabel: '仓库',
-        resetRootToAlpha: '重置为字母顺序',
-        resetRootToFrequency: '重置为频率排序',
+        resetAllFolders: '重置所有文件夹',
+        resetAllTags: '重置所有标签',
+        resetAllProperties: '重置所有属性',
         pinShortcuts: '固定快捷方式',
         pinShortcutsAndRecentFiles: '固定快捷方式和最近文件',
         unpinShortcuts: '取消固定快捷方式',
         unpinShortcutsAndRecentFiles: '取消固定快捷方式和最近文件',
+        resizePinnedShortcuts: '调整固定快捷方式的大小',
         profileMenuAria: '更改仓库配置文件'
     },
 
@@ -115,6 +130,7 @@ export const STRINGS_ZH_CN = {
 
     templates: {
         invalidTokens: '模板“{name}”包含无效的占位符：{tokens}',
+        invalidFileNameTokens: '“{name}”的文件名格式包含无效的占位符：{tokens}',
         readFailed: '无法读取模板“{name}”。笔记已在没有模板的情况下创建。',
         folderNotSet: '从模板新建笔记前，请先在文件操作与模板 > 模板中设置模板文件夹。',
         templateNotFound: '未找到模板“{name}”。',
@@ -234,10 +250,12 @@ export const STRINGS_ZH_CN = {
                     items: [
                         '`.key` 包含属性键以 `key` 开头的笔记。',
                         '`.key=value` 包含属性值含有 `value` 的笔记。',
+                        '`.key=null` 包含具有属性 `key` 但其值为空的笔记。`.key="null"` 搜索文本 `null`。',
                         '`."Reading Status"` 包含属性键包含空格的笔记。',
                         '`."Reading Status"="In Progress"` 包含空格的键和值必须用双引号括起来。',
                         '`-.key` 排除属性键以 `key` 开头的笔记。',
                         '`-.key=value` 排除属性值含有 `value` 的笔记。',
+                        '`-.key=null` 排除具有属性 `key` 但其值为空的笔记。',
                         'Cmd/Ctrl+点击属性以 AND 方式添加。Cmd/Ctrl+Shift+点击以 OR 方式添加。'
                     ]
                 },
@@ -728,7 +746,7 @@ export const STRINGS_ZH_CN = {
             templatePlaceholder: 'Templates/Meeting.md',
             fileNameFormat: '文件名格式',
             fileNameFormatDesc:
-                '{{date:YYYYMMDD}}、{{prompt:Title}} 等占位符会在运行命令时被替换。每个提示都会询问一个值，模板中相同的标签会获得相同的值。',
+                '{{date:YYYYMMDD}}、{{prompt:Title}} 等占位符会在运行命令时被替换。每个提示都会询问一个值，模板中相同的标签会获得相同的值。{{number}} 比文件夹中名称模式相同的笔记所用的最大编号大 1，{{number:00}} 会用零补齐位数。模板中也可以使用 {{number}}，{{title}} 会插入生成的文件名。',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Title}}',
             location: '位置',
             folder: '文件夹',
@@ -905,6 +923,7 @@ export const STRINGS_ZH_CN = {
             cannotMoveIntoSelf: '无法将文件夹移动到自身或其子文件夹中。',
             itemAlreadyExists: '此位置已存在名为“{name}”的项目。',
             failedToMove: '移动失败：{error}',
+            failedToCopy: '复制“{name}”失败：{error}',
             failedToAddTag: '添加标签“{tag}”失败',
             failedToSetProperty: '更新属性失败：{error}',
             failedToClearTags: '清除标签失败',
@@ -917,7 +936,9 @@ export const STRINGS_ZH_CN = {
             filesAlreadyHaveProperty: '{count} 个文件已拥有此属性',
             noTagsToClear: '没有要清除的标签',
             fileImported: '已导入 1 个文件',
-            filesImported: '已导入 {count} 个文件'
+            filesImported: '已导入 {count} 个文件',
+            fileCopied: '已复制 1 个文件',
+            filesCopied: '已复制 {count} 个文件'
         }
     },
 
@@ -940,6 +961,9 @@ export const STRINGS_ZH_CN = {
         openMonthlyNote: '打开月记',
         openQuarterlyNote: '打开季度笔记',
         openYearlyNote: '打开年记',
+        openNextPeriodicNote: '打开下一个周期笔记',
+        openPreviousPeriodicNote: '打开上一个周期笔记',
+        openParentPeriodicNote: '打开上级周期笔记',
         revealFile: '定位文件', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: '搜索', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: '搜索整个仓库', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1040,8 +1064,6 @@ export const STRINGS_ZH_CN = {
             exportFailed: '导出元数据报告失败'
         },
         index: {
-            label: '通用',
-            description: '发行说明、支持、仓库配置文件、文件类型和属性键。',
             groups: {
                 about: '关于'
             }
@@ -1168,7 +1190,8 @@ export const STRINGS_ZH_CN = {
                 description: '诊断、元数据清理、导入/导出和重置。',
                 groups: {
                     maintenance: '维护',
-                    resetSettings: '重置设置'
+                    resetSettings: '重置设置',
+                    thirdPartyLicenses: '第三方许可证'
                 }
             }
         },
@@ -1634,7 +1657,6 @@ export const STRINGS_ZH_CN = {
             calendarLocale: {
                 name: '日历语言',
                 desc: '控制日历日期格式、周编号和每周的第一天。',
-                weekPathMismatchWarning: '可见日历和周记路径使用了不同的每周起始日或周编号方式。',
                 options: {
                     systemDefault: '系统默认'
                 }
@@ -1748,7 +1770,8 @@ export const STRINGS_ZH_CN = {
                 momentLinkText: 'Moment 日期格式',
                 momentDescSuffix:
                     ' 设置路径。将子文件夹名称用方括号括起来，例如 [Work]/YYYY。点击模板图标设置模板。在文件操作与模板 > 模板中设置模板文件夹位置。',
-                example: '当前语法：{path}'
+                example: '当前语法：{path}',
+                weekYearWarning: '"gggg" 和 "GGGG" 是周年份，因此新年前后的日期可能得到错误的年份。请使用 "YYYY"。'
             },
             templateEngine: {
                 name: '模板引擎',
@@ -1791,9 +1814,14 @@ export const STRINGS_ZH_CN = {
             calendarWeeklyNotePattern: {
                 name: '周记',
                 parsingError: '模式必须能格式化并重新解析为完整周（周年、周数）。',
-                weekPathMismatchWarning: '周记路径使用周期笔记语言。请使用匹配的语言，或使用 "GGGG" 与 "WW" 以星期一为基准的周。',
+                isoWeeksWarning:
+                    '周记使用 ISO 周（"W" 或 "G"），因此日历以星期一作为每周的第一天，并显示 ISO 周数。若要让周遵循语言设置，请使用 "gggg" 与 "ww"。',
+                calendarYearWarning:
+                    '周记从 "YYYY" 取年份，因此始于十二月的第 1 周会得到上一年。请使用 "GGGG" 与 "WW"，或 "gggg" 与 "ww"。',
                 mixedWeekTokensWarning:
-                    '此模式混用了基于星期一的周标记（"W" 或 "G"）和基于语言的周标记（"w" 或 "g"）。请始终使用同一组：以星期一为基准的周使用 "GGGG" 与 "WW"，如果周记应遵循所选语言设置，则使用 "gggg" 与 "ww"。'
+                    '周记混用了 ISO 周标记（"W" 或 "G"）和语言周标记（"w" 或 "g"）。ISO 周请使用 "GGGG" 与 "WW"，遵循语言设置的周请使用 "gggg" 与 "ww"。',
+                weekPathMismatchWarning:
+                    '日历语言与周期笔记语言的每周起始日或周编号不同，因此周记路径与日历中的周不一致。请将两者设为相同的语言，或在 ISO 周中使用 "GGGG" 与 "WW"。'
             },
             calendarMonthlyNotePattern: {
                 name: '月记',
@@ -1865,7 +1893,10 @@ export const STRINGS_ZH_CN = {
                     downloadButtonText: '下载',
                     copyNotice: '设置已复制到剪贴板。',
                     downloadNotice: '设置已导出。',
-                    downloadError: '下载设置失败：{message}'
+                    downloadError: '下载设置失败：{message}',
+                    saveButtonText: '保存到仓库',
+                    saveNotice: '设置已保存到 {path}。',
+                    saveError: '保存设置失败：{message}'
                 }
             },
             resetAllSettings: {
@@ -2490,7 +2521,7 @@ export const STRINGS_ZH_CN = {
             },
             folderNoteType: {
                 name: '默认文件夹笔记类型',
-                desc: '从上下文菜单创建的文件夹笔记类型。',
+                desc: '从上下文菜单创建的文件夹笔记类型；当文件夹有多种类型的文件夹笔记时优先使用此类型。',
                 options: {
                     ask: '创建时询问',
                     markdown: 'Markdown',
@@ -2640,10 +2671,38 @@ export const STRINGS_ZH_CN = {
                 buttonText: '❤️ 赞助',
                 coffeeButton: '☕️ 请我喝咖啡'
             },
-            otherPlugins: {
-                name: '看看我的其他插件',
-                betterPaste: '整理粘贴的文本、链接和图片',
-                pixelPerfectImage: '精确的图片缩放等'
+            markdownPointBanner: {
+                heading: '您在用 Canva、Keynote 或 PowerPoint 吗？',
+                atTop: {
+                    name: '在顶部显示 MarkdownPoint 横幅',
+                    desc: '关闭后，横幅会显示在设置页面中较靠下的位置。'
+                },
+                credit: '作者：Johan Sanneblad',
+                messages: [
+                    { headline: '用 Markdown 写幻灯片。', subtext: '把文字和图片拖到你想要的位置。' },
+                    { headline: 'PowerPoint 的免费替代品。', subtext: '分享和协作也都免费。' },
+                    { headline: '每份演示文稿都是电脑上的一个文件夹。', subtext: '做幻灯片不需要账号。' },
+                    { headline: '像 Apple Motion 一样做动画。', subtext: '可以用关键帧、路径和变形。' },
+                    { headline: '在幻灯片上放 3D 模型。', subtext: '打开 GLB 或 glTF 文件，或用 Meshy 生成。' },
+                    { headline: '像 Google Slides 一样协作。', subtext: '看到每个人的指针和评论。' },
+                    { headline: '在一处查看每页幻灯片的文字。', subtext: '打开 View > Outline，用 Markdown 编辑。' },
+                    { headline: '像 Figma 一样吸附对象。', subtext: '按间距、尺寸和角度对齐。' },
+                    { headline: '把演示文稿导出为 4K 视频。', subtext: '做动画不需要 After Effects。' },
+                    { headline: '让 3D 角色走路或跑步。', subtext: '用 Meshy 绑定骨骼和制作动画。' },
+                    { headline: '用 ==等号== 包住文字就能高亮。', subtext: '**粗体** 和 *斜体* 的用法和 Obsidian 一样。' },
+                    { headline: '像 Figma 一样使用自动布局。', subtext: '把一组对象排成一行或一列。' },
+                    { headline: '用链接分享演示文稿。', subtext: '用免费账号发布到网上。' },
+                    { headline: '像 Blender 一样的 3D 灯光。', subtext: '点光、日光、聚光和面光，都带阴影。' },
+                    { headline: '用 Git 管理你的演示文稿。', subtext: '演示文稿就是 Markdown 和 JSON 文本文件。' },
+                    { headline: '像 Figma 一样创建组件。', subtext: '编辑一次，所有实例都会改变。' },
+                    { headline: '像 Obsidian 一样挑选主题。', subtext: '一键安装免费主题。' },
+                    { headline: '把演示文稿放在同步文件夹里。', subtext: 'Dropbox、iCloud Drive 和 OneDrive 都可以。' },
+                    { headline: '带刚体物理的 3D。', subtext: '让物体掉落、倾倒或堆叠。' },
+                    { headline: '演讲者备注也是 Markdown。', subtext: '它们和幻灯片保存在同一个文件里。' },
+                    { headline: '像 Figma 一样组合形状。', subtext: '并集、减去、交集或排除。' },
+                    { headline: '把代码放到幻灯片上。', subtext: '代码块支持 21 种语言的语法高亮。' },
+                    { headline: '个人和商业用途都免费。', subtext: '下载 Mac 版或 Windows 版。' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: '启动时检查新版本',

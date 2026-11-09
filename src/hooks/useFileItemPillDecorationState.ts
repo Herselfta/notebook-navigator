@@ -30,11 +30,18 @@ import type { NavigationPaneTreeSectionsResult } from './navigationPane/data/use
 
 interface UseFileItemPillDecorationStateParams {
     sourceState: NavigationPaneSourceState;
-    treeSections: Pick<NavigationPaneTreeSectionsResult, 'renderTagTree' | 'renderedRootTagKeys'>;
+    treeSections: Pick<NavigationPaneTreeSectionsResult, 'unscopedRootTagKeys'>;
     includeDescendantNotes: boolean;
     navRainbowState: NavigationRainbowState;
 }
 
+/**
+ * Builds the tag and property rainbow color maps used by navigation rows, list pane pills, and the list pane title.
+ *
+ * Colors are assigned from the unfiltered tag and property trees, which already exclude hidden items, and not from the
+ * trees rendered in the navigation pane. Filter by selection narrows the rendered trees, and assigning from those would
+ * redistribute the palette over fewer items so every remaining tag or property changed color on each selection change.
+ */
 export function useFileItemPillDecorationState({
     sourceState,
     treeSections,
@@ -55,26 +62,28 @@ export function useFileItemPillDecorationState({
         }
 
         return buildFileItemTagRainbowColors({
-            visibleTagTree: treeSections.renderTagTree,
-            rootTagKeys: treeSections.renderedRootTagKeys,
+            visibleTagTree: sourceState.visibleTagTree,
+            rootTagKeys: treeSections.unscopedRootTagKeys,
             rootTagOrderMap: sourceState.rootTagOrderMap,
             tagComparator: sourceState.tagComparator,
             palette,
             scope: navRainbow.tags.scope,
             showAllTagsFolder: settings.showAllTagsFolder,
             inheritColors: settings.inheritTagColors,
-            childSortOrderOverrides: settings.tagTreeSortOverrides
+            childSortOrderOverrides: settings.tagTreeSortOverrides,
+            childOrder: settings.tagChildOrder
         });
     }, [
         navRainbow.tags.scope,
         navRainbowPalettes.tag,
         settings.inheritTagColors,
         settings.showAllTagsFolder,
+        settings.tagChildOrder,
         settings.tagTreeSortOverrides,
-        treeSections.renderedRootTagKeys,
-        treeSections.renderTagTree,
+        treeSections.unscopedRootTagKeys,
         sourceState.rootTagOrderMap,
-        sourceState.tagComparator
+        sourceState.tagComparator,
+        sourceState.visibleTagTree
     ]);
 
     const propertyRainbowColors = useMemo(() => {
@@ -93,12 +102,14 @@ export function useFileItemPillDecorationState({
             showAllPropertiesFolder: settings.showAllPropertiesFolder,
             propertySortOrder: settings.propertySortOrder,
             propertyTreeSortOverrides: settings.propertyTreeSortOverrides,
+            propertyChildOrder: settings.propertyChildOrder,
             includeDescendantNotes
         });
     }, [
         includeDescendantNotes,
         navRainbow.properties.scope,
         navRainbowPalettes.property,
+        settings.propertyChildOrder,
         settings.propertySortOrder,
         settings.propertyTreeSortOverrides,
         settings.showAllPropertiesFolder,

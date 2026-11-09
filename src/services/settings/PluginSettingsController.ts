@@ -27,6 +27,7 @@ import {
     applyLegacyVisibilityMigration,
     extractLegacyPropertyFields,
     extractLegacyPeriodicNotesFolder,
+    extractLegacyRootFolderOrder,
     extractLegacyShortcuts,
     extractLegacyVisibilitySettings,
     migrateFolderNoteSettings,
@@ -58,6 +59,7 @@ import {
     isFeatureImageSizeSetting,
     isFolderNoteOpenLocation,
     isHomepageSource,
+    isListDisplayMode,
     isMouseBackForwardAction,
     isManualSortNewNotePlacement,
     isUnfinishedTaskIconMode,
@@ -523,6 +525,9 @@ export class PluginSettingsController {
         const hadLegacyOpenFolderNotesInNewTabInStoredData = Boolean(
             storedData && Object.prototype.hasOwnProperty.call(storedData, 'openFolderNotesInNewTab')
         );
+        const hadLegacyRootFolderOrderInStoredData = Boolean(
+            storedData && Object.prototype.hasOwnProperty.call(storedData, 'rootFolderOrder')
+        );
         const hadInvalidShiftEnterOpenContextInStoredData = Boolean(
             storedData &&
             Object.prototype.hasOwnProperty.call(storedData, 'shiftEnterOpenContext') &&
@@ -558,6 +563,12 @@ export class PluginSettingsController {
         }
 
         const settingsRecord = this.currentSettings as unknown as Record<string, unknown>;
+        // The root-only folder order became folderChildOrder['/'] when every folder level got a manual order
+        const legacyRootFolderOrder = extractLegacyRootFolderOrder(storedData);
+        if (legacyRootFolderOrder) {
+            this.currentSettings.folderChildOrder = legacyRootFolderOrder;
+        }
+        delete settingsRecord['rootFolderOrder'];
         delete settingsRecord['showCalendar'];
         delete settingsRecord['calendarCustomPromptForTitle'];
         delete settingsRecord['saveMetadataToFrontmatter'];
@@ -716,10 +727,6 @@ export class PluginSettingsController {
             }
         });
 
-        if (!Array.isArray(this.currentSettings.rootFolderOrder)) {
-            this.currentSettings.rootFolderOrder = [];
-        }
-
         if (!Array.isArray(this.currentSettings.rootTagOrder)) {
             this.currentSettings.rootTagOrder = [];
         }
@@ -811,6 +818,7 @@ export class PluginSettingsController {
             reconciledDefaultFolderSort.changed ||
             reconciledDefaultNoteGrouping.changed ||
             hadLegacyOpenFolderNotesInNewTabInStoredData ||
+            hadLegacyRootFolderOrderInStoredData ||
             hadInvalidShiftEnterOpenContextInStoredData ||
             hadInvalidCmdCtrlEnterOpenContextInStoredData ||
             hadMissingDarkTaskBackgroundColorInStoredData ||
@@ -1142,7 +1150,7 @@ export class PluginSettingsController {
     }
 
     private sanitizeNavItemHeightSetting(value: unknown): number {
-        return this.sanitizeBoundedIntegerSetting(value, { min: 20, max: 28, fallback: DEFAULT_SETTINGS.navItemHeight });
+        return this.sanitizeBoundedIntegerSetting(value, { min: 20, max: 40, fallback: DEFAULT_SETTINGS.navItemHeight });
     }
 
     private sanitizeCalendarPlacementSetting(value: unknown): CalendarPlacement {
@@ -1167,7 +1175,11 @@ export class PluginSettingsController {
     }
 
     private sanitizeCompactItemHeightSetting(value: unknown): number {
-        return this.sanitizeBoundedIntegerSetting(value, { min: 20, max: 28, fallback: DEFAULT_SETTINGS.compactItemHeight });
+        return this.sanitizeBoundedIntegerSetting(value, { min: 20, max: 40, fallback: DEFAULT_SETTINGS.compactItemHeight });
+    }
+
+    private sanitizeDefaultListModeSetting(value: unknown): NotebookNavigatorSettings['defaultListMode'] {
+        return isListDisplayMode(value) ? value : DEFAULT_SETTINGS.defaultListMode;
     }
 
     private sanitizeFeatureImageSizeSetting(value: unknown): NotebookNavigatorSettings['featureImageSize'] {
@@ -1307,6 +1319,7 @@ export class PluginSettingsController {
             sanitizeNavIndentSetting: value => this.sanitizeNavIndentSetting(value),
             sanitizeNavItemHeightSetting: value => this.sanitizeNavItemHeightSetting(value),
             sanitizeCalendarWeeksToShowSetting: value => this.sanitizeCalendarWeeksToShowSetting(value),
+            sanitizeDefaultListModeSetting: value => this.sanitizeDefaultListModeSetting(value),
             sanitizeCalendarPlacementSetting: value => this.sanitizeCalendarPlacementSetting(value),
             sanitizeCalendarLeftPlacementSetting: value => this.sanitizeCalendarLeftPlacementSetting(value),
             sanitizeCompactItemHeightSetting: value => this.sanitizeCompactItemHeightSetting(value),
@@ -1372,6 +1385,33 @@ export class PluginSettingsController {
             });
             return sanitized;
         };
+        // normalize maps tag parent paths and names to the lowercase form the tag tree keys nodes by
+        const sanitizeChildOrder = (record?: Record<string, string[]>, normalize = (value: string) => value): Record<string, string[]> => {
+            const sanitized = Object.create(null) as Record<string, string[]>;
+            if (!record) {
+                return sanitized;
+            }
+
+            for (const parentKey of Object.keys(record)) {
+                const value: unknown = (record as Record<string, unknown>)[parentKey];
+                const normalizedParentKey = normalize(parentKey);
+                if (!Array.isArray(value) || normalizedParentKey.length === 0) {
+                    continue;
+                }
+                const entries: unknown[] = value;
+                const names = entries
+                    .filter((name): name is string => typeof name === 'string')
+                    .map(normalize)
+                    .filter(name => name.length > 0);
+                // Duplicate names would give two reorder rows the same sortable id, so only the first is kept
+                const uniqueNames = Array.from(new Set(names));
+                if (uniqueNames.length > 0) {
+                    sanitized[normalizedParentKey] = uniqueNames;
+                }
+            }
+
+            return sanitized;
+        };
         const sanitizeBooleanMap = (record?: Record<string, boolean>): Record<string, boolean> =>
             sanitizeRecord(record, isBooleanRecordValue);
         const sanitizeSettingsSyncMap = (record?: Record<string, SettingSyncMode>): Record<string, SettingSyncMode> =>
@@ -1393,6 +1433,9 @@ export class PluginSettingsController {
         this.currentSettings.tagSortOverrides = sanitizeSortMap(this.currentSettings.tagSortOverrides);
         this.currentSettings.propertySortOverrides = sanitizeSortMap(this.currentSettings.propertySortOverrides);
         this.currentSettings.folderTreeSortOverrides = sanitizeAlphaSortOrderMap(this.currentSettings.folderTreeSortOverrides);
+        this.currentSettings.folderChildOrder = sanitizeChildOrder(this.currentSettings.folderChildOrder);
+        this.currentSettings.tagChildOrder = sanitizeChildOrder(this.currentSettings.tagChildOrder, normalizeTagPathValue);
+        this.currentSettings.propertyChildOrder = sanitizeChildOrder(this.currentSettings.propertyChildOrder);
         this.currentSettings.tagTreeSortOverrides = sanitizeAlphaSortOrderMap(this.currentSettings.tagTreeSortOverrides);
         this.currentSettings.propertyTreeSortOverrides = sanitizeAlphaSortOrderMap(this.currentSettings.propertyTreeSortOverrides);
         this.currentSettings.folderAppearances = sanitizeAppearanceMap(this.currentSettings.folderAppearances);

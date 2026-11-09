@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_RU = {
+    language: {
+        downloading: 'Загрузка языков…',
+        continueInEnglish: 'Продолжить на английском',
+        downloadFailed: 'Не удалось загрузить языки. Notebook Navigator использует английский.'
+    },
     // Common UI elements
     common: {
         cancel: 'Отмена', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_RU = {
         manualSortHint: 'Перетащите для изменения порядка. Порядок сохраняется как числовые значения индекса в свойстве «{property}».',
         manualSortNonMarkdownHint: 'Файлы, отличные от Markdown, показаны внизу и их порядок изменить нельзя.',
         unsortedSection: 'Без сортировки',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: 'Слайдов: {count}',
+            slideCountOne: '1 слайд',
+            theme: 'Тема',
+            slides: 'Слайды',
+            size: 'Размер'
+        },
         propertyGroupNoValue: 'Нет',
         manualSortDone: 'Готово',
         manualSortMultipleWriteFailure: 'Не удалось обработать файлов: {count}; первый: {path}: {message}'
@@ -80,12 +93,14 @@ export const STRINGS_RU = {
         reorderRootFoldersTitle: 'Изменить порядок навигации',
         reorderRootFoldersHint: 'Используйте стрелки или перетаскивание',
         vaultRootLabel: 'Хранилище',
-        resetRootToAlpha: 'Сбросить в алфавитный порядок',
-        resetRootToFrequency: 'Сбросить по частоте',
+        resetAllFolders: 'Сбросить все папки',
+        resetAllTags: 'Сбросить все теги',
+        resetAllProperties: 'Сбросить все свойства',
         pinShortcuts: 'Закрепить ярлыки',
         pinShortcutsAndRecentFiles: 'Закрепить ярлыки и недавние файлы',
         unpinShortcuts: 'Открепить ярлыки',
         unpinShortcutsAndRecentFiles: 'Открепить ярлыки и недавние файлы',
+        resizePinnedShortcuts: 'Изменить размер закреплённых ярлыков',
         profileMenuAria: 'Сменить профиль хранилища'
     },
 
@@ -116,6 +131,7 @@ export const STRINGS_RU = {
 
     templates: {
         invalidTokens: 'Шаблон «{name}» содержит недопустимые токены: {tokens}',
+        invalidFileNameTokens: 'Формат имени файла команды «{name}» содержит недопустимые токены: {tokens}',
         readFailed: 'Не удалось прочитать шаблон «{name}». Заметка создана без него.',
         folderNotSet: 'Укажите папку шаблонов в разделе Операции с файлами и шаблоны > Шаблоны, прежде чем создавать заметки из шаблонов.',
         templateNotFound: 'Шаблон «{name}» не найден.',
@@ -237,10 +253,12 @@ export const STRINGS_RU = {
                     items: [
                         '`.key` Включить заметки с ключом свойства, который начинается с `key`.',
                         '`.key=value` Включить заметки, у которых значение свойства содержит `value`.',
+                        '`.key=null` Включить заметки, в которых свойство `key` есть, но не имеет значения. `.key="null"` ищет текст `null`.',
                         '`."Reading Status"` Включить заметки с ключом свойства, содержащим пробелы.',
                         '`."Reading Status"="In Progress"` Ключи и значения с пробелами должны быть заключены в двойные кавычки.',
                         '`-.key` Исключить заметки с ключом свойства, который начинается с `key`.',
                         '`-.key=value` Исключить заметки, у которых значение свойства содержит `value`.',
+                        '`-.key=null` Исключить заметки, в которых свойство `key` есть, но не имеет значения.',
                         'Cmd/Ctrl+Клик по свойству для добавления с AND. Cmd/Ctrl+Shift+Клик для добавления с OR.'
                     ]
                 },
@@ -734,7 +752,7 @@ export const STRINGS_RU = {
             templatePlaceholder: 'Шаблоны/Встреча.md',
             fileNameFormat: 'Формат имени файла',
             fileNameFormatDesc:
-                'Токены вроде {{date:YYYYMMDD}} и {{prompt:Название}} заменяются при запуске команды. Каждый запрос спрашивает значение, и та же метка в шаблоне получает то же значение.',
+                'Токены вроде {{date:YYYYMMDD}} и {{prompt:Название}} заменяются при запуске команды. Каждый запрос спрашивает значение, и та же метка в шаблоне получает то же значение. {{number}} на единицу больше наибольшего номера, который используют заметки в папке с тем же шаблоном имени, а {{number:00}} дополняет его нулями. Шаблон тоже может использовать {{number}}, а {{title}} вставляет сформированное имя файла.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Название}}',
             location: 'Расположение',
             folder: 'Папка',
@@ -912,6 +930,7 @@ export const STRINGS_RU = {
             cannotMoveIntoSelf: 'Нельзя переместить папку в себя или в подпапку.',
             itemAlreadyExists: 'Элемент с именем «{name}» уже существует в этом месте.',
             failedToMove: 'Не удалось переместить: {error}',
+            failedToCopy: 'Не удалось скопировать «{name}»: {error}',
             failedToAddTag: 'Не удалось добавить тег «{tag}»',
             failedToSetProperty: 'Не удалось обновить свойство: {error}',
             failedToClearTags: 'Не удалось очистить теги',
@@ -924,7 +943,9 @@ export const STRINGS_RU = {
             filesAlreadyHaveProperty: 'Это свойство уже есть у файлов: {count}',
             noTagsToClear: 'Нет тегов для очистки',
             fileImported: 'Импортирован 1 файл',
-            filesImported: 'Импортировано файлов: {count}'
+            filesImported: 'Импортировано файлов: {count}',
+            fileCopied: 'Скопирован 1 файл',
+            filesCopied: 'Скопировано файлов: {count}'
         }
     },
 
@@ -947,6 +968,9 @@ export const STRINGS_RU = {
         openMonthlyNote: 'Открыть ежемесячную заметку',
         openQuarterlyNote: 'Открыть квартальную заметку',
         openYearlyNote: 'Открыть годовую заметку',
+        openNextPeriodicNote: 'Открыть следующую периодическую заметку',
+        openPreviousPeriodicNote: 'Открыть предыдущую периодическую заметку',
+        openParentPeriodicNote: 'Открыть родительскую периодическую заметку',
         revealFile: 'Показать файл', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Поиск', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Поиск по всему хранилищу', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1047,8 +1071,6 @@ export const STRINGS_RU = {
             exportFailed: 'Не удалось экспортировать отчёт о метаданных'
         },
         index: {
-            label: 'Общие',
-            description: 'Заметки о выпуске, поддержка, профиль хранилища, типы файлов и ключи свойств.',
             groups: {
                 about: 'О плагине'
             }
@@ -1176,7 +1198,8 @@ export const STRINGS_RU = {
                 description: 'Диагностика, очистка метаданных, импорт/экспорт и сброс.',
                 groups: {
                     maintenance: 'Обслуживание',
-                    resetSettings: 'Сброс настроек'
+                    resetSettings: 'Сброс настроек',
+                    thirdPartyLicenses: 'Лицензии сторонних компонентов'
                 }
             }
         },
@@ -1645,8 +1668,6 @@ export const STRINGS_RU = {
             calendarLocale: {
                 name: 'Язык',
                 desc: 'Управляет форматированием дат календаря, нумерацией недель и первым днём недели.',
-                weekPathMismatchWarning:
-                    'Видимый календарь и пути еженедельных заметок используют разные начала недели или разную нумерацию недель.',
                 options: {
                     systemDefault: 'По умолчанию'
                 }
@@ -1760,7 +1781,9 @@ export const STRINGS_RU = {
                 momentLinkText: 'формата даты Moment',
                 momentDescSuffix:
                     '. Заключайте названия подпапок в скобки, напр. [Work]/YYYY. Нажмите на иконку шаблона, чтобы задать шаблон. Укажите расположение папки шаблонов в Операции с файлами и шаблоны > Шаблоны.',
-                example: 'Текущий синтаксис: {path}'
+                example: 'Текущий синтаксис: {path}',
+                weekYearWarning:
+                    '«gggg» и «GGGG» — это годы недель, поэтому даты около Нового года могут получить неверный год. Используйте «YYYY».'
             },
             templateEngine: {
                 name: 'Движок шаблонов',
@@ -1804,10 +1827,14 @@ export const STRINGS_RU = {
             calendarWeeklyNotePattern: {
                 name: 'Еженедельные заметки',
                 parsingError: 'Шаблон должен форматироваться и разбираться обратно как полная неделя (год недели, номер недели).',
-                weekPathMismatchWarning:
-                    'Пути еженедельных заметок используют язык периодических заметок. Используйте совпадающие языки или используйте «GGGG» с «WW» для недель, начинающихся с понедельника.',
+                isoWeeksWarning:
+                    'Еженедельные заметки используют недели ISO («W» или «G»), поэтому календарь начинает недели с понедельника и показывает номера недель ISO. Используйте «gggg» с «ww» для недель по языку.',
+                calendarYearWarning:
+                    'Еженедельные заметки берут год из «YYYY», поэтому неделя 1, начинающаяся в декабре, получает предыдущий год. Используйте «GGGG» с «WW» или «gggg» с «ww».',
                 mixedWeekTokensWarning:
-                    'Этот шаблон смешивает токены недели, начинающейся с понедельника («W» или «G»), с токенами недели на основе локали («w» или «g»). Используйте один набор последовательно: «GGGG» с «WW» для недель, начинающихся с понедельника, или «gggg» с «ww», если еженедельные заметки должны соответствовать выбранной локали.'
+                    'Еженедельные заметки смешивают токены недель ISO («W» или «G») с токенами недель по языку («w» или «g»). Используйте «GGGG» с «WW» для недель ISO или «gggg» с «ww» для недель по языку.',
+                weekPathMismatchWarning:
+                    'Язык календаря и язык периодических заметок по-разному начинают или нумеруют недели, поэтому пути еженедельных заметок не совпадают с неделями в календаре. Выберите одинаковый язык для обоих или используйте «GGGG» с «WW» для недель ISO.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Ежемесячные заметки',
@@ -1879,7 +1906,10 @@ export const STRINGS_RU = {
                     downloadButtonText: 'Скачать',
                     copyNotice: 'Настройки скопированы в буфер обмена.',
                     downloadNotice: 'Настройки экспортированы.',
-                    downloadError: 'Не удалось скачать настройки: {message}'
+                    downloadError: 'Не удалось скачать настройки: {message}',
+                    saveButtonText: 'Сохранить в хранилище',
+                    saveNotice: 'Настройки сохранены в {path}.',
+                    saveError: 'Не удалось сохранить настройки: {message}'
                 }
             },
             resetAllSettings: {
@@ -2506,7 +2536,7 @@ export const STRINGS_RU = {
             },
             folderNoteType: {
                 name: 'Тип заметки папки по умолчанию',
-                desc: 'Тип заметки папки, создаваемой из контекстного меню.',
+                desc: 'Тип заметки папки, создаваемой из контекстного меню. Этот тип выбирается, если в папке есть заметки папки нескольких типов.',
                 options: {
                     ask: 'Спрашивать при создании',
                     markdown: 'Markdown',
@@ -2656,10 +2686,38 @@ export const STRINGS_RU = {
                 buttonText: '❤️ Спонсор',
                 coffeeButton: '☕️ Купить кофе'
             },
-            otherPlugins: {
-                name: 'Посмотрите мои другие плагины',
-                betterPaste: 'Очищает вставленный текст, ссылки и изображения',
-                pixelPerfectImage: 'Точное изменение размера изображений и другое'
+            markdownPointBanner: {
+                heading: 'Пользуетесь Canva, Keynote или PowerPoint?',
+                atTop: {
+                    name: 'Показывать баннер MarkdownPoint вверху',
+                    desc: 'Если выключено, баннер показывается ниже на странице настроек.'
+                },
+                credit: 'от Johan Sanneblad',
+                messages: [
+                    { headline: 'Пишите слайды в Markdown.', subtext: 'Перетаскивайте текст и картинки куда нужно.' },
+                    { headline: 'Бесплатная альтернатива PowerPoint.', subtext: 'Общий доступ и совместная работа бесплатны.' },
+                    { headline: 'Всё хранится на вашем компьютере.', subtext: 'Для работы со слайдами аккаунт не нужен.' },
+                    { headline: 'Анимируйте как в Apple Motion.', subtext: 'Есть ключевые кадры, траектории и морфинг.' },
+                    { headline: 'Добавляйте 3D-модели на слайды.', subtext: 'Откройте GLB или glTF или создайте в Meshy.' },
+                    { headline: 'Работайте вместе как в Google Slides.', subtext: 'Видны курсоры и комментарии всех.' },
+                    { headline: 'Весь текст слайдов в одном месте.', subtext: 'Откройте View > Outline и правьте Markdown.' },
+                    { headline: 'Привязывайте объекты как в Figma.', subtext: 'Выравнивайте по отступам, размеру и углу.' },
+                    { headline: 'Экспортируйте слайды в видео 4K.', subtext: 'After Effects для анимации не нужен.' },
+                    { headline: 'Пусть 3D-персонажи ходят и бегают.', subtext: 'Используйте Meshy для риггинга и анимации.' },
+                    { headline: 'Выделяйте ==знаками равенства==.', subtext: '**Жирный** и *курсив* работают как в Obsidian.' },
+                    { headline: 'Используйте автолейаут как в Figma.', subtext: 'Выстраивайте группу в строку или столбец.' },
+                    { headline: 'Делитесь презентацией по ссылке.', subtext: 'Публикуйте её онлайн с бесплатным аккаунтом.' },
+                    { headline: '3D-освещение как в Blender.', subtext: 'Точка, солнце, прожектор и область с тенями.' },
+                    { headline: 'Храните версии слайдов в Git.', subtext: 'Это текстовые файлы Markdown и JSON.' },
+                    { headline: 'Создавайте компоненты как в Figma.', subtext: 'Измените раз, и изменятся все экземпляры.' },
+                    { headline: 'Выбирайте темы как в Obsidian.', subtext: 'Установите бесплатную тему в один клик.' },
+                    { headline: 'Держите слайды в облачной папке.', subtext: 'Работает с Dropbox, iCloud Drive и OneDrive.' },
+                    { headline: '3D с физикой твёрдых тел.', subtext: 'Роняйте, опрокидывайте и ставьте в стопку.' },
+                    { headline: 'Заметки докладчика в Markdown.', subtext: 'Они хранятся в том же файле, что и слайды.' },
+                    { headline: 'Комбинируйте фигуры как в Figma.', subtext: 'Объедините, вычтите, пересеките, исключите.' },
+                    { headline: 'Добавляйте код на слайды.', subtext: 'Блоки кода подсвечиваются для 21 языка.' },
+                    { headline: 'Бесплатно для дома и работы.', subtext: 'Скачайте для Mac или Windows.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'Проверять новую версию при запуске',

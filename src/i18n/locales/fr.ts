@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_FR = {
+    language: {
+        downloading: 'Téléchargement des langues…',
+        continueInEnglish: 'Continuer en anglais',
+        downloadFailed: 'Le téléchargement des langues a échoué. Notebook Navigator utilise l’anglais.'
+    },
     // Common UI elements
     common: {
         cancel: 'Annuler', // Button text for canceling dialogs and operations (English: Cancel)
@@ -59,6 +64,14 @@ export const STRINGS_FR = {
             "Glissez pour réorganiser. L'ordre est enregistré sous forme de valeurs numériques dans la propriété « {property} ».",
         manualSortNonMarkdownHint: 'Les fichiers non Markdown sont affichés en bas et ne peuvent pas être réorganisés.',
         unsortedSection: 'Non trié',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} diapositives',
+            slideCountOne: '1 diapositive',
+            theme: 'Thème',
+            slides: 'Diapositives',
+            size: 'Taille'
+        },
         propertyGroupNoValue: 'Aucun',
         manualSortDone: 'Terminé',
         manualSortMultipleWriteFailure: '{count} fichiers ont échoué ; premier : {path} : {message}'
@@ -80,12 +93,14 @@ export const STRINGS_FR = {
         reorderRootFoldersTitle: 'Réorganiser la navigation',
         reorderRootFoldersHint: 'Utilisez les flèches ou glissez pour réorganiser',
         vaultRootLabel: 'Coffre',
-        resetRootToAlpha: "Réinitialiser l'ordre alphabétique",
-        resetRootToFrequency: 'Réinitialiser selon la fréquence',
+        resetAllFolders: 'Réinitialiser tous les dossiers',
+        resetAllTags: 'Réinitialiser tous les mots-clés',
+        resetAllProperties: 'Réinitialiser toutes les propriétés',
         pinShortcuts: 'Épingler les raccourcis',
         pinShortcutsAndRecentFiles: 'Épingler les raccourcis et fichiers récents',
         unpinShortcuts: 'Détacher les raccourcis',
         unpinShortcutsAndRecentFiles: 'Détacher les raccourcis et fichiers récents',
+        resizePinnedShortcuts: 'Redimensionner les raccourcis épinglés',
         profileMenuAria: 'Changer le profil du coffre'
     },
 
@@ -116,6 +131,7 @@ export const STRINGS_FR = {
 
     templates: {
         invalidTokens: 'Le modèle "{name}" contient des jetons non valides : {tokens}',
+        invalidFileNameTokens: 'Le format de nom de fichier de "{name}" contient des jetons non valides : {tokens}',
         readFailed: 'Impossible de lire le modèle "{name}". La note a été créée sans lui.',
         folderNotSet:
             'Définissez le dossier des modèles dans Opérations sur les fichiers et modèles > Modèles avant de créer des notes depuis un modèle.',
@@ -239,10 +255,12 @@ export const STRINGS_FR = {
                     items: [
                         '`.key` Inclure les notes dont la clé de propriété commence par `key`.',
                         '`.key=value` Inclure les notes dont la valeur de propriété contient `value`.',
+                        '`.key=null` Inclure les notes où la propriété `key` existe sans valeur. `.key="null"` recherche le texte `null`.',
                         '`."Reading Status"` Inclure les notes avec une clé de propriété contenant des espaces.',
                         '`."Reading Status"="In Progress"` Les clés et valeurs contenant des espaces doivent être entre guillemets doubles.',
                         '`-.key` Exclure les notes dont la clé de propriété commence par `key`.',
                         '`-.key=value` Exclure les notes dont la valeur de propriété contient `value`.',
+                        '`-.key=null` Exclure les notes où la propriété `key` existe sans valeur.',
                         'Cmd/Ctrl+Clic sur une propriété pour ajouter avec AND. Cmd/Ctrl+Shift+Clic pour ajouter avec OR.'
                     ]
                 },
@@ -740,7 +758,7 @@ export const STRINGS_FR = {
             templatePlaceholder: 'Modèles/Réunion.md',
             fileNameFormat: 'Format du nom de fichier',
             fileNameFormatDesc:
-                "Les jetons tels que {{date:YYYYMMDD}} et {{prompt:Titre}} sont remplacés à l'exécution de la commande. Chaque invite demande une valeur, et la même étiquette dans le modèle reçoit la même valeur.",
+                "Les jetons tels que {{date:YYYYMMDD}} et {{prompt:Titre}} sont remplacés à l'exécution de la commande. Chaque invite demande une valeur, et la même étiquette dans le modèle reçoit la même valeur. {{number}} vaut un de plus que le numéro le plus élevé utilisé par les notes du dossier ayant le même motif de nom, et {{number:00}} le complète avec des zéros. Le modèle peut aussi utiliser {{number}}, et {{title}} insère le nom de fichier généré.",
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Titre}}',
             location: 'Emplacement',
             folder: 'Dossier',
@@ -919,6 +937,7 @@ export const STRINGS_FR = {
             cannotMoveIntoSelf: 'Impossible de déplacer un dossier dans lui-même ou un sous-dossier.',
             itemAlreadyExists: 'Un élément nommé « {name} » existe déjà à cet emplacement.',
             failedToMove: 'Échec du déplacement : {error}',
+            failedToCopy: 'Échec de la copie de « {name} » : {error}',
             failedToAddTag: "Échec de l'ajout du mot-clé « {tag} »",
             failedToSetProperty: 'Échec de la mise à jour de la propriété : {error}',
             failedToClearTags: 'Échec de la suppression des mots-clés',
@@ -931,7 +950,9 @@ export const STRINGS_FR = {
             filesAlreadyHaveProperty: '{count} fichiers possèdent déjà cette propriété',
             noTagsToClear: 'Aucun mot-clé à supprimer',
             fileImported: '1 fichier importé',
-            filesImported: '{count} fichiers importés'
+            filesImported: '{count} fichiers importés',
+            fileCopied: '1 fichier copié',
+            filesCopied: '{count} fichiers copiés'
         }
     },
 
@@ -954,6 +975,9 @@ export const STRINGS_FR = {
         openMonthlyNote: 'Ouvrir la note mensuelle',
         openQuarterlyNote: 'Ouvrir la note trimestrielle',
         openYearlyNote: 'Ouvrir la note annuelle',
+        openNextPeriodicNote: 'Ouvrir la note périodique suivante',
+        openPreviousPeriodicNote: 'Ouvrir la note périodique précédente',
+        openParentPeriodicNote: 'Ouvrir la note périodique parente',
         revealFile: 'Révéler le fichier', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Rechercher', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Rechercher dans tout le coffre', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1054,8 +1078,6 @@ export const STRINGS_FR = {
             exportFailed: "Échec de l'exportation du rapport de métadonnées"
         },
         index: {
-            label: 'Général',
-            description: 'Notes de version, support, profil du coffre, types de fichiers et clés de propriétés.',
             groups: {
                 about: 'À propos'
             }
@@ -1184,7 +1206,8 @@ export const STRINGS_FR = {
                 description: 'Diagnostics, nettoyage des métadonnées, import/export et réinitialisation.',
                 groups: {
                     maintenance: 'Maintenance',
-                    resetSettings: 'Réinitialiser les paramètres'
+                    resetSettings: 'Réinitialiser les paramètres',
+                    thirdPartyLicenses: 'Licences tierces'
                 }
             }
         },
@@ -1653,8 +1676,6 @@ export const STRINGS_FR = {
             calendarLocale: {
                 name: 'Langue',
                 desc: 'Contrôle le formatage des dates du calendrier, la numérotation des semaines et le premier jour de la semaine.',
-                weekPathMismatchWarning:
-                    'Le calendrier visible et les chemins des notes hebdomadaires utilisent des débuts de semaine ou une numérotation des semaines différents.',
                 options: {
                     systemDefault: 'Par défaut'
                 }
@@ -1768,7 +1789,9 @@ export const STRINGS_FR = {
                 momentLinkText: 'format de date Moment',
                 momentDescSuffix:
                     ". Entourez les noms de sous-dossiers de crochets, par ex. [Work]/YYYY. Cliquez sur l'icône de modèle pour définir un modèle. Définir l'emplacement du dossier de modèles dans Opérations sur les fichiers et modèles > Modèles.",
-                example: 'Syntaxe actuelle : {path}'
+                example: 'Syntaxe actuelle : {path}',
+                weekYearWarning:
+                    '"gggg" et "GGGG" sont des années de semaine, donc les dates proches du Nouvel An peuvent recevoir une mauvaise année. Utilisez "YYYY".'
             },
             templateEngine: {
                 name: 'Moteur de modèles',
@@ -1814,10 +1837,14 @@ export const STRINGS_FR = {
                 name: 'Notes hebdomadaires',
                 parsingError:
                     'Le modèle doit pouvoir être formaté et ré-analysé comme une semaine complète (année de semaine, numéro de semaine).',
-                weekPathMismatchWarning:
-                    'Les chemins des notes hebdomadaires utilisent la langue des notes périodiques. Utilisez des langues correspondantes, ou utilisez "GGGG" avec "WW" pour des semaines basées sur le lundi.',
+                isoWeeksWarning:
+                    'Les notes hebdomadaires utilisent les semaines ISO ("W" ou "G"), donc le calendrier commence les semaines le lundi et affiche les numéros de semaine ISO. Utilisez "gggg" avec "ww" pour des semaines qui suivent la langue.',
+                calendarYearWarning:
+                    'Les notes hebdomadaires prennent l’année de "YYYY", donc une semaine 1 qui commence en décembre reçoit l’année précédente. Utilisez "GGGG" avec "WW", ou "gggg" avec "ww".',
                 mixedWeekTokensWarning:
-                    'Ce modèle mélange des jetons de semaine basés sur le lundi ("W" ou "G") avec des jetons de semaine basés sur la langue ("w" ou "g"). Utilisez un seul ensemble de manière cohérente : "GGGG" avec "WW" pour des semaines basées sur le lundi, ou "gggg" avec "ww" si les notes hebdomadaires doivent suivre la langue sélectionnée.'
+                    'Les notes hebdomadaires mélangent des jetons de semaine ISO ("W" ou "G") et des jetons de semaine de la langue ("w" ou "g"). Utilisez "GGGG" avec "WW" pour des semaines ISO, ou "gggg" avec "ww" pour des semaines qui suivent la langue.',
+                weekPathMismatchWarning:
+                    'La langue du calendrier et la langue des notes périodiques commencent ou numérotent les semaines différemment, donc les chemins des notes hebdomadaires ne correspondent pas aux semaines du calendrier. Utilisez la même langue pour les deux, ou utilisez "GGGG" avec "WW" pour des semaines ISO.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Notes mensuelles',
@@ -1890,7 +1917,10 @@ export const STRINGS_FR = {
                     downloadButtonText: 'Télécharger',
                     copyNotice: 'Paramètres copiés dans le presse-papiers.',
                     downloadNotice: 'Paramètres exportés.',
-                    downloadError: 'Échec du téléchargement des paramètres : {message}'
+                    downloadError: 'Échec du téléchargement des paramètres : {message}',
+                    saveButtonText: 'Enregistrer dans le coffre',
+                    saveNotice: 'Paramètres enregistrés dans {path}.',
+                    saveError: 'Échec de l’enregistrement des paramètres : {message}'
                 }
             },
             resetAllSettings: {
@@ -2518,7 +2548,7 @@ export const STRINGS_FR = {
             },
             folderNoteType: {
                 name: 'Type de note de dossier par défaut',
-                desc: 'Type de note de dossier créé depuis le menu contextuel.',
+                desc: "Type de note de dossier créé depuis le menu contextuel et privilégié lorsqu'un dossier contient des notes de dossier de plusieurs types.",
                 options: {
                     ask: 'Demander lors de la création',
                     markdown: 'Markdown',
@@ -2668,10 +2698,38 @@ export const STRINGS_FR = {
                 buttonText: '❤️ Sponsoriser',
                 coffeeButton: '☕️ Offrez-moi un café'
             },
-            otherPlugins: {
-                name: 'Découvrez mes autres plugins',
-                betterPaste: 'Nettoie le texte, les liens et les images collés',
-                pixelPerfectImage: 'Redimensionnement exact des images et plus'
+            markdownPointBanner: {
+                heading: 'Vous utilisez Canva, Keynote ou PowerPoint ?',
+                atTop: {
+                    name: 'Afficher la bannière MarkdownPoint en haut',
+                    desc: 'Désactivé, la bannière apparaît plus bas dans la page des paramètres.'
+                },
+                credit: 'par Johan Sanneblad',
+                messages: [
+                    { headline: 'Écrivez vos diapos en Markdown.', subtext: 'Glissez textes et images là où vous voulez.' },
+                    { headline: 'Une alternative gratuite à PowerPoint.', subtext: 'Partage et collaboration sont aussi gratuits.' },
+                    { headline: 'Vos diapos sont sur votre ordinateur.', subtext: 'Créez des diapos sans aucun compte.' },
+                    { headline: 'Animez comme avec Apple Motion.', subtext: 'Utilisez keyframes, tracés et morphs.' },
+                    { headline: 'Mettez des modèles 3D sur vos diapos.', subtext: 'Ouvrez un GLB ou glTF, ou utilisez Meshy.' },
+                    { headline: 'Collaborez comme sur Google Slides.', subtext: 'Voyez les curseurs et commentaires de chacun.' },
+                    { headline: 'Voyez tout le texte en un seul endroit.', subtext: 'Ouvrez View > Outline et modifiez en Markdown.' },
+                    { headline: 'Aimantez les objets comme dans Figma.', subtext: 'Alignez par espacement, taille et angle.' },
+                    { headline: 'Exportez vos diapos en vidéo 4K.', subtext: 'Pas besoin d’After Effects pour les animer.' },
+                    { headline: 'Faites marcher des personnages 3D.', subtext: 'Utilisez Meshy pour le rigging et l’animation.' },
+                    { headline: 'Surlignez avec des ==signes égal==.', subtext: '**Gras** et *italique* sont comme dans Obsidian.' },
+                    { headline: 'Utilisez l’auto layout comme dans Figma.', subtext: 'Alignez un groupe en ligne ou en colonne.' },
+                    { headline: 'Partagez une présentation par lien.', subtext: 'Publiez-la en ligne avec un compte gratuit.' },
+                    { headline: 'Éclairage 3D comme dans Blender.', subtext: 'Lampes point, soleil, spot et surface avec ombres.' },
+                    { headline: 'Versionnez vos présentations avec Git.', subtext: 'Ce sont des fichiers texte Markdown et JSON.' },
+                    { headline: 'Des composants comme dans Figma.', subtext: 'Modifiez-le une fois et chaque instance suit.' },
+                    { headline: 'Parcourez des thèmes à la Obsidian.', subtext: 'Installez un thème gratuit en un clic.' },
+                    { headline: 'Utilisez un dossier synchronisé.', subtext: 'Dropbox, iCloud Drive et OneDrive fonctionnent.' },
+                    { headline: 'La 3D avec la physique des solides.', subtext: 'Lâchez, basculez ou empilez des objets.' },
+                    { headline: 'Vos notes d’orateur sont en Markdown.', subtext: 'Elles sont dans le même fichier que les diapos.' },
+                    { headline: 'Combinez les formes comme Figma.', subtext: 'Union, soustraction, intersection ou exclusion.' },
+                    { headline: 'Mettez du code sur vos diapos.', subtext: 'Les blocs de code sont colorés en 21 langages.' },
+                    { headline: 'Gratuit pour un usage perso et pro.', subtext: 'Téléchargez-le pour Mac ou Windows.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'Vérifier les nouvelles versions au démarrage',

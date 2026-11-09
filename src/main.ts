@@ -42,6 +42,7 @@ import { CommandQueueService } from './services/CommandQueueService';
 import { OmnisearchService } from './services/OmnisearchService';
 import { FileSystemOperations } from './services/FileSystemService';
 import { getIconService } from './services/icons';
+import { refreshRegisteredIconIds } from './utils/iconizeFormat';
 import { VaultIconProvider } from './services/icons/providers/VaultIconProvider';
 import { IconizeCompatProvider } from './services/icons/providers/IconizeCompatProvider';
 import { RecentNotesService } from './services/RecentNotesService';
@@ -77,11 +78,14 @@ import {
     type FeatureImagePixelSizeSetting,
     type FeatureImageSizeSetting,
     isSettingSyncMode,
+    type ListDisplayMode,
     type SettingSyncMode,
     type SyncModeSettingId,
     type TagSortOrder
 } from './settings/types';
 import { NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG } from './constants/notebookNavigatorIcon';
+import { MARKDOWNPOINT_ICON_ID, MARKDOWNPOINT_ICON_SVG } from './constants/markdownPointIcon';
+import { PresentationService, setPresentationService } from './services/PresentationService';
 import { PluginSettingsController, type SettingsLoadResult } from './services/settings/PluginSettingsController';
 import { PluginPreferencesController } from './services/settings/PluginPreferencesController';
 import { clearPendingPdfProcessingDiagnostic, consumePendingPdfProcessingDiagnostic } from './services/content/pdf/pdfCrashDiagnostics';
@@ -96,6 +100,8 @@ import { DEFAULT_SETTINGS } from './settings/defaultSettings';
 import { buildFilePathInFolder, generateUniqueFilename } from './utils/fileCreationUtils';
 import { showNotice } from './utils/noticeUtils';
 import { strings } from './i18n';
+import { LanguageService } from './i18n/LanguageService';
+import { LanguageDatabase } from './i18n/LanguageCache';
 import { refreshMarkdownWordCountConsumerSettings } from './utils/markdownPipelineContentTypes';
 
 interface ObsidianSettingsModal {
@@ -153,6 +159,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     // Map of callbacks to notify open React views when files are renamed
     private fileRenameListeners = new Map<string, (oldPath: string, newPath: string) => void>();
     private updateNoticeListeners = new Map<string, (notice: ReleaseUpdateNotice | null) => void>();
+    languageService!: LanguageService;
     // Flag indicating plugin is being unloaded to prevent operations during shutdown
     private isUnloading = false;
     // Set when completeStartup finishes with established settings, from onload or from the user-enable recovery
@@ -173,6 +180,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     // Handles homepage file opening and startup behavior
     private homepageController: HomepageController | null = null;
     private folderNoteSidebarService: FolderNoteSidebarService | null = null;
+    private presentationService: PresentationService | null = null;
     private settingTab: LazyNotebookNavigatorSettingTab | null = null;
     private pendingUpdateNotice: ReleaseUpdateNotice | null = null;
     private hasWorkspaceLayoutReady = false;
@@ -382,6 +390,21 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     /**
+     * Reads Obsidian's icon list again and redraws icons when it changed.
+     *
+     * Obsidian loads plugins one at a time, so the icon list read while this plugin loads its settings misses
+     * icons that plugins loading after it add with `addIcon()`. Views call this before they render: they open
+     * after all plugins have loaded, and the navigator view reads note frontmatter right away. A note read
+     * with the old list is stored without its icon until the note changes, and interface icons from those
+     * plugins show the default icon until settings change.
+     */
+    public refreshIconList(): void {
+        if (refreshRegisteredIconIds()) {
+            getIconService().notifyIconAssetsChanged();
+        }
+    }
+
+    /**
      * Checks if the given file is open in the right sidebar
      */
     public isFileInRightSidebar(file: TFile): boolean {
@@ -421,10 +444,27 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         if (typeof addIcon === 'function') {
             addIcon(NOTEBOOK_NAVIGATOR_ICON_ID, NOTEBOOK_NAVIGATOR_ICON_SVG);
+            addIcon(MARKDOWNPOINT_ICON_ID, MARKDOWNPOINT_ICON_SVG);
         }
 
         // Initialize database early for StorageContext consumers
         const appId = (this.app as ExtendedApp).appId || '';
+        this.languageService = new LanguageService(this.manifest.version, new LanguageDatabase(appId));
+        recordStartupDiagnostic('languages.cache.start');
+        const languageInitialization = this.languageService.initialize();
+        this.register(
+            this.languageService.subscribe(() => {
+                if (this.languageService.getSnapshot().failed && this.languageService.locale !== 'en') {
+                    showNotice(this.languageService.bootstrap.downloadFailed);
+                }
+            })
+        );
+        // Read the small language cache before bulk vault-cache hydration can consume its timeout.
+        // Only the local cache is awaited; downloads must not block settings or workspace restoration.
+        await languageInitialization;
+        if (this.isUnloading) return;
+        recordStartupDiagnostic('languages.cache.complete', { ready: this.languageService.getSnapshot().ready });
+
         // Use a fixed per-platform LRU size for feature image blobs.
         const featureImageCacheMaxEntries = Platform.isMobile ? 200 : 1000;
         // Use a fixed per-platform LRU size for preview text strings.
@@ -750,6 +790,10 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             this
         );
         this.omnisearchService = new OmnisearchService(this.app);
+        // Registered before views mount so file visibility and row estimates read one role map from the start;
+        // it begins indexing presentations when the workspace layout is ready
+        this.presentationService = new PresentationService(this.app);
+        setPresentationService(this.presentationService);
         this.api = new NotebookNavigatorAPI(this, this.app);
         this.metadataService.setFolderStyleChangeListener(folderPath => {
             if (this.isUnloading || !this.api) {
@@ -807,14 +851,22 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
             return new FolderNoteSidebarPlaceholderView(leaf);
         });
 
-        // Register commands
-        registerNavigatorCommands(this);
-        // Template commands come from settings, so they are registered now and again whenever settings change.
-        syncTemplateCommands(this);
-        startTemplateCommandButtons(this);
-        this.registerSettingsUpdateListener('template-commands', () => {
+        // Commands capture their displayed names at registration. Wait for the initial language choice;
+        // settings stay available in English while the navigator shows the download skeleton.
+        runAsyncAction(async () => {
+            await this.languageService.ready;
+            if (this.isUnloading) return;
+            this.settingTab?.refreshLanguage();
+            // Register commands
+            registerNavigatorCommands(this);
+            // Template commands come from settings, so they are registered now and again whenever settings change.
             syncTemplateCommands(this);
-            syncTemplateCommandButtons(this);
+            startTemplateCommandButtons(this);
+            this.registerSettingsUpdateListener('template-commands', () => {
+                syncTemplateCommands(this);
+                syncTemplateCommandButtons(this);
+            });
+            recordStartupDiagnostic('languages.ready');
         });
 
         // ==== Settings tab ====
@@ -831,6 +883,8 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         this.app.workspace.onLayoutReady(() => {
             this.hasWorkspaceLayoutReady = true;
             recordStartupDiagnostic('layout.ready');
+            // Started after layout ready because the vault emits a create event per file while it loads
+            this.presentationService?.start();
             // Execute startup tasks asynchronously to avoid blocking the layout
             runAsyncAction(async () => {
                 recordStartupDiagnostic('layout.readyTasks.start');
@@ -840,6 +894,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
                 await this.homepageController?.handleWorkspaceReady({ shouldActivateOnStartup });
                 await this.folderNoteSidebarService?.handleWorkspaceReady();
+
+                await this.languageService.ready;
+                if (this.isUnloading) return;
 
                 if (isFirstLaunch) {
                     const { WelcomeModal } = await import('./modals/WelcomeModal');
@@ -1151,6 +1208,13 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
     }
 
     /**
+     * Updates the default list mode and persists to local storage.
+     */
+    public setDefaultListMode(mode: ListDisplayMode): void {
+        this.preferencesController.setDefaultListMode(mode);
+    }
+
+    /**
      * Updates compact list item height and persists to local storage.
      */
     public setCompactItemHeight(height: number): void {
@@ -1368,6 +1432,7 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         }
 
         this.isUnloading = true;
+        this.languageService?.dispose();
         this.startupSettingsAbortController?.abort();
         this.startupSettingsAbortController = null;
         this.missingSettingsAwaitingUserEnable = false;
@@ -1435,6 +1500,9 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
 
         this.folderNoteSidebarService?.dispose();
         this.folderNoteSidebarService = null;
+        this.presentationService?.dispose();
+        setPresentationService(null);
+        this.presentationService = null;
         disposeTemplateCommandButtons(this);
 
         // Clear all listeners first to prevent any callbacks during cleanup
@@ -1499,11 +1567,15 @@ export default class NotebookNavigatorPlugin extends Plugin implements ISettings
         return JSON.stringify(createModifiedSettingsTransfer(this.settings, this.manifest.version), null, 2);
     }
 
-    public async saveSettingsTransferBackupToVaultRoot(): Promise<string> {
+    /**
+     * Writes settings JSON to a new timestamped file in the vault root and returns its path.
+     * Defaults to the current settings; the mobile export passes the edited JSON from its editor.
+     */
+    public async saveSettingsTransferToVaultRoot(content = this.createSettingsTransferJson()): Promise<string> {
         const baseName = createSettingsTransferBaseName();
         const uniqueBaseName = generateUniqueFilename('', baseName, 'json', this.app);
         const filename = buildFilePathInFolder('', uniqueBaseName, 'json');
-        const created = await this.app.vault.create(filename, this.createSettingsTransferJson());
+        const created = await this.app.vault.create(filename, content);
         return created.path;
     }
 

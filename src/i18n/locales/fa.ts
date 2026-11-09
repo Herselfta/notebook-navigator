@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_FA = {
+    language: {
+        downloading: 'در حال دانلود زبان‌ها…',
+        continueInEnglish: 'ادامه به انگلیسی',
+        downloadFailed: 'دانلود زبان‌ها ناموفق بود. Notebook Navigator از انگلیسی استفاده می‌کند.'
+    },
     // Common UI elements
     common: {
         cancel: 'لغو',
@@ -58,6 +63,14 @@ export const STRINGS_FA = {
         manualSortHint: 'برای تغییر ترتیب بکشید. ترتیب به صورت مقادیر شاخص عددی در ویژگی «{property}» ذخیره می‌شود.',
         manualSortNonMarkdownHint: 'فایل‌های غیر مارک‌داون در پایین نمایش داده می‌شوند و قابل مرتب‌سازی مجدد نیستند.',
         unsortedSection: 'مرتب‌نشده',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} اسلاید',
+            slideCountOne: '1 اسلاید',
+            theme: 'پوسته',
+            slides: 'اسلایدها',
+            size: 'اندازه'
+        },
         propertyGroupNoValue: 'هیچ‌کدام',
         manualSortDone: 'انجام شد',
         manualSortMultipleWriteFailure: '{count} فایل ناموفق بود؛ اولین: {path}: {message}'
@@ -80,12 +93,14 @@ export const STRINGS_FA = {
         reorderRootFoldersTitle: 'مرتب‌سازی مجدد ناوبری',
         reorderRootFoldersHint: 'از فلش‌ها یا کشیدن برای مرتب‌سازی استفاده کنید',
         vaultRootLabel: 'خزانه',
-        resetRootToAlpha: 'بازنشانی به ترتیب الفبایی',
-        resetRootToFrequency: 'بازنشانی به ترتیب فراوانی',
+        resetAllFolders: 'بازنشانی همه پوشه‌ها',
+        resetAllTags: 'بازنشانی همه برچسب‌ها',
+        resetAllProperties: 'بازنشانی همه ویژگی‌ها',
         pinShortcuts: 'سنجاق کردن میانبرها',
         pinShortcutsAndRecentFiles: 'سنجاق کردن میانبرها و فایل‌های اخیر',
         unpinShortcuts: 'برداشتن سنجاق میانبرها',
         unpinShortcutsAndRecentFiles: 'برداشتن سنجاق میانبرها و فایل‌های اخیر',
+        resizePinnedShortcuts: 'تغییر اندازه میانبرهای سنجاق‌شده',
         profileMenuAria: 'تغییر پروفایل خزانه'
     },
 
@@ -116,6 +131,7 @@ export const STRINGS_FA = {
 
     templates: {
         invalidTokens: 'الگوی "{name}" شامل توکن‌های نامعتبر است: {tokens}',
+        invalidFileNameTokens: 'قالب نام فایل "{name}" شامل توکن‌های نامعتبر است: {tokens}',
         readFailed: 'خواندن الگوی "{name}" ممکن نبود. یادداشت بدون الگو ایجاد شد.',
         folderNotSet: 'پیش از ایجاد یادداشت از الگو، پوشه الگوها را در عملیات فایل و الگوها > الگوها تنظیم کنید.',
         templateNotFound: 'الگوی "{name}" پیدا نشد.',
@@ -236,10 +252,12 @@ export const STRINGS_FA = {
                     items: [
                         '`.key` شامل کردن یادداشت‌هایی که کلید ویژگی آن‌ها با `key` شروع می‌شود.',
                         '`.key=value` شامل کردن یادداشت‌هایی که مقدار ویژگی آن‌ها شامل `value` است.',
+                        '`.key=null` شامل کردن یادداشت‌هایی که ویژگی `key` را دارند ولی مقداری برای آن ندارند. `.key="null"` متن `null` را جستجو می‌کند.',
                         '`."Reading Status"` شامل کردن یادداشت‌هایی با کلید ویژگی حاوی فاصله.',
                         '`."Reading Status"="In Progress"` کلیدها و مقادیر حاوی فاصله باید در گیومه دوتایی قرار گیرند.',
                         '`-.key` حذف یادداشت‌هایی که کلید ویژگی آن‌ها با `key` شروع می‌شود.',
                         '`-.key=value` حذف یادداشت‌هایی که مقدار ویژگی آن‌ها شامل `value` است.',
+                        '`-.key=null` حذف یادداشت‌هایی که ویژگی `key` را دارند ولی مقداری برای آن ندارند.',
                         'Cmd/Ctrl+کلیک روی ویژگی برای افزودن با AND. Cmd/Ctrl+Shift+کلیک برای افزودن با OR.'
                     ]
                 },
@@ -736,7 +754,7 @@ export const STRINGS_FA = {
             templatePlaceholder: 'Templates/Meeting.md',
             fileNameFormat: 'قالب نام فایل',
             fileNameFormatDesc:
-                'توکن‌هایی مانند {{date:YYYYMMDD}} و {{prompt:Title}} هنگام اجرای فرمان جایگزین می‌شوند. هر پرسش یک مقدار می‌خواهد و همان برچسب در الگو همان مقدار را دریافت می‌کند.',
+                'توکن‌هایی مانند {{date:YYYYMMDD}} و {{prompt:Title}} هنگام اجرای فرمان جایگزین می‌شوند. هر پرسش یک مقدار می‌خواهد و همان برچسب در الگو همان مقدار را دریافت می‌کند. {{number}} یک واحد بیشتر از بزرگ‌ترین شماره‌ای است که یادداشت‌های پوشه با همان الگوی نام استفاده کرده‌اند و {{number:00}} آن را با صفر پر می‌کند. الگو نیز می‌تواند از {{number}} استفاده کند و {{title}} نام فایل تولیدشده را درج می‌کند.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Title}}',
             location: 'محل',
             folder: 'پوشه',
@@ -914,6 +932,7 @@ export const STRINGS_FA = {
             cannotMoveIntoSelf: 'نمی‌توان پوشه را به خود یا زیرپوشه آن منتقل کرد.',
             itemAlreadyExists: 'آیتمی با نام "{name}" در این مکان وجود دارد.',
             failedToMove: 'انتقال ناموفق بود: {error}',
+            failedToCopy: 'کپی "{name}" ناموفق بود: {error}',
             failedToAddTag: 'افزودن برچسب "{tag}" ناموفق بود',
             failedToSetProperty: 'خطا در به‌روزرسانی ویژگی: {error}',
             failedToClearTags: 'پاک کردن برچسب‌ها ناموفق بود',
@@ -926,7 +945,9 @@ export const STRINGS_FA = {
             filesAlreadyHaveProperty: '{count} فایل از قبل این ویژگی را دارد',
             noTagsToClear: 'برچسبی برای پاک کردن نیست',
             fileImported: '۱ فایل وارد شد',
-            filesImported: '{count} فایل وارد شد'
+            filesImported: '{count} فایل وارد شد',
+            fileCopied: '۱ فایل کپی شد',
+            filesCopied: '{count} فایل کپی شد'
         }
     },
 
@@ -949,6 +970,9 @@ export const STRINGS_FA = {
         openMonthlyNote: 'باز کردن یادداشت ماهانه',
         openQuarterlyNote: 'باز کردن یادداشت فصلی',
         openYearlyNote: 'باز کردن یادداشت سالانه',
+        openNextPeriodicNote: 'باز کردن یادداشت دوره‌ای بعدی',
+        openPreviousPeriodicNote: 'باز کردن یادداشت دوره‌ای قبلی',
+        openParentPeriodicNote: 'باز کردن یادداشت دوره‌ای بالاتر',
         revealFile: 'نمایش فایل',
         search: 'جستجو',
         searchVaultRoot: 'جستجو در کل خزانه',
@@ -1049,8 +1073,6 @@ export const STRINGS_FA = {
             exportFailed: 'صادر کردن گزارش متادیتا ناموفق بود'
         },
         index: {
-            label: 'عمومی',
-            description: 'یادداشت‌های انتشار، پشتیبانی، پروفایل خزانه، انواع فایل و کلیدهای ویژگی.',
             groups: {
                 about: 'درباره'
             }
@@ -1177,7 +1199,8 @@ export const STRINGS_FA = {
                 description: 'تشخیص، پاکسازی متادیتا، واردکردن/صادرکردن و بازنشانی.',
                 groups: {
                     maintenance: 'نگهداری',
-                    resetSettings: 'بازنشانی تنظیمات'
+                    resetSettings: 'بازنشانی تنظیمات',
+                    thirdPartyLicenses: 'مجوزهای شخص ثالث'
                 }
             }
         },
@@ -1646,8 +1669,6 @@ export const STRINGS_FA = {
             calendarLocale: {
                 name: 'زبان',
                 desc: 'قالب‌بندی تاریخ تقویم، شماره‌گذاری هفته و اولین روز هفته را کنترل می‌کند.',
-                weekPathMismatchWarning:
-                    'تقویم قابل مشاهده و مسیرهای یادداشت‌های هفتگی از شروع‌های هفته یا شماره‌گذاری هفته متفاوتی استفاده می‌کنند.',
                 options: {
                     systemDefault: 'پیش‌فرض'
                 }
@@ -1761,7 +1782,9 @@ export const STRINGS_FA = {
                 momentLinkText: 'فرمت تاریخ Moment',
                 momentDescSuffix:
                     '. نام زیرپوشه‌ها را در کروشه قرار دهید، مثال [Work]/YYYY. روی آیکون الگو کلیک کنید تا الگو تنظیم شود. محل پوشه الگوها را در عملیات فایل و الگوها > الگوها تنظیم کنید.',
-                example: 'نحوه نگارش فعلی: {path}'
+                example: 'نحوه نگارش فعلی: {path}',
+                weekYearWarning:
+                    '"gggg" و "GGGG" سال‌های هفته‌ای هستند، بنابراین تاریخ‌های نزدیک به سال نو ممکن است سال اشتباه بگیرند. از "YYYY" استفاده کنید.'
             },
             templateEngine: {
                 name: 'موتور الگو',
@@ -1805,10 +1828,14 @@ export const STRINGS_FA = {
             calendarWeeklyNotePattern: {
                 name: 'یادداشت‌های هفتگی',
                 parsingError: 'الگو باید بتواند به یک هفته کامل (سال هفته، شماره هفته) قالب‌بندی شود و دوباره تجزیه شود.',
-                weekPathMismatchWarning:
-                    'مسیرهای یادداشت‌های هفتگی از زبان یادداشت‌های دوره‌ای استفاده می‌کنند. از زبان‌های مطابق استفاده کنید، یا از "GGGG" با "WW" برای هفته‌های مبتنی بر دوشنبه استفاده کنید.',
+                isoWeeksWarning:
+                    'یادداشت‌های هفتگی از هفته‌های ISO ("W" یا "G") استفاده می‌کنند، بنابراین تقویم هفته‌ها را از دوشنبه شروع می‌کند و شماره هفته‌های ISO را نشان می‌دهد. برای هفته‌هایی که از زبان پیروی می‌کنند از "gggg" با "ww" استفاده کنید.',
+                calendarYearWarning:
+                    'یادداشت‌های هفتگی سال را از "YYYY" می‌گیرند، بنابراین هفته ۱ که در دسامبر شروع می‌شود سال قبل را می‌گیرد. از "GGGG" با "WW" یا "gggg" با "ww" استفاده کنید.',
                 mixedWeekTokensWarning:
-                    'این الگو توکن‌های هفته مبتنی بر دوشنبه ("W" یا "G") را با توکن‌های هفته مبتنی بر زبان ("w" یا "g") ترکیب می‌کند. به طور مداوم از یک مجموعه استفاده کنید: "GGGG" با "WW" برای هفته‌های مبتنی بر دوشنبه، یا "gggg" با "ww" اگر یادداشت‌های هفتگی باید از زبان انتخاب‌شده پیروی کنند.'
+                    'یادداشت‌های هفتگی توکن‌های هفته ISO ("W" یا "G") را با توکن‌های هفته زبان ("w" یا "g") ترکیب می‌کنند. برای هفته‌های ISO از "GGGG" با "WW" و برای هفته‌هایی که از زبان پیروی می‌کنند از "gggg" با "ww" استفاده کنید.',
+                weekPathMismatchWarning:
+                    'زبان تقویم و زبان یادداشت‌های دوره‌ای هفته‌ها را متفاوت شروع یا شماره‌گذاری می‌کنند، بنابراین مسیرهای یادداشت‌های هفتگی با هفته‌های تقویم مطابقت ندارند. هر دو را روی یک زبان تنظیم کنید، یا برای هفته‌های ISO از "GGGG" با "WW" استفاده کنید.'
             },
             calendarMonthlyNotePattern: {
                 name: 'یادداشت‌های ماهانه',
@@ -1880,7 +1907,10 @@ export const STRINGS_FA = {
                     downloadButtonText: 'دانلود',
                     copyNotice: 'تنظیمات به کلیپ‌بورد کپی شد.',
                     downloadNotice: 'تنظیمات صادر شد.',
-                    downloadError: 'صادر کردن تنظیمات ناموفق بود: {message}'
+                    downloadError: 'صادر کردن تنظیمات ناموفق بود: {message}',
+                    saveButtonText: 'ذخیره در خزانه',
+                    saveNotice: 'تنظیمات در {path} ذخیره شد.',
+                    saveError: 'ذخیره تنظیمات ناموفق بود: {message}'
                 }
             },
             resetAllSettings: {
@@ -2506,7 +2536,7 @@ export const STRINGS_FA = {
             },
             folderNoteType: {
                 name: 'نوع پیش‌فرض یادداشت پوشه',
-                desc: 'نوع یادداشت پوشه ایجاد شده از منوی راست‌کلیک.',
+                desc: 'نوع یادداشت پوشه ایجاد شده از منوی راست‌کلیک، که وقتی پوشه یادداشت‌های پوشه از چند نوع دارد ترجیح داده می‌شود.',
                 options: {
                     ask: 'سؤال هنگام ایجاد',
                     markdown: 'مارک‌داون',
@@ -2656,10 +2686,47 @@ export const STRINGS_FA = {
                 buttonText: '❤️ حمایت مالی',
                 coffeeButton: '☕️ یک قهوه مهمانم کن'
             },
-            otherPlugins: {
-                name: 'افزونه‌های دیگرم را ببینید',
-                betterPaste: 'پاکسازی متن، پیوندها و تصاویر چسبانده‌شده',
-                pixelPerfectImage: 'تغییر اندازه دقیق تصویر و بیشتر'
+            markdownPointBanner: {
+                heading: 'از Canva، Keynote یا PowerPoint استفاده می‌کنید؟',
+                atTop: {
+                    name: 'نمایش بنر MarkdownPoint در بالا',
+                    desc: 'اگر خاموش باشد، بنر پایین‌تر در صفحهٔ تنظیمات نشان داده می‌شود.'
+                },
+                credit: 'ساختهٔ Johan Sanneblad',
+                messages: [
+                    { headline: 'اسلایدهایتان را با Markdown بنویسید.', subtext: 'متن و تصاویر را به هر جا که می‌خواهید بکشید.' },
+                    { headline: 'جایگزینی رایگان برای PowerPoint.', subtext: 'اشتراک‌گذاری و همکاری هم رایگان است.' },
+                    { headline: 'هر ارائه یک پوشه روی رایانهٔ شماست.', subtext: 'برای ساختن اسلاید به حساب کاربری نیاز ندارید.' },
+                    { headline: 'مثل Apple Motion متحرک‌سازی کنید.', subtext: 'از کی‌فریم، مسیر و مورف استفاده کنید.' },
+                    {
+                        headline: 'مدل‌های سه‌بعدی را روی اسلایدها بگذارید.',
+                        subtext: 'یک فایل GLB یا glTF باز کنید یا با Meshy یکی بسازید.'
+                    },
+                    { headline: 'مثل Google Slides همکاری کنید.', subtext: 'نشانگر و نظرهای همه را می‌بینید.' },
+                    { headline: 'متن همهٔ اسلایدها را یکجا ببینید.', subtext: 'View > Outline را باز کنید و با Markdown ویرایش کنید.' },
+                    { headline: 'اشیا را مثل Figma هم‌تراز کنید.', subtext: 'بر اساس فاصله، اندازه و زاویه تراز می‌شوند.' },
+                    { headline: 'از ارائه‌تان ویدیوی 4K خروجی بگیرید.', subtext: 'برای متحرک‌سازی به After Effects نیاز ندارید.' },
+                    { headline: 'شخصیت‌های سه‌بعدی راه می‌روند و می‌دوند.', subtext: 'برای ریگ‌کردن و متحرک‌سازی از Meshy استفاده کنید.' },
+                    {
+                        headline: 'کلمه‌ها را با ==علامت مساوی== هایلایت کنید.',
+                        subtext: '**پررنگ** و *ایتالیک* درست مثل Obsidian کار می‌کنند.'
+                    },
+                    { headline: 'مثل Figma از چیدمان خودکار استفاده کنید.', subtext: 'یک گروه را در یک ردیف یا ستون بچینید.' },
+                    { headline: 'ارائه را با یک پیوند به اشتراک بگذارید.', subtext: 'با یک حساب رایگان آن را آنلاین منتشر کنید.' },
+                    { headline: 'نورپردازی سه‌بعدی مثل Blender.', subtext: 'نورهای نقطه‌ای، خورشیدی، نورافکن و سطحی با سایه.' },
+                    { headline: 'ارائه‌هایتان را با Git مدیریت کنید.', subtext: 'ارائه‌ها فایل‌های متنی Markdown و JSON هستند.' },
+                    { headline: 'مثل Figma کامپوننت بسازید.', subtext: 'یک بار ویرایش کنید تا همهٔ نمونه‌ها تغییر کنند.' },
+                    { headline: 'تم‌ها را مثل Obsidian مرور کنید.', subtext: 'یک تم رایگان را با یک کلیک نصب کنید.' },
+                    {
+                        headline: 'ارائه‌هایتان را در یک پوشهٔ همگام نگه دارید.',
+                        subtext: 'Dropbox، iCloud Drive و OneDrive همه کار می‌کنند.'
+                    },
+                    { headline: 'سه‌بعدی با فیزیک اجسام صلب.', subtext: 'اشیا را بیندازید، واژگون کنید یا روی هم بچینید.' },
+                    { headline: 'یادداشت‌های سخنران هم Markdown هستند.', subtext: 'در همان فایل اسلایدها ذخیره می‌شوند.' },
+                    { headline: 'شکل‌ها را مثل Figma ترکیب کنید.', subtext: 'ادغام، تفریق، اشتراک یا استثنا.' },
+                    { headline: 'کد را روی اسلایدها بگذارید.', subtext: 'بلوک‌های کد در ۲۱ زبان رنگ‌بندی نحوی دارند.' },
+                    { headline: 'رایگان برای استفادهٔ شخصی و تجاری.', subtext: 'نسخهٔ Mac یا Windows را دانلود کنید.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'بررسی نسخه جدید هنگام شروع',

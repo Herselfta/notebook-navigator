@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_TR = {
+    language: {
+        downloading: 'Diller indiriliyor…',
+        continueInEnglish: 'İngilizce devam et',
+        downloadFailed: 'Diller indirilemedi. Notebook Navigator İngilizce kullanıyor.'
+    },
     // Common UI elements
     common: {
         cancel: 'İptal', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_TR = {
         manualSortHint: 'Yeniden sıralamak için sürükleyin. Sıra, "{property}" özelliğinde sayısal indeks değerleri olarak kaydedilir.',
         manualSortNonMarkdownHint: 'Markdown olmayan dosyalar altta gösterilir ve yeniden sıralanamaz.',
         unsortedSection: 'Sıralanmamış',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} slayt',
+            slideCountOne: '1 slayt',
+            theme: 'Tema',
+            slides: 'Slaytlar',
+            size: 'Boyut'
+        },
         propertyGroupNoValue: 'Yok',
         manualSortDone: 'Tamam',
         manualSortMultipleWriteFailure: '{count} dosya başarısız oldu; ilki: {path}: {message}'
@@ -80,12 +93,14 @@ export const STRINGS_TR = {
         reorderRootFoldersTitle: 'Gezinmeyi yeniden sırala',
         reorderRootFoldersHint: 'Yeniden sıralamak için okları veya sürüklemeyi kullanın',
         vaultRootLabel: 'Kasa',
-        resetRootToAlpha: 'Alfabetik sıraya sıfırla',
-        resetRootToFrequency: 'Sıklık sırasına sıfırla',
+        resetAllFolders: 'Tüm klasörleri sıfırla',
+        resetAllTags: 'Tüm etiketleri sıfırla',
+        resetAllProperties: 'Tüm özellikleri sıfırla',
         pinShortcuts: 'Kısayolları sabitle',
         pinShortcutsAndRecentFiles: 'Kısayolları ve son dosyaları sabitle',
         unpinShortcuts: 'Kısayolları sabitlemeden çıkar',
         unpinShortcutsAndRecentFiles: 'Kısayolları ve son dosyaları sabitlemeden çıkar',
+        resizePinnedShortcuts: 'Sabitlenmiş kısayolları yeniden boyutlandır',
         profileMenuAria: 'Kasa profilini değiştir'
     },
 
@@ -116,6 +131,7 @@ export const STRINGS_TR = {
 
     templates: {
         invalidTokens: '"{name}" şablonu geçersiz belirteçler içeriyor: {tokens}',
+        invalidFileNameTokens: '"{name}" komutunun dosya adı biçimi geçersiz belirteçler içeriyor: {tokens}',
         readFailed: '"{name}" şablonu okunamadı. Not şablon olmadan oluşturuldu.',
         folderNotSet: 'Şablondan not oluşturmadan önce Dosya işlemleri ve şablonlar > Şablonlar bölümünde şablon klasörünü ayarlayın.',
         templateNotFound: '"{name}" şablonu bulunamadı.',
@@ -237,10 +253,12 @@ export const STRINGS_TR = {
                     items: [
                         '`.key` `key` ile başlayan bir özellik anahtarına sahip notları dahil et.',
                         '`.key=value` Özellik değeri `value` içeren notları dahil et.',
+                        '`.key=null` `key` özelliği bulunan ancak değeri olmayan notları dahil et. `.key="null"` `null` metnini arar.',
                         '`."Reading Status"` Boşluk içeren özellik anahtarına sahip notları dahil et.',
                         '`."Reading Status"="In Progress"` Boşluk içeren anahtarlar ve değerler çift tırnak içine alınmalıdır.',
                         '`-.key` `key` ile başlayan bir özellik anahtarına sahip notları hariç tut.',
                         '`-.key=value` Özellik değeri `value` içeren notları hariç tut.',
+                        '`-.key=null` `key` özelliği bulunan ancak değeri olmayan notları hariç tut.',
                         'Cmd/Ctrl+Tıklayarak özelliği AND ile ekleyin. Cmd/Ctrl+Shift+Tıklayarak OR ile ekleyin.'
                     ]
                 },
@@ -735,7 +753,7 @@ export const STRINGS_TR = {
             templatePlaceholder: 'Şablonlar/Toplantı.md',
             fileNameFormat: 'Dosya adı biçimi',
             fileNameFormatDesc:
-                '{{date:YYYYMMDD}} ve {{prompt:Başlık}} gibi belirteçler komut çalıştığında değiştirilir. Her istem bir değer sorar ve şablondaki aynı etiket aynı değeri alır.',
+                '{{date:YYYYMMDD}} ve {{prompt:Başlık}} gibi belirteçler komut çalıştığında değiştirilir. Her istem bir değer sorar ve şablondaki aynı etiket aynı değeri alır. {{number}}, klasörde aynı ad desenini kullanan notların en yüksek numarasından bir fazlasıdır ve {{number:00}} başına sıfır ekler. Şablon da {{number}} kullanabilir ve {{title}} oluşturulan dosya adını ekler.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Başlık}}',
             location: 'Konum',
             folder: 'Klasör',
@@ -912,6 +930,7 @@ export const STRINGS_TR = {
             cannotMoveIntoSelf: 'Klasör kendisine veya alt klasörüne taşınamaz.',
             itemAlreadyExists: 'Bu konumda "{name}" adlı bir öğe zaten var.',
             failedToMove: 'Taşınamadı: {error}',
+            failedToCopy: '"{name}" kopyalanamadı: {error}',
             failedToAddTag: '"{tag}" etiketi eklenemedi',
             failedToSetProperty: 'Özellik güncellenemedi: {error}',
             failedToClearTags: 'Etiketler temizlenemedi',
@@ -924,7 +943,9 @@ export const STRINGS_TR = {
             filesAlreadyHaveProperty: '{count} dosya zaten bu özelliğe sahip',
             noTagsToClear: 'Temizlenecek etiket yok',
             fileImported: '1 dosya içe aktarıldı',
-            filesImported: '{count} dosya içe aktarıldı'
+            filesImported: '{count} dosya içe aktarıldı',
+            fileCopied: '1 dosya kopyalandı',
+            filesCopied: '{count} dosya kopyalandı'
         }
     },
 
@@ -947,6 +968,9 @@ export const STRINGS_TR = {
         openMonthlyNote: 'Aylık notu aç',
         openQuarterlyNote: 'Çeyreklik notu aç',
         openYearlyNote: 'Yıllık notu aç',
+        openNextPeriodicNote: 'Sonraki periyodik notu aç',
+        openPreviousPeriodicNote: 'Önceki periyodik notu aç',
+        openParentPeriodicNote: 'Üst periyodik notu aç',
         revealFile: 'Dosyayı göster', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Ara', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Tüm kasada ara', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1047,8 +1071,6 @@ export const STRINGS_TR = {
             exportFailed: 'Meta veri raporu dışa aktarılamadı'
         },
         index: {
-            label: 'Genel',
-            description: 'Sürüm notları, destek, kasa profili, dosya türleri ve özellik anahtarları.',
             groups: {
                 about: 'Hakkında'
             }
@@ -1176,7 +1198,8 @@ export const STRINGS_TR = {
                 description: 'Tanılama, meta veri temizliği, içe/dışa aktarma ve sıfırlama.',
                 groups: {
                     maintenance: 'Bakım',
-                    resetSettings: 'Ayarları sıfırla'
+                    resetSettings: 'Ayarları sıfırla',
+                    thirdPartyLicenses: 'Üçüncü taraf lisansları'
                 }
             }
         },
@@ -1645,8 +1668,6 @@ export const STRINGS_TR = {
             calendarLocale: {
                 name: 'Yerel ayar',
                 desc: 'Takvim tarih biçimlendirmesini, hafta numaralandırmasını ve haftanın ilk gününü kontrol eder.',
-                weekPathMismatchWarning:
-                    'Görünen takvim ve haftalık not yolları farklı hafta başlangıçları veya hafta numaralandırması kullanıyor.',
                 options: {
                     systemDefault: 'Varsayılan'
                 }
@@ -1760,7 +1781,9 @@ export const STRINGS_TR = {
                 momentLinkText: 'Moment tarih biçimi',
                 momentDescSuffix:
                     ' kullanarak yolu biçimlendir. Alt klasör adlarını köşeli parantez içine alın, örn. [Work]/YYYY. Şablon ayarlamak için şablon simgesine tıklayın. Şablon klasörü konumunu Dosya işlemleri ve şablonlar > Şablonlar bölümünden ayarlayın.',
-                example: 'Geçerli sözdizimi: {path}'
+                example: 'Geçerli sözdizimi: {path}',
+                weekYearWarning:
+                    '"gggg" ve "GGGG" hafta yıllarıdır, bu yüzden yılbaşı civarındaki tarihler yanlış yılı alabilir. "YYYY" kullanın.'
             },
             templateEngine: {
                 name: 'Şablon motoru',
@@ -1804,10 +1827,14 @@ export const STRINGS_TR = {
             calendarWeeklyNotePattern: {
                 name: 'Haftalık notlar',
                 parsingError: 'Desen, tam bir hafta (hafta yılı, hafta numarası) olarak biçimlendirilmeli ve tekrar ayrıştırılabilmelidir.',
-                weekPathMismatchWarning:
-                    'Haftalık not yolları periyodik not yerel ayarını kullanır. Eşleşen yerel ayarlar kullanın veya Pazartesi tabanlı haftalar için "GGGG" ile "WW" kullanın.',
+                isoWeeksWarning:
+                    'Haftalık notlar ISO haftalarını ("W" veya "G") kullanır, bu yüzden takvim haftaları Pazartesi başlatır ve ISO hafta numaralarını gösterir. Yerel ayarı izleyen haftalar için "gggg" ile "ww" kullanın.',
+                calendarYearWarning:
+                    'Haftalık notlar yılı "YYYY" değerinden alır, bu yüzden Aralık ayında başlayan 1. hafta önceki yılı alır. "GGGG" ile "WW" veya "gggg" ile "ww" kullanın.',
                 mixedWeekTokensWarning:
-                    'Bu desen Pazartesi tabanlı hafta belirteçleri ("W" veya "G") ile yerel ayar tabanlı hafta belirteçlerini ("w" veya "g") karıştırıyor. Tutarlı olarak tek bir set kullanın: Pazartesi tabanlı haftalar için "GGGG" ile "WW" veya haftalık notların seçilen yerel ayarı izlemesi gerekiyorsa "gggg" ile "ww" kullanın.'
+                    'Haftalık notlar ISO hafta belirteçlerini ("W" veya "G") yerel ayar hafta belirteçleriyle ("w" veya "g") karıştırır. ISO haftaları için "GGGG" ile "WW", yerel ayarı izleyen haftalar için "gggg" ile "ww" kullanın.',
+                weekPathMismatchWarning:
+                    'Takvim yerel ayarı ile periyodik not yerel ayarı haftaları farklı başlatır veya numaralandırır, bu yüzden haftalık not yolları takvimdeki haftalarla eşleşmez. İkisini de aynı yerel ayara getirin veya ISO haftaları için "GGGG" ile "WW" kullanın.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Aylık notlar',
@@ -1879,7 +1906,10 @@ export const STRINGS_TR = {
                     downloadButtonText: 'İndir',
                     copyNotice: 'Ayarlar panoya kopyalandı.',
                     downloadNotice: 'Ayarlar dışa aktarıldı.',
-                    downloadError: 'Ayarlar indirilemedi: {message}'
+                    downloadError: 'Ayarlar indirilemedi: {message}',
+                    saveButtonText: 'Kasaya kaydet',
+                    saveNotice: 'Ayarlar {path} konumuna kaydedildi.',
+                    saveError: 'Ayarlar kaydedilemedi: {message}'
                 }
             },
             resetAllSettings: {
@@ -2505,7 +2535,7 @@ export const STRINGS_TR = {
             },
             folderNoteType: {
                 name: 'Varsayılan klasör notu türü',
-                desc: 'Bağlam menüsünden oluşturulan klasör notu türü.',
+                desc: 'Bağlam menüsünden oluşturulan klasör notu türü; bir klasörde birden fazla türde klasör notu olduğunda bu tür tercih edilir.',
                 options: {
                     ask: 'Oluştururken sor',
                     markdown: 'Markdown',
@@ -2655,10 +2685,38 @@ export const STRINGS_TR = {
                 buttonText: '❤️ Sponsor ol',
                 coffeeButton: '☕️ Bana bir kahve ısmarla'
             },
-            otherPlugins: {
-                name: 'Diğer eklentilerime göz at',
-                betterPaste: 'Yapıştırılan metni, bağlantıları ve görselleri temizler',
-                pixelPerfectImage: 'Tam isabetli görsel boyutlandırma ve daha fazlası'
+            markdownPointBanner: {
+                heading: 'Canva, Keynote veya PowerPoint mi kullanıyorsunuz?',
+                atTop: {
+                    name: 'MarkdownPoint afişini en üstte göster',
+                    desc: 'Kapalıyken afiş, ayarlar sayfasında daha aşağıda görünür.'
+                },
+                credit: "Johan Sanneblad'dan",
+                messages: [
+                    { headline: 'Slaytlarınızı Markdown ile yazın.', subtext: 'Metinleri ve görselleri istediğiniz yere sürükleyin.' },
+                    { headline: "PowerPoint'e ücretsiz bir alternatif.", subtext: 'Paylaşım ve iş birliği de ücretsiz.' },
+                    { headline: 'Her sunum bilgisayarınızda bir klasördür.', subtext: 'Slayt hazırlamak için hesap gerekmez.' },
+                    { headline: 'Apple Motion gibi canlandırın.', subtext: 'Anahtar kareler, yollar ve dönüşümler kullanın.' },
+                    { headline: 'Slaytlarınıza 3D modeller koyun.', subtext: 'GLB veya glTF dosyası açın ya da Meshy kullanın.' },
+                    { headline: 'Google Slides gibi birlikte çalışın.', subtext: 'Herkesin işaretçisini ve yorumlarını görün.' },
+                    { headline: 'Tüm slaytların metnini tek yerde görün.', subtext: "View > Outline'ı açıp Markdown olarak düzenleyin." },
+                    { headline: 'Nesneleri Figma gibi hizalayın.', subtext: 'Aralık, boyut ve açıya göre yerine otururlar.' },
+                    { headline: 'Sunumu 4K video olarak dışa aktarın.', subtext: "Canlandırmak için After Effects'e ihtiyacınız yok." },
+                    { headline: '3D karakterleri yürütün veya koşturun.', subtext: 'Rig ve animasyon için Meshy kullanın.' },
+                    { headline: '==Eşittir işaretleriyle== vurgulayın.', subtext: "**Kalın** ve *italik* Obsidian'daki gibi çalışır." },
+                    { headline: 'Figma gibi otomatik yerleşim kullanın.', subtext: 'Bir grubu satır veya sütun hâlinde dizin.' },
+                    { headline: 'Sunumunuzu bir bağlantıyla paylaşın.', subtext: "Ücretsiz bir hesapla web'de yayınlayın." },
+                    { headline: 'Blender gibi 3D ışıklandırma.', subtext: 'Gölgeli nokta, güneş, spot ve alan ışıkları.' },
+                    { headline: "Sunumlarınızı Git'te takip edin.", subtext: 'Sunumlar Markdown ve JSON metin dosyalarıdır.' },
+                    { headline: 'Figma gibi bileşenler oluşturun.', subtext: 'Bir kez düzenleyin, tüm örnekler değişsin.' },
+                    { headline: 'Temalara Obsidian’daki gibi göz atın.', subtext: 'Ücretsiz bir temayı tek tıkla kurun.' },
+                    { headline: 'Sunumlarınızı eşitlenen klasörde tutun.', subtext: 'Dropbox, iCloud Drive ve OneDrive ile çalışır.' },
+                    { headline: 'Katı cisim fiziğiyle 3D.', subtext: 'Nesneleri düşürün, devirin veya yığın.' },
+                    { headline: 'Konuşmacı notları da Markdown.', subtext: 'Slaytlarla aynı dosyada kaydedilir.' },
+                    { headline: 'Şekilleri Figma gibi birleştirin.', subtext: 'Birleşim, çıkarma, kesişim veya hariç tutma.' },
+                    { headline: 'Slaytlarınıza kod ekleyin.', subtext: 'Kod blokları 21 dil için renklendirilir.' },
+                    { headline: 'Kişisel ve ticari kullanım için ücretsiz.', subtext: 'Mac veya Windows için indirin.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'Başlangıçta yeni sürüm kontrolü',

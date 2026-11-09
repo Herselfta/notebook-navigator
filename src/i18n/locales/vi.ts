@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_VI = {
+    language: {
+        downloading: 'Đang tải ngôn ngữ…',
+        continueInEnglish: 'Tiếp tục bằng tiếng Anh',
+        downloadFailed: 'Không tải được ngôn ngữ. Notebook Navigator đang sử dụng tiếng Anh.'
+    },
     // Common UI elements
     common: {
         cancel: 'Hủy', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_VI = {
         manualSortHint: 'Kéo để sắp xếp lại. Thứ tự được lưu dưới dạng giá trị chỉ số trong thuộc tính "{property}".',
         manualSortNonMarkdownHint: 'Các tệp không phải Markdown được hiển thị ở dưới cùng và không thể sắp xếp lại.',
         unsortedSection: 'Chưa sắp xếp',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} trang chiếu',
+            slideCountOne: '1 trang chiếu',
+            theme: 'Chủ đề',
+            slides: 'Trang chiếu',
+            size: 'Kích thước'
+        },
         propertyGroupNoValue: 'Không có',
         manualSortDone: 'Xong',
         manualSortMultipleWriteFailure: '{count} tệp thất bại; đầu tiên: {path}: {message}'
@@ -80,12 +93,14 @@ export const STRINGS_VI = {
         reorderRootFoldersTitle: 'Sắp xếp lại điều hướng',
         reorderRootFoldersHint: 'Dùng mũi tên hoặc kéo để sắp xếp lại',
         vaultRootLabel: 'Vault',
-        resetRootToAlpha: 'Đặt lại theo thứ tự bảng chữ cái',
-        resetRootToFrequency: 'Đặt lại theo tần suất',
+        resetAllFolders: 'Đặt lại tất cả thư mục',
+        resetAllTags: 'Đặt lại tất cả thẻ',
+        resetAllProperties: 'Đặt lại tất cả thuộc tính',
         pinShortcuts: 'Ghim lối tắt',
         pinShortcutsAndRecentFiles: 'Ghim lối tắt và tệp gần đây',
         unpinShortcuts: 'Bỏ ghim lối tắt',
         unpinShortcutsAndRecentFiles: 'Bỏ ghim lối tắt và tệp gần đây',
+        resizePinnedShortcuts: 'Thay đổi kích thước lối tắt đã ghim',
         profileMenuAria: 'Đổi hồ sơ vault'
     },
 
@@ -116,6 +131,7 @@ export const STRINGS_VI = {
 
     templates: {
         invalidTokens: 'Mẫu "{name}" chứa token không hợp lệ: {tokens}',
+        invalidFileNameTokens: 'Định dạng tên tệp của "{name}" chứa token không hợp lệ: {tokens}',
         readFailed: 'Không thể đọc mẫu "{name}". Ghi chú đã được tạo mà không có mẫu.',
         folderNotSet: 'Đặt thư mục mẫu trong Thao tác tệp & mẫu > Mẫu trước khi tạo ghi chú từ mẫu.',
         templateNotFound: 'Không tìm thấy mẫu "{name}".',
@@ -236,10 +252,12 @@ export const STRINGS_VI = {
                     items: [
                         '`.key` Bao gồm ghi chú có khóa thuộc tính bắt đầu bằng `key`.',
                         '`.key=value` Bao gồm ghi chú có giá trị thuộc tính chứa `value`.',
+                        '`.key=null` Bao gồm ghi chú có thuộc tính `key` nhưng không có giá trị. `.key="null"` tìm văn bản `null`.',
                         '`."Reading Status"` Bao gồm ghi chú có khóa thuộc tính chứa khoảng trắng.',
                         '`."Reading Status"="In Progress"` Khóa và giá trị có khoảng trắng phải được đặt trong dấu ngoặc kép.',
                         '`-.key` Loại trừ ghi chú có khóa thuộc tính bắt đầu bằng `key`.',
                         '`-.key=value` Loại trừ ghi chú có giá trị thuộc tính chứa `value`.',
+                        '`-.key=null` Loại trừ ghi chú có thuộc tính `key` nhưng không có giá trị.',
                         'Cmd/Ctrl+Nhấp vào thuộc tính để thêm với AND. Cmd/Ctrl+Shift+Nhấp để thêm với OR.'
                     ]
                 },
@@ -735,7 +753,7 @@ export const STRINGS_VI = {
             templatePlaceholder: 'Mẫu/Cuộc họp.md',
             fileNameFormat: 'Định dạng tên tệp',
             fileNameFormatDesc:
-                'Các token như {{date:YYYYMMDD}} và {{prompt:Tiêu đề}} được thay thế khi chạy lệnh. Mỗi lời nhắc hỏi một giá trị, và cùng nhãn trong mẫu nhận cùng giá trị đó.',
+                'Các token như {{date:YYYYMMDD}} và {{prompt:Tiêu đề}} được thay thế khi chạy lệnh. Mỗi lời nhắc hỏi một giá trị, và cùng nhãn trong mẫu nhận cùng giá trị đó. {{number}} lớn hơn một so với số cao nhất mà các ghi chú trong thư mục có cùng mẫu tên đang dùng, và {{number:00}} thêm số 0 vào trước. Mẫu cũng có thể dùng {{number}}, và {{title}} chèn tên tệp đã tạo.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Tiêu đề}}',
             location: 'Vị trí',
             folder: 'Thư mục',
@@ -913,6 +931,7 @@ export const STRINGS_VI = {
             cannotMoveIntoSelf: 'Không thể di chuyển thư mục vào chính nó hoặc thư mục con.',
             itemAlreadyExists: 'Mục có tên "{name}" đã tồn tại ở vị trí này.',
             failedToMove: 'Không thể di chuyển: {error}',
+            failedToCopy: 'Không thể sao chép "{name}": {error}',
             failedToAddTag: 'Không thể thêm thẻ "{tag}"',
             failedToSetProperty: 'Không thể cập nhật thuộc tính: {error}',
             failedToClearTags: 'Không thể xóa thẻ',
@@ -925,7 +944,9 @@ export const STRINGS_VI = {
             filesAlreadyHaveProperty: '{count} tệp đã có thuộc tính này',
             noTagsToClear: 'Không có thẻ để xóa',
             fileImported: 'Đã nhập 1 tệp',
-            filesImported: 'Đã nhập {count} tệp'
+            filesImported: 'Đã nhập {count} tệp',
+            fileCopied: 'Đã sao chép 1 tệp',
+            filesCopied: 'Đã sao chép {count} tệp'
         }
     },
 
@@ -948,6 +969,9 @@ export const STRINGS_VI = {
         openMonthlyNote: 'Mở ghi chú hàng tháng',
         openQuarterlyNote: 'Mở ghi chú hàng quý',
         openYearlyNote: 'Mở ghi chú hàng năm',
+        openNextPeriodicNote: 'Mở ghi chú định kỳ tiếp theo',
+        openPreviousPeriodicNote: 'Mở ghi chú định kỳ trước đó',
+        openParentPeriodicNote: 'Mở ghi chú định kỳ cấp trên',
         revealFile: 'Hiện tệp', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Tìm kiếm', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Tìm kiếm toàn bộ vault', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1048,8 +1072,6 @@ export const STRINGS_VI = {
             exportFailed: 'Không thể xuất báo cáo metadata'
         },
         index: {
-            label: 'Chung',
-            description: 'Ghi chú phát hành, hỗ trợ, hồ sơ vault, loại tệp và khóa thuộc tính.',
             groups: {
                 about: 'Giới thiệu'
             }
@@ -1176,7 +1198,8 @@ export const STRINGS_VI = {
                 description: 'Chẩn đoán, dọn dẹp metadata, nhập/xuất và đặt lại.',
                 groups: {
                     maintenance: 'Bảo trì',
-                    resetSettings: 'Đặt lại cài đặt'
+                    resetSettings: 'Đặt lại cài đặt',
+                    thirdPartyLicenses: 'Giấy phép bên thứ ba'
                 }
             }
         },
@@ -1645,8 +1668,6 @@ export const STRINGS_VI = {
             calendarLocale: {
                 name: 'Ngôn ngữ',
                 desc: 'Điều khiển định dạng ngày trong lịch, đánh số tuần và ngày đầu tuần.',
-                weekPathMismatchWarning:
-                    'Lịch hiển thị và đường dẫn ghi chú hàng tuần sử dụng các ngày bắt đầu tuần hoặc cách đánh số tuần khác nhau.',
                 options: {
                     systemDefault: 'Mặc định'
                 }
@@ -1760,7 +1781,8 @@ export const STRINGS_VI = {
                 momentLinkText: 'định dạng ngày Moment',
                 momentDescSuffix:
                     '. Đặt tên thư mục con trong dấu ngoặc vuông, vd: [Work]/YYYY. Nhấp vào biểu tượng mẫu để đặt mẫu. Đặt vị trí thư mục mẫu trong Thao tác tệp & mẫu > Mẫu.',
-                example: 'Cú pháp hiện tại: {path}'
+                example: 'Cú pháp hiện tại: {path}',
+                weekYearWarning: '"gggg" và "GGGG" là năm theo tuần, nên các ngày gần Năm mới có thể nhận sai năm. Dùng "YYYY".'
             },
             templateEngine: {
                 name: 'Công cụ mẫu',
@@ -1804,10 +1826,14 @@ export const STRINGS_VI = {
             calendarWeeklyNotePattern: {
                 name: 'Ghi chú hàng tuần',
                 parsingError: 'Mẫu phải có thể định dạng và phân tích lại thành một tuần đầy đủ (năm tuần, số tuần).',
-                weekPathMismatchWarning:
-                    'Đường dẫn ghi chú hàng tuần sử dụng ngôn ngữ ghi chú định kỳ. Sử dụng ngôn ngữ phù hợp, hoặc sử dụng "GGGG" với "WW" cho tuần bắt đầu từ thứ Hai.',
+                isoWeeksWarning:
+                    'Ghi chú hàng tuần dùng tuần ISO ("W" hoặc "G"), nên lịch bắt đầu tuần từ thứ Hai và hiển thị số tuần ISO. Dùng "gggg" với "ww" cho tuần theo ngôn ngữ.',
+                calendarYearWarning:
+                    'Ghi chú hàng tuần lấy năm từ "YYYY", nên tuần 1 bắt đầu vào tháng 12 sẽ nhận năm trước. Dùng "GGGG" với "WW", hoặc "gggg" với "ww".',
                 mixedWeekTokensWarning:
-                    'Mẫu này trộn lẫn token tuần bắt đầu từ thứ Hai ("W" hoặc "G") với token tuần dựa trên ngôn ngữ ("w" hoặc "g"). Sử dụng một bộ một cách nhất quán: "GGGG" với "WW" cho tuần bắt đầu từ thứ Hai, hoặc "gggg" với "ww" nếu ghi chú hàng tuần cần tuân theo ngôn ngữ đã chọn.'
+                    'Ghi chú hàng tuần trộn token tuần ISO ("W" hoặc "G") với token tuần theo ngôn ngữ ("w" hoặc "g"). Dùng "GGGG" với "WW" cho tuần ISO, hoặc "gggg" với "ww" cho tuần theo ngôn ngữ.',
+                weekPathMismatchWarning:
+                    'Ngôn ngữ lịch và ngôn ngữ ghi chú định kỳ bắt đầu hoặc đánh số tuần khác nhau, nên đường dẫn ghi chú hàng tuần không khớp với các tuần trong lịch. Đặt cả hai cùng một ngôn ngữ, hoặc dùng "GGGG" với "WW" cho tuần ISO.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Ghi chú hàng tháng',
@@ -1879,7 +1905,10 @@ export const STRINGS_VI = {
                     downloadButtonText: 'Tải xuống',
                     copyNotice: 'Đã sao chép cài đặt vào clipboard.',
                     downloadNotice: 'Đã xuất cài đặt.',
-                    downloadError: 'Xuất cài đặt thất bại: {message}'
+                    downloadError: 'Xuất cài đặt thất bại: {message}',
+                    saveButtonText: 'Lưu vào kho',
+                    saveNotice: 'Đã lưu cài đặt vào {path}.',
+                    saveError: 'Lưu cài đặt thất bại: {message}'
                 }
             },
             resetAllSettings: {
@@ -2505,7 +2534,7 @@ export const STRINGS_VI = {
             },
             folderNoteType: {
                 name: 'Loại ghi chú thư mục mặc định',
-                desc: 'Loại ghi chú thư mục tạo từ menu ngữ cảnh.',
+                desc: 'Loại ghi chú thư mục tạo từ menu ngữ cảnh và được ưu tiên khi thư mục có ghi chú thư mục thuộc nhiều loại.',
                 options: {
                     ask: 'Hỏi khi tạo',
                     markdown: 'Markdown',
@@ -2655,10 +2684,38 @@ export const STRINGS_VI = {
                 buttonText: '❤️ Tài trợ',
                 coffeeButton: '☕️ Mua cho tôi một ly cà phê'
             },
-            otherPlugins: {
-                name: 'Xem các plugin khác của tôi',
-                betterPaste: 'Dọn dẹp văn bản, liên kết và ảnh đã dán',
-                pixelPerfectImage: 'Đổi kích thước ảnh chính xác và hơn thế nữa'
+            markdownPointBanner: {
+                heading: 'Bạn đang dùng Canva, Keynote hay PowerPoint?',
+                atTop: {
+                    name: 'Hiện banner MarkdownPoint ở trên cùng',
+                    desc: 'Khi tắt, banner xuất hiện thấp hơn trên trang cài đặt.'
+                },
+                credit: 'bởi Johan Sanneblad',
+                messages: [
+                    { headline: 'Viết slide của bạn bằng Markdown.', subtext: 'Kéo chữ và hình ảnh đến nơi bạn muốn.' },
+                    { headline: 'Lựa chọn miễn phí thay cho PowerPoint.', subtext: 'Chia sẻ và cộng tác cũng miễn phí.' },
+                    { headline: 'Bộ slide là một thư mục trên máy tính.', subtext: 'Bạn không cần tài khoản để làm slide.' },
+                    { headline: 'Tạo chuyển động như Apple Motion.', subtext: 'Dùng keyframe, path và morph.' },
+                    { headline: 'Đưa mô hình 3D lên slide của bạn.', subtext: 'Mở tệp GLB hoặc glTF, hoặc tạo bằng Meshy.' },
+                    { headline: 'Cộng tác như Google Slides.', subtext: 'Thấy con trỏ và bình luận của mọi người.' },
+                    { headline: 'Xem chữ của mọi slide ở một chỗ.', subtext: 'Mở View > Outline và sửa bằng Markdown.' },
+                    { headline: 'Bắt dính đối tượng như Figma.', subtext: 'Căn theo khoảng cách, kích thước và góc.' },
+                    { headline: 'Xuất bộ slide thành video 4K.', subtext: 'Bạn không cần After Effects để tạo chuyển động.' },
+                    { headline: 'Cho nhân vật 3D đi hoặc chạy.', subtext: 'Dùng Meshy để rigging và tạo chuyển động.' },
+                    { headline: 'Tô sáng chữ bằng ==dấu bằng==.', subtext: '**Đậm** và *nghiêng* dùng y như trong Obsidian.' },
+                    { headline: 'Dùng auto layout như Figma.', subtext: 'Xếp một nhóm thành hàng hoặc cột.' },
+                    { headline: 'Chia sẻ bộ slide bằng một liên kết.', subtext: 'Đăng lên mạng với tài khoản miễn phí.' },
+                    { headline: 'Ánh sáng 3D như Blender.', subtext: 'Đèn điểm, mặt trời, spot và vùng có đổ bóng.' },
+                    { headline: 'Theo dõi bộ slide trong Git.', subtext: 'Bộ slide là các tệp văn bản Markdown và JSON.' },
+                    { headline: 'Tạo component như Figma.', subtext: 'Sửa một lần, mọi instance đều đổi theo.' },
+                    { headline: 'Duyệt chủ đề như trong Obsidian.', subtext: 'Cài một chủ đề miễn phí chỉ bằng một cú nhấp.' },
+                    { headline: 'Lưu bộ slide trong thư mục đồng bộ.', subtext: 'Dùng được với Dropbox, iCloud Drive và OneDrive.' },
+                    { headline: '3D với vật lý vật rắn.', subtext: 'Thả, lật hoặc chồng các vật thể.' },
+                    { headline: 'Ghi chú diễn giả cũng là Markdown.', subtext: 'Chúng được lưu chung tệp với các slide.' },
+                    { headline: 'Kết hợp hình như Figma.', subtext: 'Hợp, trừ, giao hoặc loại trừ.' },
+                    { headline: 'Đưa code lên slide của bạn.', subtext: 'Khối code được tô màu cú pháp cho 21 ngôn ngữ.' },
+                    { headline: 'Miễn phí cho cá nhân và thương mại.', subtext: 'Tải về cho Mac hoặc Windows.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'Kiểm tra phiên bản mới khi khởi động',

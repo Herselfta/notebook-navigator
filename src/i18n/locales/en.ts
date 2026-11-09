@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_EN = {
+    language: {
+        downloading: 'Downloading languages…',
+        continueInEnglish: 'Continue in English',
+        downloadFailed: 'Language download failed. Notebook Navigator is using English.'
+    },
     // Common UI elements
     common: {
         cancel: 'Cancel', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_EN = {
         manualSortHint: 'Drag to reorder. The order is saved as numeric index values in the property "{property}".',
         manualSortNonMarkdownHint: 'Non-markdown files are shown at the bottom and cannot be reordered.',
         unsortedSection: 'Unsorted',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} slides',
+            slideCountOne: '1 slide',
+            theme: 'Theme',
+            slides: 'Slides',
+            size: 'Size'
+        },
         propertyGroupNoValue: 'None', // Header for the trailing group holding files without the grouping property (English: None)
         manualSortDone: 'Done',
         manualSortMultipleWriteFailure: '{count} files failed; first: {path}: {message}'
@@ -80,12 +93,14 @@ export const STRINGS_EN = {
         reorderRootFoldersTitle: 'Reorder navigation',
         reorderRootFoldersHint: 'Use arrows or drag to reorder',
         vaultRootLabel: 'Vault',
-        resetRootToAlpha: 'Reset to alphabetical order',
-        resetRootToFrequency: 'Reset to frequency order',
+        resetAllFolders: 'Reset all folders',
+        resetAllTags: 'Reset all tags',
+        resetAllProperties: 'Reset all properties',
         pinShortcuts: 'Pin shortcuts',
         pinShortcutsAndRecentFiles: 'Pin shortcuts and recent files',
         unpinShortcuts: 'Unpin shortcuts',
         unpinShortcutsAndRecentFiles: 'Unpin shortcuts and recent files',
+        resizePinnedShortcuts: 'Resize pinned shortcuts',
         profileMenuAria: 'Change vault profile'
     },
 
@@ -116,6 +131,7 @@ export const STRINGS_EN = {
 
     templates: {
         invalidTokens: 'Template "{name}" contains invalid tokens: {tokens}',
+        invalidFileNameTokens: 'The file name format of "{name}" contains invalid tokens: {tokens}',
         readFailed: 'Failed to read the template "{name}". The note was created without it.',
         folderNotSet: 'Set the template folder in File operations & templates > Templates before creating notes from templates.',
         templateNotFound: 'Template "{name}" was not found.',
@@ -236,10 +252,12 @@ export const STRINGS_EN = {
                     items: [
                         '`.key` Include notes with a property key that starts with `key`.',
                         '`.key=value` Include notes where the property value contains `value`.',
+                        '`.key=null` Include notes where the property `key` exists with no value. `.key="null"` searches for the text `null`.',
                         '`."Reading Status"` Include notes with a property key that contains whitespace.',
                         '`."Reading Status"="In Progress"` Keys and values with whitespace must be double-quoted.',
                         '`-.key` Exclude notes with a property key that starts with `key`.',
                         '`-.key=value` Exclude notes where the property value contains `value`.',
+                        '`-.key=null` Exclude notes where the property `key` exists with no value.',
                         'Cmd/Ctrl+Click a property to add with AND. Cmd/Ctrl+Shift+Click to add with OR.'
                     ]
                 },
@@ -731,7 +749,7 @@ export const STRINGS_EN = {
             templatePlaceholder: 'Templates/Meeting.md',
             fileNameFormat: 'File name format',
             fileNameFormatDesc:
-                'Tokens such as {{date:YYYYMMDD}} and {{prompt:Title}} are replaced when the command runs. Each prompt asks for a value, and the same label in the template receives the same value.',
+                'Tokens such as {{date:YYYYMMDD}} and {{prompt:Title}} are replaced when the command runs. Each prompt asks for a value, and the same label in the template receives the same value. {{number}} is one higher than the highest number used by notes in the folder with the same name pattern, and {{number:00}} pads it with zeros. The template can use {{number}} as well, and {{title}} inserts the generated file name.',
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Title}}',
             location: 'Location',
             folder: 'Folder',
@@ -908,6 +926,7 @@ export const STRINGS_EN = {
             cannotMoveIntoSelf: 'Cannot move a folder into itself or a subfolder.',
             itemAlreadyExists: 'An item named "{name}" already exists in this location.',
             failedToMove: 'Failed to move: {error}',
+            failedToCopy: 'Failed to copy "{name}": {error}',
             failedToAddTag: 'Failed to add tag "{tag}"',
             failedToSetProperty: 'Failed to update property: {error}',
             failedToClearTags: 'Failed to clear tags',
@@ -920,7 +939,9 @@ export const STRINGS_EN = {
             filesAlreadyHaveProperty: '{count} files already have this property',
             noTagsToClear: 'No tags to clear',
             fileImported: 'Imported 1 file',
-            filesImported: 'Imported {count} files'
+            filesImported: 'Imported {count} files',
+            fileCopied: 'Copied 1 file',
+            filesCopied: 'Copied {count} files'
         }
     },
 
@@ -943,6 +964,9 @@ export const STRINGS_EN = {
         openMonthlyNote: 'Open monthly note',
         openQuarterlyNote: 'Open quarterly note',
         openYearlyNote: 'Open yearly note',
+        openNextPeriodicNote: 'Open next periodic note',
+        openPreviousPeriodicNote: 'Open previous periodic note',
+        openParentPeriodicNote: 'Open parent periodic note',
         revealFile: 'Reveal file', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Search', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Search whole vault', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1043,8 +1067,6 @@ export const STRINGS_EN = {
             exportFailed: 'Failed to export metadata report'
         },
         index: {
-            label: 'General',
-            description: 'Release notes, support, vault profile, file types, and property keys.',
             groups: {
                 about: 'About'
             }
@@ -1171,7 +1193,8 @@ export const STRINGS_EN = {
                 description: 'Diagnostics, metadata cleanup, import/export, and reset.',
                 groups: {
                     maintenance: 'Maintenance',
-                    resetSettings: 'Reset settings'
+                    resetSettings: 'Reset settings',
+                    thirdPartyLicenses: 'Third-party licenses'
                 }
             }
         },
@@ -1640,7 +1663,6 @@ export const STRINGS_EN = {
             calendarLocale: {
                 name: 'Locale',
                 desc: 'Controls calendar date formatting, week numbering, and first day of the week.',
-                weekPathMismatchWarning: 'The visible calendar and weekly note paths use different week starts or week numbering.',
                 options: {
                     systemDefault: 'Default'
                 }
@@ -1754,7 +1776,8 @@ export const STRINGS_EN = {
                 momentLinkText: 'Moment date format',
                 momentDescSuffix:
                     '. Wrap subfolder names in brackets, e.g., [Work]/YYYY. Click template icon to set template. Set template folder location in File operations & templates > Templates.',
-                example: 'Current syntax: {path}'
+                example: 'Current syntax: {path}',
+                weekYearWarning: '"gggg" and "GGGG" are week years, so dates near New Year can get the wrong year. Use "YYYY".'
             },
             templateEngine: {
                 name: 'Template engine',
@@ -1798,10 +1821,14 @@ export const STRINGS_EN = {
             calendarWeeklyNotePattern: {
                 name: 'Weekly notes',
                 parsingError: 'Pattern must format and parse back to a full week (week year, week number).',
-                weekPathMismatchWarning:
-                    'Weekly note paths use the periodic notes locale. Use matching locales, or use "GGGG" with "WW" for Monday-based weeks.',
+                isoWeeksWarning:
+                    'Weekly notes use ISO weeks ("W" or "G"), so the calendar starts weeks on Monday and shows ISO week numbers. Use "gggg" with "ww" for weeks that follow the locale.',
+                calendarYearWarning:
+                    'Weekly notes take the year from "YYYY", so a week 1 that starts in December gets the previous year. Use "GGGG" with "WW", or "gggg" with "ww".',
                 mixedWeekTokensWarning:
-                    'This pattern mixes Monday-based week tokens ("W" or "G") with locale-based week tokens ("w" or "g"). Use one set consistently: "GGGG" with "WW" for Monday-based weeks, or "gggg" with "ww" if weekly notes should follow the selected locale.'
+                    'Weekly notes mix ISO week tokens ("W" or "G") with locale week tokens ("w" or "g"). Use "GGGG" with "WW" for ISO weeks, or "gggg" with "ww" for weeks that follow the locale.',
+                weekPathMismatchWarning:
+                    'The calendar locale and the periodic notes locale start or number weeks differently, so weekly note paths do not match the weeks in the calendar. Set both to the same locale, or use "GGGG" with "WW" for ISO weeks.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Monthly notes',
@@ -1873,7 +1900,10 @@ export const STRINGS_EN = {
                     downloadButtonText: 'Download',
                     copyNotice: 'Settings copied to clipboard.',
                     downloadNotice: 'Settings exported.',
-                    downloadError: 'Failed to download settings: {message}'
+                    downloadError: 'Failed to download settings: {message}',
+                    saveButtonText: 'Save to vault',
+                    saveNotice: 'Settings saved to {path}.',
+                    saveError: 'Failed to save settings: {message}'
                 }
             },
             resetAllSettings: {
@@ -2498,7 +2528,7 @@ export const STRINGS_EN = {
             },
             folderNoteType: {
                 name: 'Default folder note type',
-                desc: 'Folder note type created from the context menu.',
+                desc: 'Folder note type created from the context menu and preferred when a folder has folder notes of several types.',
                 options: {
                     ask: 'Ask when creating',
                     markdown: 'Markdown',
@@ -2648,10 +2678,38 @@ export const STRINGS_EN = {
                 buttonText: '❤️ Sponsor',
                 coffeeButton: '☕️ Buy me a coffee'
             },
-            otherPlugins: {
-                name: 'Check out my other plugins',
-                betterPaste: 'Clean up pasted text, links and images',
-                pixelPerfectImage: 'Exact image resizing and more'
+            markdownPointBanner: {
+                heading: 'Do you use Canva, Keynote or PowerPoint?',
+                atTop: {
+                    name: 'Show MarkdownPoint banner at the top',
+                    desc: 'When off, the banner appears further down the settings page.'
+                },
+                credit: 'by Johan Sanneblad',
+                messages: [
+                    { headline: 'Write your slides in Markdown.', subtext: 'Drag text and images where you want them.' },
+                    { headline: 'A free alternative to PowerPoint.', subtext: 'Sharing and collaboration are free too.' },
+                    { headline: 'Each deck is a folder on your computer.', subtext: 'You don’t need an account to make slides.' },
+                    { headline: 'Animate like Apple Motion.', subtext: 'Use keyframes, paths and morphs.' },
+                    { headline: 'Put 3D models on your slides.', subtext: 'Open a GLB or glTF file, or make one with Meshy.' },
+                    { headline: 'Collaborate like Google Slides.', subtext: 'See everyone’s pointer and comments.' },
+                    { headline: 'See every slide’s text in one place.', subtext: 'Open View > Outline and edit as Markdown.' },
+                    { headline: 'Snap objects like Figma.', subtext: 'Line up by spacing, size and angle.' },
+                    { headline: 'Export your deck as a 4K video.', subtext: 'You don’t need After Effects to animate it.' },
+                    { headline: 'Make 3D characters walk or run.', subtext: 'Use Meshy for rigging and animation.' },
+                    { headline: 'Highlight words with ==equal signs==.', subtext: '**Bold** and *italic* work just like Obsidian.' },
+                    { headline: 'Use auto layout like Figma.', subtext: 'Line up a group in a row or a column.' },
+                    { headline: 'Share a deck with a link.', subtext: 'Publish it online with a free account.' },
+                    { headline: '3D lighting like Blender.', subtext: 'Point, sun, spot and area lights with shadows.' },
+                    { headline: 'Track your decks in Git.', subtext: 'Decks are Markdown and JSON text files.' },
+                    { headline: 'Build components like Figma.', subtext: 'Edit a composition and its instances change.' },
+                    { headline: 'Browse themes like in Obsidian.', subtext: 'Install a free theme in one click.' },
+                    { headline: 'Keep your decks in a synced folder.', subtext: 'Dropbox, iCloud Drive and OneDrive all work.' },
+                    { headline: '3D with rigid-body physics.', subtext: 'Drop, tip or pile objects.' },
+                    { headline: 'Presenter notes are Markdown too.', subtext: 'They’re saved in the same file as the slides.' },
+                    { headline: 'Combine shapes like Figma.', subtext: 'Unite, subtract, intersect or exclude.' },
+                    { headline: 'Put code on your slides.', subtext: 'Code blocks are highlighted in 21 languages.' },
+                    { headline: 'Free for personal and commercial use.', subtext: 'Download it for Mac or Windows.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: 'Check for new version on start',

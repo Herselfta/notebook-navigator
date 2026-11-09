@@ -25,7 +25,6 @@ import type {
     SettingTextControl,
     SettingToggleControl
 } from 'obsidian';
-import { requireApiVersion } from 'obsidian';
 import { DEFAULT_SETTINGS } from './defaultSettings';
 import type { NotebookNavigatorSettings } from './types';
 import { normalizeOptionalVaultFolderPath } from '../utils/pathUtils';
@@ -117,6 +116,7 @@ const BOOLEAN_SETTING_KEYS = [
     'useFrontmatterMetadata',
     'showReleaseNotes',
     'checkForUpdatesOnStart',
+    'showMarkdownPointBannerAtTop',
     'showFileTaskProgress',
     'showFileTaskProgressBar',
     'showFileTaskProgressCount',
@@ -197,7 +197,6 @@ const STRING_SETTING_KEYS = [
     'characterCountSpaces',
     'alphabeticalDateMode',
     'listPaneTitle',
-    'defaultListMode',
     'propertySortSecondary',
     'manualSortNewNotePlacement',
     'collapseBehavior'
@@ -229,7 +228,6 @@ const STRING_SETTING_OPTIONS: Partial<Record<NativeStringControlKey, readonly st
     characterCountSpaces: ['include', 'exclude'],
     alphabeticalDateMode: ['created', 'modified'],
     listPaneTitle: ['header', 'list', 'hidden'],
-    defaultListMode: ['standard', 'compact'],
     propertySortSecondary: ['title', 'filename', 'created', 'modified'],
     manualSortNewNotePlacement: ['top', 'bottom', 'below-selected-note', 'unsorted'],
     collapseBehavior: ['all', 'folders-only', 'tags-only', 'properties-only']
@@ -264,17 +262,20 @@ export const NATIVE_SETTING_DOM_STATE_REFRESH_KEYS: ReadonlySet<NativeSettingCon
 export function createGroupDefinition(
     heading: string | undefined,
     items: DefinitionItems,
-    options?: { visible?: boolean | (() => boolean) }
+    options?: { visible?: boolean | (() => boolean); cls?: string }
 ): SettingDefinitionGroup {
     const group: SettingDefinitionGroup = {
         type: 'group',
         items
     };
 
-    if (requireApiVersion('1.13.0') && heading) {
+    if (heading) {
         group.heading = heading;
     }
-    if (requireApiVersion('1.13.0') && options?.visible !== undefined) {
+    if (options?.cls) {
+        group.cls = options.cls;
+    }
+    if (options?.visible !== undefined) {
         group.visible = options.visible;
     }
 
@@ -396,13 +397,13 @@ export function createRenderDefinition(options: DefinitionOptions & { render: Re
         render: (setting, group) => options.render(setting, group)
     };
 
-    if (requireApiVersion('1.13.0') && options.aliases) {
+    if (options.aliases) {
         setting.aliases = options.aliases;
     }
-    if (requireApiVersion('1.13.0') && options.searchable !== undefined) {
+    if (options.searchable !== undefined) {
         setting.searchable = options.searchable;
     }
-    if (requireApiVersion('1.13.0') && options.visible !== undefined) {
+    if (options.visible !== undefined) {
         setting.visible = options.visible;
     }
 
@@ -453,13 +454,13 @@ function createControlDefinition<K extends string>(
         control: options.control
     };
 
-    if (requireApiVersion('1.13.0') && options.aliases) {
+    if (options.aliases) {
         setting.aliases = options.aliases;
     }
-    if (requireApiVersion('1.13.0') && options.searchable !== undefined) {
+    if (options.searchable !== undefined) {
         setting.searchable = options.searchable;
     }
-    if (requireApiVersion('1.13.0') && options.visible !== undefined) {
+    if (options.visible !== undefined) {
         setting.visible = options.visible;
     }
 

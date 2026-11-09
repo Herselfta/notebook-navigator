@@ -21,6 +21,11 @@
  * Organized by feature/component for easy maintenance
  */
 export const STRINGS_IT = {
+    language: {
+        downloading: 'Download delle lingue…',
+        continueInEnglish: 'Continua in inglese',
+        downloadFailed: 'Download delle lingue non riuscito. Notebook Navigator usa l’inglese.'
+    },
     // Common UI elements
     common: {
         cancel: 'Annulla', // Button text for canceling dialogs and operations (English: Cancel)
@@ -58,6 +63,14 @@ export const STRINGS_IT = {
         manualSortHint: 'Trascina per riordinare. L\'ordine è salvato come valori indice numerici nella proprietà "{property}".',
         manualSortNonMarkdownHint: 'I file non Markdown sono mostrati in fondo e non possono essere riordinati.',
         unsortedSection: 'Non ordinato',
+        // MarkdownPoint presentation rows: the cover slide count and the presentation.mdpoint detail labels
+        presentation: {
+            slideCount: '{count} diapositive',
+            slideCountOne: '1 diapositiva',
+            theme: 'Tema',
+            slides: 'Diapositive',
+            size: 'Dimensioni'
+        },
         propertyGroupNoValue: 'Nessuno',
         manualSortDone: 'Fatto',
         manualSortMultipleWriteFailure: '{count} file non riusciti; primo: {path}: {message}'
@@ -80,12 +93,14 @@ export const STRINGS_IT = {
         reorderRootFoldersTitle: 'Riordina navigazione',
         reorderRootFoldersHint: 'Usa frecce o trascina per riordinare',
         vaultRootLabel: 'Vault',
-        resetRootToAlpha: 'Ripristina ordine alfabetico',
-        resetRootToFrequency: 'Ripristina ordine per frequenza',
+        resetAllFolders: 'Ripristina tutte le cartelle',
+        resetAllTags: 'Ripristina tutte le etichette',
+        resetAllProperties: 'Ripristina tutte le proprietà',
         pinShortcuts: 'Fissa scorciatoie',
         pinShortcutsAndRecentFiles: 'Fissa scorciatoie e file recenti',
         unpinShortcuts: 'Rimuovi fissatura scorciatoie',
         unpinShortcutsAndRecentFiles: 'Rimuovi fissatura scorciatoie e file recenti',
+        resizePinnedShortcuts: 'Ridimensiona le scorciatoie fissate',
         profileMenuAria: 'Cambia profilo vault'
     },
 
@@ -116,6 +131,7 @@ export const STRINGS_IT = {
 
     templates: {
         invalidTokens: 'Il modello "{name}" contiene token non validi: {tokens}',
+        invalidFileNameTokens: 'Il formato del nome file di "{name}" contiene token non validi: {tokens}',
         readFailed: 'Impossibile leggere il modello "{name}". La nota è stata creata senza di esso.',
         folderNotSet: 'Imposta la cartella dei modelli in Operazioni sui file e modelli > Modelli prima di creare note da modello.',
         templateNotFound: 'Il modello "{name}" non è stato trovato.',
@@ -236,10 +252,12 @@ export const STRINGS_IT = {
                     items: [
                         '`.key` Includi le note con una chiave di proprietà che inizia con `key`.',
                         '`.key=value` Includi note in cui il valore della proprietà contiene `value`.',
+                        '`.key=null` Includi note in cui la proprietà `key` esiste ma non ha un valore. `.key="null"` cerca il testo `null`.',
                         '`."Reading Status"` Includi note con una chiave di proprietà che contiene spazi.',
                         '`."Reading Status"="In Progress"` Chiavi e valori con spazi devono essere racchiusi tra virgolette doppie.',
                         '`-.key` Escludi le note con una chiave di proprietà che inizia con `key`.',
                         '`-.key=value` Escludi note in cui il valore della proprietà contiene `value`.',
+                        '`-.key=null` Escludi note in cui la proprietà `key` esiste ma non ha un valore.',
                         'Cmd/Ctrl+Clic su una proprietà per aggiungere con AND. Cmd/Ctrl+Shift+Clic per aggiungere con OR.'
                     ]
                 },
@@ -733,7 +751,7 @@ export const STRINGS_IT = {
             templatePlaceholder: 'Modelli/Riunione.md',
             fileNameFormat: 'Formato del nome file',
             fileNameFormatDesc:
-                "I token come {{date:YYYYMMDD}} e {{prompt:Titolo}} vengono sostituiti all'esecuzione del comando. Ogni prompt chiede un valore e la stessa etichetta nel modello riceve lo stesso valore.",
+                "I token come {{date:YYYYMMDD}} e {{prompt:Titolo}} vengono sostituiti all'esecuzione del comando. Ogni prompt chiede un valore e la stessa etichetta nel modello riceve lo stesso valore. {{number}} è uno in più del numero più alto usato dalle note nella cartella con lo stesso schema di nome, e {{number:00}} lo completa con zeri. Anche il modello può usare {{number}}, e {{title}} inserisce il nome file generato.",
             fileNameFormatPlaceholder: '{{date:YYYYMMDD}} {{prompt:Titolo}}',
             location: 'Posizione',
             folder: 'Cartella',
@@ -911,6 +929,7 @@ export const STRINGS_IT = {
             cannotMoveIntoSelf: 'Impossibile spostare una cartella in sé stessa o in una sottocartella.',
             itemAlreadyExists: 'Un elemento chiamato "{name}" esiste già in questa posizione.',
             failedToMove: 'Impossibile spostare: {error}',
+            failedToCopy: 'Impossibile copiare "{name}": {error}',
             failedToAddTag: 'Impossibile aggiungere l\'etichetta "{tag}"',
             failedToSetProperty: 'Impossibile aggiornare la proprietà: {error}',
             failedToClearTags: 'Impossibile rimuovere le etichette',
@@ -923,7 +942,9 @@ export const STRINGS_IT = {
             filesAlreadyHaveProperty: '{count} file hanno già questa proprietà',
             noTagsToClear: 'Nessuna etichetta da rimuovere',
             fileImported: 'Importato 1 file',
-            filesImported: 'Importati {count} file'
+            filesImported: 'Importati {count} file',
+            fileCopied: 'Copiato 1 file',
+            filesCopied: 'Copiati {count} file'
         }
     },
 
@@ -946,6 +967,9 @@ export const STRINGS_IT = {
         openMonthlyNote: 'Apri nota mensile',
         openQuarterlyNote: 'Apri nota trimestrale',
         openYearlyNote: 'Apri nota annuale',
+        openNextPeriodicNote: 'Apri nota periodica successiva',
+        openPreviousPeriodicNote: 'Apri nota periodica precedente',
+        openParentPeriodicNote: 'Apri nota periodica superiore',
         revealFile: 'Mostra file', // Command palette: Reveals and selects the currently active file in the navigator (English: Reveal file)
         search: 'Cerca', // Command palette: Toggle search in the file list (English: Search)
         searchVaultRoot: 'Cerca in tutto il vault', // Command palette: Selects the vault root folder and focuses search with subfolders included (English: Search whole vault)
@@ -1046,8 +1070,6 @@ export const STRINGS_IT = {
             exportFailed: 'Impossibile esportare report metadati'
         },
         index: {
-            label: 'Generale',
-            description: 'Note di rilascio, supporto, profilo vault, tipi di file e chiavi delle proprietà.',
             groups: {
                 about: 'Informazioni'
             }
@@ -1176,7 +1198,8 @@ export const STRINGS_IT = {
                 description: 'Diagnostica, pulizia metadati, importazione/esportazione e ripristino.',
                 groups: {
                     maintenance: 'Manutenzione',
-                    resetSettings: 'Reimposta impostazioni'
+                    resetSettings: 'Reimposta impostazioni',
+                    thirdPartyLicenses: 'Licenze di terze parti'
                 }
             }
         },
@@ -1645,8 +1668,6 @@ export const STRINGS_IT = {
             calendarLocale: {
                 name: 'Lingua',
                 desc: 'Controlla la formattazione delle date del calendario, la numerazione delle settimane e il primo giorno della settimana.',
-                weekPathMismatchWarning:
-                    'Il calendario visibile e i percorsi delle note settimanali utilizzano inizi settimana o numerazioni delle settimane diversi.',
                 options: {
                     systemDefault: 'Predefinito'
                 }
@@ -1760,7 +1781,9 @@ export const STRINGS_IT = {
                 momentLinkText: 'formato data Moment',
                 momentDescSuffix:
                     ". Racchiudi i nomi delle sottocartelle tra parentesi quadre, es. [Work]/YYYY. Clicca sull'icona del modello per impostare un modello. Imposta la posizione della cartella modelli in Operazioni sui file e modelli > Modelli.",
-                example: 'Sintassi attuale: {path}'
+                example: 'Sintassi attuale: {path}',
+                weekYearWarning:
+                    '"gggg" e "GGGG" sono anni di settimana, quindi le date vicine al Capodanno possono ricevere l’anno sbagliato. Usa "YYYY".'
             },
             templateEngine: {
                 name: 'Motore dei modelli',
@@ -1806,10 +1829,14 @@ export const STRINGS_IT = {
                 name: 'Note settimanali',
                 parsingError:
                     'Il modello deve poter essere formattato e rianalizzato come una settimana completa (anno settimana, numero settimana).',
-                weekPathMismatchWarning:
-                    'I percorsi delle note settimanali utilizzano la lingua delle note periodiche. Usa lingue corrispondenti, o usa "GGGG" con "WW" per settimane basate sul lunedì.',
+                isoWeeksWarning:
+                    'Le note settimanali usano le settimane ISO ("W" o "G"), quindi il calendario inizia le settimane di lunedì e mostra i numeri di settimana ISO. Usa "gggg" con "ww" per settimane che seguono la lingua.',
+                calendarYearWarning:
+                    'Le note settimanali prendono l’anno da "YYYY", quindi una settimana 1 che inizia a dicembre riceve l’anno precedente. Usa "GGGG" con "WW", o "gggg" con "ww".',
                 mixedWeekTokensWarning:
-                    'Questo modello mescola token di settimana basati sul lunedì ("W" o "G") con token di settimana basati sulla lingua ("w" o "g"). Usa un solo insieme in modo coerente: "GGGG" con "WW" per settimane basate sul lunedì, o "gggg" con "ww" se le note settimanali devono seguire la lingua selezionata.'
+                    'Le note settimanali mescolano token di settimana ISO ("W" o "G") con token di settimana della lingua ("w" o "g"). Usa "GGGG" con "WW" per settimane ISO, o "gggg" con "ww" per settimane che seguono la lingua.',
+                weekPathMismatchWarning:
+                    'La lingua del calendario e la lingua delle note periodiche iniziano o numerano le settimane in modo diverso, quindi i percorsi delle note settimanali non corrispondono alle settimane del calendario. Imposta la stessa lingua per entrambe, o usa "GGGG" con "WW" per settimane ISO.'
             },
             calendarMonthlyNotePattern: {
                 name: 'Note mensili',
@@ -1882,7 +1909,10 @@ export const STRINGS_IT = {
                     downloadButtonText: 'Scarica',
                     copyNotice: 'Impostazioni copiate negli appunti.',
                     downloadNotice: 'Impostazioni esportate.',
-                    downloadError: 'Impossibile scaricare le impostazioni: {message}'
+                    downloadError: 'Impossibile scaricare le impostazioni: {message}',
+                    saveButtonText: 'Salva nel vault',
+                    saveNotice: 'Impostazioni salvate in {path}.',
+                    saveError: 'Impossibile salvare le impostazioni: {message}'
                 }
             },
             resetAllSettings: {
@@ -2510,7 +2540,7 @@ export const STRINGS_IT = {
             },
             folderNoteType: {
                 name: 'Tipo nota cartella predefinito',
-                desc: 'Tipo nota cartella creata dal menu contestuale.',
+                desc: 'Tipo nota cartella creata dal menu contestuale e preferita quando una cartella ha note cartella di più tipi.',
                 options: {
                     ask: 'Chiedi quando crei',
                     markdown: 'Markdown',
@@ -2660,10 +2690,38 @@ export const STRINGS_IT = {
                 buttonText: '❤️ Sponsorizza',
                 coffeeButton: '☕️ Offrimi un caffè'
             },
-            otherPlugins: {
-                name: 'Scopri i miei altri plugin',
-                betterPaste: 'Ripulisce testo, link e immagini incollati',
-                pixelPerfectImage: 'Ridimensionamento esatto delle immagini e altro'
+            markdownPointBanner: {
+                heading: 'Usi Canva, Keynote o PowerPoint?',
+                atTop: {
+                    name: 'Mostra il banner di MarkdownPoint in alto',
+                    desc: 'Se disattivato, il banner appare più in basso nella pagina delle impostazioni.'
+                },
+                credit: 'di Johan Sanneblad',
+                messages: [
+                    { headline: 'Scrivi le tue slide in Markdown.', subtext: 'Trascina testi e immagini dove vuoi.' },
+                    { headline: 'Un’alternativa gratuita a PowerPoint.', subtext: 'Anche condivisione e collaborazione sono gratis.' },
+                    { headline: 'Le tue slide sono cartelle sul computer.', subtext: 'Non ti serve un account per creare slide.' },
+                    { headline: 'Anima come in Apple Motion.', subtext: 'Usa keyframe, tracciati e morph.' },
+                    { headline: 'Metti modelli 3D nelle tue slide.', subtext: 'Apri un file GLB o glTF, o generane uno con Meshy.' },
+                    { headline: 'Collabora come su Google Slides.', subtext: 'Vedi i puntatori e i commenti di tutti.' },
+                    { headline: 'Vedi tutto il testo in un unico posto.', subtext: 'Apri View > Outline e modificalo in Markdown.' },
+                    { headline: 'Aggancia gli oggetti come in Figma.', subtext: 'Allinea per spaziatura, dimensione e angolo.' },
+                    { headline: 'Esporta la presentazione in video 4K.', subtext: 'Per animarla non ti serve After Effects.' },
+                    { headline: 'Fai camminare o correre personaggi 3D.', subtext: 'Usa Meshy per rigging e animazione.' },
+                    { headline: 'Evidenzia con i ==segni di uguale==.', subtext: '**Grassetto** e *corsivo* vanno come in Obsidian.' },
+                    { headline: 'Usa l’auto layout come in Figma.', subtext: 'Allinea un gruppo in una riga o colonna.' },
+                    { headline: 'Condividi le slide con un link.', subtext: 'Pubblicale online con un account gratuito.' },
+                    { headline: 'Illuminazione 3D come in Blender.', subtext: 'Luci puntiformi, solari, spot e ad area con ombre.' },
+                    { headline: 'Versiona le presentazioni con Git.', subtext: 'Sono file di testo Markdown e JSON.' },
+                    { headline: 'Crea componenti come in Figma.', subtext: 'Modificalo una volta e ogni istanza cambia.' },
+                    { headline: 'Sfoglia i temi come in Obsidian.', subtext: 'Installa un tema gratis con un clic.' },
+                    { headline: 'Usa una cartella sincronizzata.', subtext: 'Dropbox, iCloud Drive e OneDrive funzionano.' },
+                    { headline: '3D con fisica dei corpi rigidi.', subtext: 'Fai cadere, ribalta o impila oggetti.' },
+                    { headline: 'Le note del relatore sono in Markdown.', subtext: 'Stanno nello stesso file delle slide.' },
+                    { headline: 'Combina forme come in Figma.', subtext: 'Unisci, sottrai, interseca o escludi.' },
+                    { headline: 'Metti del codice nelle tue slide.', subtext: 'Il codice è evidenziato in 21 linguaggi.' },
+                    { headline: 'Gratis per uso personale e commerciale.', subtext: 'Scaricala per Mac o Windows.' }
+                ]
             },
             checkForNewVersionOnStart: {
                 name: "Controlla nuova versione all'avvio",

@@ -23,6 +23,7 @@ import { getIconService } from '../icons';
 import { runAsyncAction } from '../../utils/async';
 import { NOTEBOOK_NAVIGATOR_ICON_ID } from '../../constants/notebookNavigatorIcon';
 import { removeHiddenFolderExactMatches, updateHiddenFolderExactMatches } from '../../utils/vaultProfiles';
+import { applyPendingTemplaterCursorOnFileOpen } from '../../utils/templateCursor';
 import {
     invalidateVaultIconSvgCache,
     isVaultIconFile,
@@ -135,12 +136,15 @@ export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin)
         runAsyncAction(() => plugin.activateView());
     });
 
-    // Track file opens for recent notes history
+    // Track file opens for recent notes history and place Templater cursors in notes that were opened in the background
     plugin.registerEvent(
         plugin.app.workspace.on('file-open', file => {
             if (!(file instanceof TFile)) {
                 return;
             }
+
+            // Runs before the right sidebar check because folder notes opened there are the notes this covers.
+            applyPendingTemplaterCursorOnFileOpen(plugin.app, file);
 
             if (plugin.isFileInRightSidebar(file)) {
                 return;
@@ -165,9 +169,12 @@ export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin)
                 }
 
                 if (file instanceof TFolder) {
+                    // Update folder metadata (colors, icons, etc.) to use new path. It is queued before the hidden folder
+                    // save is awaited, so creates and moves into the renamed folder queue after it and find its manual
+                    // order under the new path.
+                    const metadataUpdate = plugin.metadataService?.handleFolderRename(oldPath, file.path);
                     await syncHiddenFolderRename(oldPath, file.path);
-                    // Update folder metadata (colors, icons, etc.) to use new path
-                    await plugin.metadataService?.handleFolderRename(oldPath, file.path);
+                    await metadataUpdate;
                     return;
                 }
 
@@ -215,6 +222,14 @@ export default function registerWorkspaceEvents(plugin: NotebookNavigatorPlugin)
         plugin.app.vault.on('create', file => {
             runAsyncAction(async () => {
                 if (plugin.isShuttingDown()) {
+                    return;
+                }
+
+                if (file instanceof TFolder) {
+                    // Vault load also fires create for every existing folder; only folders created after it join manual orders
+                    if (plugin.app.workspace.layoutReady) {
+                        await plugin.metadataService?.handleFolderCreate(file.path);
+                    }
                     return;
                 }
 
