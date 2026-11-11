@@ -1095,11 +1095,12 @@ export const STRINGS_FR = {
             },
             appearanceAndBehavior: {
                 label: 'Apparence et comportement',
-                description: 'Comportement, navigation au clavier, boutons de souris, apparence et formatage.',
+                description: 'Comportement, navigation au clavier, boutons de souris, double panneau, apparence et formatage.',
                 groups: {
                     startup: 'Démarrage',
                     keyboardNavigation: 'Navigation au clavier',
                     mouseButtons: 'Boutons de souris',
+                    dualPane: 'Double panneau',
                     desktopAppearance: 'Apparence sur ordinateur',
                     mobileAppearance: 'Apparence mobile',
                     appearance: 'Apparence',
@@ -2649,6 +2650,11 @@ export const STRINGS_FR = {
                 name: 'Champs de nom',
                 desc: 'Liste de champs frontmatter séparés par des virgules. La première valeur non vide est utilisée. Retombe sur le nom du fichier.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Format du nom de note',
+                desc: "Nom affiché pour les notes qui ont un nom dans le frontmatter. {{name}} est le nom du frontmatter, {{filename}} le nom du fichier et {{date}} ou {{date:FORMAT}} la date d'une note quotidienne. Si le format contient {{date}}, les notes qui ne sont pas des notes quotidiennes affichent seulement le nom du frontmatter.",
+                placeholder: '{{name}}'
             },
             frontmatterIconField: {
                 name: "Champ d'icône",

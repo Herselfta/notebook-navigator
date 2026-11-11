@@ -1093,11 +1093,12 @@ export const STRINGS_ES = {
             },
             appearanceAndBehavior: {
                 label: 'Apariencia y comportamiento',
-                description: 'Comportamiento, navegación con teclado, botones del ratón, apariencia y formato.',
+                description: 'Comportamiento, navegación con teclado, botones del ratón, panel dual, apariencia y formato.',
                 groups: {
                     startup: 'Inicio',
                     keyboardNavigation: 'Navegación con teclado',
                     mouseButtons: 'Botones del ratón',
+                    dualPane: 'Panel dual',
                     desktopAppearance: 'Apariencia de escritorio',
                     mobileAppearance: 'Apariencia móvil',
                     appearance: 'Apariencia',
@@ -2648,6 +2649,11 @@ export const STRINGS_ES = {
                 name: 'Campos de nombre',
                 desc: 'Lista de campos frontmatter separados por comas. Se usa el primer valor no vacío. Usa el nombre de archivo como alternativa.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Formato del nombre de la nota',
+                desc: 'Nombre mostrado para las notas que tienen un nombre en el frontmatter. {{name}} es el nombre del frontmatter, {{filename}} el nombre del archivo y {{date}} o {{date:FORMAT}} la fecha de una nota diaria. Si el formato contiene {{date}}, las notas que no son notas diarias muestran solo el nombre del frontmatter.',
+                placeholder: '{{name}}'
             },
             frontmatterIconField: {
                 name: 'Campo de icono',

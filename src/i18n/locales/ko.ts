@@ -1087,11 +1087,12 @@ export const STRINGS_KO = {
             },
             appearanceAndBehavior: {
                 label: '모양 및 동작',
-                description: '동작, 키보드 탐색, 마우스 버튼, 모양 및 서식.',
+                description: '동작, 키보드 탐색, 마우스 버튼, 이중 창, 모양 및 서식.',
                 groups: {
                     startup: '시작',
                     keyboardNavigation: '키보드 탐색',
                     mouseButtons: '마우스 버튼',
+                    dualPane: '이중 창',
                     desktopAppearance: '데스크톱 모양',
                     mobileAppearance: '모바일 모양',
                     appearance: '모양',
@@ -2632,6 +2633,11 @@ export const STRINGS_KO = {
                 name: '이름 필드',
                 desc: '쉼표로 구분된 frontmatter 필드 목록. 첫 번째 비어 있지 않은 값을 사용. 파일 이름으로 대체.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: '노트 이름 형식',
+                desc: 'frontmatter 이름이 있는 노트에 표시되는 이름. {{name}}은 frontmatter 이름, {{filename}}은 파일 이름, {{date}} 또는 {{date:FORMAT}}은 일일 노트의 날짜입니다. 형식에 {{date}}가 있으면 일일 노트가 아닌 노트는 frontmatter 이름만 표시합니다.',
+                placeholder: '{{name}}'
             },
             frontmatterIconField: {
                 name: '아이콘 필드',

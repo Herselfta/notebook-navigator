@@ -1094,11 +1094,12 @@ export const STRINGS_DE = {
             },
             appearanceAndBehavior: {
                 label: 'Darstellung & Verhalten',
-                description: 'Verhalten, Tastaturnavigation, Maustasten, Darstellung und Formatierung.',
+                description: 'Verhalten, Tastaturnavigation, Maustasten, Doppelbereich, Darstellung und Formatierung.',
                 groups: {
                     startup: 'Start',
                     keyboardNavigation: 'Tastaturnavigation',
                     mouseButtons: 'Maustasten',
+                    dualPane: 'Doppelbereich',
                     desktopAppearance: 'Desktop-Darstellung',
                     mobileAppearance: 'Mobile Darstellung',
                     appearance: 'Darstellung',
@@ -2646,6 +2647,11 @@ export const STRINGS_DE = {
                 name: 'Namensfelder',
                 desc: 'Kommagetrennte Liste von Frontmatter-Feldern. Erster nicht-leerer Wert wird verwendet. Fällt auf Dateinamen zurück.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Format des Notiznamens',
+                desc: 'Name, der für Notizen mit einem Frontmatter-Namen angezeigt wird. {{name}} ist der Frontmatter-Name, {{filename}} der Dateiname und {{date}} oder {{date:FORMAT}} das Datum einer täglichen Notiz. Enthält das Format {{date}}, zeigen Notizen, die keine täglichen Notizen sind, nur den Frontmatter-Namen.',
+                placeholder: '{{name}}'
             },
             frontmatterIconField: {
                 name: 'Symbolfeld',

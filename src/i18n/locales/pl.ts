@@ -1094,11 +1094,12 @@ export const STRINGS_PL = {
             },
             appearanceAndBehavior: {
                 label: 'Wygląd i zachowanie',
-                description: 'Zachowanie, nawigacja klawiaturą, przyciski myszy, wygląd i formatowanie.',
+                description: 'Zachowanie, nawigacja klawiaturą, przyciski myszy, podwójny panel, wygląd i formatowanie.',
                 groups: {
                     startup: 'Uruchamianie',
                     keyboardNavigation: 'Nawigacja klawiaturą',
                     mouseButtons: 'Przyciski myszy',
+                    dualPane: 'Podwójny panel',
                     desktopAppearance: 'Wygląd na komputerze',
                     mobileAppearance: 'Wygląd mobilny',
                     appearance: 'Wygląd',
@@ -2670,6 +2671,11 @@ export const STRINGS_PL = {
                 name: 'Pola nazwy',
                 desc: 'Lista pól metadanych rozdzielonych przecinkami. Używana jest pierwsza poprawna wartość. W przypadku braku wartości używana jest nazwa pliku.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Format nazwy notatki',
+                desc: 'Nazwa wyświetlana dla notatek, które mają nazwę w metadanych. {{name}} to nazwa z metadanych, {{filename}} nazwa pliku, a {{date}} lub {{date:FORMAT}} data notatki dziennika. Gdy format zawiera {{date}}, notatki, które nie są notatkami dziennika, pokazują tylko nazwę z metadanych.',
+                placeholder: '{{name}}'
             },
             frontmatterCreatedField: {
                 name: 'Pole znacznika czasu utworzenia',

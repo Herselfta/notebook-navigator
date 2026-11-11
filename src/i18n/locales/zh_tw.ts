@@ -1082,11 +1082,12 @@ export const STRINGS_ZH_TW = {
             },
             appearanceAndBehavior: {
                 label: '外觀與行為',
-                description: '行為、鍵盤導覽、滑鼠按鈕、外觀與格式。',
+                description: '行為、鍵盤導覽、滑鼠按鈕、雙窗格、外觀與格式。',
                 groups: {
                     startup: '啟動',
                     keyboardNavigation: '鍵盤導覽',
                     mouseButtons: '滑鼠按鈕',
+                    dualPane: '雙窗格',
                     desktopAppearance: '桌面外觀',
                     mobileAppearance: '行動裝置外觀',
                     appearance: '外觀',
@@ -2622,6 +2623,11 @@ export const STRINGS_ZH_TW = {
                 name: '名稱欄位（多個）',
                 desc: '逗號分隔的前置欄位列表。使用第一個非空值。回退到檔名。',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: '筆記名稱格式',
+                desc: '為具有前置欄位名稱的筆記顯示的名稱。{{name}} 是前置欄位名稱，{{filename}} 是檔名，{{date}} 或 {{date:FORMAT}} 是每日筆記的日期。格式包含 {{date}} 時，非每日筆記只顯示前置欄位名稱。',
+                placeholder: '{{name}}'
             },
             frontmatterIconField: {
                 name: '圖示欄位',

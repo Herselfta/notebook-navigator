@@ -1088,11 +1088,12 @@ export const STRINGS_UK = {
             },
             appearanceAndBehavior: {
                 label: 'Вигляд і поведінка',
-                description: 'Поведінка, навігація з клавіатури, кнопки миші, вигляд і форматування.',
+                description: 'Поведінка, навігація з клавіатури, кнопки миші, подвійна панель, вигляд і форматування.',
                 groups: {
                     startup: 'Запуск',
                     keyboardNavigation: 'Навігація з клавіатури',
                     mouseButtons: 'Кнопки миші',
+                    dualPane: 'Подвійна панель',
                     desktopAppearance: "Вигляд на комп'ютері",
                     mobileAppearance: 'Мобільний вигляд',
                     appearance: 'Вигляд',
@@ -2662,6 +2663,11 @@ export const STRINGS_UK = {
                 name: 'Поля назви',
                 desc: 'Список полів frontmatter через кому. Використовується перше непорожнє значення. Якщо їх немає, використовується назва файлу.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Формат назви нотатки',
+                desc: 'Назва, що показується для нотаток із назвою у frontmatter. {{name}} — назва з frontmatter, {{filename}} — назва файлу, {{date}} або {{date:FORMAT}} — дата щоденної нотатки. Якщо формат містить {{date}}, нотатки, які не є щоденними, показують лише назву з frontmatter.',
+                placeholder: '{{name}}'
             },
             frontmatterCreatedField: {
                 name: 'Поле часової позначки створення',

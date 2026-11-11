@@ -1084,11 +1084,12 @@ export const STRINGS_EN = {
             },
             appearanceAndBehavior: {
                 label: 'Appearance & behavior',
-                description: 'Behavior, keyboard navigation, mouse buttons, appearance, and formatting.',
+                description: 'Behavior, keyboard navigation, mouse buttons, dual pane, appearance, and formatting.',
                 groups: {
                     startup: 'Startup',
                     keyboardNavigation: 'Keyboard navigation',
                     mouseButtons: 'Mouse buttons',
+                    dualPane: 'Dual pane',
                     desktopAppearance: 'Desktop appearance',
                     mobileAppearance: 'Mobile appearance',
                     appearance: 'Appearance',
@@ -2654,6 +2655,11 @@ export const STRINGS_EN = {
                 name: 'Name fields',
                 desc: 'Comma-separated list of frontmatter fields. First non-empty value is used. Falls back to file name.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Note name format',
+                desc: 'Name shown for notes that have a frontmatter name. {{name}} is the frontmatter name, {{filename}} the file name, and {{date}} or {{date:FORMAT}} the date of a daily note. With {{date}} in the format, notes that are not daily notes show only the frontmatter name.',
+                placeholder: '{{name}}'
             },
             frontmatterCreatedField: {
                 name: 'Created timestamp field',

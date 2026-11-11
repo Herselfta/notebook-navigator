@@ -1086,11 +1086,12 @@ export const STRINGS_AR = {
             },
             appearanceAndBehavior: {
                 label: 'المظهر والسلوك',
-                description: 'السلوك والتنقل بلوحة المفاتيح وأزرار الفأرة والمظهر والتنسيق.',
+                description: 'السلوك والتنقل بلوحة المفاتيح وأزرار الفأرة واللوحتان والمظهر والتنسيق.',
                 groups: {
                     startup: 'بدء التشغيل',
                     keyboardNavigation: 'التنقل بلوحة المفاتيح',
                     mouseButtons: 'أزرار الفأرة',
+                    dualPane: 'اللوحتان',
                     desktopAppearance: 'مظهر سطح المكتب',
                     mobileAppearance: 'مظهر الهاتف المحمول',
                     appearance: 'المظهر',
@@ -2657,6 +2658,11 @@ export const STRINGS_AR = {
                 name: 'حقول الاسم',
                 desc: 'قائمة حقول البيانات الأمامية مفصولة بفواصل. يُستخدم أول قيمة غير فارغة. يعود لاسم الملف.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'تنسيق اسم الملاحظة',
+                desc: 'الاسم المعروض للملاحظات التي لها اسم في البيانات الأمامية. {{name}} هو اسم البيانات الأمامية، و {{filename}} اسم الملف، و {{date}} أو {{date:FORMAT}} تاريخ الملاحظة اليومية. عند وجود {{date}} في التنسيق، تعرض الملاحظات غير اليومية اسم البيانات الأمامية فقط.',
+                placeholder: '{{name}}'
             },
             frontmatterCreatedField: {
                 name: 'حقل طابع وقت الإنشاء',

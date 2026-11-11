@@ -1091,11 +1091,12 @@ export const STRINGS_JA = {
             },
             appearanceAndBehavior: {
                 label: '外観と動作',
-                description: '動作、キーボード操作、マウスボタン、外観、書式。',
+                description: '動作、キーボード操作、マウスボタン、デュアルペイン、外観、書式。',
                 groups: {
                     startup: '起動',
                     keyboardNavigation: 'キーボード操作',
                     mouseButtons: 'マウスボタン',
+                    dualPane: 'デュアルペイン',
                     desktopAppearance: 'デスクトップの外観',
                     mobileAppearance: 'モバイルの外観',
                     appearance: '外観',
@@ -2638,6 +2639,11 @@ export const STRINGS_JA = {
                 name: '名前フィールド（複数可）',
                 desc: 'フロントマターフィールドのカンマ区切りリスト。最初の空でない値を使用。ファイル名にフォールバック。',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'ノート名の形式',
+                desc: 'フロントマターの名前を持つノートに表示される名前。{{name}} はフロントマターの名前、{{filename}} はファイル名、{{date}} または {{date:FORMAT}} はデイリーノートの日付です。形式に {{date}} が含まれる場合、デイリーノート以外のノートにはフロントマターの名前だけが表示されます。',
+                placeholder: '{{name}}'
             },
             frontmatterIconField: {
                 name: 'アイコンフィールド',

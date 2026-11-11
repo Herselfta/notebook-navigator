@@ -1089,11 +1089,12 @@ export const STRINGS_VI = {
             },
             appearanceAndBehavior: {
                 label: 'Giao diện và hành vi',
-                description: 'Hành vi, điều hướng bằng bàn phím, nút chuột, giao diện và định dạng.',
+                description: 'Hành vi, điều hướng bằng bàn phím, nút chuột, hai ngăn, giao diện và định dạng.',
                 groups: {
                     startup: 'Khởi động',
                     keyboardNavigation: 'Điều hướng bằng bàn phím',
                     mouseButtons: 'Nút chuột',
+                    dualPane: 'Hai ngăn',
                     desktopAppearance: 'Giao diện máy tính',
                     mobileAppearance: 'Giao diện di động',
                     appearance: 'Giao diện',
@@ -2660,6 +2661,11 @@ export const STRINGS_VI = {
                 name: 'Các trường tên',
                 desc: 'Danh sách trường frontmatter phân cách bằng dấu phẩy. Sử dụng giá trị không trống đầu tiên. Nếu không có, dùng tên tệp.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Định dạng tên ghi chú',
+                desc: 'Tên hiển thị cho các ghi chú có tên trong frontmatter. {{name}} là tên frontmatter, {{filename}} là tên tệp, và {{date}} hoặc {{date:FORMAT}} là ngày của ghi chú hàng ngày. Khi định dạng có {{date}}, các ghi chú không phải ghi chú hàng ngày chỉ hiển thị tên frontmatter.',
+                placeholder: '{{name}}'
             },
             frontmatterCreatedField: {
                 name: 'Trường dấu thời gian tạo',

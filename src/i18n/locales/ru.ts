@@ -1088,11 +1088,12 @@ export const STRINGS_RU = {
             },
             appearanceAndBehavior: {
                 label: 'Оформление и поведение',
-                description: 'Поведение, навигация с клавиатуры, кнопки мыши, оформление и форматирование.',
+                description: 'Поведение, навигация с клавиатуры, кнопки мыши, двухпанельный режим, оформление и форматирование.',
                 groups: {
                     startup: 'Запуск',
                     keyboardNavigation: 'Навигация с клавиатуры',
                     mouseButtons: 'Кнопки мыши',
+                    dualPane: 'Двухпанельный режим',
                     desktopAppearance: 'Оформление на компьютере',
                     mobileAppearance: 'Оформление на мобильных устройствах',
                     appearance: 'Оформление',
@@ -2662,6 +2663,11 @@ export const STRINGS_RU = {
                 name: 'Поля названия',
                 desc: 'Список полей frontmatter через запятую. Используется первое непустое значение. Возвращается к имени файла.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Формат названия заметки',
+                desc: 'Название, показываемое для заметок с названием во frontmatter. {{name}} — название из frontmatter, {{filename}} — имя файла, {{date}} или {{date:FORMAT}} — дата ежедневной заметки. Если формат содержит {{date}}, заметки, не являющиеся ежедневными, показывают только название из frontmatter.',
+                placeholder: '{{name}}'
             },
             frontmatterCreatedField: {
                 name: 'Поле даты создания',

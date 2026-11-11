@@ -1093,11 +1093,12 @@ export const STRINGS_PT_BR = {
             },
             appearanceAndBehavior: {
                 label: 'Aparência e comportamento',
-                description: 'Comportamento, navegação por teclado, botões do mouse, aparência e formatação.',
+                description: 'Comportamento, navegação por teclado, botões do mouse, painel duplo, aparência e formatação.',
                 groups: {
                     startup: 'Inicialização',
                     keyboardNavigation: 'Navegação por teclado',
                     mouseButtons: 'Botões do mouse',
+                    dualPane: 'Painel duplo',
                     desktopAppearance: 'Aparência do desktop',
                     mobileAppearance: 'Aparência móvel',
                     appearance: 'Aparência',
@@ -2671,6 +2672,11 @@ export const STRINGS_PT_BR = {
                 name: 'Campos de nome',
                 desc: 'Lista de campos frontmatter separados por vírgula. O primeiro valor não vazio é usado. Usa o nome do arquivo como alternativa.',
                 placeholder: 'title, name'
+            },
+            frontmatterNameFormat: {
+                name: 'Formato do nome da nota',
+                desc: 'Nome exibido para notas que têm um nome no frontmatter. {{name}} é o nome do frontmatter, {{filename}} o nome do arquivo e {{date}} ou {{date:FORMAT}} a data de uma nota diária. Se o formato contiver {{date}}, notas que não são notas diárias exibem apenas o nome do frontmatter.',
+                placeholder: '{{name}}'
             },
             frontmatterCreatedField: {
                 name: 'Campo de timestamp de criação',
