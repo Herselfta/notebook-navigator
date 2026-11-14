@@ -17,7 +17,7 @@
  */
 
 import { getDefaults, Lexer, Tokenizer } from 'marked';
-import type { Tokens } from 'marked';
+import type { Token, Tokens } from 'marked';
 import { TFile, TFolder } from 'obsidian';
 import type { App, EventRef, TAbstractFile } from 'obsidian';
 
@@ -55,9 +55,9 @@ export interface PresentationSummary {
     slideCount: number;
     /** Theme display name, or null when the presentation names no theme */
     themeName: string | null;
-    /** Slide size in canvas units from the theme's master.json, 1920 × 1080 where it declares none, or null when the theme is missing */
+    /** Slide size in canvas units from the theme's master.json, 1920 × 1080 where it declares none, or null when the theme is missing or MarkdownPoint refuses its master or size */
     size: { width: number; height: number } | null;
-    /** Null when the theme files are missing or unreadable; the cover then uses Obsidian colors */
+    /** Null when the theme files are missing or unreadable, or MarkdownPoint refuses the master; the cover then uses Obsidian colors */
     cover: PresentationCover | null;
 }
 
@@ -65,7 +65,13 @@ const SLIDES_FILE_NAME = 'slides.md';
 const COMPANION_FILE_NAME = 'presentation.mdpoint';
 // Format major 1 with any minor, written without leading zeros: "1.0", "1.10"
 const FORMAT_VERSION_PATTERN = /^1\.(?:0|[1-9]\d{0,8})$/;
-const PRESENTATION_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+// A lowercase canonical UUID, as the format writes a presentation's id and a theme's
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+// The keys a master states; MarkdownPoint refuses a master that leaves one out before reading any of its settings
+const MASTER_REQUIRED_KEYS = ['markdownpoint', 'type', 'id', 'fonts', 'schemes'];
+const DEFAULT_SLIDE_SIZE = { width: 1920, height: 1080 };
+// The longest side a slide has, in canvas units
+const MAX_SLIDE_SIDE = 8192;
 const STABLE_ID_PATTERN = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 const RESERVED_THEME_KEY_PATTERN = /^(?:con|prn|aux|nul|com[1-9]|lpt[1-9])$/;
 const FRONTMATTER_PATTERN = /^---[ \t]*\n(?:[^\n]*\n)*?---[ \t]*(?:\n|$)/;
@@ -75,8 +81,16 @@ const STRUCTURAL_MARKER_PATTERN =
     /^<!--\s*\/?(?:mp:)?(?:section|slide|composition|text|control|notes)(?=[:\s]|-->|$):?\s*(?:\S+?\s*)?(?:-->.*)?$/i;
 const LINE_BREAK_TAG_PATTERN = /^<br[ \t]*\/?>(?:[ \t]*\n)?/i;
 const OPEN_FENCE_PROBE = 'mp-open-fence-probe';
-const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{6}|[0-9a-f]{8})$/i;
-const BRAND_COLOR_REFERENCE_PATTERN = /^\{brand\.([^}]+)\}$/;
+// A hex color as the format writes one: three, four, six or eight digits
+const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+// A scheme role's brand color, written as its path in the master: `{brand.colors.<name>}`, the name a stable id
+const BRAND_COLOR_REFERENCE_PATTERN = /^\{brand\.colors\.([a-z][a-z0-9]*(?:-[a-z0-9]+)*)\}$/;
+// A day the calendar has, from year 0001 on, February 29 in leap years alone: a year divisible by 4, a century only when divisible by 400
+const CALENDAR_DAY =
+    '(?!0000)(?:[0-9]{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12][0-9]|3[01])|(?:0[469]|11)-(?:0[1-9]|[12][0-9]|30)|02-(?:0[1-9]|1[0-9]|2[0-8]))' +
+    '|(?:[0-9]{2}(?:0[48]|[2468][048]|[13579][26])|(?:[02468][048]|[13579][26])00)-02-29)';
+// A saved version's folder name: its save time in UTC to the second on a day the calendar has, then its tail
+const VERSION_ID_PATTERN = new RegExp(`^${CALENDAR_DAY}T(?:[01][0-9]|2[0-3])\\.[0-5][0-9]\\.[0-5][0-9]Z-[a-z0-9]{4}$`);
 // Matches `<presentation folder>/themes/<theme key>/<file>.json`; group 1 is the presentation folder (absent at the vault root)
 const THEME_FILE_PATH_PATTERN = /^(?:(.*)\/)?themes\/[^/]+\/[^/]+\.json$/;
 // Collapses the vault event burst of a save, move or sync into one read per folder
@@ -134,6 +148,30 @@ export function getPresentationPairNames(names: readonly string[]): { markdown: 
  * A file of format major 1 opens whatever its minor, since a later minor only adds what a reader may ignore.
  * The type check comes first because a regular expression test would turn an unquoted `1.1` into a match.
  */
+/**
+ * Whether a folder lies under a presentation's `versions/`, whose pairs MarkdownPoint never opens as presentations of
+ * their own: in a folder there named by a save time, or anywhere below it where the folder around `versions/` holds a
+ * presentation file, as it does around a copy of a version's folder. `holdsPresentation` says whether the vault's folder
+ * at a path holds one. `ignoresCase` says the vault's volume finds a name in another case, so `Versions/` there is the
+ * folder MarkdownPoint reads as `versions/`. Mirrors `inSavedVersions` in markdownpoint-obsidian `src/format/recognition.ts`.
+ */
+export function isInSavedVersions(folderPath: string, holdsPresentation: (folderPath: string) => boolean, ignoresCase: boolean): boolean {
+    const folders = folderPath === '/' ? [] : folderPath.split('/');
+    return folders.some(
+        (name, at) =>
+            (name === 'versions' || (ignoresCase && name.toLowerCase() === 'versions')) &&
+            (VERSION_ID_PATTERN.test(folders[at + 1] ?? '') || holdsPresentation(folders.slice(0, at).join('/') || '/'))
+    );
+}
+
+function holdsPresentationFile(app: App, folderPath: string): boolean {
+    const folder = app.vault.getAbstractFileByPath(folderPath);
+    return (
+        folder instanceof TFolder &&
+        folder.children.some(child => child instanceof TFile && getPresentationMemberKind(child.name) === 'companion')
+    );
+}
+
 function isReadableFormatVersion(value: unknown): boolean {
     return typeof value === 'string' && FORMAT_VERSION_PATTERN.test(value);
 }
@@ -154,7 +192,7 @@ export function getPresentationIdentity(frontmatter: unknown, companion: unknown
         return null;
     }
     const presentationId = frontmatter.id;
-    if (typeof presentationId !== 'string' || !PRESENTATION_ID_PATTERN.test(presentationId)) {
+    if (typeof presentationId !== 'string' || !UUID_PATTERN.test(presentationId)) {
         return null;
     }
     return companion.id === presentationId ? presentationId : null;
@@ -187,9 +225,28 @@ function endsInOpenFence(markdown: string): boolean {
 }
 
 /**
+ * Returns true when the last line of the Markdown stands in a fenced code block, one a list item or a quote ends with
+ * included, which an indented line continues (`markdownLastLineFenced` in MarkdownPoint core).
+ */
+function lastLineFenced(markdown: string): boolean {
+    const lexer = new Lexer({ ...getDefaults(), tokenizer: new PresentationTokenizer() });
+    const lastBlock = (tokens: readonly Token[] | undefined) => {
+        const blocks = tokens?.filter(token => token.type !== 'space') ?? [];
+        return blocks[blocks.length - 1];
+    };
+    let last = lastBlock(lexer.blockTokens(markdown));
+    while (last?.type === 'list' || last?.type === 'list_item' || last?.type === 'blockquote') {
+        // A list holds its items, and an item or a quote its blocks
+        const { items, tokens } = last as { items?: Token[]; tokens?: Token[] };
+        last = lastBlock(items ?? tokens);
+    }
+    return last?.type === 'code' && last.codeBlockStyle !== 'indented';
+}
+
+/**
  * Counts slides the way the MarkdownPoint app reads `slides.md` (`markerTokens` in MarkdownPoint core): one per
- * `<!-- slide: id -->` line after the frontmatter whose id is a stable id and that a line break ends. The app
- * rejects any other slide marker, so it is not counted.
+ * `<!-- slide: id -->` line after the frontmatter whose id is a stable id and that a line break ends, the spaces or
+ * tabs around it aside. The app rejects any other slide marker, so it is not counted.
  *
  * Every marker-shaped line outside code starts a new Markdown block, so a fence or HTML in one block cannot hide
  * the markers of the next. A marker-shaped line inside a fenced code block is slide content. Marked decides that
@@ -202,23 +259,29 @@ export function countPresentationSlides(markdown: string): number {
     let offset = FRONTMATTER_PATTERN.exec(text)?.[0].length ?? 0;
     let blockStart = offset;
     let fenceLineSeen = false;
+    let blockFenced = false;
     let fenceOpen = false;
     let count = 0;
     while (offset < text.length) {
         const newline = text.indexOf('\n', offset);
         const end = newline < 0 ? text.length : newline + 1;
-        // Markers are read without the trailing spaces an editor may leave
-        const line = text.slice(offset, newline < 0 ? text.length : newline).replace(/[ \t]+$/, '');
+        // Markers are read without the spaces or tabs an editor may leave at either end
+        const padded = text.slice(offset, newline < 0 ? text.length : newline).replace(/[ \t]+$/, '');
+        const line = padded.replace(/^[ \t]+/, '');
         if (line.includes('```') || line.includes('~~~')) {
             fenceLineSeen = true;
+            blockFenced = true;
         }
         if (STRUCTURAL_MARKER_PATTERN.test(line)) {
             if (fenceLineSeen || fenceOpen) {
                 fenceOpen = endsInOpenFence(text.slice(blockStart, offset));
                 fenceLineSeen = false;
             }
-            if (!fenceOpen) {
+            // An indented marker-shaped line may continue a fenced code block that a list item or a quote holds
+            const inCode = fenceOpen || (blockFenced && line !== padded && lastLineFenced(`${text.slice(blockStart, offset)}${padded}\n`));
+            if (!inCode) {
                 blockStart = end;
+                blockFenced = false;
                 const match = SLIDE_MARKER_PATTERN.exec(line);
                 if (match && newline >= 0 && STABLE_ID_PATTERN.test(match[1])) {
                     count += 1;
@@ -253,7 +316,7 @@ function resolveThemeColor(value: unknown, brandColors: Record<string, unknown>)
         return value;
     }
     const reference = BRAND_COLOR_REFERENCE_PATTERN.exec(value);
-    const brandColor = reference ? brandColors[reference[1]] : undefined;
+    const brandColor = reference && Object.prototype.hasOwnProperty.call(brandColors, reference[1]) ? brandColors[reference[1]] : undefined;
     return typeof brandColor === 'string' && HEX_COLOR_PATTERN.test(brandColor) ? brandColor : null;
 }
 
@@ -300,19 +363,55 @@ export function resolvePresentationCover(
     return { align, light, dark };
 }
 
-/** The slide size the theme's master gives, 1920 × 1080 where it declares none, as MarkdownPoint reads it; null without a master. */
+/**
+ * The theme's master as MarkdownPoint reads it, or null where MarkdownPoint refuses it before reading any of its
+ * settings, as MarkdownPoint core's theme file envelope does: it states format major 1 with any minor, its type is
+ * "master", its id is a lowercase UUID, and it has every key a master states.
+ */
+export function readableMaster(master: Record<string, unknown> | null): Record<string, unknown> | null {
+    if (!master || !MASTER_REQUIRED_KEYS.every(key => Object.prototype.hasOwnProperty.call(master, key))) {
+        return null;
+    }
+    const readable = isReadableFormatVersion(master.markdownpoint) && master.type === 'master';
+    return readable && typeof master.id === 'string' && UUID_PATTERN.test(master.id) ? master : null;
+}
+
+/**
+ * The slide size a readable master gives, as MarkdownPoint core's `masterJsonSize` reads it, or null where MarkdownPoint
+ * refuses it. A master that declares no size gives 1920 × 1080. Each side is read to the millionth and must then be a
+ * whole number from 1 to 8192, width first. Format 1.0 refuses any other side and any key beside width and height. A
+ * newer minor gives 1920 × 1080 for the whole size from the first side outside that range, and passes other keys
+ * over. Every minor refuses a size that isn't a record and a side that is left out or isn't a finite number.
+ */
 export function resolveSlideSize(master: Record<string, unknown> | null): { width: number; height: number } | null {
     if (!master) {
         return null;
     }
-    if (master.size === undefined) {
-        return { width: 1920, height: 1080 };
-    }
     const size = master.size;
-    if (!isRecord(size) || typeof size.width !== 'number' || typeof size.height !== 'number') {
+    if (size === undefined) {
+        return { ...DEFAULT_SLIDE_SIZE };
+    }
+    if (!isRecord(size) || !('width' in size) || !('height' in size)) {
         return null;
     }
-    return { width: size.width, height: size.height };
+    // MarkdownPoint reads format 1.0; a newer minor reads as far as 1.0 knows it
+    const newerMinor = master.markdownpoint !== '1.0';
+    if (!newerMinor && Object.keys(size).some(key => key !== 'width' && key !== 'height')) {
+        return null;
+    }
+    const sides: number[] = [];
+    for (const side of [size.width, size.height]) {
+        if (typeof side !== 'number' || !Number.isFinite(side)) {
+            return null;
+        }
+        // To the millionth, as MarkdownPoint keeps every number a file holds
+        const value = Number(side.toFixed(6));
+        if (!Number.isInteger(value) || value < 1 || value > MAX_SLIDE_SIDE) {
+            return newerMinor ? { ...DEFAULT_SLIDE_SIZE } : null;
+        }
+        sides.push(value);
+    }
+    return { width: sides[0], height: sides[1] };
 }
 
 function findChildFile(folder: TFolder, name: string): TFile | null {
@@ -339,12 +438,14 @@ async function readJsonRecord(app: App, path: string): Promise<Record<string, un
 }
 
 /**
- * Reads one folder and returns its summary when it holds a valid presentation pair, otherwise null.
+ * Reads one folder and returns its summary when it holds a valid presentation pair outside a presentation's saved
+ * versions, otherwise null.
  * The vault is read here, outside rendering, and rows read the cached summary.
  */
-async function readPresentation(app: App, folderPath: string): Promise<PresentationSummary | null> {
+async function readPresentation(app: App, folderPath: string, ignoresCase: boolean): Promise<PresentationSummary | null> {
     const folder = app.vault.getAbstractFileByPath(folderPath);
-    if (!(folder instanceof TFolder)) {
+    // A saved version's pair belongs to its presentation's history, never a presentation of its own
+    if (!(folder instanceof TFolder) || isInSavedVersions(folderPath, path => holdsPresentationFile(app, path), ignoresCase)) {
         return null;
     }
     const pair = getPresentationPairNames(folder.children.filter(child => child instanceof TFile).map(child => child.name));
@@ -366,7 +467,7 @@ async function readPresentation(app: App, folderPath: string): Promise<Presentat
     const slideCount = countPresentationSlides(await app.vault.cachedRead(slidesFile));
     const themeKey = isPresentationThemeKey(companion.theme) ? companion.theme : null;
     const themeFolderPath = themeKey ? joinPath(folderPath, `themes/${themeKey}`) : null;
-    const master = themeFolderPath ? await readJsonRecord(app, `${themeFolderPath}/master.json`) : null;
+    const master = readableMaster(themeFolderPath ? await readJsonRecord(app, `${themeFolderPath}/master.json`) : null);
     const titleLayout = themeFolderPath ? await readJsonRecord(app, `${themeFolderPath}/title.json`) : null;
 
     return {
@@ -405,6 +506,7 @@ export class PresentationService {
     private metadataEventRef: EventRef | null = null;
     private refreshTimer: number | null = null;
     private disposed = false;
+    private ignoresCase: Promise<boolean> | null = null;
 
     constructor(app: App) {
         this.app = app;
@@ -417,16 +519,16 @@ export class PresentationService {
     start(): void {
         const { vault, metadataCache } = this.app;
         this.vaultEventRefs.push(
-            vault.on('create', file => this.handleChange(file, file.path)),
-            vault.on('modify', file => this.handleChange(file, file.path)),
-            vault.on('delete', file => this.handleChange(file, file.path)),
+            vault.on('create', file => this.handleChange(file, file.path, true)),
+            vault.on('modify', file => this.handleChange(file, file.path, false)),
+            vault.on('delete', file => this.handleChange(file, file.path, true)),
             vault.on('rename', (file, oldPath) => {
-                this.handleChange(file, oldPath);
-                this.handleChange(file, file.path);
+                this.handleChange(file, oldPath, true);
+                this.handleChange(file, file.path, true);
             })
         );
         // Frontmatter edits in slides.md arrive here once the metadata cache has indexed them
-        this.metadataEventRef = metadataCache.on('changed', file => this.handleChange(file, file.path));
+        this.metadataEventRef = metadataCache.on('changed', file => this.handleChange(file, file.path, false));
 
         for (const file of vault.getFiles()) {
             if (getPresentationMemberKind(file.name) === 'companion') {
@@ -486,7 +588,8 @@ export class PresentationService {
         };
     }
 
-    private handleChange(file: TAbstractFile, path: string): void {
+    /** `placed` is true for an event that adds, removes or moves the file, false for one that changes what it holds. */
+    private handleChange(file: TAbstractFile, path: string, placed: boolean): void {
         if (file instanceof TFolder) {
             // A renamed or deleted folder moves or removes every presentation inside it, and a folder moved or
             // synced into the vault can bring complete presentations with it
@@ -505,6 +608,19 @@ export class PresentationService {
         const folderPath = getParentPath(path);
         if (getPresentationMemberKind(getFileName(path)) !== null) {
             this.queueFolder(folderPath);
+            // A copy of a saved version is told apart by the presentation file around its `versions/`, so it is read
+            // again when that file comes or goes
+            const folder =
+                placed && getPresentationMemberKind(getFileName(path)) === 'companion'
+                    ? this.app.vault.getAbstractFileByPath(folderPath)
+                    : null;
+            if (folder instanceof TFolder) {
+                for (const child of folder.children) {
+                    if (child instanceof TFolder && child.name.toLowerCase() === 'versions') {
+                        this.queueCompanionFoldersIn(child);
+                    }
+                }
+            }
             return;
         }
         // Theme edits change the cover and details of an already recognized presentation
@@ -537,13 +653,28 @@ export class PresentationService {
         }
     }
 
+    /**
+     * Whether the vault's volume finds a name in another case, learned once: its config folder's plugins folder spelled
+     * in the other case is found, though no folder is spelled so.
+     */
+    private vaultIgnoresCase(): Promise<boolean> {
+        this.ignoresCase ??= (async () => {
+            const known = `${this.app.vault.configDir}/plugins`;
+            const other = [...known]
+                .map(letter => (letter === letter.toLowerCase() ? letter.toUpperCase() : letter.toLowerCase()))
+                .join('');
+            return other !== known && (await this.app.vault.adapter.exists(other)) && !(await this.app.vault.adapter.exists(other, true));
+        })().catch(() => false);
+        return this.ignoresCase;
+    }
+
     private async refreshFolder(folderPath: string): Promise<void> {
         const generation = (this.readGenerations.get(folderPath) ?? 0) + 1;
         this.readGenerations.set(folderPath, generation);
 
         let next: PresentationSummary | null;
         try {
-            next = await readPresentation(this.app, folderPath);
+            next = await readPresentation(this.app, folderPath, await this.vaultIgnoresCase());
         } catch {
             // A file deleted or renamed during the read makes the folder unreadable until its next event
             next = null;
