@@ -112,10 +112,11 @@ const RELEASE_NOTES: ReleaseNote[] = [
         banner: '3.5.2.jpg',
         new: [
             'New rainbow themes, such as Pastel, Fire, Ice and 80s, and a gradient editor for custom themes in ==Rainbow themes==.',
-            'New setting ==Color intensity== sets the opacity of rainbow background colors, or how much rainbow color is mixed into the text color.'
+            'New setting ==Color intensity== sets the opacity of rainbow background colors, or how much rainbow color is mixed into the text color.',
+            'New setting Tags > ==Tag source== can use only the tags in the frontmatter and ignore tags in the note body.'
         ],
         improved: [
-            'Big improvement to shortcuts! Clicking a note, folder, tag or property shortcut now selects it without scrolling.',
+            'Big improvement to shortcuts! Clicking a note, folder, tag or property shortcut **now selects it without scrolling!**',
             'Many iPad UX dual pane improvements to headers, icons, separator lines, and more.'
         ],
         changed: [
@@ -124,7 +125,7 @@ const RELEASE_NOTES: ReleaseNote[] = [
         ],
         fixed: [
             'Dragging a note from somewhere else in Obsidian, such as a card in a Bases cards view, onto a Canvas now adds the note instead of a text card with an `obsidian://` link [#1579](https://github.com/johansan/notebook-navigator/issues/1579).',
-            'Custom and rainbow backgrounds now keep their colors after the plugin is updated.'
+            'Commands such as `Add tag to selected files` now work on the first try when Obsidian starts with the sidebar collapsed, and the tag and property commands now apply to the open note while the sidebar is collapsed.'
         ]
     },
     {
